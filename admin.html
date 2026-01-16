@@ -3,8 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RFC 랭킹 매니저 (v3.30 Seoul Fix)</title>
+    <title>RFC 랭킹 매니저 (v3.54 Bug Fix)</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Tom Select Library (검색 기능 핵심) -->
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+    
     <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; }
@@ -27,6 +32,66 @@
         .color-preset:hover { transform: scale(1.1); }
         .color-preset.active { border-color: #3b82f6; box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3b82f6; }
         .color-preset.active::after { content: '✔'; color: white; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 12px; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+
+        /* Tom Select Customization (Tailwind 스타일 통합 및 레이아웃 수정) */
+        .ts-control { 
+            border-radius: 0.5rem !important; 
+            border-color: #e2e8f0 !important; 
+            padding: 0.6rem 0.75rem !important; 
+            box-shadow: none !important; 
+            font-size: 0.875rem !important; 
+            background-color: #fff !important; 
+            display: flex !important; 
+            align-items: center !important; 
+            flex-wrap: nowrap !important; /* 줄바꿈 절대 금지 */
+            overflow: hidden !important;
+        }
+        .ts-control.focus { border-color: #3b82f6 !important; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important; }
+        
+        /* 선택된 텍스트(Item) 스타일: 말줄임표 처리 */
+        .ts-control .item {
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            max-width: 100% !important; 
+            padding-right: 2px !important;
+        }
+
+        /* 선택된 항목이 있을 때 입력창(Input) 최소화 */
+        .ts-wrapper.has-items .ts-control > input {
+            width: 1px !important; 
+            flex: 0 0 1px !important; 
+            min-width: 0 !important;
+            opacity: 0; 
+        }
+        
+        .ts-wrapper:not(.has-items) .ts-control > input {
+            width: 100% !important;
+        }
+
+        /* 드롭다운 목록 스타일 - Auto Width 적용 */
+        .ts-dropdown { 
+            border-radius: 0.5rem !important; 
+            border-color: #e2e8f0 !important; 
+            margin-top: 4px !important; 
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important; 
+            overflow: hidden !important; 
+            z-index: 50 !important;
+            
+            /* [수정] 드롭다운 너비 자동 확장 (입력창보다 넓어질 수 있음) */
+            width: max-content !important; 
+            min-width: 100% !important;
+        }
+        
+        .ts-dropdown .ts-dropdown-content { max-height: 500px !important; }
+        
+        /* [수정] 드롭다운 옵션 한 줄 강제 (줄바꿈 방지) */
+        .ts-dropdown .option { 
+            padding: 0.5rem 0.75rem !important; 
+            font-size: 0.875rem !important; 
+            white-space: nowrap !important; /* 한 줄로 표시 */
+        }
+        .ts-dropdown .active { background-color: #eff6ff !important; color: #1e40af !important; }
     </style>
 </head>
 <body class="text-slate-800 relative min-h-screen">
@@ -52,42 +117,61 @@
                 <span id="currentSeasonBadge" class="bg-slate-800 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">Loading...</span>
                 <span id="saveStatus" class="text-xs font-medium text-emerald-500 transition-opacity opacity-0">✅ 저장됨 (Secure)</span>
             </div>
-            <div class="mt-2 md:mt-0 text-xs text-slate-400 font-medium">v3.30 Seoul Fix</div>
+            <div class="mt-2 md:mt-0 text-xs text-slate-400 font-medium">v3.54 Bug Fix</div>
         </header>
 
         <div class="bg-white rounded-t-2xl border-b border-slate-200 px-4 flex gap-6 mb-4 shadow-sm overflow-x-auto">
             <button onclick="switchTab('main')" id="tabMain" class="tab-btn active py-4 whitespace-nowrap">🔥 랭킹/경기</button>
+            <button onclick="switchTab('history')" id="tabHistory" class="tab-btn py-4 whitespace-nowrap">⚔️ 경기 기록</button>
             <button onclick="switchTab('season')" id="tabSeason" class="tab-btn py-4 whitespace-nowrap">📅 시즌 관리</button>
             <button onclick="switchTab('tools')" id="tabTools" class="tab-btn py-4 whitespace-nowrap">🛠️ 데이터/백업</button>
             <button onclick="switchTab('settings')" id="tabSettings" class="tab-btn py-4 whitespace-nowrap">⚙️ 설정/메모</button>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-grow">
+            <!-- Left Column: Tools & Inputs -->
             <div class="lg:col-span-4 space-y-6">
+                
+                <!-- 1. Main: Input Match -->
                 <div id="mainSection" class="tab-content">
-                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-6">
-                        <div class="bg-slate-50 p-4 border-b border-slate-100 flex justify-between items-center"><h3 class="font-bold text-slate-700">⚔️ 경기 결과 입력</h3></div>
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 mb-6 relative z-30">
+                        <div class="bg-slate-50 p-4 border-b border-slate-100 flex justify-between items-center rounded-t-2xl"><h3 class="font-bold text-slate-700">⚔️ 경기 결과 입력</h3></div>
                         <div class="p-5">
                             <div class="space-y-4">
                                 <div class="grid grid-cols-2 gap-3">
                                     <div>
-                                        <label class="block text-xs font-bold text-blue-600 mb-1 pl-1">🔵 Blue</label>
+                                        <label class="block text-xs font-bold text-blue-600 mb-1 pl-1">🔵 Blue (검색가능)</label>
                                         <div class="flex items-center gap-2">
-                                            <select id="p1Select" class="w-full text-sm border-slate-200 rounded-lg p-2.5 bg-blue-50/50 outline-none"></select>
-                                            <div id="p1TrunkIndicator" class="w-8 h-8 rounded-full border border-slate-300 shadow-sm shrink-0 bg-slate-100" title="바지 색상"></div>
+                                            <!-- [수정] min-w-0 제거 -->
+                                            <div class="flex-grow">
+                                                <select id="p1Select" class="w-full text-sm outline-none" placeholder="선수 검색..."></select>
+                                            </div>
+                                            <!-- [수정] Trunk Indicator (w-3 h-6) -->
+                                            <div id="p1TrunkIndicator" class="w-3 h-6 rounded border border-slate-300 shadow-sm shrink-0 bg-slate-100" title="바지 색상"></div>
                                         </div>
                                     </div>
                                     <div>
-                                        <label class="block text-xs font-bold text-red-600 mb-1 pl-1">🔴 Red</label>
+                                        <label class="block text-xs font-bold text-red-600 mb-1 pl-1">🔴 Red (검색가능)</label>
                                         <div class="flex items-center gap-2">
-                                            <select id="p2Select" class="w-full text-sm border-slate-200 rounded-lg p-2.5 bg-red-50/50 outline-none"></select>
-                                            <div id="p2TrunkIndicator" class="w-8 h-8 rounded-full border border-slate-300 shadow-sm shrink-0 bg-slate-100" title="바지 색상"></div>
+                                            <!-- [수정] min-w-0 제거 -->
+                                            <div class="flex-grow">
+                                                <select id="p2Select" class="w-full text-sm outline-none" placeholder="선수 검색..."></select>
+                                            </div>
+                                            <!-- [수정] Trunk Indicator (w-3 h-6) -->
+                                            <div id="p2TrunkIndicator" class="w-3 h-6 rounded border border-slate-300 shadow-sm shrink-0 bg-slate-100" title="바지 색상"></div>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="grid grid-cols-2 gap-3 bg-slate-50 p-2 rounded-xl border border-slate-200">
-                                    <label class="cursor-pointer flex flex-col items-center gap-1 p-3 rounded-lg hover:bg-blue-100 transition border border-transparent has-[:checked]:bg-blue-100 has-[:checked]:border-blue-300"><input type="radio" name="winner" value="blue" class="w-5 h-5 accent-blue-600"><span class="text-sm font-bold text-blue-600">Blue 승</span></label>
-                                    <label class="cursor-pointer flex flex-col items-center gap-1 p-3 rounded-lg hover:bg-red-100 transition border border-transparent has-[:checked]:bg-red-100 has-[:checked]:border-red-300"><input type="radio" name="winner" value="red" class="w-5 h-5 accent-red-600"><span class="text-sm font-bold text-red-600">Red 승</span></label>
+                                    <!-- [수정] onchange="updateMatchPreview()" 추가하여 라디오 버튼 클릭 시 결과 미리보기 갱신 -->
+                                    <label class="cursor-pointer flex flex-col items-center gap-1 p-3 rounded-lg hover:bg-blue-100 transition border border-transparent has-[:checked]:bg-blue-100 has-[:checked]:border-blue-300">
+                                        <input type="radio" name="winner" value="blue" class="w-5 h-5 accent-blue-600" onchange="updateMatchPreview()">
+                                        <span class="text-sm font-bold text-blue-600">Blue 승</span>
+                                    </label>
+                                    <label class="cursor-pointer flex flex-col items-center gap-1 p-3 rounded-lg hover:bg-red-100 transition border border-transparent has-[:checked]:bg-red-100 has-[:checked]:border-red-300">
+                                        <input type="radio" name="winner" value="red" class="w-5 h-5 accent-red-600" onchange="updateMatchPreview()">
+                                        <span class="text-sm font-bold text-red-600">Red 승</span>
+                                    </label>
                                 </div>
                                 <div id="matchPreview" class="bg-gray-50 rounded-lg p-3 text-xs text-gray-600 border border-gray-200 hidden"><div id="previewContent" class="space-y-1"></div></div>
                                 <button onclick="applyMatch()" class="w-full bg-gradient-to-r from-slate-800 to-slate-900 hover:from-black text-white font-bold py-3 rounded-xl shadow-lg transition transform active:scale-95">경기 확정</button>
@@ -99,12 +183,37 @@
                         <button onclick="addNewPlayer()" class="w-full bg-emerald-50 text-emerald-600 hover:bg-emerald-100 font-bold py-3 rounded-xl border border-emerald-100 mb-3 transition">+ 새 선수 등록</button>
                         <div class="bg-orange-50 border border-orange-200 rounded-xl p-3 mb-3">
                             <div class="flex justify-between items-center mb-2"><h4 class="text-xs font-bold text-orange-700">💀 패널티 부여 (-30점)</h4></div>
-                            <div class="flex gap-2"><select id="penaltyTargetSelect" class="w-full text-xs border border-orange-200 rounded p-2 focus:outline-none bg-white"><option value="">대상 선택...</option></select><button onclick="applyManualPenalty()" class="bg-white text-orange-700 font-bold px-3 py-2 rounded-lg text-xs border border-orange-200 transition hover:bg-orange-100 whitespace-nowrap">실행</button></div>
+                            <div class="flex gap-2">
+                                <!-- [수정] min-w-0 제거 -->
+                                <div class="flex-grow">
+                                    <select id="penaltyTargetSelect" class="w-full text-xs outline-none" placeholder="대상 선택..."></select>
+                                </div>
+                                <button onclick="applyManualPenalty()" class="bg-white text-orange-700 font-bold px-3 py-2 rounded-lg text-xs border border-orange-200 transition hover:bg-orange-100 whitespace-nowrap">실행</button>
+                            </div>
                         </div>
                         <button onclick="updateRankBaseline()" class="w-full bg-slate-100 text-slate-600 hover:bg-slate-200 font-bold py-3 rounded-xl text-xs transition">📉 순위 변동(▲▼) 리셋</button>
                     </div>
                 </div>
 
+                <!-- 2. History: View Logs & Export -->
+                <div id="historySection" class="tab-content hidden">
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col h-[calc(100vh-180px)]">
+                        <div class="bg-slate-50 p-4 border-b border-slate-100 flex justify-between items-center">
+                            <h3 class="font-bold text-slate-700">⚔️ 경기 기록 Log</h3>
+                            <button onclick="openMatchExportModal()" class="bg-white border border-slate-200 text-slate-600 hover:text-blue-600 text-xs font-bold px-3 py-1.5 rounded-lg transition shadow-sm flex items-center gap-1">
+                                <span>📤</span> 텍스트 내보내기
+                            </button>
+                        </div>
+                        <div class="p-3 border-b border-slate-100">
+                             <select id="adminHistorySeason" class="w-full text-sm font-bold text-slate-700 bg-white border border-slate-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500"></select>
+                        </div>
+                        <div id="adminMatchListContainer" class="flex-grow overflow-y-auto p-3 space-y-3 bg-slate-50/50">
+                            <div class="text-center text-xs text-slate-400 py-10">기록 불러오는 중...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Season: Management -->
                 <div id="seasonSection" class="tab-content hidden">
                     <div class="space-y-4">
                         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden p-5"><h3 class="font-bold text-slate-700 mb-3 border-b pb-2">📅 시즌 목록</h3><div id="seasonListContainer" class="space-y-2 max-h-60 overflow-y-auto mb-2"></div><p class="text-[10px] text-slate-400 mt-2">* 목록에서 삭제하면 사용자 화면에서도 즉시 사라집니다.</p></div>
@@ -113,10 +222,21 @@
                     </div>
                 </div>
 
+                <!-- 4. Tools: Backup/Reset/Export -->
                 <div id="toolsSection" class="tab-content hidden">
                     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden p-5 space-y-4">
                         <h3 class="font-bold text-slate-700">🛠️ 데이터 도구</h3>
                         <div class="grid grid-cols-2 gap-2"><input type="file" id="importFile" accept=".json" class="hidden"><button onclick="document.getElementById('importFile').click()" class="bg-slate-700 hover:bg-slate-800 text-white font-bold py-3 rounded-lg text-xs">📂 데이터 복원</button><button onclick="backupData()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3 rounded-lg text-xs">💾 데이터 백업</button></div>
+                        
+                        <!-- List Export -->
+                        <div class="pt-4 border-t border-slate-100 space-y-2">
+                            <h4 class="text-xs font-bold text-blue-600">👥 선수 명단 추출</h4>
+                            <div class="grid grid-cols-1 gap-2">
+                                <button onclick="copyRankerList()" class="bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold py-3 rounded-lg text-xs border border-blue-100">🏆 랭커 명단</button>
+                                <button onclick="copyAllPlayerList()" class="bg-slate-50 text-slate-600 hover:bg-slate-100 font-bold py-3 rounded-lg text-xs border border-slate-200">📋 전체 선수 명단</button>
+                            </div>
+                        </div>
+
                         <div class="pt-4 border-t border-slate-100 space-y-2">
                             <h4 class="text-xs font-bold text-red-500">초기화 (주의)</h4>
                             <button onclick="resetAllStats()" class="w-full bg-gray-50 text-gray-500 hover:bg-gray-100 font-bold py-2 rounded-lg text-xs border border-gray-200">📊 현재 시즌 전적 초기화</button>
@@ -129,6 +249,7 @@
                     </div>
                 </div>
 
+                <!-- 5. Settings: Rules/Memo -->
                 <div id="settingsSection" class="tab-content hidden">
                     <div class="space-y-6">
                         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden p-5">
@@ -153,6 +274,7 @@
 
             </div>
 
+            <!-- Right Column: Ranking List (Persistent) -->
             <div class="lg:col-span-8 bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col h-[calc(100vh-140px)]">
                 <div class="bg-slate-50 p-4 border-b border-slate-100 flex justify-between items-center rounded-t-2xl">
                     <div><h3 class="font-bold text-slate-700">🔥 실시간 랭킹</h3><p class="text-[10px] text-slate-400 font-medium mt-0.5">현재 활성 시즌: <span class="currentSeasonName text-blue-600 font-bold"></span></p></div>
@@ -164,6 +286,7 @@
         </div>
     </div>
 
+    <!-- Edit Modal -->
     <div id="editModal" class="fixed inset-0 bg-black/50 hidden z-[9999] flex items-center justify-center">
         <div class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-lg max-h-[90vh] overflow-y-auto">
             <h3 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">✏️ 선수 정보 수정</h3>
@@ -217,6 +340,27 @@
         </div>
     </div>
 
+    <!-- Export Modal (Unified) -->
+    <div id="exportModal" class="fixed inset-0 bg-black/50 hidden z-[9999] flex items-center justify-center">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-lg">
+            <h3 id="exportModalTitle" class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">📤 텍스트 내보내기</h3>
+            
+            <!-- Match Options -->
+            <div id="exportMatchOptions" class="flex gap-2 mb-4 hidden">
+                <button onclick="generateExportText(15)" class="flex-1 bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold py-2 rounded-lg text-xs transition border border-blue-100">최근 15경기</button>
+                <button onclick="generateExportText(30)" class="flex-1 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-bold py-2 rounded-lg text-xs transition border border-indigo-100">최근 30경기</button>
+            </div>
+
+            <textarea id="exportTextarea" class="w-full h-64 p-3 text-xs font-mono border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 resize-none mb-4" readonly placeholder="상단 버튼을 눌러 기록을 생성하세요..."></textarea>
+            <div class="flex justify-between items-center">
+                <button onclick="document.getElementById('exportModal').classList.add('hidden')" class="bg-gray-100 text-gray-600 hover:bg-gray-200 px-4 py-2 rounded-lg text-sm font-bold transition">닫기</button>
+                <button onclick="copyExportText()" class="bg-slate-800 hover:bg-slate-900 text-white px-6 py-2 rounded-lg text-sm font-bold shadow transition flex items-center gap-2">
+                    <span>📋</span> 복사하기
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, doc, setDoc, getDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -228,6 +372,11 @@
         let rankingsData = []; let matchHistoryData = []; let seasonArchives = {}; let activeSeason = "시즌 1"; let adminMemos = []; let ruleHtml = "";
         let undoStack = []; const MAX_UNDO = 10;
         let searchQuery = "";
+        let enrichedHistory = []; // For History Tab
+        let viewHistorySeason = "";
+        
+        // Tom Select Instances
+        let p1Tom, p2Tom, pPenTom;
 
         const STYLE_OPTIONS = ["인파이터", "아웃복서", "슬러거", "하드 펀처", "바디 스내처", "볼륨 펀처", "스위치 히터", "브롤러", "카운터 펀처", "복서-펀처", "슬릭", "샤프슈터", "패스트 핸드"];
         const COLOR_PRESETS = [
@@ -240,10 +389,20 @@
 
         const DEFAULT_RULE_HTML = `<div class="bg-blue-50 p-4 rounded-xl border border-blue-100"><h3 class="font-bold text-blue-700 mb-2 text-base">1. 점수 계산 공식</h3><ol class="list-decimal pl-4 space-y-2 text-xs"><li><strong>기본 원리:</strong> 상대와의 점수 차이에 따라 획득/차감 점수가 달라집니다. (ELO 시스템)</li><li><strong>티어 배율 적용:</strong> 전적(판수)에 따라 승리/패배 배율이 다르게 적용됩니다.</li><li><strong>🔥 참여 보너스:</strong> 활발한 참여를 위해 결과에 무조건 <span class="text-red-500 font-bold">+5점</span>을 더해줍니다.</li></ol></div><div><h3 class="font-bold text-slate-800 mb-2">2. 숙련도(판수)별 혜택</h3><ul class="list-disc pl-4 space-y-1 text-xs"><li><span class="font-bold text-amber-700">🥉 브론즈 (0~2전):</span> 기본 점수 (x1.0)</li><li><span class="font-bold text-slate-500">🥈 실버 (3~6전):</span> 승리 시 <span class="text-blue-600">1.1배</span> / 패배 시 <span class="text-red-500">0.9배</span></li><li><span class="font-bold text-amber-500">🥇 골드 (7전 이상):</span> 승리 시 <span class="text-blue-600">1.2배</span> / 패배 시 <span class="text-red-500">0.8배</span></li></ul></div><div class="grid grid-cols-2 gap-3"><div class="p-3 bg-slate-50 rounded-xl border border-slate-100"><span class="font-bold text-xs block mb-1">🎁 참여 장려</span><span class="text-[11px] leading-tight block">승패와 상관없이 기본 <span class="text-blue-600 font-bold">+5점</span>을 추가로 지급합니다.</span></div><div class="p-3 bg-orange-50 rounded-xl border border-orange-100"><span class="font-bold text-xs text-orange-700 block mb-1">📉 불참 패널티</span><span class="text-[11px] leading-tight block">랭킹전 <span class="font-bold">n회 이상 불참 시</span> 관리자 권한으로 <span class="text-red-600 font-bold">-30점</span> 차감됩니다.</span></div></div>`;
 
-        // [KST Date Helper] v3.30 수정됨: 계산식이 아닌 브라우저 내장 기능(Intl) 사용
+        // [New] Choseong Helper Function
+        function getChoseong(str) {
+            const cho = ["ㄱ","ㄲ","ㄴ","ㄷ","ㄸ","ㄹ","ㅁ","ㅂ","ㅃ","ㅅ","ㅆ","ㅇ","ㅈ","ㅉ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"];
+            let result = "";
+            for(let i=0; i<str.length; i++) {
+                const code = str.charCodeAt(i) - 44032;
+                if(code > -1 && code < 11172) result += cho[Math.floor(code / 588)];
+                else result += str.charAt(i);
+            }
+            return result;
+        }
+
+        // [KST Date Helper]
         function getKSTDate() {
-            // 이 방식은 브라우저에게 "Asia/Seoul 시간대로 YYYY-MM-DD 포맷을 내놔라"고 강제합니다.
-            // 시간차가 발생할 여지가 없습니다.
             return new Date().toLocaleDateString("en-CA", { 
                 timeZone: "Asia/Seoul" 
             });
@@ -263,7 +422,7 @@
 
         document.getElementById('searchInput').addEventListener('input', (e) => { searchQuery = e.target.value.toLowerCase(); renderRankings(); });
         
-        // Generate Color Presets in Modal
+        // Generate Color Presets
         const presetContainer = document.getElementById('trunkColorPresets');
         COLOR_PRESETS.forEach(color => {
             const div = document.createElement('div');
@@ -285,12 +444,230 @@
             onSnapshot(docRef, (doc) => {
                 if (doc.exists()) {
                     const data = doc.data(); rankingsData = data.rankings || []; matchHistoryData = data.matchHistory || []; seasonArchives = data.seasonArchives || {}; activeSeason = data.activeSeason || "시즌 1"; adminMemos = data.adminMemos || []; ruleHtml = data.ruleHtml || DEFAULT_RULE_HTML;
+                    if(!viewHistorySeason) viewHistorySeason = activeSeason;
                     updateSeasonUI(); renderMemos(); document.getElementById('ruleHtmlInput').value = ruleHtml;
-                    rankingsData.forEach((p, i) => { if(p.defenseCount === undefined) p.defenseCount = 0; if(p.previousRank === undefined) p.previousRank = i + 1; if(p.careerHighRank === undefined) p.careerHighRank = i + 1; if(p.elo === undefined) p.elo = 1000; if(p.careerHighElo === undefined) p.careerHighElo = p.elo; });
+                    rankingsData.forEach((p, i) => { 
+                        if(p.defenseCount === undefined) p.defenseCount = 0; 
+                        if(p.previousRank === undefined) p.previousRank = i + 1; 
+                        if(p.careerHighRank === undefined) p.careerHighRank = i + 1; 
+                        if(p.elo === undefined) p.elo = 1000; 
+                        if(p.careerHighElo === undefined) p.careerHighElo = p.elo; 
+                        if(!p.trunkColor) p.trunkColor = '#1f2937'; 
+                    });
                     renderRankings(); populateMatchSelectors(); renderSeasonList(); checkSeasonInactive();
+                    
+                    enrichMatchHistory(); 
+                    updateAdminHistorySeasonSelector();
+                    renderAdminMatches();
                 }
             });
         }
+
+        function enrichMatchHistory() { 
+            const chronological = [...matchHistoryData].reverse(); 
+            const statsTracker = {}; 
+            enrichedHistory = chronological.map(match => { 
+                const winner = match.winner; 
+                const loser = match.loser; 
+                if (!statsTracker[winner]) statsTracker[winner] = { w: 0, l: 0, h: [] }; 
+                if (!statsTracker[loser]) statsTracker[loser] = { w: 0, l: 0, h: [] }; 
+                const snapshot = { [winner]: { ...statsTracker[winner] }, [loser]: { ...statsTracker[loser] } }; 
+                if (match.type !== 'draw') { 
+                    statsTracker[winner].w += 1; 
+                    statsTracker[winner].h = [...statsTracker[winner].h, 'W'].slice(-6); 
+                    statsTracker[loser].l += 1; 
+                    statsTracker[loser].h = [...statsTracker[loser].h, 'L'].slice(-6); 
+                } 
+                return { ...match, snapshot }; 
+            }); 
+            enrichedHistory.reverse(); 
+        }
+
+        function renderAdminMatches() {
+            const container = document.getElementById('adminMatchListContainer');
+            container.innerHTML = '';
+            const filtered = enrichedHistory.filter(m => (m.season || "시즌 1") === viewHistorySeason && m.type !== 'draw');
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="text-center text-xs text-slate-400 py-10">기록된 경기가 없습니다.</div>`;
+                return;
+            }
+
+            filtered.forEach((m, idx) => {
+                const rawIndex = matchHistoryData.findIndex(raw => raw.date === m.date && raw.winner === m.winner && raw.loser === m.loser);
+                const winStats = m.snapshot[m.winner] || { w:0, l:0, h:[] };
+                const loseStats = m.snapshot[m.loser] || { w:0, l:0, h:[] };
+                let winDots = ''; (winStats.h || []).forEach(r => winDots += `<div class="w-1.5 h-1.5 rounded-full ${r==='W'?'bg-emerald-400':'bg-rose-400'}"></div>`);
+                let loseDots = ''; (loseStats.h || []).forEach(r => loseDots += `<div class="w-1.5 h-1.5 rounded-full ${r==='W'?'bg-emerald-400':'bg-rose-400'}"></div>`);
+
+                const div = document.createElement('div');
+                div.className = "bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-2 relative group";
+                div.innerHTML = `
+                    <div class="flex justify-between items-center border-b border-slate-50 pb-2">
+                        <span class="text-[10px] font-bold text-slate-400">${m.date}</span>
+                        <button onclick="deleteMatchLog(${rawIndex})" class="text-slate-300 hover:text-red-500 transition opacity-0 group-hover:opacity-100" title="기록 삭제 (점수는 되돌리지 않음)">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        </button>
+                    </div>
+                    <div class="flex items-center justify-between text-xs">
+                        <div class="flex flex-col items-start w-[45%]">
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-xs font-black text-slate-800 truncate">${m.winner}</span>
+                                <span class="bg-emerald-100 text-emerald-600 text-[9px] px-1 py-0.5 rounded font-bold">WIN</span>
+                            </div>
+                            <div class="flex items-center gap-2 mt-1">
+                                <span class="text-[9px] text-slate-400 font-medium bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">${winStats.w}승 ${winStats.l}패</span>
+                                <div class="flex gap-0.5">${winDots}</div>
+                            </div>
+                        </div>
+                        <div class="text-[10px] font-bold text-slate-300">VS</div>
+                        <div class="flex flex-col items-end w-[45%]">
+                            <div class="flex items-center gap-1.5">
+                                <span class="bg-rose-100 text-rose-600 text-[9px] px-1 py-0.5 rounded font-bold">LOSE</span>
+                                <span class="text-xs font-medium text-slate-500 truncate">${m.loser}</span>
+                            </div>
+                             <div class="flex items-center gap-2 mt-1">
+                                <div class="flex gap-0.5">${loseDots}</div>
+                                <span class="text-[9px] text-slate-400 font-medium bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">${loseStats.w}승 ${loseStats.l}패</span>
+                            </div>
+                        </div>
+                    </div>`;
+                container.appendChild(div);
+            });
+        }
+
+        function updateAdminHistorySeasonSelector() {
+            const selector = document.getElementById('adminHistorySeason');
+            selector.innerHTML = '';
+            const opts = [activeSeason, ...Object.keys(seasonArchives).sort().reverse().filter(s => s !== activeSeason)];
+            opts.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s;
+                opt.textContent = s + (s === activeSeason ? " (진행중)" : "");
+                selector.appendChild(opt);
+            });
+            selector.value = viewHistorySeason;
+            selector.onchange = (e) => { viewHistorySeason = e.target.value; renderAdminMatches(); };
+        }
+
+        window.deleteMatchLog = (idx) => {
+            if (idx === -1) return;
+            if(!confirm("⚠️ 경고: 이 기록을 삭제하시겠습니까?\n\n- 로그 목록에서만 사라집니다.\n- 이미 변동된 승/패 횟수나 점수(ELO)는 되돌아가지 않습니다.\n- 점수 수정이 필요하면 '선수 수정' 메뉴를 이용하세요.")) return;
+            captureState();
+            matchHistoryData.splice(idx, 1);
+            saveRankings();
+            renderAdminMatches();
+            alert("기록이 삭제되었습니다.");
+        };
+
+        window.openMatchExportModal = () => {
+            const modal = document.getElementById('exportModal');
+            if (modal) modal.classList.remove('hidden');
+            
+            const title = document.getElementById('exportModalTitle');
+            if (title) title.textContent = "📤 경기 기록 텍스트 내보내기";
+            
+            const options = document.getElementById('exportMatchOptions');
+            if (options) options.classList.remove('hidden'); 
+            
+            const textarea = document.getElementById('exportTextarea');
+            if (textarea) textarea.value = ""; 
+            
+            generateExportText(15); 
+        };
+
+        window.generateExportText = (count) => {
+            const filtered = matchHistoryData.filter(m => (m.season || "시즌 1") === activeSeason && m.type !== 'draw');
+            const targets = filtered.slice(0, count);
+            
+            const textarea = document.getElementById('exportTextarea');
+            if (!textarea) return;
+
+            if (targets.length === 0) {
+                textarea.value = "기록된 경기가 없습니다.";
+                return;
+            }
+
+            const rankedList = rankingsData.filter(p => (p.wins + p.losses) > 0).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
+            let result = "";
+            let currentDate = "";
+
+            targets.forEach(m => {
+                let dateStr = m.date; 
+                try {
+                    const parts = dateStr.split('-');
+                    if (parts.length === 3) {
+                        const month = parseInt(parts[1], 10);
+                        const day = parseInt(parts[2], 10);
+                        dateStr = `${month}월 ${day}일`;
+                    }
+                } catch(e) {}
+
+                if (dateStr !== currentDate) {
+                    if (result !== "") result += "\n";
+                    result += `📅 ${dateStr}\n`;
+                    currentDate = dateStr;
+                }
+
+                const getPlayerLabel = (name) => {
+                    const p = rankingsData.find(x => x.name === name);
+                    if (!p) return `${name}(?)`;
+                    if ((p.wins + p.losses) === 0) return `${p.name}(UR)`;
+                    const rank = rankedList.findIndex(rp => rp.id === p.id) + 1;
+                    return `${p.name}(${rank})`;
+                };
+                result += `${getPlayerLabel(m.winner)} VS ${getPlayerLabel(m.loser)}\n`;
+            });
+            textarea.value = result;
+        };
+
+        window.copyExportText = async () => {
+            const textarea = document.getElementById('exportTextarea');
+            if (!textarea) return;
+            textarea.select();
+            try {
+                await navigator.clipboard.writeText(textarea.value);
+                alert("✅ 클립보드에 복사되었습니다!");
+            } catch (err) {
+                alert("복사 실패. 수동으로 복사해주세요.");
+            }
+        };
+
+        window.copyRankerList = () => {
+            const rankers = rankingsData.filter(p => (p.wins + p.losses) > 0).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
+            if (rankers.length === 0) return alert("랭킹에 등록된 선수가 없습니다.");
+            const text = rankers.map((p, i) => `${p.name}(${i + 1})`).join('\n');
+            
+            const modal = document.getElementById('exportModal');
+            if (modal) modal.classList.remove('hidden');
+            
+            const title = document.getElementById('exportModalTitle');
+            if (title) title.textContent = "🏆 랭커 명단";
+            
+            const options = document.getElementById('exportMatchOptions');
+            if (options) options.classList.add('hidden');
+            
+            const textarea = document.getElementById('exportTextarea');
+            if (textarea) textarea.value = text;
+        };
+
+        window.copyAllPlayerList = () => {
+            const allPlayers = [...rankingsData].sort((a, b) => a.name.localeCompare(b.name));
+            if (allPlayers.length === 0) return alert("등록된 선수가 없습니다.");
+            const text = allPlayers.map(p => p.name).join('\n');
+            
+            const modal = document.getElementById('exportModal');
+            if (modal) modal.classList.remove('hidden');
+            
+            const title = document.getElementById('exportModalTitle');
+            if (title) title.textContent = "📋 전체 선수 명단";
+            
+            const options = document.getElementById('exportMatchOptions');
+            if (options) options.classList.add('hidden');
+            
+            const textarea = document.getElementById('exportTextarea');
+            if (textarea) textarea.value = text;
+        };
 
         function captureState() {
             const currentState = { rankings: JSON.parse(JSON.stringify(rankingsData)), matchHistory: JSON.parse(JSON.stringify(matchHistoryData)), seasonArchives: JSON.parse(JSON.stringify(seasonArchives)), activeSeason: activeSeason };
@@ -312,7 +689,6 @@
                     
                     transaction.set(docRef, payload, { merge: true });
                 });
-
                 statusEl.style.opacity = 1; setTimeout(() => statusEl.style.opacity = 0, 2000); 
             } catch (e) { alert("저장 오류: " + e.message); } 
         }
@@ -342,7 +718,6 @@
             return { change: Math.round(finalChange), msg: breakdown }; 
         }
 
-        // [KST Patch] applyMatch 날짜 로직 수정
         window.applyMatch = () => { 
             const p1Idx = parseInt(document.getElementById('p1Select').value); 
             const p2Idx = parseInt(document.getElementById('p2Select').value); 
@@ -365,7 +740,6 @@
             winner.wins++; 
             loser.losses++; 
             
-            // [중요] 한국 시간 적용 (v3.30)
             const today = getKSTDate(); 
             
             winner.lastMatchDate = today; 
@@ -377,49 +751,105 @@
             alert(`반영 완료!\n${winner.name}: +${winCalc.change}\n${loser.name}: ${loseCalc.change}`); 
         };
         
-        function updateMatchPreview() { 
-            const p1Idx = document.getElementById('p1Select').value; 
-            const p2Idx = document.getElementById('p2Select').value; 
+        // [수정] updateMatchPreview: 승리자 체크 시 최종 예상 점수 표시 로직 추가
+        window.updateMatchPreview = () => { 
+            let p1Idx = "";
+            if (p1Tom) p1Idx = p1Tom.getValue();
+            else {
+                const el = document.getElementById('p1Select');
+                if(el) p1Idx = el.value;
+            }
+
+            let p2Idx = "";
+            if (p2Tom) p2Idx = p2Tom.getValue();
+            else {
+                const el = document.getElementById('p2Select');
+                if(el) p2Idx = el.value;
+            }
             
-            // Update Trunk Colors in Match Input
+            if(p1Idx !== "") p1Idx = parseInt(p1Idx);
+            if(p2Idx !== "") p2Idx = parseInt(p2Idx);
+
             const p1Ind = document.getElementById('p1TrunkIndicator');
             const p2Ind = document.getElementById('p2TrunkIndicator');
             
-            if (p1Idx !== "") p1Ind.style.backgroundColor = rankingsData[p1Idx].trunkColor || '#f1f5f9';
-            else p1Ind.style.backgroundColor = '#f1f5f9';
+            const p1 = (p1Idx !== "" && !isNaN(p1Idx)) ? rankingsData[p1Idx] : null;
+            const p2 = (p2Idx !== "" && !isNaN(p2Idx)) ? rankingsData[p2Idx] : null;
 
-            if (p2Idx !== "") p2Ind.style.backgroundColor = rankingsData[p2Idx].trunkColor || '#f1f5f9';
-            else p2Ind.style.backgroundColor = '#f1f5f9';
+            if (p1 && p1.trunkColor) {
+                p1Ind.style.backgroundColor = p1.trunkColor;
+            } else {
+                p1Ind.style.backgroundColor = '#f1f5f9'; 
+            }
 
-            if (p1Idx === "" || p2Idx === "" || p1Idx === p2Idx) { document.getElementById('matchPreview').classList.add('hidden'); return; } 
+            if (p2 && p2.trunkColor) {
+                p2Ind.style.backgroundColor = p2.trunkColor;
+            } else {
+                p2Ind.style.backgroundColor = '#f1f5f9'; 
+            }
+
+            if (!p1 || !p2 || p1Idx === p2Idx) { 
+                document.getElementById('matchPreview').classList.add('hidden'); 
+                return; 
+            } 
             
-            document.getElementById('matchPreview').classList.remove('hidden'); const p1 = rankingsData[parseInt(p1Idx)]; const p2 = rankingsData[parseInt(p2Idx)]; const blueWin = calculateHybridEloChange(p1.elo, p2.elo, true, p1); const redLose = calculateHybridEloChange(p2.elo, p1.elo, false, p2); const redWin = calculateHybridEloChange(p2.elo, p1.elo, true, p2); const blueLose = calculateHybridEloChange(p1.elo, p2.elo, false, p1); document.getElementById('previewContent').innerHTML = `<div class="font-bold text-blue-600">🔵 Blue승: +${blueWin.change} / 🔴 Red패: ${redLose.change}</div><div class="font-bold text-red-600 mt-1">🔴 Red승: +${redWin.change} / 🔵 Blue패: ${blueLose.change}</div>`; 
+            document.getElementById('matchPreview').classList.remove('hidden'); 
+            
+            // 기존 변동폭 계산
+            const blueWin = calculateHybridEloChange(p1.elo, p2.elo, true, p1); 
+            const redLose = calculateHybridEloChange(p2.elo, p1.elo, false, p2); 
+            const redWin = calculateHybridEloChange(p2.elo, p1.elo, true, p2); 
+            const blueLose = calculateHybridEloChange(p1.elo, p2.elo, false, p1); 
+            
+            // 기본 정보 표시
+            let htmlContent = `<div class="font-bold text-blue-600">🔵 Blue승: +${blueWin.change} / 🔴 Red패: ${redLose.change}</div>
+                               <div class="font-bold text-red-600 mt-1">🔴 Red승: +${redWin.change} / 🔵 Blue패: ${blueLose.change}</div>`;
+            
+            // [추가] 승리자 선택 여부 확인 및 최종 점수 계산 표시
+            const checkedRadio = document.querySelector('input[name="winner"]:checked');
+            if (checkedRadio) {
+                const winnerVal = checkedRadio.value;
+                htmlContent += `<div class="mt-2 pt-2 border-t border-gray-200 text-xs text-slate-800">
+                    <div class="font-bold mb-1">🎯 예상 결과 (적용 후)</div>`;
+                
+                if (winnerVal === 'blue') {
+                    const newP1 = (p1.elo || 1000) + blueWin.change;
+                    const newP2 = (p2.elo || 1000) + redLose.change;
+                    htmlContent += `
+                        <div class="flex justify-between">
+                            <span class="text-blue-600 font-bold">🔵 ${p1.name}: ${p1.elo} → ${newP1}</span>
+                            <span class="text-red-600 font-bold">🔴 ${p2.name}: ${p2.elo} → ${newP2}</span>
+                        </div>`;
+                } else if (winnerVal === 'red') {
+                    const newP1 = (p1.elo || 1000) + blueLose.change;
+                    const newP2 = (p2.elo || 1000) + redWin.change;
+                    htmlContent += `
+                        <div class="flex justify-between">
+                            <span class="text-blue-600 font-bold">🔵 ${p1.name}: ${p1.elo} → ${newP1}</span>
+                            <span class="text-red-600 font-bold">🔴 ${p2.name}: ${p2.elo} → ${newP2}</span>
+                        </div>`;
+                }
+                htmlContent += `</div>`;
+            }
+
+            document.getElementById('previewContent').innerHTML = htmlContent;
         }
-        document.getElementById('p1Select').addEventListener('change', updateMatchPreview); document.getElementById('p2Select').addEventListener('change', updateMatchPreview);
+        
         window.resetAllElo = () => { if(!confirm("ELO 1000 초기화?")) return; captureState(); rankingsData.forEach(p => p.elo = 1000); saveRankings(); renderRankings(); };
         window.resetAllStats = () => { if(!confirm("⚠️ 주의: 현재 시즌의 [승/패 숫자]와 [모든 경기 기록]을 초기화하시겠습니까?\n(최근 전적 표시도 사라집니다)")) return; captureState(); rankingsData.forEach(p => { p.wins = 0; p.losses = 0; }); matchHistoryData = matchHistoryData.filter(m => m.season !== activeSeason); saveRankings(); renderRankings(); alert("현재 시즌 전적과 기록이 모두 초기화되었습니다."); };
         window.resetEverything = () => { if(!confirm("🚨 전체 리셋?")) return; matchHistoryData = []; seasonArchives = {}; activeSeason = "시즌 1"; rankingsData.forEach(p => { p.wins=0; p.losses=0; p.defenseCount=0; p.elo=1000; p.careerHighElo=1000; }); saveRankings(); location.reload(); };
         
-        // [New Function] Reset All Passwords
         window.resetAllPasswords = async () => {
             if (!confirm("⚠️ 정말 모든 선수의 비밀번호를 재발급하시겠습니까?\n\n1. 모든 선수의 비밀번호가 랜덤한 4자리 숫자로 변경됩니다.\n2. 변경된 명단(이름: 번호)이 관리자의 클립보드에 자동 복사됩니다.\n3. 단톡방 등에 바로 붙여넣기 할 수 있습니다.")) return;
-
             captureState();
-            
             let reportList = "📢 [RFC] 비밀번호 전체 초기화 명단\n(개인 정보이므로 본인 것만 확인하세요)\n\n";
-            
-            // Use Promise.all to wait for all hashing to complete
             const updatePromises = rankingsData.map(async (p) => {
                 const plainPin = Math.floor(1000 + Math.random() * 9000).toString();
                 reportList += `${p.name}: ${plainPin}\n`;
-                // Store Hashed PIN in DB
                 p.password = await hashPin(plainPin);
             });
-
             await Promise.all(updatePromises);
-            
             await saveRankings();
-            
             try {
                 await navigator.clipboard.writeText(reportList);
                 alert("✅ 전체 비밀번호가 재발급되었습니다.\n\n명단이 클립보드에 복사되었습니다.\n단톡방에 '붙여넣기' 하세요.");
@@ -429,12 +859,10 @@
             }
         };
 
-        // [New Function] Individual Password Reset
         window.resetIndividualPassword = async () => {
             const randomPin = Math.floor(1000 + Math.random() * 9000).toString();
             const pwInput = document.getElementById('editPassword');
             if(pwInput) pwInput.value = randomPin;
-
             try {
                 await navigator.clipboard.writeText(randomPin);
                 alert(`✅ 새 비밀번호 [${randomPin}] 생성 완료!\n\n클립보드에 복사되었습니다.\n꼭 하단의 [저장하기] 버튼을 눌러야 반영됩니다.`);
@@ -471,7 +899,8 @@
                             ${index === 0 ? `<div class="absolute -top-1 -right-1 text-sm">👑</div>` : ''}
                         </div>
                         <div class="flex-grow min-w-0">
-                            <div class="font-bold text-sm text-slate-800 flex items-center gap-1">
+                            <div class="font-bold text-sm text-slate-800 flex items-center gap-2">
+                                <div class="w-1.5 h-4 rounded-sm shadow-sm border border-slate-100" style="background-color: ${item.trunkColor || '#1f2937'};" title="트렁크 색상"></div>
                                 <span class="truncate">${item.name}</span>
                             </div>
                             <div class="flex items-center gap-1.5 mt-0.5">
@@ -495,7 +924,8 @@
                                 <img src="${item.imageUrl || 'https://placehold.co/150?text=No+Img'}" class="w-10 h-10 rounded-full bg-slate-100 object-cover border border-slate-100 grayscale" onerror="this.src='https://placehold.co/150?text=No+Img'">
                             </div>
                             <div class="flex-grow min-w-0">
-                                <div class="font-bold text-sm text-slate-500 flex items-center gap-1">
+                                <div class="font-bold text-sm text-slate-500 flex items-center gap-2">
+                                    <div class="w-1.5 h-4 rounded-sm shadow-sm border border-slate-100" style="background-color: ${item.trunkColor || '#1f2937'};" title="트렁크 색상"></div>
                                     <span class="truncate">${item.name}</span>
                                 </div>
                                 <div class="flex items-center gap-1.5 mt-0.5">
@@ -512,7 +942,93 @@
             populateMatchSelectors(); 
         }
 
-        window.populateMatchSelectors = () => { const s1 = document.getElementById('p1Select'); const s2 = document.getElementById('p2Select'); const sPen = document.getElementById('penaltyTargetSelect'); let opts = '<option value="">선수 선택</option>'; rankingsData.forEach((p, i) => opts += `<option value="${i}">${p.name} (${p.elo})</option>`); s1.innerHTML = opts; s2.innerHTML = opts; if(sPen) sPen.innerHTML = opts; };
+        // Updated for Tom Select (Restored)
+        window.populateMatchSelectors = () => { 
+            // 1. Destroy existing instances
+            if (p1Tom) { p1Tom.destroy(); p1Tom = null; }
+            if (p2Tom) { p2Tom.destroy(); p2Tom = null; }
+            if (pPenTom) { pPenTom.destroy(); pPenTom = null; }
+
+            const s1 = document.getElementById('p1Select'); 
+            const s2 = document.getElementById('p2Select'); 
+            const sPen = document.getElementById('penaltyTargetSelect'); 
+            
+            if(!s1 || !s2) return;
+
+            // [New Logic] Calculate Ranks for Dropdown
+            // 1. Create a sorted list of ranked players to determine rank
+            const sortedRankedIndices = rankingsData
+                .map((p, i) => ({ ...p, originalIndex: i }))
+                .filter(p => (p.wins + p.losses) > 0)
+                .sort((a, b) => (b.elo || 1000) - (a.elo || 1000))
+                .map(p => p.originalIndex);
+
+            // 2. Prepare Options Data (with Rank Prefix)
+            // Tom Select allows passing an array of objects as options.
+            // We map rankingsData to this format, including 'choseong' for search.
+            
+            const playerOptions = rankingsData.map((p, index) => {
+                const rankIndex = sortedRankedIndices.indexOf(index);
+                const isRanked = rankIndex !== -1;
+                const rankPrefix = isRanked ? `${rankIndex + 1}. ` : ''; // "1. ", "2. " etc.
+                
+                // Visible text in the list
+                const displayName = `${rankPrefix}${p.name}`; 
+
+                return {
+                    value: index, // Use index to map back to rankingsData
+                    text: `${displayName} (${p.elo})`, // Display Label (also used for searching/display)
+                    displayName: displayName,
+                    name: p.name, // Search Field 1
+                    choseong: getChoseong(p.name), // Search Field 2 (New!)
+                    elo: p.elo || 1000 // Sort Field
+                };
+            });
+
+            // Sort by ELO descending (default view)
+            playerOptions.sort((a, b) => b.elo - a.elo);
+
+            // 3. Initialize Tom Select with Data
+            // Check if TomSelect is loaded
+            if (typeof TomSelect === 'undefined') {
+                console.error("Tom Select library not loaded.");
+                return;
+            }
+
+            const config = {
+                options: playerOptions,
+                valueField: 'value',
+                labelField: 'text',
+                searchField: ['name', 'choseong', 'text'], // Enable searching by name, choseong, and visible text
+                create: false,
+                maxOptions: null,
+                render: {
+                    option: function(data, escape) {
+                        return `<div><span class="font-bold text-slate-700">${escape(data.displayName)}</span> <span class="text-xs text-slate-400">(${data.elo})</span></div>`;
+                    },
+                    item: function(data, escape) {
+                        return `<div>${escape(data.displayName)} <span class="text-xs text-gray-400">(${data.elo})</span></div>`;
+                    }
+                }
+            };
+            
+            // Match Preview Logic Config
+            const previewConfig = {
+                ...config,
+                onChange: function(value) {
+                    updateMatchPreview(); // Trigger preview update when selection changes
+                }
+            };
+
+            try {
+                // We don't need to set innerHTML of select elements because we are passing 'options' in config.
+                p1Tom = new TomSelect('#p1Select', previewConfig);
+                p2Tom = new TomSelect('#p2Select', previewConfig);
+                if(sPen) pPenTom = new TomSelect('#penaltyTargetSelect', config);
+            } catch(e) {
+                console.error("Tom Select initialization failed:", e);
+            }
+        };
         
         window.savePlayerDetails = async () => { 
             const idInput = document.getElementById('editPlayerId'); if(!idInput) return;
@@ -535,7 +1051,6 @@
             p.name = newName; 
             p.defenseCount = 0; p.gameId = getVal('editGameId'); 
             
-            // [Security] Hash password if it's new
             const inputPw = getVal('editPassword');
             if (inputPw && inputPw !== p.password) {
                 if (inputPw.length <= 8) { 
@@ -546,7 +1061,7 @@
             }
 
             p.height = getVal('editHeight'); p.reach = getVal('editReach'); p.stance = getVal('editStance'); 
-            p.trunkColor = getVal('editTrunkColor'); // Save Trunk Color
+            p.trunkColor = getVal('editTrunkColor'); 
             
             p.elo = parseInt(getVal('editElo'))||1000; if(p.elo > (p.careerHighElo || 0)) p.careerHighElo = p.elo; p.wins = parseInt(getVal('editWins'))||0; p.losses = parseInt(getVal('editLosses'))||0; p.imageUrl = getVal('editImageUrlInput').trim(); const ct = document.querySelectorAll('.style-checkbox:checked'); p.tags = Array.from(ct).map(cb => cb.value); 
             
@@ -557,12 +1072,9 @@
             const name = prompt("이름:"); 
             if(name) { 
                 const randomPin = Math.floor(1000 + Math.random() * 9000).toString(); 
-                const hashedPin = await hashPin(randomPin); // [Security] Hash immediately
+                const hashedPin = await hashPin(randomPin); 
                 captureState(); 
-                
-                // [KST Patch] 가입일도 한국 시간으로
                 const today = getKSTDate();
-
                 rankingsData.push({ id: crypto.randomUUID(), name, wins:0, losses:0, defenseCount:0, previousRank: rankingsData.length+1, careerHighRank: rankingsData.length+1, elo: 1000, careerHighElo: 1000, lastMatchDate: today, password: hashedPin, trunkColor: '#1f2937' }); 
                 saveRankings(); renderRankings(); 
                 alert(`✅ [${name}] 선수가 등록되었습니다.\n초기 비밀번호: ${randomPin}\n(저장은 암호화되어 됩니다)\n\n선수에게 이 번호를 알려주세요.`); 
@@ -576,13 +1088,11 @@
             setVal('editPassword', p.password || ''); 
             setVal('editHeight', p.height || ''); setVal('editReach', p.reach || ''); setVal('editStance', p.stance || 'Orthodox'); setVal('editElo', p.elo || 1000); setVal('editWins', p.wins || 0); setVal('editLosses', p.losses || 0);
             
-            // Trunk Color Init
             const tc = p.trunkColor || '#1f2937';
             setVal('editTrunkColor', tc);
             
-            // Highlight Preset
             document.querySelectorAll('.color-preset').forEach(el => {
-                if(el.style.backgroundColor === tc || (tc.toUpperCase() === el.style.backgroundColor.toUpperCase())) { // Basic check
+                if(el.style.backgroundColor === tc || (tc.toUpperCase() === el.style.backgroundColor.toUpperCase())) { 
                     el.classList.add('active');
                 } else {
                     el.classList.remove('active');
