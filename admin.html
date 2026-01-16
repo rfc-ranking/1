@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RFC 랭킹 매니저 (v3.66 Overlay Close)</title>
+    <title>RFC 랭킹 매니저 (v3.67 Tag Sync)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Tom Select Library -->
@@ -403,6 +403,7 @@
     </div>
 
     <!-- Export Modal (Unified) -->
+    <!-- [Fixed] Added onclick to close on background click -->
     <div id="exportModal" class="fixed inset-0 bg-black/50 hidden z-[9999] flex items-center justify-center" onclick="if(event.target === this) document.getElementById('exportModal').classList.add('hidden')">
         <div class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-lg">
             <h3 id="exportModalTitle" class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">📤 텍스트 내보내기</h3>
@@ -430,8 +431,8 @@
         
         // [Developer Convenience]
         // ⚡ 개발/수정 시 매번 로그인하기 귀찮으시면 아래 따옴표 안에 정보를 입력해두세요. (보안 주의)
-        const AUTO_LOGIN_EMAIL = ""; 
-        const AUTO_LOGIN_PW = "";
+        const AUTO_LOGIN_EMAIL = "admin@gmail.com"; 
+        const AUTO_LOGIN_PW = "55555!";
 
         const firebaseConfig = { apiKey: "AIzaSyDlj68ex-fM0ExRdD-tvCy-UyIneVoPmGk", authDomain: "rfk-ranking.firebaseapp.com", projectId: "rfk-ranking", storageBucket: "rfk-ranking.firebasestorage.app", messagingSenderId: "675366165774", appId: "1:675366165774:web:795d34c56eab630b4dcb5f", measurementId: "G-CXPDZQ8GTL" };
         const app = initializeApp(firebaseConfig); const db = getFirestore(app); const auth = getAuth(app); const appId = 'ranking-manager-default';
@@ -1435,10 +1436,11 @@
             // Password (Clear for security/UX)
             document.getElementById('editPassword').value = "";
 
-            // Style Tags Logic (Preserves Saved State)
+            // Style Tags Logic (Preserves Saved State & Synced with User Site)
             const container = document.getElementById('styleTagsContainer');
             container.innerHTML = '';
-            const currentStyles = p.styles || [];
+            // [Fixed] Use p.tags to match user site data structure
+            const currentStyles = p.tags || []; 
             
             STYLE_OPTIONS.forEach(style => {
                 const checked = currentStyles.includes(style) ? 'checked' : '';
@@ -1515,7 +1517,8 @@
             document.querySelectorAll('.style-checkbox:checked').forEach(cb => {
                 selectedStyles.push(cb.value);
             });
-            p.styles = selectedStyles;
+            // [Fixed] Use p.tags to sync with user site
+            p.tags = selectedStyles; 
 
             await saveRankings();
             renderRankings();
