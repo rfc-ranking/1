@@ -24,6 +24,8 @@
         @keyframes modalSlideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         .boxrec-win { background: linear-gradient(180deg, #16a34a 0%, #15803d 100%); }
         .boxrec-loss { background: linear-gradient(180deg, #dc2626 0%, #b91c1c 100%); }
+        
+        /* 스타일 태그 체크 효과 */
         .style-checkbox:checked + label { background-color: #3b82f6 !important; color: white !important; border-color: #3b82f6 !important; }
 
         /* Color Preset Styling */
@@ -158,10 +160,22 @@
         
         // [Security] SHA-256 Hashing for Client Side Verification
         async function hashPin(pin) {
-            const msgBuffer = new TextEncoder().encode(pin);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            if (!pin) return "";
+            try {
+                // crypto.subtle requires secure context (https)
+                if (window.crypto && window.crypto.subtle) {
+                    const msgBuffer = new TextEncoder().encode(pin);
+                    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+                    const hashArray = Array.from(new Uint8Array(hashBuffer));
+                    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                } else {
+                    console.warn("Secure context required for crypto.subtle. Storing plaintext (not recommended for production).");
+                    return pin; // Fallback for insecure environments
+                }
+            } catch (e) {
+                console.error("Hashing failed:", e);
+                return pin; // Fallback
+            }
         }
 
         onSnapshot(docRef, (docSnapshot) => {
@@ -182,6 +196,7 @@
             const div = document.createElement('div');
             div.className = 'color-preset shadow-sm';
             div.style.backgroundColor = color.code;
+            div.dataset.color = color.code; // [Fixed] Added data-color for robust comparison
             div.title = color.name;
             div.onclick = () => selectUserPresetColor(color.code, div);
             presetContainer.appendChild(div);
@@ -370,11 +385,15 @@
             document.getElementById('userEditHeight').value = p.height || ''; document.getElementById('userEditReach').value = p.reach || ''; document.getElementById('userEditStance').value = p.stance || 'Orthodox'; document.getElementById('userEditGameId').value = p.gameId || ''; document.getElementById('userEditPin').value = ''; 
             document.getElementById('userImageUrlInput').value = p.imageUrl || ''; document.getElementById('userEditPreview').src = p.imageUrl || 'https://placehold.co/150?text=No+Img';
             
-            // User Edit Trunk Color Init
+            // [Fixed] User Edit Trunk Color Init (Robust Comparison)
             const tc = p.trunkColor || '#1f2937';
             document.getElementById('userEditTrunkColor').value = tc;
             document.querySelectorAll('#userEditModal .color-preset').forEach(el => {
-                if(el.style.backgroundColor === tc || (tc.toUpperCase() === el.style.backgroundColor.toUpperCase())) {
+                // Use dataset.color if available for precise matching
+                const presetColor = el.dataset.color;
+                if((presetColor && presetColor.toLowerCase() === tc.toLowerCase()) || 
+                   el.style.backgroundColor === tc || 
+                   (tc.toUpperCase() === el.style.backgroundColor.toUpperCase())) {
                     el.classList.add('active');
                 } else {
                     el.classList.remove('active');
