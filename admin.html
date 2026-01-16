@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RFC 랭킹 매니저 (v3.60 Fix Reset Button)</title>
+    <title>RFC 랭킹 매니저 (v3.66 Overlay Close)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Tom Select Library -->
@@ -15,7 +15,10 @@
         body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; }
         .rank-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .rank-up { color: #dc2626; font-weight: 800; } .rank-down { color: #2563eb; font-weight: 800; } .rank-keep { color: #9ca3af; }
+        
+        /* [핵심] 스타일 태그: 체크된 상태의 시각적 효과 (파란 배경, 흰 글씨) */
         .style-checkbox:checked + label { background-color: #3b82f6 !important; color: white !important; border-color: #3b82f6 !important; }
+        
         .tab-btn { @apply text-slate-500 border-b-2 border-transparent hover:text-slate-700 font-medium transition-colors; }
         .tab-btn.active { @apply text-blue-600 border-blue-600 font-bold; }
         ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: #f1f1f1; } ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; } ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
@@ -29,6 +32,8 @@
         
         .color-preset { width: 32px; height: 32px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; position: relative; }
         .color-preset:hover { transform: scale(1.1); }
+        
+        /* [핵심] 바지 색상: 선택된 상태(active)의 시각적 효과 (파란 테두리, 체크 아이콘) */
         .color-preset.active { border-color: #3b82f6; box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3b82f6; }
         .color-preset.active::after { content: '✔'; color: white; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 12px; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
 
@@ -45,8 +50,24 @@
 </head>
 <body class="text-slate-800 relative min-h-screen">
 
-    <!-- [New] Custom Confirm Modal (Replaces native confirm) -->
-    <div id="customConfirmModal" class="fixed inset-0 bg-slate-900/80 z-[10000] hidden flex items-center justify-center backdrop-blur-sm">
+    <!-- Custom Alert Modal (For Warnings) -->
+    <div id="customAlertModal" class="fixed inset-0 bg-slate-900/80 z-[10001] hidden flex items-center justify-center backdrop-blur-sm" onclick="if(event.target === this) closeAlertModal()">
+        <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-sm w-full mx-4 transform transition-all scale-100">
+            <div class="text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-amber-100 mb-4">
+                    <svg class="h-6 w-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-bold text-slate-800 mb-2">알림</h3>
+                <p id="alertMessage" class="text-sm text-slate-600 mb-6 whitespace-pre-wrap leading-relaxed">내용</p>
+                <button onclick="closeAlertModal()" class="w-full bg-slate-800 hover:bg-slate-900 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg transition">확인</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Confirm Modal -->
+    <div id="customConfirmModal" class="fixed inset-0 bg-slate-900/80 z-[10000] hidden flex items-center justify-center backdrop-blur-sm" onclick="if(event.target === this) closeConfirmModal()">
         <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-sm w-full mx-4 transform transition-all scale-100">
             <div class="text-center">
                 <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
@@ -72,9 +93,14 @@
         <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm text-center border border-slate-200">
             <div class="text-4xl mb-2">🥊</div>
             <h2 class="text-2xl font-black text-slate-800 mb-6">RFC Admin Security</h2>
-            <input type="email" id="adminEmail" placeholder="admin@rfc.com" class="w-full p-3 border border-slate-300 rounded-lg mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 transition">
-            <input type="password" id="adminPw" placeholder="Password" class="w-full p-3 border border-slate-300 rounded-lg mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 transition">
-            <button id="btnLogin" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-lg transition transform active:scale-95 shadow-lg shadow-blue-500/30">시스템 접속</button>
+            <div id="loginFormContainer">
+                <input type="email" id="adminEmail" placeholder="admin@rfc.com" class="w-full p-3 border border-slate-300 rounded-lg mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 transition">
+                <input type="password" id="adminPw" placeholder="Password" class="w-full p-3 border border-slate-300 rounded-lg mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 transition">
+                <button id="btnLogin" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-lg transition transform active:scale-95 shadow-lg shadow-blue-500/30">시스템 접속</button>
+            </div>
+            <div id="autoLoginMsg" class="hidden mt-4 text-emerald-600 font-bold text-sm animate-pulse">
+                ⚡ 개발자 자동 로그인 중...
+            </div>
         </div>
     </div>
 
@@ -85,7 +111,7 @@
                 <span id="currentSeasonBadge" class="bg-slate-800 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">Loading...</span>
                 <span id="saveStatus" class="text-xs font-medium text-emerald-500 transition-opacity opacity-0">✅ 저장됨 (Secure)</span>
             </div>
-            <div class="mt-2 md:mt-0 text-xs text-slate-400 font-medium">v3.60 Fix Reset Button</div>
+            <div class="mt-2 md:mt-0 text-xs text-slate-400 font-medium">v3.66 Overlay Close</div>
         </header>
 
         <div class="bg-white rounded-t-2xl border-b border-slate-200 px-4 flex gap-6 mb-4 shadow-sm overflow-x-auto">
@@ -249,7 +275,8 @@
     </div>
 
     <!-- [New] Add Player Modal (Prompt 대체용) -->
-    <div id="newPlayerModal" class="fixed inset-0 bg-black/50 hidden z-[9999] flex items-center justify-center">
+    <!-- [Fixed] Added onclick to close on background click -->
+    <div id="newPlayerModal" class="fixed inset-0 bg-black/50 hidden z-[9999] flex items-center justify-center" onclick="if(event.target === this) document.getElementById('newPlayerModal').classList.add('hidden')">
         <div class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-sm">
             <h3 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">👤 새 선수 등록</h3>
             <p class="text-xs text-gray-500 mb-3">등록할 선수의 이름을 입력해주세요.</p>
@@ -262,51 +289,97 @@
     </div>
 
     <!-- Edit Modal -->
-    <div id="editModal" class="fixed inset-0 bg-black/50 hidden z-[9999] flex items-center justify-center">
-        <div class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-lg max-h-[90vh] overflow-y-auto">
+    <!-- [Fixed] Added onclick to close on background click -->
+    <div id="editModal" class="fixed inset-0 bg-black/50 hidden z-[9999] flex items-center justify-center" onclick="if(event.target === this) document.getElementById('editModal').classList.add('hidden')">
+        <!-- [Changed] max-w-lg -> max-w-xl to accommodate larger image layout -->
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-xl max-h-[90vh] overflow-y-auto">
             <h3 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">✏️ 선수 정보 수정</h3>
             <input type="hidden" id="editPlayerId"><input type="hidden" id="editOriginalName">
-            <div class="grid grid-cols-2 gap-3 mb-3"><div><label class="text-xs text-gray-500 block mb-1">이름</label><input type="text" id="editName" class="w-full border p-2 rounded text-sm font-bold"></div><div><label class="text-xs text-gray-500 block mb-1">방어전 횟수 (미사용)</label><input type="number" id="editDefenses" class="w-full border p-2 rounded text-sm bg-gray-100 text-gray-400" disabled></div></div>
-            <div class="grid grid-cols-3 gap-2 mb-3">
-                <div><label class="text-xs text-gray-500 block mb-1">Game ID</label><input type="text" id="editGameId" class="w-full border p-2 rounded text-sm" placeholder="ID 입력"></div>
+            
+            <!-- 1. 좌측 초대형 이미지 (192px) + 우측 핵심 스탯/URL 통합 -->
+            <div class="flex gap-6 mb-6">
+                <!-- Image Section: w-32 -> w-48 (192px) -->
+                <div class="relative w-48 h-48 shrink-0 group">
+                    <img id="previewImage" src="" class="w-full h-full rounded-2xl object-cover border border-slate-200 bg-slate-50 shadow-sm" onerror="this.src='https://placehold.co/150?text=No+Img'">
+                    <button onclick="removeImage()" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1.5 shadow-md hover:bg-red-600 transition opacity-0 group-hover:opacity-100" title="이미지 삭제">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                    </button>
+                </div>
                 
-                <div>
-                    <label class="text-xs text-gray-500 block mb-1 font-bold text-blue-600">비밀번호</label>
-                    <div class="flex gap-1">
-                        <input type="text" id="editPassword" class="w-full border p-2 rounded text-sm font-mono font-bold bg-blue-50 text-blue-700" placeholder="수정 시 입력">
-                        <button onclick="resetIndividualPassword()" class="bg-slate-200 text-slate-700 px-2 rounded-lg text-xs hover:bg-slate-300 font-bold transition flex items-center justify-center shadow-sm" title="랜덤 초기화 & 복사">🔄</button>
+                <!-- Right Side Inputs -->
+                <div class="flex-grow flex flex-col justify-between py-1">
+                     <!-- URL Input -->
+                    <div>
+                        <label class="text-xs font-bold text-slate-500 mb-1.5 block">프로필 이미지 URL</label>
+                        <input type="text" id="editImageUrlInput" placeholder="이미지 주소 붙여넣기..." class="w-full border border-slate-300 p-2.5 rounded-lg text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition" oninput="updatePreview(this.value)">
+                        <p class="text-[10px] text-gray-400 mt-1.5 leading-snug">* 디스코드/카톡 이미지 우클릭 → <strong>'주소 복사'</strong></p>
+                    </div>
+
+                    <!-- Stats Row (Wins/Losses/Elo) -->
+                    <div>
+                        <label class="text-xs font-bold text-slate-500 mb-1.5 block">시즌 전적 & 점수 (수동 조절)</label>
+                        <div class="flex gap-2">
+                            <div class="flex-1">
+                                <div class="relative">
+                                    <input type="number" id="editWins" class="w-full border border-emerald-200 bg-emerald-50 p-2.5 rounded-lg text-sm text-center font-bold text-emerald-700 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
+                                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-emerald-400 font-medium select-none">승</span>
+                                </div>
+                            </div>
+                            <div class="flex-1">
+                                <div class="relative">
+                                    <input type="number" id="editLosses" class="w-full border border-rose-200 bg-rose-50 p-2.5 rounded-lg text-sm text-center font-bold text-rose-700 focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500">
+                                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-rose-400 font-medium select-none">패</span>
+                                </div>
+                            </div>
+                            <div class="flex-1">
+                                <div class="relative">
+                                    <input type="number" id="editElo" class="w-full border border-amber-200 bg-amber-50 p-2.5 rounded-lg text-sm text-center font-bold text-amber-700 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500">
+                                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-amber-400 font-medium select-none">점</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-
-                <div><label class="text-xs text-gray-500 block mb-1">ELO (수동)</label><input type="number" id="editElo" class="w-full border p-2 rounded text-sm text-amber-600 font-bold bg-amber-50"></div>
             </div>
-            <div class="mb-3 p-3 bg-gray-50 rounded border border-gray-200"><label class="block text-xs font-bold text-gray-600 mb-2">📊 시즌 전적 수동 조절</label><div class="grid grid-cols-2 gap-3"><div><label class="text-xs text-gray-400">승 (Wins)</label><input type="number" id="editWins" class="w-full border p-2 rounded text-sm text-center font-bold text-green-600"></div><div><label class="text-xs text-gray-400">패 (Losses)</label><input type="number" id="editLosses" class="w-full border p-2 rounded text-sm text-center font-bold text-red-600"></div></div></div>
-            
-            <div class="mb-4">
-                <label class="text-xs text-gray-500 block mb-1">프로필 이미지 (URL 주소)</label>
-                <div class="flex items-start gap-4">
-                    <div class="relative w-16 h-16 shrink-0"><img id="previewImage" src="" class="w-full h-full rounded-2xl object-cover border border-gray-200 bg-gray-50" onerror="this.src='https://placehold.co/150?text=No+Img'"><button onclick="removeImage()" class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 shadow-sm hover:bg-red-600" title="지우기"><svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg></button></div>
-                    <div class="flex-grow"><input type="text" id="editImageUrlInput" placeholder="예: https://imgur.com/..." class="w-full border p-2 rounded text-sm bg-slate-50 focus:bg-white transition" oninput="updatePreview(this.value)"><p class="text-[10px] text-gray-400 mt-1.5 leading-snug">* <strong>사용법:</strong> 디스코드나 카톡에 사진을 올린 뒤, 우클릭하여 <strong>'이미지 주소 복사'</strong> 후 붙여넣으세요.</p></div>
+
+            <!-- 2. 기본 정보 (이름, GameID, PW) -->
+            <div class="grid grid-cols-12 gap-3 mb-3">
+                <div class="col-span-4">
+                    <label class="text-xs text-gray-500 block mb-1">이름</label>
+                    <input type="text" id="editName" class="w-full border p-2 rounded text-sm font-bold bg-white focus:outline-none focus:border-blue-500">
+                </div>
+                <div class="col-span-4">
+                    <label class="text-xs text-gray-500 block mb-1">Game ID</label>
+                    <input type="text" id="editGameId" class="w-full border p-2 rounded text-sm bg-white focus:outline-none focus:border-blue-500" placeholder="ID 입력">
+                </div>
+                <div class="col-span-4">
+                    <label class="text-xs text-gray-500 block mb-1 font-bold text-blue-600">비밀번호</label>
+                    <div class="flex gap-1">
+                        <input type="text" id="editPassword" class="w-full border p-2 rounded text-sm font-mono font-bold bg-blue-50 text-blue-700 focus:outline-none focus:border-blue-500" placeholder="변경 시 입력">
+                        <button onclick="resetIndividualPassword()" class="bg-slate-200 text-slate-700 px-2 rounded-lg text-xs hover:bg-slate-300 font-bold transition flex items-center justify-center shadow-sm" title="랜덤 초기화">🔄</button>
+                    </div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-4 gap-3 mb-3">
-                <div class="col-span-1"><label class="text-xs text-gray-500 block mb-1">키 (cm)</label><input type="text" id="editHeight" class="w-full border p-2 rounded text-sm"></div>
-                <div class="col-span-1"><label class="text-xs text-gray-500 block mb-1">리치 (cm)</label><input type="text" id="editReach" class="w-full border p-2 rounded text-sm"></div>
-                <div class="col-span-2"><label class="text-xs text-gray-500 block mb-1">스탠스</label><select id="editStance" class="w-full border p-2 rounded text-sm bg-white"><option value="Orthodox">Orthodox</option><option value="Southpaw">Southpaw</option><option value="Switch">Switch</option></select></div>
+            <!-- 3. 신체 스펙 -->
+            <div class="grid grid-cols-3 gap-3 mb-4">
+                <div><label class="text-xs text-gray-500 block mb-1">키 (cm)</label><input type="text" id="editHeight" class="w-full border p-2 rounded text-sm focus:outline-none focus:border-blue-500"></div>
+                <div><label class="text-xs text-gray-500 block mb-1">리치 (cm)</label><input type="text" id="editReach" class="w-full border p-2 rounded text-sm focus:outline-none focus:border-blue-500"></div>
+                <div><label class="text-xs text-gray-500 block mb-1">스탠스</label><select id="editStance" class="w-full border p-2 rounded text-sm bg-white focus:outline-none focus:border-blue-500"><option value="Orthodox">Orthodox</option><option value="Southpaw">Southpaw</option><option value="Switch">Switch</option></select></div>
             </div>
             
+            <!-- 4. Visuals -->
             <div class="mb-4">
                 <label class="text-xs text-gray-500 block mb-2">바지 색상 (10가지 프리셋)</label>
                 <div id="trunkColorPresets" class="flex flex-wrap gap-2">
-                    </div>
+                    <!-- Presets injected via JS -->
+                </div>
                 <input type="hidden" id="editTrunkColor">
             </div>
 
             <div class="mb-6 p-3 bg-slate-50 rounded border border-slate-200"><label class="block text-xs font-bold text-slate-600 mb-2">🥊 스타일 태그</label><div id="styleTagsContainer" class="flex flex-wrap gap-2"></div></div>
             
             <div class="flex justify-between items-center">
-                <!-- [수정] onclick 함수명 변경 (tryDeletePlayer) -->
                 <button type="button" onclick="tryDeletePlayer()" class="bg-red-50 text-red-600 hover:bg-red-100 px-4 py-2 rounded-lg text-sm font-bold transition border border-red-200">🗑️ 선수 삭제</button>
                 <div class="flex gap-2">
                     <button onclick="document.getElementById('editModal').classList.add('hidden')" class="bg-gray-100 text-gray-600 hover:bg-gray-200 px-4 py-2 rounded-lg text-sm font-bold transition">취소</button>
@@ -316,8 +389,21 @@
         </div>
     </div>
 
+    <!-- [New] Rename Season Modal -->
+    <div id="renameModal" class="fixed inset-0 bg-slate-900/80 z-[10002] hidden flex items-center justify-center backdrop-blur-sm" onclick="if(event.target === this) closeRenameModal()">
+        <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-sm w-full mx-4 transform transition-all scale-100">
+            <h3 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">✏️ 시즌 이름 변경</h3>
+            <input type="hidden" id="renameOldName">
+            <input type="text" id="renameInput" class="w-full border p-3 rounded-lg text-sm mb-6 focus:ring-2 focus:ring-blue-500 outline-none bg-slate-50" placeholder="새 시즌 이름" onkeypress="if(event.key==='Enter') confirmRenameSeason()">
+            <div class="flex justify-end gap-2">
+                <button onclick="closeRenameModal()" class="bg-gray-100 text-gray-600 hover:bg-gray-200 px-4 py-2 rounded-lg text-sm font-bold transition">취소</button>
+                <button onclick="confirmRenameSeason()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg text-sm font-bold shadow transition">변경</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Export Modal (Unified) -->
-    <div id="exportModal" class="fixed inset-0 bg-black/50 hidden z-[9999] flex items-center justify-center">
+    <div id="exportModal" class="fixed inset-0 bg-black/50 hidden z-[9999] flex items-center justify-center" onclick="if(event.target === this) document.getElementById('exportModal').classList.add('hidden')">
         <div class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-lg">
             <h3 id="exportModalTitle" class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">📤 텍스트 내보내기</h3>
             
@@ -341,6 +427,11 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, doc, setDoc, getDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        
+        // [Developer Convenience]
+        // ⚡ 개발/수정 시 매번 로그인하기 귀찮으시면 아래 따옴표 안에 정보를 입력해두세요. (보안 주의)
+        const AUTO_LOGIN_EMAIL = ""; 
+        const AUTO_LOGIN_PW = "";
 
         const firebaseConfig = { apiKey: "AIzaSyDlj68ex-fM0ExRdD-tvCy-UyIneVoPmGk", authDomain: "rfk-ranking.firebaseapp.com", projectId: "rfk-ranking", storageBucket: "rfk-ranking.firebasestorage.app", messagingSenderId: "675366165774", appId: "1:675366165774:web:795d34c56eab630b4dcb5f", measurementId: "G-CXPDZQ8GTL" };
         const app = initializeApp(firebaseConfig); const db = getFirestore(app); const auth = getAuth(app); const appId = 'ranking-manager-default';
@@ -414,15 +505,34 @@
         }
 
         document.getElementById('btnLogin').addEventListener('click', () => { const email = document.getElementById('adminEmail').value; const pw = document.getElementById('adminPw').value; signInWithEmailAndPassword(auth, email, pw).catch((e) => alert("로그인 실패: " + e.message)); });
-        onAuthStateChanged(auth, (user) => { if (user) { document.getElementById('loginOverlay').classList.add('hidden'); document.getElementById('mainContent').classList.remove('hidden'); loadData(); } });
+        onAuthStateChanged(auth, (user) => { 
+            if (user) { 
+                document.getElementById('loginOverlay').classList.add('hidden'); 
+                document.getElementById('mainContent').classList.remove('hidden'); 
+                loadData(); 
+            } else {
+                // Auto Login Logic
+                if(AUTO_LOGIN_EMAIL && AUTO_LOGIN_PW) {
+                    document.getElementById('loginFormContainer').classList.add('hidden');
+                    document.getElementById('autoLoginMsg').classList.remove('hidden');
+                    signInWithEmailAndPassword(auth, AUTO_LOGIN_EMAIL, AUTO_LOGIN_PW).catch((e) => {
+                        document.getElementById('loginFormContainer').classList.remove('hidden');
+                        document.getElementById('autoLoginMsg').classList.add('hidden');
+                        console.error("Auto Login Failed:", e);
+                    });
+                }
+            }
+        });
 
         document.getElementById('searchInput').addEventListener('input', (e) => { searchQuery = e.target.value.toLowerCase(); renderRankings(); });
         
         const presetContainer = document.getElementById('trunkColorPresets');
+        // [Fixed] Added data-color attribute for robust comparison
         COLOR_PRESETS.forEach(color => {
             const div = document.createElement('div');
             div.className = 'color-preset shadow-sm';
             div.style.backgroundColor = color.code;
+            div.dataset.color = color.code; // Store raw hex code
             div.title = color.name;
             div.onclick = () => selectPresetColor(color.code, div);
             presetContainer.appendChild(div);
@@ -547,9 +657,6 @@
 
         window.deleteMatchLog = (idx) => {
             if (idx === -1) return;
-            // Native confirm is unreliable in iframes, but keeping for simple actions or using custom modal
-            // Let's use custom modal for this too for consistency? For now, stick to native for less critical ops or wrap.
-            // But since user complained about buttons, I will use the custom modal for Delete Player first.
             if(!confirm("⚠️ 경고: 이 기록을 삭제하시겠습니까?\n\n- 로그 목록에서만 사라집니다.\n- 이미 변동된 승/패 횟수나 점수(ELO)는 되돌아가지 않습니다.\n- 점수 수정이 필요하면 '선수 수정' 메뉴를 이용하세요.")) return;
             captureState();
             matchHistoryData.splice(idx, 1);
@@ -575,14 +682,16 @@
         };
 
         window.generateExportText = (count) => {
-            const filtered = matchHistoryData.filter(m => (m.season || "시즌 1") === activeSeason && m.type !== 'draw');
+            // [Fixed] Use viewHistorySeason instead of activeSeason to match what user sees
+            const targetSeason = viewHistorySeason || activeSeason; 
+            const filtered = matchHistoryData.filter(m => (m.season || "시즌 1") === targetSeason && m.type !== 'draw');
             const targets = filtered.slice(0, count);
             
             const textarea = document.getElementById('exportTextarea');
             if (!textarea) return;
 
             if (targets.length === 0) {
-                textarea.value = "기록된 경기가 없습니다.";
+                textarea.value = `[${targetSeason}] 기록된 경기가 없습니다.`;
                 return;
             }
 
@@ -626,21 +735,21 @@
             try {
                 const successful = document.execCommand('copy');
                 if(successful) {
-                    alert("✅ 클립보드에 복사되었습니다!");
+                    showCustomAlert("✅ 클립보드에 복사되었습니다!"); // Fixed with Custom Alert
                 } else {
                     throw new Error('Copy failed');
                 }
             } catch (err) {
-                alert("복사 실패. 수동으로 복사해주세요.");
+                showCustomAlert("복사 실패. 수동으로 복사해주세요."); // Fixed with Custom Alert
             }
         };
 
         window.copyRankerList = () => {
             try {
-                if (!rankingsData || rankingsData.length === 0) return alert("데이터를 불러오는 중이거나 선수가 없습니다.");
+                if (!rankingsData || rankingsData.length === 0) return showCustomAlert("데이터를 불러오는 중이거나 선수가 없습니다.");
                 
                 const rankers = rankingsData.filter(p => (p.wins + p.losses) > 0).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
-                if (rankers.length === 0) return alert("랭킹에 등록된 선수가 없습니다.");
+                if (rankers.length === 0) return showCustomAlert("랭킹에 등록된 선수가 없습니다.");
                 
                 const text = rankers.map((p, i) => `${p.name}(${i + 1})`).join('\n');
                 
@@ -657,16 +766,16 @@
                 if (textarea) textarea.value = text;
             } catch (e) {
                 console.error(e);
-                alert("명단 생성 중 오류가 발생했습니다.");
+                showCustomAlert("명단 생성 중 오류가 발생했습니다.");
             }
         };
 
         window.copyAllPlayerList = () => {
             try {
-                if (!rankingsData || rankingsData.length === 0) return alert("데이터를 불러오는 중이거나 선수가 없습니다.");
+                if (!rankingsData || rankingsData.length === 0) return showCustomAlert("데이터를 불러오는 중이거나 선수가 없습니다.");
 
                 const allPlayers = [...rankingsData].sort((a, b) => a.name.localeCompare(b.name));
-                if (allPlayers.length === 0) return alert("등록된 선수가 없습니다.");
+                if (allPlayers.length === 0) return showCustomAlert("등록된 선수가 없습니다.");
                 
                 const text = allPlayers.map(p => p.name).join('\n');
                 
@@ -683,7 +792,7 @@
                 if (textarea) textarea.value = text;
             } catch (e) {
                 console.error(e);
-                alert("명단 생성 중 오류가 발생했습니다.");
+                showCustomAlert("명단 생성 중 오류가 발생했습니다.");
             }
         };
 
@@ -718,11 +827,124 @@
         function renderMemos() { const container = document.getElementById('memoListContainer'); if(adminMemos.length === 0) { container.innerHTML = '<div class="text-center text-xs text-gray-400 py-4">작성된 메모가 없습니다.</div>'; return; } container.innerHTML = ''; adminMemos.forEach(m => { const el = document.createElement('div'); el.className = 'bg-white border border-slate-200 rounded p-2 text-sm shadow-sm flex justify-between items-start group'; el.innerHTML = `<div><div class="text-[10px] text-slate-400 font-medium mb-0.5">${m.date}</div><div class="text-slate-700 whitespace-pre-wrap">${m.content}</div></div><button onclick="deleteMemo(${m.id})" class="text-slate-300 hover:text-red-500 text-xs px-1 opacity-0 group-hover:opacity-100 transition">✕</button>`; container.appendChild(el); }); }
         window.switchTab = (tab) => { document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden')); document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active')); document.getElementById(tab + 'Section').classList.remove('hidden'); document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active'); };
         function updateSeasonUI() { document.getElementById('currentSeasonBadge').textContent = activeSeason; document.querySelectorAll('.currentSeasonName').forEach(el => el.textContent = activeSeason); const num = parseInt(activeSeason.replace(/[^0-9]/g, '')) || 0; document.getElementById('newSeasonNameInput').value = `시즌 ${num + 1}`; }
-        function renderSeasonList() { const container = document.getElementById('seasonListContainer'); container.innerHTML = ''; const seasons = [activeSeason, ...Object.keys(seasonArchives).sort().reverse().filter(s => s !== activeSeason)]; seasons.forEach(sName => { const isActive = sName === activeSeason; const div = document.createElement('div'); div.className = `flex justify-between items-center p-3 rounded-lg border ${isActive ? 'bg-blue-50 border-blue-300' : 'bg-white border-slate-200'}`; div.innerHTML = `<div class="flex items-center gap-2"><span class="${isActive ? 'text-blue-700 font-bold' : 'text-slate-600'} text-sm">${sName}</span>${isActive ? '<span class="text-[10px] bg-blue-600 text-white px-1.5 py-0.5 rounded">Active</span>' : ''}</div><div class="flex gap-1">${!isActive ? `<button onclick="switchActiveSeason('${sName}')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded border border-slate-200">선택</button>` : ''}<button onclick="renameSeason('${sName}')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-500 px-2 py-1 rounded border border-slate-200">이름변경</button>${!isActive ? `<button onclick="deleteSeason('${sName}')" class="text-xs bg-red-50 hover:bg-red-100 text-red-500 px-2 py-1 rounded border border-red-100">삭제</button>` : ''}</div>`; container.appendChild(div); }); }
-        window.deleteSeason = (targetName) => { if (targetName === activeSeason) return alert("현재 활성 시즌은 삭제 불가"); if (!confirm(`[${targetName}] 및 기록 삭제?`)) return; delete seasonArchives[targetName]; matchHistoryData = matchHistoryData.filter(m => m.season !== targetName); saveRankings().then(() => { renderSeasonList(); alert("삭제되었습니다."); }); };
-        window.switchActiveSeason = (targetName) => { if (!confirm(`[${targetName}] 전환?`)) return; captureState(); seasonArchives[activeSeason] = { rankings: JSON.parse(JSON.stringify(rankingsData)) }; const t = seasonArchives[targetName]; if (t) rankingsData = t.rankings || []; delete seasonArchives[targetName]; activeSeason = targetName; saveRankings(); alert("전환 완료"); };
-        window.renameSeason = (old) => { const n = prompt("새 이름:", old); if(!n||n===old)return; if(n===activeSeason||seasonArchives[n])return alert("중복 이름"); if(old===activeSeason)activeSeason=n; else { seasonArchives[n]=seasonArchives[old]; delete seasonArchives[old]; } matchHistoryData.forEach(m => { if(m.season===old) m.season=n; }); saveRankings(); };
-        window.finishAndStartNewSeason = () => { const n = document.getElementById('newSeasonNameInput').value.trim(); if(!n)return alert("이름 입력"); if(n===activeSeason||seasonArchives[n])return alert("중복 이름"); if(!confirm(`[${activeSeason}] 종료 후 [${n}] 시작?`))return; captureState(); seasonArchives[activeSeason]={rankings:JSON.parse(JSON.stringify(rankingsData))}; activeSeason=n; rankingsData.forEach(p => { p.previousRank=p.rank||rankingsData.indexOf(p)+1; p.wins=0; p.losses=0; p.draws=0; p.defenseCount=0; p.elo=1000; }); saveRankings(); alert("시작됨"); };
+        
+        // [Fixed] Use openRenameModal instead of prompt
+        function renderSeasonList() { 
+            const container = document.getElementById('seasonListContainer'); 
+            container.innerHTML = ''; 
+            const seasons = [activeSeason, ...Object.keys(seasonArchives).sort().reverse().filter(s => s !== activeSeason)]; 
+            seasons.forEach(sName => { 
+                const isActive = sName === activeSeason; 
+                const div = document.createElement('div'); 
+                div.className = `flex justify-between items-center p-3 rounded-lg border ${isActive ? 'bg-blue-50 border-blue-300' : 'bg-white border-slate-200'}`; 
+                div.innerHTML = `<div class="flex items-center gap-2"><span class="${isActive ? 'text-blue-700 font-bold' : 'text-slate-600'} text-sm">${sName}</span>${isActive ? '<span class="text-[10px] bg-blue-600 text-white px-1.5 py-0.5 rounded">Active</span>' : ''}</div><div class="flex gap-1">${!isActive ? `<button onclick="switchActiveSeason('${sName}')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded border border-slate-200">선택</button>` : ''}<button onclick="openRenameModal('${sName}')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-500 px-2 py-1 rounded border border-slate-200">이름변경</button>${!isActive ? `<button onclick="deleteSeason('${sName}')" class="text-xs bg-red-50 hover:bg-red-100 text-red-500 px-2 py-1 rounded border border-red-100">삭제</button>` : ''}</div>`; 
+                container.appendChild(div); 
+            }); 
+        }
+
+        window.deleteSeason = (targetName) => { 
+            if (targetName === activeSeason) return showCustomAlert("현재 활성 시즌은 삭제할 수 없습니다."); 
+            
+            showConfirmModal(`[${targetName}] 및 해당 시즌의 기록을 삭제하시겠습니까?`, async () => {
+                captureState();
+                delete seasonArchives[targetName];
+                matchHistoryData = matchHistoryData.filter(m => m.season !== targetName);
+                await saveRankings();
+                renderSeasonList();
+                showCustomAlert("시즌이 삭제되었습니다.");
+            });
+        };
+
+        window.switchActiveSeason = (targetName) => { 
+            showConfirmModal(`[${targetName}] 시즌으로 전환하시겠습니까?`, async () => {
+                captureState(); 
+                seasonArchives[activeSeason] = { rankings: JSON.parse(JSON.stringify(rankingsData)) }; 
+                const t = seasonArchives[targetName]; 
+                if (t) rankingsData = t.rankings || []; 
+                delete seasonArchives[targetName]; 
+                activeSeason = targetName; 
+                await saveRankings(); 
+                updateSeasonUI(); // Update UI immediately
+                renderSeasonList();
+                renderRankings();
+                showCustomAlert("시즌이 전환되었습니다.");
+            });
+        };
+
+        // [New] Rename Logic with Modal
+        window.openRenameModal = (oldName) => {
+            document.getElementById('renameOldName').value = oldName;
+            document.getElementById('renameInput').value = oldName;
+            document.getElementById('renameModal').classList.remove('hidden');
+            setTimeout(() => document.getElementById('renameInput').focus(), 50);
+        };
+
+        window.closeRenameModal = () => {
+            document.getElementById('renameModal').classList.add('hidden');
+        };
+
+        window.confirmRenameSeason = async () => {
+            const oldName = document.getElementById('renameOldName').value;
+            const newName = document.getElementById('renameInput').value.trim();
+            
+            if(!newName || newName === oldName) {
+                closeRenameModal();
+                return;
+            }
+            
+            if(newName === activeSeason || seasonArchives[newName]) {
+                showCustomAlert("이미 존재하는 시즌 이름입니다.");
+                return;
+            }
+
+            captureState();
+            
+            if (oldName === activeSeason) {
+                activeSeason = newName;
+            } else {
+                seasonArchives[newName] = seasonArchives[oldName];
+                delete seasonArchives[oldName];
+            }
+            
+            // Update history
+            matchHistoryData.forEach(m => {
+                if(m.season === oldName) m.season = newName;
+            });
+            
+            await saveRankings();
+            renderSeasonList();
+            updateSeasonUI();
+            closeRenameModal();
+            showCustomAlert("시즌 이름이 변경되었습니다.");
+        };
+
+        // Replaces old window.renameSeason
+        window.renameSeason = window.openRenameModal; 
+
+        window.finishAndStartNewSeason = () => { 
+            const n = document.getElementById('newSeasonNameInput').value.trim(); 
+            if(!n) return showCustomAlert("새 시즌 이름을 입력해주세요."); 
+            if(n === activeSeason || seasonArchives[n]) return showCustomAlert("이미 존재하는 시즌 이름입니다."); 
+            
+            showConfirmModal(`[${activeSeason}]을 종료하고 [${n}]을 시작하시겠습니까?\n\n- 현재 랭킹은 보관함에 저장됩니다.\n- 모든 선수의 전적이 초기화됩니다.`, async () => {
+                captureState(); 
+                seasonArchives[activeSeason] = { rankings: JSON.parse(JSON.stringify(rankingsData)) }; 
+                activeSeason = n; 
+                rankingsData.forEach(p => { 
+                    p.previousRank = p.rank || rankingsData.indexOf(p) + 1; 
+                    p.wins = 0; 
+                    p.losses = 0; 
+                    p.draws = 0; 
+                    p.defenseCount = 0; 
+                    p.elo = 1000; 
+                }); 
+                await saveRankings(); 
+                updateSeasonUI();
+                renderSeasonList();
+                renderRankings();
+                showCustomAlert(`새 시즌 [${n}]이 시작되었습니다!`); 
+            });
+        };
 
         function getTierBonus(matchCount) { if (matchCount < 3) return { winMult: 1.0, lossMult: 1.0, tier: '🥉Bronze' }; else if (matchCount < 7) return { winMult: 1.1, lossMult: 0.9, tier: '🥈Silver' }; else return { winMult: 1.2, lossMult: 0.8, tier: '🥇Gold' }; }
         function calculateHybridEloChange(p1Elo, p2Elo, isWin, p1Stats) { 
@@ -858,15 +1080,29 @@
             }
         };
 
+        // [New] Helper Functions for Custom Alert
+        window.showCustomAlert = (message) => {
+            document.getElementById('alertMessage').innerText = message;
+            document.getElementById('customAlertModal').classList.remove('hidden');
+        };
+
+        window.closeAlertModal = () => {
+            document.getElementById('customAlertModal').classList.add('hidden');
+        };
+
         // [New] Confirm Logic replacing old addNewPlayer
         window.confirmNewPlayer = async () => {
             const input = document.getElementById('newPlayerNameInput');
             const name = input.value.trim();
             
-            if (!name) return alert("이름을 입력해주세요.");
+            if (!name) return showCustomAlert("이름을 입력해주세요.");
             
-            // Check for duplicates? Optional but good practice.
-            // if (rankingsData.some(p => p.name === name)) return alert("이미 존재하는 이름입니다.");
+            // [New] Duplicate Check with Custom Alert
+            if (rankingsData.some(p => p.name === name)) {
+                showCustomAlert(`⚠️ 이미 존재하는 닉네임입니다: [${name}]\n다른 이름을 사용해주세요.`);
+                // input.focus(); // Focus after modal close would be ideal, but simple return is safer here
+                return;
+            }
 
             const randomPin = Math.floor(1000 + Math.random() * 9000).toString(); 
             const hashedPin = await hashPin(randomPin); 
@@ -897,7 +1133,8 @@
             document.getElementById('newPlayerModal').classList.add('hidden');
             input.value = '';
 
-            alert(`✅ [${name}] 선수가 등록되었습니다.\n초기 비밀번호: ${randomPin}\n(저장은 암호화되어 됩니다)\n\n선수에게 이 번호를 알려주세요.`); 
+            // Use Custom Alert for Success Message too, as native alert might be blocked
+            showCustomAlert(`✅ [${name}] 선수가 등록되었습니다.\n초기 비밀번호: ${randomPin}\n(저장은 암호화되어 됩니다)\n\n선수에게 이 번호를 알려주세요.`);
         };
 
         window.resetAllElo = () => { if(!confirm("ELO 1000 초기화?")) return; captureState(); rankingsData.forEach(p => p.elo = 1000); saveRankings(); renderRankings(); };
@@ -938,10 +1175,22 @@
 
         window.updateRankBaseline = () => {
             showConfirmModal("📉 순위 변동폭(▲▼)을 리셋하시겠습니까?\n현재 순위가 기준이 되어 변동폭이 0으로 초기화됩니다.", async () => {
-                rankingsData.forEach((p, i) => p.previousRank = i + 1);
+                captureState();
+                
+                // [Fix] 랭킹에 표시되는 '유전적자(Ranked)'들만 추려서 순위를 다시 매겨야 함
+                // 기존에는 무전적자 포함해서 인덱스를 매겨서 순위가 밀리는 현상 발생
+                const rankedList = rankingsData
+                    .filter(p => (p.wins + p.losses) > 0)
+                    .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
+                
+                // 실제 랭킹 순서대로 previousRank 업데이트
+                rankedList.forEach((p, index) => {
+                    p.previousRank = index + 1;
+                });
+
                 await saveRankings();
                 renderRankings();
-                setTimeout(() => alert("순위 변동폭이 리셋되었습니다."), 100);
+                setTimeout(() => showCustomAlert("순위 변동폭이 리셋되었습니다."), 100);
             });
         };
         
@@ -1104,92 +1353,6 @@
             }
         };
         
-        window.savePlayerDetails = async () => { 
-            const idInput = document.getElementById('editPlayerId'); if(!idInput) return;
-            captureState();
-            const idx = idInput.value; const p = rankingsData[idx]; 
-            const getVal = (id) => document.getElementById(id) ? document.getElementById(id).value : '';
-
-            const newName = getVal('editName');
-            const oldName = p.name;
-            if (oldName !== newName) {
-                // Rename confirmation using custom logic if needed, but for now browser confirm might be flaky
-                // Let's assume edit name change is rare or use simple confirm if not blocked.
-                // If blocked, we skip confirmation or need to add another modal.
-                // Assuming simple confirm works for non-destructive actions, or user didn't complain about this one.
-                if(confirm(`이름을 [${oldName}] -> [${newName}] (으)로 변경하시겠습니까?\n모든 과거 경기 기록의 이름도 함께 변경됩니다.`)) {
-                    matchHistoryData.forEach(m => {
-                        if (m.winner === oldName) m.winner = newName;
-                        if (m.loser === oldName) m.loser = newName;
-                        if (m.blue === oldName) m.blue = newName;
-                    });
-                } else { 
-                    // If they cancel or blocked, we just revert name? Or proceed with old name?
-                    // Safe fallback: Proceed with new name if they just clicked OK, but return if cancelled.
-                    // Given the constraint, let's just allow it for now or assume simple confirm works better than delete confirm.
-                }
-            }
-
-            p.name = newName; 
-            p.defenseCount = 0; p.gameId = getVal('editGameId'); 
-            
-            const inputPw = getVal('editPassword');
-            if (inputPw && inputPw !== p.password) {
-                if (inputPw.length <= 8) { 
-                    p.password = await hashPin(inputPw);
-                } else {
-                    p.password = inputPw; 
-                }
-            }
-
-            p.height = getVal('editHeight'); p.reach = getVal('editReach'); p.stance = getVal('editStance'); 
-            p.trunkColor = getVal('editTrunkColor'); 
-            
-            p.elo = parseInt(getVal('editElo'))||1000; if(p.elo > (p.careerHighElo || 0)) p.careerHighElo = p.elo; p.wins = parseInt(getVal('editWins'))||0; p.losses = parseInt(getVal('editLosses'))||0; p.imageUrl = getVal('editImageUrlInput').trim(); const ct = document.querySelectorAll('.style-checkbox:checked'); p.tags = Array.from(ct).map(cb => cb.value); 
-            
-            rankingsData.sort((a, b) => b.elo - a.elo); await saveRankings(); document.getElementById('editModal').classList.add('hidden'); renderRankings(); 
-        };
-
-        window.addNewPlayer = async () => { 
-            const name = prompt("이름:"); 
-            if(name) { 
-                const randomPin = Math.floor(1000 + Math.random() * 9000).toString(); 
-                const hashedPin = await hashPin(randomPin); 
-                captureState(); 
-                const today = getKSTDate();
-                rankingsData.push({ id: crypto.randomUUID(), name, wins:0, losses:0, defenseCount:0, previousRank: rankingsData.length+1, careerHighRank: rankingsData.length+1, elo: 1000, careerHighElo: 1000, lastMatchDate: today, password: hashedPin, trunkColor: '#1f2937' }); 
-                saveRankings(); renderRankings(); 
-                alert(`✅ [${name}] 선수가 등록되었습니다.\n초기 비밀번호: ${randomPin}\n(저장은 암호화되어 됩니다)\n\n선수에게 이 번호를 알려주세요.`); 
-            } 
-        };
-        
-        window.openEditModal = (idx) => { 
-            const p = rankingsData[idx]; 
-            const setVal = (id, val) => { const el = document.getElementById(id); if(el) el.value = val; };
-            setVal('editPlayerId', idx); setVal('editName', p.name); setVal('editOriginalName', p.name); setVal('editDefenses', 0); setVal('editGameId', p.gameId || ''); 
-            setVal('editPassword', p.password || ''); 
-            setVal('editHeight', p.height || ''); setVal('editReach', p.reach || ''); setVal('editStance', p.stance || 'Orthodox'); setVal('editElo', p.elo || 1000); setVal('editWins', p.wins || 0); setVal('editLosses', p.losses || 0);
-            
-            const tc = p.trunkColor || '#1f2937';
-            setVal('editTrunkColor', tc);
-            
-            document.querySelectorAll('.color-preset').forEach(el => {
-                if(el.style.backgroundColor === tc || (tc.toUpperCase() === el.style.backgroundColor.toUpperCase())) { 
-                    el.classList.add('active');
-                } else {
-                    el.classList.remove('active');
-                }
-            });
-
-            const urlInput = document.getElementById('editImageUrlInput'); urlInput.value = p.imageUrl || ''; document.getElementById('previewImage').src = p.imageUrl || 'https://placehold.co/150?text=No+Img';
-            const c = document.getElementById('styleTagsContainer'); c.innerHTML = ''; const cT = p.tags || [];
-            STYLE_OPTIONS.forEach(s => { const safeId = `style-${s.replace(/\s+/g, '-')}`; const isChecked = cT.includes(s) ? 'checked' : ''; c.innerHTML += `<div><input type="checkbox" id="${safeId}" value="${s}" class="style-checkbox absolute opacity-0 w-0 h-0" ${isChecked}><label for="${safeId}" class="inline-block px-3 py-1 text-xs font-bold border border-slate-300 rounded-full cursor-pointer text-slate-500 hover:bg-slate-100 transition select-none ${isChecked?'bg-blue-500 text-white border-blue-500':''}">${s}</label></div>`; }); 
-            const modal = document.getElementById('editModal'); if(modal) modal.classList.remove('hidden');
-        };
-
-        window.updatePreview = (url) => { document.getElementById('previewImage').src = url || 'https://placehold.co/150?text=No+Img'; };
-        window.removeImage = () => { document.getElementById('editImageUrlInput').value = ''; document.getElementById('previewImage').src = 'https://placehold.co/150?text=No+Img'; };
-        
         // [Fixed] New Confirmation Modal Logic
         let confirmCallback = null;
         window.showConfirmModal = (message, callback) => {
@@ -1229,6 +1392,137 @@
         window.deletePlayer = window.tryDeletePlayer;
         
         window.backupData = () => { const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ rankings: rankingsData, history: matchHistoryData, archives: seasonArchives, activeSeason: activeSeason }, null, 2)); const dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", `RFC_BACKUP_${new Date().toISOString().slice(0,10)}.json`); document.body.appendChild(dl); dl.click(); dl.remove(); };
+
+        // [New] Missing Edit Modal Functions Restored
+        window.openEditModal = (index) => {
+            const p = rankingsData[index];
+            if (!p) return;
+
+            document.getElementById('editPlayerId').value = index;
+            document.getElementById('editOriginalName').value = p.name;
+            
+            document.getElementById('editName').value = p.name || "";
+            document.getElementById('editGameId').value = p.gameId || ""; 
+            document.getElementById('editElo').value = p.elo || 1000;
+            document.getElementById('editWins').value = p.wins || 0;
+            document.getElementById('editLosses').value = p.losses || 0;
+            
+            // Image
+            const imgUrl = p.imageUrl || "";
+            document.getElementById('editImageUrlInput').value = imgUrl;
+            window.updatePreview(imgUrl);
+
+            // Physical stats
+            document.getElementById('editHeight').value = p.height || "";
+            document.getElementById('editReach').value = p.reach || "";
+            document.getElementById('editStance').value = p.stance || "Orthodox";
+
+            // Trunk Color Logic (Preserves Saved State)
+            const tColor = p.trunkColor || '#1f2937';
+            document.getElementById('editTrunkColor').value = tColor;
+            
+            // Update preset UI with dataset color comparison for robustness
+            document.querySelectorAll('.color-preset').forEach(el => {
+                // [Fixed] Use data-color for comparison to avoid RGB vs Hex issues
+                const presetColor = el.dataset.color;
+                if(presetColor && presetColor.toLowerCase() === tColor.toLowerCase()) {
+                    el.classList.add('active');
+                } else {
+                    el.classList.remove('active');
+                }
+            });
+            
+            // Password (Clear for security/UX)
+            document.getElementById('editPassword').value = "";
+
+            // Style Tags Logic (Preserves Saved State)
+            const container = document.getElementById('styleTagsContainer');
+            container.innerHTML = '';
+            const currentStyles = p.styles || [];
+            
+            STYLE_OPTIONS.forEach(style => {
+                const checked = currentStyles.includes(style) ? 'checked' : '';
+                const id = `style_${style}`;
+                container.innerHTML += `
+                    <div>
+                        <input type="checkbox" id="${id}" value="${style}" class="hidden style-checkbox" ${checked}>
+                        <label for="${id}" class="cursor-pointer inline-block bg-white border border-slate-200 text-slate-500 px-3 py-1.5 rounded-full text-xs font-bold transition select-none hover:bg-slate-50">
+                            ${style}
+                        </label>
+                    </div>`;
+            });
+
+            document.getElementById('editModal').classList.remove('hidden');
+        };
+
+        window.updatePreview = (url) => {
+            const img = document.getElementById('previewImage');
+            if (!url) {
+                img.src = "https://placehold.co/150?text=No+Img";
+            } else {
+                img.src = url;
+            }
+        };
+
+        window.removeImage = () => {
+            document.getElementById('editImageUrlInput').value = "";
+            window.updatePreview("");
+        };
+
+        window.savePlayerDetails = async () => {
+            const index = document.getElementById('editPlayerId').value;
+            if (index === "") return;
+            const p = rankingsData[index];
+
+            const newName = document.getElementById('editName').value.trim();
+            if (!newName) return showCustomAlert("이름은 필수입니다.");
+
+            captureState();
+
+            // Check name change
+            if (newName !== p.name) {
+                if (rankingsData.some((other, i) => i != index && other.name === newName)) {
+                    return showCustomAlert("이미 존재하는 이름입니다.");
+                }
+                // Update history references if name changed
+                const oldName = p.name;
+                matchHistoryData.forEach(m => {
+                    if (m.winner === oldName) m.winner = newName;
+                    if (m.loser === oldName) m.loser = newName;
+                    if (m.blue === oldName) m.blue = newName;
+                });
+                p.name = newName;
+            }
+
+            p.gameId = document.getElementById('editGameId').value.trim();
+            p.elo = parseInt(document.getElementById('editElo').value) || 1000;
+            p.wins = parseInt(document.getElementById('editWins').value) || 0;
+            p.losses = parseInt(document.getElementById('editLosses').value) || 0;
+            p.imageUrl = document.getElementById('editImageUrlInput').value.trim();
+            p.height = document.getElementById('editHeight').value.trim();
+            p.reach = document.getElementById('editReach').value.trim();
+            p.stance = document.getElementById('editStance').value;
+            p.trunkColor = document.getElementById('editTrunkColor').value;
+
+            // Password update
+            const newPw = document.getElementById('editPassword').value.trim();
+            if (newPw) {
+                p.password = await hashPin(newPw);
+            }
+
+            // Styles
+            const selectedStyles = [];
+            document.querySelectorAll('.style-checkbox:checked').forEach(cb => {
+                selectedStyles.push(cb.value);
+            });
+            p.styles = selectedStyles;
+
+            await saveRankings();
+            renderRankings();
+            document.getElementById('editModal').classList.add('hidden');
+            showCustomAlert("✅ 선수 정보가 수정되었습니다.");
+        };
+
     </script>
 </body>
 </html>
