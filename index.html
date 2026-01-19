@@ -217,8 +217,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // [System] Version Control (Auto Updated by Developer)
-        const APP_VERSION = "v3.58";
-        const UPDATE_NOTE = "Top 10: Remove Border Color Override";
+        const APP_VERSION = "v3.65";
+        const UPDATE_NOTE = "Mobile Image Size: 60px";
 
         // Apply Version to UI
         document.title = `RFC 랭킹전 (${APP_VERSION})`;
@@ -315,7 +315,7 @@
                 if (rank === 1) rankNumClass = "rank-num-1 font-black"; 
                 else if (rank === 2) rankNumClass = "rank-num-2 font-black"; 
                 else if (rank === 3) rankNumClass = "rank-num-3 font-black";
-                else if (rank <= 10) rankNumClass = "rank-num-top10"; // [New] Apply Indigo Color for Top 10
+                else if (rank <= 10) rankNumClass = "rank-num-top10"; // Top 10 Indigo Color
 
                 const myMatches = enrichedMatchHistory.filter(m => (m.winner === p.name || m.loser === p.name) && m.season === activeSeason && m.type !== 'draw').slice(0, 6); 
                 let dots = ''; myMatches.forEach(m => { if (m.winner === p.name) dots += `<div class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-sm"></div>`; else dots += `<div class="w-1.5 h-1.5 rounded-full bg-rose-500 shadow-sm"></div>`; }); 
@@ -336,16 +336,19 @@
                             <div class="mt-0.5">${diffHtml}</div>
                         </div>
 
-                        <!-- 2. Profile Image -->
-                        <div class="shrink-0 relative">
+                        <!-- 2. Profile Image (Negative Margin Applied) -->
+                        <!-- [Modified] Added -my-2 (mobile) and -my-4 (desktop) to wrapper -->
+                        <div class="shrink-0 relative -my-2 md:-my-4">
+                            <!-- [Modified] Size Adjusted: w-[60px](60px) / w-[90px](90px) -->
                             <img src="${p.imageUrl ? p.imageUrl : 'https://placehold.co/150?text=No+Img'}" 
-                                 class="w-10 h-10 md:w-20 md:h-20 rounded-full bg-slate-100 object-cover border border-slate-100 md:border-2 md:border-slate-50 shadow-sm md:shadow-md transition-all duration-300"
+                                 class="w-[60px] h-[60px] md:w-[90px] md:h-[90px] rounded-2xl bg-slate-100 object-cover border border-slate-100 md:border-2 md:border-slate-50 shadow-sm md:shadow-md transition-all duration-300"
                                  onerror="this.src='https://placehold.co/150?text=No+Img'">
-                            ${rank === 1 ? `<div class="absolute -top-1 -right-1 text-sm md:text-xl drop-shadow-md">👑</div>` : ''}
+                            ${rank === 1 ? `<div class="absolute -top-2 -right-2 text-sm md:text-xl drop-shadow-md">👑</div>` : ''}
                         </div>
 
                         <!-- 3. Player Info -->
-                        <div class="flex-grow min-w-0 flex flex-col justify-center md:h-20 md:py-1">
+                        <!-- [Modified] Removed fixed height constraints to adapt to flex -->
+                        <div class="flex-grow min-w-0 flex flex-col justify-center py-1">
                             <!-- Upper: Name & Tier Badge -->
                             <div class="flex items-center gap-1.5 md:gap-2 mb-0.5 md:mb-1.5">
                                 <span class="font-bold md:font-black text-slate-800 truncate text-sm md:text-lg tracking-tight">${p.name}</span>
@@ -362,7 +365,6 @@
 
                         <!-- 4. Recent Dots -->
                         <div class="flex flex-col items-end justify-center shrink-0 md:h-full">
-                            <!-- [Modified] Removed bg-slate-50 and border classes for transparency -->
                             <div class="flex gap-1 p-1 md:p-1.5">
                                 ${dots || '<span class="text-[8px] md:text-[10px] text-slate-300 font-medium px-1">New</span>'}
                             </div>
@@ -376,12 +378,13 @@
                     container.innerHTML += `
                         <div class="bg-white rounded-2xl p-3 md:p-4 shadow-sm border border-slate-100 flex items-center gap-3 md:gap-4 relative overflow-hidden transition-transform active:scale-[0.99] cursor-pointer opacity-90" onclick="openProfile('${p.id}')">
                             <div class="flex flex-col items-center justify-center w-8 md:w-10 shrink-0"><span class="rank-unranked">-</span></div>
-                            <div class="shrink-0 relative">
+                            <div class="shrink-0 relative -my-2 md:-my-4">
+                                <!-- [Modified] Larger Image for Unranked too (60px/90px) -->
                                 <img src="${p.imageUrl ? p.imageUrl : 'https://placehold.co/150?text=No+Img'}" 
-                                     class="w-10 h-10 md:w-20 md:h-20 rounded-full bg-slate-100 object-cover border border-slate-100 md:border-2 md:border-slate-50 grayscale shadow-sm transition-all duration-300" 
+                                     class="w-[60px] h-[60px] md:w-[90px] md:h-[90px] rounded-2xl bg-slate-100 object-cover border border-slate-100 md:border-2 md:border-slate-50 grayscale shadow-sm transition-all duration-300" 
                                      onerror="this.src='https://placehold.co/150?text=No+Img'">
                             </div>
-                            <div class="flex-grow min-w-0 flex flex-col justify-center md:h-20 md:py-1">
+                            <div class="flex-grow min-w-0 flex flex-col justify-center py-1">
                                 <div class="flex items-center gap-1.5 md:gap-2 mb-0.5 md:mb-1.5">
                                     <span class="font-bold text-slate-500 truncate text-sm md:text-lg">${p.name}</span>
                                 </div>
