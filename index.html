@@ -3,19 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RFC 랭킹전 (v3.30)</title>
+    <title>RFC 랭킹전 (Loading...)</title> <!-- JS에서 자동 업데이트됨 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Pretendard', sans-serif; background-color: #f1f5f9; -webkit-tap-highlight-color: transparent; }
-        .tier-bronze { border-left: 4px solid #ad8a56; background: linear-gradient(90deg, #fff 0%, #fdfbf7 100%); }
-        .tier-silver { border-left: 4px solid #94a3b8; background: linear-gradient(90deg, #fff 0%, #f8fafc 100%); }
-        .tier-gold { border-left: 4px solid #f59e0b; background: linear-gradient(90deg, #fff 0%, #fffbeb 100%); }
-        .rank-num-1 { color: #f59e0b; font-size: 1.5rem; text-shadow: 0 2px 4px rgba(245, 158, 11, 0.2); }
-        .rank-num-2 { color: #94a3b8; font-size: 1.4rem; }
-        .rank-num-3 { color: #ad8a56; font-size: 1.3rem; }
-        .rank-num-normal { color: #94a3b8; font-size: 1.1rem; font-weight: 700; }
-        .rank-unranked { color: #cbd5e1; font-size: 1.2rem; font-weight: 700; }
+        
+        /* 기본 티어 스타일 (4위 이하 적용) - 연회색 배경(Unified Gray) */
+        .tier-bronze { border-left: 5px solid #ad8a56; background: #f8fafc; }
+        .tier-silver { border-left: 5px solid #94a3b8; background: #f8fafc; }
+        .tier-gold { border-left: 5px solid #f59e0b; background: #f8fafc; }
+        
+        /* 1~3위 전용 올림픽 글로우 효과 (Soft Version) */
+        /* [Modified] 배경 그라데이션 수정: 앞부분(30%) 흰색 -> 뒷부분 색상 */
+        /* [Fixed] border 순서 변경: 전체 border 먼저 선언 후 border-left로 덮어쓰기 */
+        .rank-1-glow {
+            background: linear-gradient(90deg, #ffffff 30%, #fffbeb 100%) !important;
+            box-shadow: 0 10px 25px -5px rgba(234, 179, 8, 0.2), 0 8px 10px -6px rgba(234, 179, 8, 0.1) !important;
+            border: 1px solid #fef08a !important; /* 전체 테두리 먼저 설정 (1px) */
+            border-left: 5px solid #f59e0b !important; /* 왼쪽만 두껍게 덮어쓰기 (5px) */
+            z-index: 10 !important;
+            transform: scale(1.01);
+        }
+        
+        /* [Modified] Rank 2: Metallic Silver Style */
+        .rank-2-glow {
+            background: linear-gradient(90deg, #ffffff 30%, #f1f5f9 100%) !important;
+            box-shadow: 0 10px 25px -5px rgba(113, 113, 122, 0.2), 0 8px 10px -6px rgba(113, 113, 122, 0.1) !important;
+            border: 1px solid #e4e4e7 !important; /* 전체 테두리 먼저 설정 (1px) */
+            /* [Changed] #475569(Dark Slate) -> #71717a(Zinc-500, Metallic Silver) */
+            border-left: 5px solid #71717a !important; /* 왼쪽만 두껍게 덮어쓰기 (5px) */
+            z-index: 9 !important;
+        }
+
+        .rank-3-glow {
+            background: linear-gradient(90deg, #ffffff 30%, #fff7ed 100%) !important;
+            box-shadow: 0 10px 25px -5px rgba(173, 138, 86, 0.15), 0 8px 10px -6px rgba(173, 138, 86, 0.1) !important;
+            border: 1px solid #ffedd5 !important; /* 전체 테두리 먼저 설정 (1px) */
+            border-left: 5px solid #ad8a56 !important; /* 왼쪽만 두껍게 덮어쓰기 (5px) */
+            z-index: 8 !important;
+        }
+
+        /* 순위 숫자 반응형 크기 */
+        .rank-num-1 { color: #f59e0b; font-size: 1.2rem; text-shadow: 0 1px 2px rgba(245, 158, 11, 0.2); }
+        /* [Modified] Rank 2 Text Color: Zinc-500 (Silver) */
+        .rank-num-2 { color: #71717a; font-size: 1.1rem; font-weight: 800; text-shadow: 0 1px 2px rgba(113, 113, 122, 0.1); }
+        .rank-num-3 { color: #ad8a56; font-size: 1.0rem; }
+        
+        /* [New] 4~10위 Top 10 숫자 색상: 인디고 */
+        .rank-num-top10 { color: #6366f1; font-size: 1.0rem; font-weight: 800; }
+        
+        .rank-num-normal { color: #94a3b8; font-size: 1.0rem; font-weight: 800; }
+        .rank-unranked { color: #cbd5e1; font-size: 1.0rem; font-weight: 800; }
+
+        /* [Modified] 4~10위 Top 10: 왼쪽 테두리 색상 제거 (기본 티어 색상 사용) */
+        .rank-4-10-border {
+            /* border-left: 3px solid #6366f1 !important; -> 제거됨 (기본 티어 테두리 5px 노출) */
+            box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.1), 0 2px 4px -1px rgba(99, 102, 241, 0.06) !important; /* Soft Indigo Shadow */
+            z-index: 5;
+            position: relative;
+        }
+
+        @media (min-width: 768px) {
+            .rank-num-1 { font-size: 1.8rem; text-shadow: 0 2px 4px rgba(245, 158, 11, 0.2); }
+            .rank-num-2 { font-size: 1.6rem; }
+            .rank-num-3 { font-size: 1.5rem; }
+            .rank-num-top10 { font-size: 1.3rem; } /* Desktop Size */
+            .rank-num-normal { font-size: 1.3rem; }
+            .rank-unranked { font-size: 1.3rem; }
+        }
+        
         .fade-in { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         .tab-active { color: #2563eb; border-bottom: 2px solid #2563eb; font-weight: 700; }
@@ -24,11 +81,8 @@
         @keyframes modalSlideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         .boxrec-win { background: linear-gradient(180deg, #16a34a 0%, #15803d 100%); }
         .boxrec-loss { background: linear-gradient(180deg, #dc2626 0%, #b91c1c 100%); }
-        
-        /* 스타일 태그 체크 효과 */
         .style-checkbox:checked + label { background-color: #3b82f6 !important; color: white !important; border-color: #3b82f6 !important; }
 
-        /* Color Preset Styling */
         .color-preset { width: 32px; height: 32px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; position: relative; }
         .color-preset:hover { transform: scale(1.1); }
         .color-preset.active { border-color: #3b82f6; box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3b82f6; }
@@ -39,7 +93,13 @@
 
     <header class="bg-white sticky top-0 z-40 shadow-sm border-b border-slate-200">
         <div class="max-w-3xl mx-auto px-4 py-3 flex justify-between items-center">
-            <div><h1 class="text-xl font-black italic tracking-tighter text-slate-900 flex items-center gap-1"><span class="text-blue-600">RFC</span> RANKING</h1><p id="currentDate" class="text-xs text-slate-400 font-medium mt-0.5">Loading...</p></div>
+            <div>
+                <h1 class="text-xl font-black italic tracking-tighter text-slate-900 flex items-center gap-1">
+                    <span class="text-blue-600">RFC</span> RANKING
+                    <span id="headerVersion" class="text-xs text-slate-400 font-normal not-italic ml-1 translate-y-0.5">v?.??</span>
+                </h1>
+                <p id="currentDate" class="text-xs text-slate-400 font-medium mt-0.5">Loading...</p>
+            </div>
             <div class="flex gap-2"><button onclick="openRules()" class="bg-slate-100 text-slate-600 text-xs font-bold px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-200 transition">📜 규칙</button><div id="seasonBadge" class="bg-slate-900 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg shadow-slate-500/20">-</div></div>
         </div>
         <nav class="flex border-t border-slate-100 max-w-3xl mx-auto"><button onclick="switchTab('ranking')" id="tabRanking" class="tab-active flex-1 py-3 text-sm transition-colors text-center">🔥 랭킹</button><button onclick="switchTab('matches')" id="tabMatches" class="tab-inactive flex-1 py-3 text-sm transition-colors text-center">⚔️ 기록</button><button onclick="switchTab('hof')" id="tabHof" class="tab-inactive flex-1 py-3 text-sm transition-colors text-center">🏛️ 전당</button><button onclick="switchTab('tournament')" id="tabTournament" class="tab-inactive flex-1 py-3 text-sm transition-colors text-center">🏆 대진</button></nav>
@@ -60,8 +120,18 @@
         <div id="tournamentSection" class="hidden fade-in"><div id="bracketContainer" class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 overflow-x-auto min-h-[300px] flex items-center justify-center text-slate-400 text-sm">진행 중인 토너먼트가 없습니다.</div></div>
     </main>
 
-    <footer class="text-center py-4 mt-4"><a href="admin.html" class="text-[10px] text-slate-300 hover:text-slate-500 transition-colors font-bold no-underline">Admin Access (Secured)</a></footer>
+    <!-- Footer with Auto-Version -->
+    <footer class="text-center py-8 mt-4 border-t border-slate-200 bg-slate-50">
+        <div class="mb-3">
+            <span class="text-xs font-black text-slate-400 tracking-widest uppercase">RFC Ranking System</span>
+            <span id="displayVersion" class="text-[10px] text-slate-500 font-bold ml-1 bg-white border border-slate-200 px-1.5 py-0.5 rounded shadow-sm">v?.??</span>
+        </div>
+        <a href="admin.html" class="text-[10px] text-slate-300 hover:text-blue-500 transition-colors font-bold no-underline flex items-center justify-center gap-1">
+            <span>🔒</span> Admin Access
+        </a>
+    </footer>
 
+    <!-- Profile Modal -->
     <div id="profileModal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
         <div class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity" onclick="closeProfile()"></div>
         <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.2)] max-w-3xl mx-auto h-[92vh] overflow-y-auto modal-enter flex flex-col">
@@ -72,7 +142,7 @@
                     <button onclick="closeProfile()" class="text-slate-400 hover:text-slate-600 p-2 text-2xl font-bold">✕</button>
                 </div>
                 <div class="flex flex-col items-center">
-                    <div class="text-center mb-4"><h2 class="text-3xl font-black text-slate-800 flex items-center justify-center gap-2 tracking-tight"><span id="pModalCrown" class="text-2xl hidden">👑</span><span id="pModalName">Name</span></h2><div class="flex items-center justify-center gap-2 mt-1"><span id="pModalGameId" class="text-xs text-slate-500 font-bold bg-slate-100 px-2 py-0.5 rounded">ID: -</span><span id="pModalTierBadge" class="text-[10px] text-white font-bold px-2 py-0.5 rounded bg-slate-400">Tier</span></div></div>
+                    <div class="text-center mb-4"><h2 class="text-3xl font-black text-slate-800 flex items-center justify-center gap-2 tracking-tight"><span id="pModalCrown" class="text-2xl hidden">👑</span><span id="pModalName">Name</span></h2><div class="flex items-center justify-center gap-2 mt-1"><span id="pModalGameId" class="text-xs text-slate-500 font-bold bg-slate-100 px-2 py-0.5 rounded">ID: -</span><span id="pModalTierBadge" class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-400">Tier</span></div></div>
                     <div class="mb-5 relative"><img id="pModalImg" src="" class="w-48 h-48 rounded-2xl object-cover border-4 border-white shadow-xl bg-slate-50" onerror="this.src='https://placehold.co/150?text=No+Img'"></div>
                     <div class="w-full max-w-sm mb-6">
                         <div class="flex justify-end mb-2"><select id="pModalSeason" class="text-xs font-bold text-slate-600 bg-slate-100 border border-slate-200 rounded px-2 py-1 outline-none focus:border-blue-500"><option value="all">전체 기록 (All Time)</option><option value="current">현재 시즌 (Current)</option></select></div>
@@ -85,6 +155,7 @@
         </div>
     </div>
 
+    <!-- PIN Modal -->
     <div id="pinModal" class="fixed inset-0 z-[60] hidden flex items-center justify-center bg-slate-900/80 backdrop-blur-sm">
         <div class="bg-white p-6 rounded-2xl shadow-xl w-80 text-center">
             <h3 class="text-lg font-bold text-slate-800 mb-2">🔒 본인 인증</h3>
@@ -97,6 +168,7 @@
         </div>
     </div>
 
+    <!-- User Edit Modal -->
     <div id="userEditModal" class="fixed inset-0 z-[70] hidden flex items-center justify-center bg-slate-900/80 backdrop-blur-sm">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-md h-[90vh] overflow-y-auto p-6 relative">
             <h3 class="text-xl font-bold text-slate-800 mb-6 pb-2 border-b">✏️ 내 정보 수정</h3>
@@ -116,8 +188,7 @@
 
                 <div class="mb-4">
                     <label class="text-xs font-bold text-slate-500 mb-2 block">바지 색상 (10가지 프리셋)</label>
-                    <div id="userTrunkColorPresets" class="flex flex-wrap gap-2">
-                        </div>
+                    <div id="userTrunkColorPresets" class="flex flex-wrap gap-2"></div>
                     <input type="hidden" id="userEditTrunkColor">
                 </div>
 
@@ -131,6 +202,7 @@
         </div>
     </div>
 
+    <!-- Rule Modal -->
     <div id="rulesModal" class="fixed inset-0 z-[60] hidden" role="dialog" aria-modal="true">
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeRules()"></div>
         <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl shadow-2xl w-11/12 max-w-md p-6 max-h-[80vh] overflow-y-auto">
@@ -143,6 +215,18 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // [System] Version Control (Auto Updated by Developer)
+        const APP_VERSION = "v3.58";
+        const UPDATE_NOTE = "Top 10: Remove Border Color Override";
+
+        // Apply Version to UI
+        document.title = `RFC 랭킹전 (${APP_VERSION})`;
+        const versionEl = document.getElementById('displayVersion'); // Footer
+        if(versionEl) versionEl.textContent = `${APP_VERSION} ${UPDATE_NOTE}`;
+        
+        const headerVerEl = document.getElementById('headerVersion'); // Header
+        if(headerVerEl) headerVerEl.textContent = APP_VERSION;
 
         const firebaseConfig = { apiKey: "AIzaSyDlj68ex-fM0ExRdD-tvCy-UyIneVoPmGk", authDomain: "rfk-ranking.firebaseapp.com", projectId: "rfk-ranking", storageBucket: "rfk-ranking.firebasestorage.app", messagingSenderId: "675366165774", appId: "1:675366165774:web:795d34c56eab630b4dcb5f", measurementId: "G-CXPDZQ8GTL" };
         const app = initializeApp(firebaseConfig); const db = getFirestore(app); const appId = 'ranking-manager-default';
@@ -158,23 +242,21 @@
 
         const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'rankings', 'main');
         
-        // [Security] SHA-256 Hashing for Client Side Verification
         async function hashPin(pin) {
             if (!pin) return "";
             try {
-                // crypto.subtle requires secure context (https)
                 if (window.crypto && window.crypto.subtle) {
                     const msgBuffer = new TextEncoder().encode(pin);
                     const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
                     const hashArray = Array.from(new Uint8Array(hashBuffer));
                     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
                 } else {
-                    console.warn("Secure context required for crypto.subtle. Storing plaintext (not recommended for production).");
-                    return pin; // Fallback for insecure environments
+                    console.warn("Secure context required for crypto.subtle. Storing plaintext.");
+                    return pin;
                 }
             } catch (e) {
                 console.error("Hashing failed:", e);
-                return pin; // Fallback
+                return pin;
             }
         }
 
@@ -190,13 +272,12 @@
             }
         });
 
-        // Initialize User Edit Presets
         const presetContainer = document.getElementById('userTrunkColorPresets');
         COLOR_PRESETS.forEach(color => {
             const div = document.createElement('div');
             div.className = 'color-preset shadow-sm';
             div.style.backgroundColor = color.code;
-            div.dataset.color = color.code; // [Fixed] Added data-color for robust comparison
+            div.dataset.color = color.code;
             div.title = color.name;
             div.onclick = () => selectUserPresetColor(color.code, div);
             presetContainer.appendChild(div);
@@ -210,7 +291,13 @@
 
         function enrichMatchHistory() { const chronological = [...matchHistoryData].reverse(); const statsTracker = {}; enrichedMatchHistory = chronological.map(match => { const winner = match.winner; const loser = match.loser; if (!statsTracker[winner]) statsTracker[winner] = { w: 0, l: 0, h: [] }; if (!statsTracker[loser]) statsTracker[loser] = { w: 0, l: 0, h: [] }; const snapshot = { [winner]: { ...statsTracker[winner] }, [loser]: { ...statsTracker[loser] } }; if (match.type !== 'draw') { statsTracker[winner].w += 1; statsTracker[winner].h = [...statsTracker[winner].h, 'W'].slice(-6); statsTracker[loser].l += 1; statsTracker[loser].h = [...statsTracker[loser].h, 'L'].slice(-6); } return { ...match, snapshot }; }); enrichedMatchHistory.reverse(); }
         function updateUI() { const now = new Date(); document.getElementById('currentDate').textContent = now.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' }); document.getElementById('seasonBadge').textContent = activeSeason; renderRankings(); updateSeasonSelector(); renderMatches(); renderHOF(); }
-        function getTier(wins, losses) { const matches = (wins || 0) + (losses || 0); if (matches < 3) return { name: 'Bronze', class: 'tier-bronze', color: 'bg-amber-700' }; if (matches < 7) return { name: 'Silver', class: 'tier-silver', color: 'bg-slate-400' }; return { name: 'Gold', class: 'tier-gold', color: 'bg-yellow-500' }; }
+        
+        function getTier(wins, losses) { 
+            const matches = (wins || 0) + (losses || 0); 
+            if (matches < 3) return { name: 'Bronze', class: 'tier-bronze', color: 'bg-white border border-amber-600 text-amber-700' }; 
+            if (matches < 7) return { name: 'Silver', class: 'tier-silver', color: 'bg-white border border-slate-400 text-slate-500' }; 
+            return { name: 'Gold', class: 'tier-gold', color: 'bg-white border border-yellow-500 text-yellow-600' }; 
+        }
         
         function renderRankings() { 
             const container = document.getElementById('rankingList'); container.innerHTML = ''; 
@@ -218,29 +305,90 @@
             const unranked = rankingsData.filter(p => (p.wins + p.losses) === 0).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
 
             ranked.forEach((p, idx) => { 
-                const rank = idx + 1; const tier = getTier(p.wins, p.losses); const prevRank = p.previousRank || rank; const diff = prevRank - rank; 
-                let diffHtml = `<span class="text-slate-300">-</span>`; if (diff > 0) diffHtml = `<span class="text-rose-500 font-bold text-xs">▲${diff}</span>`; else if (diff < 0) diffHtml = `<span class="text-blue-500 font-bold text-xs">▼${Math.abs(diff)}</span>`; 
-                let rankNumClass = "rank-num-normal"; if (rank === 1) rankNumClass = "rank-num-1 font-black"; else if (rank === 2) rankNumClass = "rank-num-2 font-black"; else if (rank === 3) rankNumClass = "rank-num-3 font-black"; 
-                const myMatches = enrichedMatchHistory.filter(m => (m.winner === p.name || m.loser === p.name) && m.season === activeSeason && m.type !== 'draw').slice(0, 6); let dots = ''; myMatches.forEach(m => { if (m.winner === p.name) dots += `<div class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-sm"></div>`; else dots += `<div class="w-1.5 h-1.5 rounded-full bg-rose-500 shadow-sm"></div>`; }); 
+                const rank = idx + 1; 
+                const tier = getTier(p.wins, p.losses); 
+                const prevRank = p.previousRank || rank; const diff = prevRank - rank; 
                 
+                let diffHtml = `<span class="text-slate-300">-</span>`; if (diff > 0) diffHtml = `<span class="text-rose-500 font-bold text-xs">▲${diff}</span>`; else if (diff < 0) diffHtml = `<span class="text-blue-500 font-bold text-xs">▼${Math.abs(diff)}</span>`; 
+                
+                let rankNumClass = "rank-num-normal"; 
+                if (rank === 1) rankNumClass = "rank-num-1 font-black"; 
+                else if (rank === 2) rankNumClass = "rank-num-2 font-black"; 
+                else if (rank === 3) rankNumClass = "rank-num-3 font-black";
+                else if (rank <= 10) rankNumClass = "rank-num-top10"; // [New] Apply Indigo Color for Top 10
+
+                const myMatches = enrichedMatchHistory.filter(m => (m.winner === p.name || m.loser === p.name) && m.season === activeSeason && m.type !== 'draw').slice(0, 6); 
+                let dots = ''; myMatches.forEach(m => { if (m.winner === p.name) dots += `<div class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-sm"></div>`; else dots += `<div class="w-1.5 h-1.5 rounded-full bg-rose-500 shadow-sm"></div>`; }); 
+                
+                // Apply Special Styles
+                let cardClass = tier.class;
+                if (idx === 0) cardClass = 'rank-1-glow';
+                else if (idx === 1) cardClass = 'rank-2-glow';
+                else if (idx === 2) cardClass = 'rank-3-glow';
+                else if (idx >= 3 && idx <= 9) cardClass += ' rank-4-10-border'; // Top 10 Border
+
                 container.innerHTML += `
-                    <div class="bg-white rounded-xl p-3 shadow-sm border border-slate-100 flex items-center gap-3 relative overflow-hidden transition-transform active:scale-[0.99] cursor-pointer ${tier.class}" onclick="openProfile('${p.id}')">
-                        <div class="flex flex-col items-center justify-center w-8 shrink-0"><span class="${rankNumClass}">${rank}</span><div class="mt-0.5">${diffHtml}</div></div>
-                        <div class="shrink-0 relative">${p.imageUrl ? `<img src="${p.imageUrl}" class="w-10 h-10 rounded-full bg-slate-100 object-cover border border-slate-100">` : `<div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-lg">👤</div>`}${rank === 1 ? `<div class="absolute -top-1 -right-1 text-sm">👑</div>` : ''}</div>
-                        <div class="flex-grow min-w-0"><div class="flex items-center gap-1.5 mb-0.5">
-                            <span class="font-bold text-slate-800 truncate text-sm">${p.name}</span><span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-bold border border-slate-200">${tier.name}</span></div><div class="flex items-center gap-2 text-xs"><span class="font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100">⚡${p.elo || 1000}</span><span class="text-slate-300">|</span><span class="text-slate-500 font-medium">${p.wins}W ${p.losses}L</span></div></div><div class="flex flex-col items-end gap-1.5 shrink-0"><div class="flex gap-1 bg-slate-50 p-1 rounded-md">${dots || '<span class="text-[8px] text-slate-300">-</span>'}</div></div>
+                    <div class="bg-white rounded-2xl p-3 md:p-4 shadow-sm border border-slate-100 flex items-center gap-3 md:gap-4 relative overflow-hidden transition-transform active:scale-[0.99] cursor-pointer ${cardClass}" onclick="openProfile('${p.id}')">
+                        
+                        <!-- 1. Rank Number -->
+                        <div class="flex flex-col items-center justify-center w-8 md:w-10 shrink-0">
+                            <span class="${rankNumClass}">${rank}</span>
+                            <div class="mt-0.5">${diffHtml}</div>
+                        </div>
+
+                        <!-- 2. Profile Image -->
+                        <div class="shrink-0 relative">
+                            <img src="${p.imageUrl ? p.imageUrl : 'https://placehold.co/150?text=No+Img'}" 
+                                 class="w-10 h-10 md:w-20 md:h-20 rounded-full bg-slate-100 object-cover border border-slate-100 md:border-2 md:border-slate-50 shadow-sm md:shadow-md transition-all duration-300"
+                                 onerror="this.src='https://placehold.co/150?text=No+Img'">
+                            ${rank === 1 ? `<div class="absolute -top-1 -right-1 text-sm md:text-xl drop-shadow-md">👑</div>` : ''}
+                        </div>
+
+                        <!-- 3. Player Info -->
+                        <div class="flex-grow min-w-0 flex flex-col justify-center md:h-20 md:py-1">
+                            <!-- Upper: Name & Tier Badge -->
+                            <div class="flex items-center gap-1.5 md:gap-2 mb-0.5 md:mb-1.5">
+                                <span class="font-bold md:font-black text-slate-800 truncate text-sm md:text-lg tracking-tight">${p.name}</span>
+                                <span class="text-[9px] md:text-[10px] px-1.5 md:px-2 py-0.5 rounded-full ${tier.color} font-bold tracking-wide uppercase shadow-sm">${tier.name}</span>
+                            </div>
+                            
+                            <!-- Lower: Stats -->
+                            <div class="flex items-center gap-2 md:gap-2.5">
+                                <span class="font-bold md:font-black text-amber-700 bg-amber-50 px-1.5 md:px-2 py-0.5 rounded border border-amber-100 text-xs md:text-sm shadow-sm">⚡${p.elo || 1000}</span>
+                                <div class="h-2.5 md:h-3 w-px bg-slate-200"></div>
+                                <span class="text-slate-500 md:text-slate-600 font-medium md:font-bold text-xs md:text-sm tracking-tight">${p.wins}승 ${p.losses}패</span>
+                            </div>
+                        </div>
+
+                        <!-- 4. Recent Dots -->
+                        <div class="flex flex-col items-end justify-center shrink-0 md:h-full">
+                            <!-- [Modified] Removed bg-slate-50 and border classes for transparency -->
+                            <div class="flex gap-1 p-1 md:p-1.5">
+                                ${dots || '<span class="text-[8px] md:text-[10px] text-slate-300 font-medium px-1">New</span>'}
+                            </div>
+                        </div>
                     </div>`; 
             }); 
 
             if(unranked.length > 0) {
-                container.innerHTML += `<div class="text-center text-xs text-slate-300 font-bold my-4">- Unranked Players -</div>`;
+                container.innerHTML += `<div class="text-center text-xs text-slate-300 font-bold my-4 md:my-6">- Unranked Players -</div>`;
                 unranked.forEach((p) => {
                     container.innerHTML += `
-                        <div class="bg-white rounded-xl p-3 shadow-sm border border-slate-100 flex items-center gap-3 relative overflow-hidden transition-transform active:scale-[0.99] cursor-pointer" onclick="openProfile('${p.id}')">
-                            <div class="flex flex-col items-center justify-center w-8 shrink-0"><span class="rank-unranked">-</span></div>
-                            <div class="shrink-0 relative">${p.imageUrl ? `<img src="${p.imageUrl}" class="w-10 h-10 rounded-full bg-slate-100 object-cover border border-slate-100">` : `<div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-lg">👤</div>`}</div>
-                            <div class="flex-grow min-w-0"><div class="flex items-center gap-1.5 mb-0.5">
-                                <span class="font-bold text-slate-500 truncate text-sm">${p.name}</span></div><div class="flex items-center gap-2 text-xs"><span class="bg-slate-100 text-slate-400 text-[10px] px-1.5 py-0.5 rounded border border-slate-200 font-bold">New</span><span class="text-slate-400 font-medium">0승 0패</span></div></div>
+                        <div class="bg-white rounded-2xl p-3 md:p-4 shadow-sm border border-slate-100 flex items-center gap-3 md:gap-4 relative overflow-hidden transition-transform active:scale-[0.99] cursor-pointer opacity-90" onclick="openProfile('${p.id}')">
+                            <div class="flex flex-col items-center justify-center w-8 md:w-10 shrink-0"><span class="rank-unranked">-</span></div>
+                            <div class="shrink-0 relative">
+                                <img src="${p.imageUrl ? p.imageUrl : 'https://placehold.co/150?text=No+Img'}" 
+                                     class="w-10 h-10 md:w-20 md:h-20 rounded-full bg-slate-100 object-cover border border-slate-100 md:border-2 md:border-slate-50 grayscale shadow-sm transition-all duration-300" 
+                                     onerror="this.src='https://placehold.co/150?text=No+Img'">
+                            </div>
+                            <div class="flex-grow min-w-0 flex flex-col justify-center md:h-20 md:py-1">
+                                <div class="flex items-center gap-1.5 md:gap-2 mb-0.5 md:mb-1.5">
+                                    <span class="font-bold text-slate-500 truncate text-sm md:text-lg">${p.name}</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="bg-slate-100 text-slate-400 text-[10px] px-1.5 md:px-2 py-0.5 rounded border border-slate-200 font-bold">New Challenger</span>
+                                </div>
+                            </div>
                         </div>`;
                 });
             }
@@ -303,10 +451,17 @@
                     </div>`; 
                 container.appendChild(div); 
             }); 
-        }
+        };
 
         function renderHOF() { const container = document.getElementById('hofContent'); let data = null; if (viewSeason === activeSeason) { if (rankingsData.length > 0) { data = { season: activeSeason + " (진행중)", champion: rankingsData[0]?.name || "-", rank2: rankingsData[1]?.name || "-", rank3: rankingsData[2]?.name || "-" }; } } else { const arc = seasonArchives[viewSeason]; if (arc) { data = { season: viewSeason, champion: arc.champion, rank2: arc.rank2 || "-", rank3: arc.rank3 || "-" }; } } if (!data) { container.innerHTML = `<div class="text-center py-10 text-slate-400">데이터가 없습니다.</div>`; return; } container.innerHTML = `<div class="text-center mb-6"><h3 class="text-lg font-black text-slate-800">${data.season}</h3></div><div class="grid grid-cols-3 gap-3 items-end text-center mb-8 px-2"><div class="bg-white p-3 rounded-t-xl border-t-4 border-slate-300 shadow-sm order-1 h-32 flex flex-col justify-end pb-2"><div class="text-2xl mb-1">🥈</div><div class="font-bold text-slate-700 text-sm truncate">${data.rank2}</div></div><div class="bg-white p-3 rounded-t-xl border-t-4 border-amber-400 shadow-md order-2 h-40 flex flex-col justify-end pb-4 relative z-10 -mx-1"><div class="text-4xl mb-1">👑</div><div class="font-black text-slate-800 truncate">${data.champion}</div></div><div class="bg-white p-3 rounded-t-xl border-t-4 border-amber-700 shadow-sm order-3 h-28 flex flex-col justify-end pb-2"><div class="text-2xl mb-1">🥉</div><div class="font-bold text-slate-700 text-sm truncate">${data.rank3}</div></div></div>`; }
-        window.openProfile = (id) => { currentProfileId = id; const p = rankingsData.find(x => x.id === id); if (!p) return; document.getElementById('pModalName').textContent = p.name; document.getElementById('pModalCrown').classList.toggle('hidden', rankingsData.indexOf(p) !== 0); document.getElementById('pModalGameId').textContent = `ID: ${p.gameId || '-'}`; document.getElementById('pModalImg').src = p.imageUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23cbd5e1' stroke-width='2'%3E%3Ccircle cx='12' cy='8' r='5'/%3E%3Cpath d='M20 21a8 8 0 0 0-16 0'/%3E%3C/svg%3E"; const filterEl = document.getElementById('pModalSeason'); filterEl.innerHTML = '<option value="all">전체 기록 (All Time)</option><option value="current">현재 시즌 (Current)</option>'; Object.keys(seasonArchives).sort().reverse().forEach(s => { filterEl.innerHTML += `<option value="${s}">${s}</option>`; }); filterEl.value = 'current'; filterEl.onchange = (e) => updateProfileStats(id, e.target.value); const tier = getTier(p.wins, p.losses); const tierEl = document.getElementById('pModalTierBadge'); tierEl.textContent = tier.name; tierEl.className = `text-[10px] text-white font-bold px-2 py-0.5 rounded shadow-sm ${tier.color}`; document.getElementById('pModalHeight').textContent = p.height ? p.height + 'cm' : '-'; document.getElementById('pModalReach').textContent = p.reach ? p.reach + 'cm' : '-'; document.getElementById('pModalStance').textContent = p.stance || '-'; const tagsContainer = document.getElementById('pModalTags'); tagsContainer.innerHTML = ''; (p.tags || []).forEach(tag => { tagsContainer.innerHTML += `<span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">#${tag}</span>`; }); updateProfileStats(id, 'current'); document.getElementById('profileModal').classList.remove('hidden'); };
+        
+        // [Fixed] window.openProfile uses getTier logic correctly, removing conflicting classes.
+        window.openProfile = (id) => { currentProfileId = id; const p = rankingsData.find(x => x.id === id); if (!p) return; document.getElementById('pModalName').textContent = p.name; document.getElementById('pModalCrown').classList.toggle('hidden', rankingsData.indexOf(p) !== 0); document.getElementById('pModalGameId').textContent = `ID: ${p.gameId || '-'}`; document.getElementById('pModalImg').src = p.imageUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23cbd5e1' stroke-width='2'%3E%3Ccircle cx='12' cy='8' r='5'/%3E%3Cpath d='M20 21a8 8 0 0 0-16 0'/%3E%3C/svg%3E"; const filterEl = document.getElementById('pModalSeason'); filterEl.innerHTML = '<option value="all">전체 기록 (All Time)</option><option value="current">현재 시즌 (Current)</option>'; Object.keys(seasonArchives).sort().reverse().forEach(s => { filterEl.innerHTML += `<option value="${s}">${s}</option>`; }); filterEl.value = 'current'; filterEl.onchange = (e) => updateProfileStats(id, e.target.value); const tier = getTier(p.wins, p.losses); const tierEl = document.getElementById('pModalTierBadge'); tierEl.textContent = tier.name; 
+        
+        // [Key Fix Here] Using only tier.color which has text color, removed hardcoded text-white
+        tierEl.className = `text-[10px] font-bold px-2 py-0.5 rounded shadow-sm ${tier.color}`; 
+        
+        document.getElementById('pModalHeight').textContent = p.height ? p.height + 'cm' : '-'; document.getElementById('pModalReach').textContent = p.reach ? p.reach + 'cm' : '-'; document.getElementById('pModalStance').textContent = p.stance || '-'; const tagsContainer = document.getElementById('pModalTags'); tagsContainer.innerHTML = ''; (p.tags || []).forEach(tag => { tagsContainer.innerHTML += `<span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">#${tag}</span>`; }); updateProfileStats(id, 'current'); document.getElementById('profileModal').classList.remove('hidden'); };
         window.closeProfile = () => { document.getElementById('profileModal').classList.add('hidden'); }
         
         window.updateProfileStats = (id, filter) => { 
@@ -358,7 +513,6 @@
         window.requestEdit = () => { if (!currentProfileId) return; editTargetId = currentProfileId; document.getElementById('inputPin').value = ''; document.getElementById('pinModal').classList.remove('hidden'); document.getElementById('inputPin').focus(); };
         window.closePinModal = () => document.getElementById('pinModal').classList.add('hidden');
         
-        // [Security] Enhanced PIN Check (Plain vs Hash)
         window.checkPin = async () => { 
             const input = document.getElementById('inputPin').value; 
             const p = rankingsData.find(x => x.id === editTargetId); 
@@ -366,10 +520,8 @@
             
             let isMatch = false;
             if (userPin.length === 4) {
-                // Legacy support for plain text PINs
                 if (input === userPin) isMatch = true;
             } else {
-                // Check Hash
                 const inputHash = await hashPin(input);
                 if (inputHash === userPin) isMatch = true;
             }
@@ -385,11 +537,9 @@
             document.getElementById('userEditHeight').value = p.height || ''; document.getElementById('userEditReach').value = p.reach || ''; document.getElementById('userEditStance').value = p.stance || 'Orthodox'; document.getElementById('userEditGameId').value = p.gameId || ''; document.getElementById('userEditPin').value = ''; 
             document.getElementById('userImageUrlInput').value = p.imageUrl || ''; document.getElementById('userEditPreview').src = p.imageUrl || 'https://placehold.co/150?text=No+Img';
             
-            // [Fixed] User Edit Trunk Color Init (Robust Comparison)
             const tc = p.trunkColor || '#1f2937';
             document.getElementById('userEditTrunkColor').value = tc;
             document.querySelectorAll('#userEditModal .color-preset').forEach(el => {
-                // Use dataset.color if available for precise matching
                 const presetColor = el.dataset.color;
                 if((presetColor && presetColor.toLowerCase() === tc.toLowerCase()) || 
                    el.style.backgroundColor === tc || 
@@ -408,10 +558,9 @@
         window.closeUserEdit = () => document.getElementById('userEditModal').classList.add('hidden');
         window.updateUserPreview = (url) => { document.getElementById('userEditPreview').src = url || 'https://placehold.co/150?text=No+Img'; };
 
-        // [Security] Transaction based save for User Edit
         window.saveUserProfile = async () => {
             if (!editTargetId) return;
-            const newHeight = document.getElementById('userEditHeight').value.replace(/</g, "&lt;"); // [Security] Basic Sanitization
+            const newHeight = document.getElementById('userEditHeight').value.replace(/</g, "&lt;");
             const newReach = document.getElementById('userEditReach').value.replace(/</g, "&lt;");
             const newStance = document.getElementById('userEditStance').value;
             const newGameId = document.getElementById('userEditGameId').value.replace(/</g, "&lt;");
@@ -424,7 +573,7 @@
 
             let newPassword = null;
             if (inputPin && inputPin.length === 4) {
-                newPassword = await hashPin(inputPin); // Hash new pin
+                newPassword = await hashPin(inputPin);
             }
 
             try {
@@ -435,11 +584,9 @@
                     const data = sfDoc.data();
                     const rankings = data.rankings || [];
                     
-                    // Find index in the LATEST data (not the stale local data)
                     const idx = rankings.findIndex(r => r.id === editTargetId);
                     if (idx === -1) throw "User not found";
 
-                    // Update only specific fields
                     rankings[idx].height = newHeight;
                     rankings[idx].reach = newReach;
                     rankings[idx].stance = newStance;
@@ -449,19 +596,17 @@
                     rankings[idx].tags = newTags;
                     if (newPassword) rankings[idx].password = newPassword;
 
-                    // Write back the FULL array with the single updated item
                     transaction.update(docRef, { rankings: rankings });
                 });
                 
                 alert("정보가 수정되었습니다.");
                 closeUserEdit();
-                if (currentProfileId === editTargetId) openProfile(currentProfileId); // Refresh UI
+                if (currentProfileId === editTargetId) openProfile(currentProfileId);
             } catch (e) {
                 console.error(e);
-                alert("저장 중 오류가 발생했습니다 (다른 사람이 수정 중일 수 있습니다). 다시 시도해주세요.");
+                alert("저장 중 오류가 발생했습니다. 다시 시도해주세요.");
             }
         };
     </script>
 </body>
 </html>
-
