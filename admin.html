@@ -255,6 +255,27 @@
                 <!-- 5. Settings: Rules/Memo -->
                 <div id="settingsSection" class="tab-content hidden">
                     <div class="space-y-6">
+                        <!-- [New] Notice Management Panel -->
+                        <div class="bg-indigo-50 rounded-2xl shadow-sm border border-indigo-100 overflow-hidden p-5">
+                            <h3 class="font-bold text-indigo-900 mb-2 flex items-center gap-2">
+                                📢 사용자 공지사항 (Popup)
+                                <span id="noticeStatusBadge" class="bg-gray-400 text-white text-[10px] px-2 py-0.5 rounded-full">OFF</span>
+                            </h3>
+                            <p class="text-[10px] text-indigo-700 mb-3">사용자 사이트 접속 시 팝업으로 띄울 내용을 작성합니다.</p>
+                            
+                            <div class="flex items-center gap-2 mb-3">
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="noticeActiveToggle" class="sr-only peer" onchange="updateNoticeUI()">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                                    <span class="ml-2 text-xs font-bold text-slate-600">공지 활성화</span>
+                                </label>
+                            </div>
+
+                            <textarea id="noticeContentInput" class="w-full h-24 p-3 text-sm border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white resize-none mb-2" placeholder="공지할 내용을 입력하세요..."></textarea>
+                            
+                            <button onclick="saveNotice()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl text-sm transition shadow-md">공지사항 저장 & 적용</button>
+                        </div>
+
                         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden p-5">
                             <h3 class="font-bold text-slate-700 mb-2">📜 규칙 HTML 편집</h3>
                             <p class="text-[10px] text-slate-400 mb-3">HTML 코드로 디자인된 규칙을 수정합니다.</p>
@@ -425,8 +446,7 @@
             
             <!-- Match Options -->
             <div id="exportMatchOptions" class="flex gap-2 mb-4 hidden">
-                <button onclick="generateExportText(15)" class="flex-1 bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold py-2 rounded-lg text-xs transition border border-blue-100">최근 15경기</button>
-                <button onclick="generateExportText(30)" class="flex-1 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-bold py-2 rounded-lg text-xs transition border border-indigo-100">최근 30경기</button>
+                <!-- Dynamically Injected -->
             </div>
 
             <textarea id="exportTextarea" class="w-full h-64 p-3 text-xs font-mono border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 resize-none mb-4" readonly placeholder="상단 버튼을 눌러 기록을 생성하세요..."></textarea>
@@ -473,8 +493,8 @@
         const AUTO_LOGIN_PW = "";
 
         // [System] Admin Version Control
-        const ADMIN_VERSION = "v3.77"; // Incremented
-        const UPDATE_NOTE = "Export Tabs (Rank/Color) Added"; // Updated note
+        const ADMIN_VERSION = "v3.78"; 
+        const UPDATE_NOTE = "Notice Popup System"; 
 
         // Apply Version to UI
         document.title = `RFC 랭킹 매니저 (${ADMIN_VERSION} ${UPDATE_NOTE})`;
@@ -485,18 +505,18 @@
         const app = initializeApp(firebaseConfig); const db = getFirestore(app); const auth = getAuth(app); const appId = 'ranking-manager-default';
         
         let rankingsData = []; let matchHistoryData = []; let seasonArchives = {}; let activeSeason = "시즌 1"; let adminMemos = []; let ruleHtml = "";
+        let noticeData = { active: false, content: "" }; // [New] Notice Data
         let undoStack = []; const MAX_UNDO = 10;
         let searchQuery = "";
-        let enrichedHistory = []; // For History Tab
+        let enrichedHistory = []; 
         let viewHistorySeason = "";
-        let currentProfileId = null; // For Profile Modal
+        let currentProfileId = null; 
         
         // Tom Select Instances
         let p1Tom, p2Tom, pPenTom;
 
         const STYLE_OPTIONS = ["인파이터", "아웃복서", "슬러거", "하드 펀처", "바디 스내처", "볼륨 펀처", "스위치 히터", "브롤러", "카운터 펀처", "복서-펀처", "슬릭", "샤프슈터", "패스트 핸드"];
         
-        // [Modified] Color Presets Order: Black, White, Rainbow, Gray
         const COLOR_PRESETS = [
             { name: "Black", code: "#1f2937" }, 
             { name: "White", code: "#f8fafc" },
@@ -541,23 +561,19 @@
         async function hashPin(pin) {
             if (!pin) return "";
             try {
-                // crypto.subtle requires secure context (https)
                 if (window.crypto && window.crypto.subtle) {
                     const msgBuffer = new TextEncoder().encode(pin);
                     const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
                     const hashArray = Array.from(new Uint8Array(hashBuffer));
                     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
                 } else {
-                    console.warn("Secure context required for crypto.subtle. Storing plaintext (not recommended for production).");
-                    return pin; // Fallback for insecure environments
+                    return pin; 
                 }
             } catch (e) {
-                console.error("Hashing failed:", e);
-                return pin; // Fallback
+                return pin; 
             }
         }
 
-        // [Utility] Robust UUID Generator
         function generateUUID() {
             if (typeof crypto !== 'undefined' && crypto.randomUUID) {
                 return crypto.randomUUID();
@@ -575,7 +591,6 @@
                 document.getElementById('mainContent').classList.remove('hidden'); 
                 loadData(); 
             } else {
-                // Auto Login Logic
                 if(AUTO_LOGIN_EMAIL && AUTO_LOGIN_PW) {
                     document.getElementById('loginFormContainer').classList.add('hidden');
                     document.getElementById('autoLoginMsg').classList.remove('hidden');
@@ -591,10 +606,8 @@
         document.getElementById('searchInput').addEventListener('input', (e) => { searchQuery = e.target.value.toLowerCase(); renderRankings(); });
         
         const presetContainer = document.getElementById('trunkColorPresets');
-        // [Modified] Render Standard Presets + 3 Custom Pickers
-        presetContainer.innerHTML = ''; // Clear container
+        presetContainer.innerHTML = ''; 
 
-        // 1. Standard Presets
         COLOR_PRESETS.forEach(color => {
             const div = document.createElement('div');
             div.className = 'color-preset shadow-sm';
@@ -605,41 +618,30 @@
             presetContainer.appendChild(div);
         });
 
-        // 2. Custom Color Pickers (3 Slots)
         for(let i=1; i<=3; i++) {
             const wrapper = document.createElement('div');
-            wrapper.className = 'color-preset shadow-sm flex items-center justify-center bg-white border border-slate-200 custom-picker-slot relative'; // relative
+            wrapper.className = 'color-preset shadow-sm flex items-center justify-center bg-white border border-slate-200 custom-picker-slot relative'; 
             wrapper.title = `Custom Color ${i}`;
-            
-            // [New] Plus Badge Indicator
             const badge = document.createElement('div');
             badge.className = 'absolute -top-1 -right-1 w-3.5 h-3.5 bg-blue-600 text-white rounded-full flex items-center justify-center text-[9px] font-bold pointer-events-none shadow-sm z-10 leading-none pb-0.5';
             badge.textContent = '+';
             wrapper.appendChild(badge);
-
-            // [Fixed] Icon as separate element
             const icon = document.createElement('span');
             icon.className = 'text-[12px] opacity-40 pointer-events-none icon-placeholder grayscale';
             icon.textContent = '🎨';
             wrapper.appendChild(icon);
-            
             const input = document.createElement('input');
             input.type = 'color';
-            input.className = 'opacity-0 absolute inset-0 w-full h-full cursor-pointer'; // Covers entire wrapper
-            input.value = '#ffffff'; // Default
-            
+            input.className = 'opacity-0 absolute inset-0 w-full h-full cursor-pointer'; 
+            input.value = '#ffffff'; 
             input.addEventListener('input', (e) => {
                 const newColor = e.target.value;
                 wrapper.style.backgroundColor = newColor;
                 wrapper.dataset.color = newColor;
-                
-                // Hide icon only, keep input alive. Badge stays visible to indicate editability.
                 icon.style.display = 'none'; 
-                
                 selectPresetColor(newColor, wrapper);
             });
-
-            wrapper.appendChild(input); // Input is always present
+            wrapper.appendChild(input); 
             presetContainer.appendChild(wrapper);
         }
 
@@ -653,9 +655,19 @@
             const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'rankings', 'main');
             onSnapshot(docRef, (doc) => {
                 if (doc.exists()) {
-                    const data = doc.data(); rankingsData = data.rankings || []; matchHistoryData = data.matchHistory || []; seasonArchives = data.seasonArchives || {}; activeSeason = data.activeSeason || "시즌 1"; adminMemos = data.adminMemos || []; ruleHtml = data.ruleHtml || DEFAULT_RULE_HTML;
+                    const data = doc.data(); 
+                    rankingsData = data.rankings || []; 
+                    matchHistoryData = data.matchHistory || []; 
+                    seasonArchives = data.seasonArchives || {}; 
+                    activeSeason = data.activeSeason || "시즌 1"; 
+                    adminMemos = data.adminMemos || []; 
+                    ruleHtml = data.ruleHtml || DEFAULT_RULE_HTML;
+                    // [New] Load Notice Data
+                    noticeData = data.noticeData || { active: false, content: "" };
+
                     if(!viewHistorySeason) viewHistorySeason = activeSeason;
-                    updateSeasonUI(); renderMemos(); document.getElementById('ruleHtmlInput').value = ruleHtml;
+                    updateSeasonUI(); renderMemos(); renderNoticeSettings(); // Render settings
+                    document.getElementById('ruleHtmlInput').value = ruleHtml;
                     rankingsData.forEach((p, i) => { 
                         if(p.defenseCount === undefined) p.defenseCount = 0; 
                         if(p.previousRank === undefined) p.previousRank = i + 1; 
@@ -663,21 +675,57 @@
                         if(p.elo === undefined) p.elo = 1000; 
                         if(p.careerHighElo === undefined) p.careerHighElo = p.elo; 
                         if(!p.trunkColor) p.trunkColor = '#1f2937'; 
-                        
-                        // [New] Calculate Choseong for Search
                         p.choseong = getChoseong(p.name);
                     });
                     renderRankings(); populateMatchSelectors(); renderSeasonList(); checkSeasonInactive();
-                    
                     enrichMatchHistory(); 
                     updateAdminHistorySeasonSelector();
                     renderAdminMatches();
-                    
-                    // Refresh profile modal if open
                     if (currentProfileId) updateProfileStats(currentProfileId, document.getElementById('pModalSeason').value);
                 }
             });
         }
+        
+        // [New] Notice Functions
+        window.renderNoticeSettings = () => {
+            const toggle = document.getElementById('noticeActiveToggle');
+            const content = document.getElementById('noticeContentInput');
+            const badge = document.getElementById('noticeStatusBadge');
+            
+            if (toggle) toggle.checked = noticeData.active;
+            if (content) content.value = noticeData.content || "";
+            if (badge) {
+                badge.textContent = noticeData.active ? "ON" : "OFF";
+                badge.className = noticeData.active 
+                    ? "bg-emerald-500 text-white text-[10px] px-2 py-0.5 rounded-full" 
+                    : "bg-gray-400 text-white text-[10px] px-2 py-0.5 rounded-full";
+            }
+        };
+
+        window.updateNoticeUI = () => {
+             const toggle = document.getElementById('noticeActiveToggle');
+             const badge = document.getElementById('noticeStatusBadge');
+             if (badge && toggle) {
+                badge.textContent = toggle.checked ? "ON" : "OFF";
+                badge.className = toggle.checked 
+                    ? "bg-emerald-500 text-white text-[10px] px-2 py-0.5 rounded-full" 
+                    : "bg-gray-400 text-white text-[10px] px-2 py-0.5 rounded-full";
+             }
+        };
+
+        window.saveNotice = () => {
+            const toggle = document.getElementById('noticeActiveToggle');
+            const content = document.getElementById('noticeContentInput');
+            
+            noticeData = {
+                active: toggle.checked,
+                content: content.value,
+                updatedAt: Date.now()
+            };
+            
+            saveRankings();
+            showCustomAlert("📢 공지사항이 저장 및 적용되었습니다.");
+        };
 
         function enrichMatchHistory() { 
             const chronological = [...matchHistoryData].reverse(); 
@@ -784,7 +832,6 @@
             if (title) title.textContent = "📤 경기 기록 텍스트 내보내기";
             
             const options = document.getElementById('exportMatchOptions');
-            // [Modified] Re-inject match export buttons dynamically to restore them after Ranker List usage
             if (options) {
                 options.classList.remove('hidden'); 
                 options.innerHTML = `
@@ -800,7 +847,6 @@
         };
 
         window.generateExportText = (count) => {
-            // [Fixed] Use viewHistorySeason instead of activeSeason to match what user sees
             const targetSeason = viewHistorySeason || activeSeason; 
             const filtered = matchHistoryData.filter(m => (m.season || "시즌 1") === targetSeason && m.type !== 'draw');
             const targets = filtered.slice(0, count);
@@ -853,39 +899,33 @@
             try {
                 const successful = document.execCommand('copy');
                 if(successful) {
-                    showCustomAlert("✅ 클립보드에 복사되었습니다!"); // Fixed with Custom Alert
+                    showCustomAlert("✅ 클립보드에 복사되었습니다!"); 
                 } else {
                     throw new Error('Copy failed');
                 }
             } catch (err) {
-                showCustomAlert("복사 실패. 수동으로 복사해주세요."); // Fixed with Custom Alert
+                showCustomAlert("복사 실패. 수동으로 복사해주세요."); 
             }
         };
 
-        // [New] Helper to update Ranker Export Text based on type
         window.updateRankerExport = (type) => {
              const rankers = rankingsData.filter(p => (p.wins + p.losses) > 0).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
              let text = "";
              if (type === 'rank') {
-                 // Format: "Name (1)"
                  text = rankers.map((p, i) => `${p.name} (${i + 1})`).join('\n');
              } else {
-                 // Format: "Name #color"
                  text = rankers.map(p => `${p.name} ${p.trunkColor || '#1f2937'}`).join('\n');
              }
              const textarea = document.getElementById('exportTextarea');
              if(textarea) textarea.value = text;
         };
 
-        // [New] Helper for All Player List Export (Name vs Color)
         window.updateAllPlayerExport = (type) => {
              const allPlayers = [...rankingsData].sort((a, b) => a.name.localeCompare(b.name));
              let text = "";
              if (type === 'name') {
-                 // Format: "Name"
                  text = allPlayers.map(p => p.name).join('\n');
              } else {
-                 // Format: "Name #color"
                  text = allPlayers.map(p => `${p.name} ${p.trunkColor || '#1f2937'}`).join('\n');
              }
              const textarea = document.getElementById('exportTextarea');
@@ -908,14 +948,12 @@
                 const options = document.getElementById('exportMatchOptions');
                 if (options) {
                     options.classList.remove('hidden');
-                    // [New] Inject specific buttons for Ranker List
                     options.innerHTML = `
                         <button onclick="updateRankerExport('rank')" class="flex-1 bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold py-2 rounded-lg text-xs transition border border-blue-100">🔢 순위 형식 (이름+순위)</button>
                         <button onclick="updateRankerExport('color')" class="flex-1 bg-purple-50 text-purple-600 hover:bg-purple-100 font-bold py-2 rounded-lg text-xs transition border border-purple-100">🎨 색상 형식 (이름+색상)</button>
                     `;
                 }
                 
-                // Initialize with Rank format
                 updateRankerExport('rank');
 
             } catch (e) {
@@ -927,8 +965,6 @@
         window.copyAllPlayerList = () => {
             try {
                 if (!rankingsData || rankingsData.length === 0) return showCustomAlert("데이터를 불러오는 중이거나 선수가 없습니다.");
-
-                // [Modified] Check only length (no filter needed for all players)
                 if (rankingsData.length === 0) return showCustomAlert("등록된 선수가 없습니다.");
                 
                 const modal = document.getElementById('exportModal');
@@ -940,14 +976,12 @@
                 const options = document.getElementById('exportMatchOptions');
                 if (options) {
                     options.classList.remove('hidden');
-                    // [New] Inject specific buttons for All Player List
                     options.innerHTML = `
                         <button onclick="updateAllPlayerExport('name')" class="flex-1 bg-slate-50 text-slate-600 hover:bg-slate-100 font-bold py-2 rounded-lg text-xs transition border border-slate-200">📋 기본 형식 (이름만)</button>
                         <button onclick="updateAllPlayerExport('color')" class="flex-1 bg-purple-50 text-purple-600 hover:bg-purple-100 font-bold py-2 rounded-lg text-xs transition border border-purple-100">🎨 색상 형식 (이름+색상)</button>
                     `;
                 }
                 
-                // Initialize with Name format
                 updateAllPlayerExport('name');
 
             } catch (e) {
@@ -971,7 +1005,8 @@
                     const sfDoc = await transaction.get(docRef);
                     if (!sfDoc.exists()) throw "Document does not exist!";
                     
-                    const payload = { rankings: rankingsData, matchHistory: matchHistoryData, seasonArchives: seasonArchives, activeSeason: activeSeason, date: new Date().toISOString() }; 
+                    // [New] Include noticeData in payload
+                    const payload = { rankings: rankingsData, matchHistory: matchHistoryData, seasonArchives: seasonArchives, activeSeason: activeSeason, date: new Date().toISOString(), noticeData: noticeData }; 
                     if(!isUndo) { payload.adminMemos = adminMemos; payload.ruleHtml = ruleHtml; } 
                     
                     transaction.set(docRef, payload, { merge: true });
@@ -988,7 +1023,6 @@
         window.switchTab = (tab) => { document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden')); document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active')); document.getElementById(tab + 'Section').classList.remove('hidden'); document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active'); };
         function updateSeasonUI() { document.getElementById('currentSeasonBadge').textContent = activeSeason; document.querySelectorAll('.currentSeasonName').forEach(el => el.textContent = activeSeason); const num = parseInt(activeSeason.replace(/[^0-9]/g, '')) || 0; document.getElementById('newSeasonNameInput').value = `시즌 ${num + 1}`; }
         
-        // [Fixed] Use openRenameModal instead of prompt
         function renderSeasonList() { 
             const container = document.getElementById('seasonListContainer'); 
             container.innerHTML = ''; 
@@ -1813,4 +1847,3 @@
     </script>
 </body>
 </html>
-
