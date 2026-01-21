@@ -44,12 +44,16 @@
         .rank-num-1 { color: #f59e0b; font-size: 1.2rem; text-shadow: 0 1px 2px rgba(245, 158, 11, 0.2); }
         .rank-num-2 { color: #71717a; font-size: 1.1rem; font-weight: 800; text-shadow: 0 1px 2px rgba(113, 113, 122, 0.1); }
         .rank-num-3 { color: #ad8a56; font-size: 1.0rem; }
-        .rank-num-top10 { color: #6366f1; font-size: 1.0rem; font-weight: 800; }
+        
+        /* [Modified] Top 10 (4~10위): Brighter Emerald (#047857) 적용 */
+        .rank-num-top10 { color: #047857; font-size: 1.0rem; font-weight: 900; text-shadow: 0 1px 2px rgba(4, 120, 87, 0.15); }
+        
         .rank-num-normal { color: #94a3b8; font-size: 1.0rem; font-weight: 800; }
         .rank-unranked { color: #cbd5e1; font-size: 1.0rem; font-weight: 800; }
 
         .rank-4-10-border {
-            box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.1), 0 2px 4px -1px rgba(99, 102, 241, 0.06) !important;
+            /* [Modified] 4~10위 그림자 색상도 밝아진 에메랄드 톤에 맞춰 조정 */
+            box-shadow: 0 4px 6px -1px rgba(4, 120, 87, 0.05), 0 2px 4px -1px rgba(4, 120, 87, 0.03) !important;
             z-index: 5;
             position: relative;
         }
@@ -228,8 +232,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // [System] Version Control (Auto Updated by Developer)
-        const APP_VERSION = "v3.66";
-        const UPDATE_NOTE = "Notice Popup";
+        const APP_VERSION = "v3.68";
+        const UPDATE_NOTE = "Top 10 Color: Brighter Emerald";
 
         // Apply Version to UI
         document.title = `RFC 랭킹전 (${APP_VERSION})`;
@@ -286,23 +290,17 @@
                 renderRankings();
                 enrichMatchHistory(); 
                 updateUI();
-                
-                // [New] Check Notice
                 checkNotice(data.noticeData);
 
                 if (currentProfileId) updateProfileStats(currentProfileId, document.getElementById('pModalSeason').value);
             }
         });
 
-        // [New] Notice Logic
         function checkNotice(noticeData) {
             if (!noticeData || !noticeData.active || !noticeData.content) return;
-
-            const today = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
+            const today = new Date().toLocaleDateString('en-CA'); 
             const hiddenDate = localStorage.getItem('rfc_notice_hide_date');
-
-            if (hiddenDate === today) return; // Hidden for today
-
+            if (hiddenDate === today) return; 
             document.getElementById('noticeContent').textContent = noticeData.content;
             document.getElementById('noticeModal').classList.remove('hidden');
         }
@@ -440,17 +438,13 @@
             filtered.forEach(m => { 
                 const winStats = m.snapshot[m.winner] || { w:0, l:0, h:[] };
                 const loseStats = m.snapshot[m.loser] || { w:0, l:0, h:[] };
-
                 const winProfile = rankingsData.find(p => p.name === m.winner);
                 const loseProfile = rankingsData.find(p => p.name === m.loser);
-                
                 const winClick = winProfile ? `onclick="openProfile('${winProfile.id}')"` : '';
                 const loseClick = loseProfile ? `onclick="openProfile('${loseProfile.id}')"` : '';
                 const cursorStyle = (profile) => profile ? "cursor-pointer hover:underline hover:text-blue-700" : "";
-
                 let winDots = ''; (winStats.h || []).forEach(r => winDots += `<div class="w-1.5 h-1.5 rounded-full ${r==='W'?'bg-emerald-400':'bg-rose-400'}"></div>`);
                 let loseDots = ''; (loseStats.h || []).forEach(r => loseDots += `<div class="w-1.5 h-1.5 rounded-full ${r==='W'?'bg-emerald-400':'bg-rose-400'}"></div>`);
-
                 const div = document.createElement('div'); 
                 div.className = "bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-3"; 
                 div.innerHTML = `
@@ -486,9 +480,7 @@
 
         function renderHOF() { const container = document.getElementById('hofContent'); let data = null; if (viewSeason === activeSeason) { if (rankingsData.length > 0) { data = { season: activeSeason + " (진행중)", champion: rankingsData[0]?.name || "-", rank2: rankingsData[1]?.name || "-", rank3: rankingsData[2]?.name || "-" }; } } else { const arc = seasonArchives[viewSeason]; if (arc) { data = { season: viewSeason, champion: arc.champion, rank2: arc.rank2 || "-", rank3: arc.rank3 || "-" }; } } if (!data) { container.innerHTML = `<div class="text-center py-10 text-slate-400">데이터가 없습니다.</div>`; return; } container.innerHTML = `<div class="text-center mb-6"><h3 class="text-lg font-black text-slate-800">${data.season}</h3></div><div class="grid grid-cols-3 gap-3 items-end text-center mb-8 px-2"><div class="bg-white p-3 rounded-t-xl border-t-4 border-slate-300 shadow-sm order-1 h-32 flex flex-col justify-end pb-2"><div class="text-2xl mb-1">🥈</div><div class="font-bold text-slate-700 text-sm truncate">${data.rank2}</div></div><div class="bg-white p-3 rounded-t-xl border-t-4 border-amber-400 shadow-md order-2 h-40 flex flex-col justify-end pb-4 relative z-10 -mx-1"><div class="text-4xl mb-1">👑</div><div class="font-black text-slate-800 truncate">${data.champion}</div></div><div class="bg-white p-3 rounded-t-xl border-t-4 border-amber-700 shadow-sm order-3 h-28 flex flex-col justify-end pb-2"><div class="text-2xl mb-1">🥉</div><div class="font-bold text-slate-700 text-sm truncate">${data.rank3}</div></div></div>`; }
         
-        window.openProfile = (id) => { currentProfileId = id; const p = rankingsData.find(x => x.id === id); if (!p) return; document.getElementById('pModalName').textContent = p.name; document.getElementById('pModalCrown').classList.toggle('hidden', rankingsData.indexOf(p) !== 0); document.getElementById('pModalGameId').textContent = `ID: ${p.gameId || '-'}`; document.getElementById('pModalImg').src = p.imageUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23cbd5e1' stroke-width='2'%3E%3Ccircle cx='12' cy='8' r='5'/%3E%3Cpath d='M20 21a8 8 0 0 0-16 0'/%3E%3C/svg%3E"; const filterEl = document.getElementById('pModalSeason'); filterEl.innerHTML = '<option value="all">전체 기록 (All Time)</option><option value="current">현재 시즌 (Current)</option>'; Object.keys(seasonArchives).sort().reverse().forEach(s => { filterEl.innerHTML += `<option value="${s}">${s}</option>`; }); filterEl.value = 'current'; filterEl.onchange = (e) => updateProfileStats(id, e.target.value); const tier = getTier(p.wins, p.losses); const tierEl = document.getElementById('pModalTierBadge'); tierEl.textContent = tier.name; 
-        tierEl.className = `text-[10px] font-bold px-2 py-0.5 rounded shadow-sm ${tier.color}`; 
-        document.getElementById('pModalHeight').textContent = p.height ? p.height + 'cm' : '-'; document.getElementById('pModalReach').textContent = p.reach ? p.reach + 'cm' : '-'; document.getElementById('pModalStance').textContent = p.stance || '-'; const tagsContainer = document.getElementById('pModalTags'); tagsContainer.innerHTML = ''; (p.tags || []).forEach(tag => { tagsContainer.innerHTML += `<span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">#${tag}</span>`; }); updateProfileStats(id, 'current'); document.getElementById('profileModal').classList.remove('hidden'); };
+        window.openProfile = (id) => { currentProfileId = id; const p = rankingsData.find(x => x.id === id); if (!p) return; document.getElementById('pModalName').textContent = p.name; document.getElementById('pModalCrown').classList.toggle('hidden', rankingsData.indexOf(p) !== 0); document.getElementById('pModalGameId').textContent = `ID: ${p.gameId || '-'}`; document.getElementById('pModalImg').src = p.imageUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23cbd5e1' stroke-width='2'%3E%3Ccircle cx='12' cy='8' r='5'/%3E%3Cpath d='M20 21a8 8 0 0 0-16 0'/%3E%3C/svg%3E"; const filterEl = document.getElementById('pModalSeason'); filterEl.innerHTML = '<option value="all">전체 기록 (All Time)</option><option value="current">현재 시즌 (Current)</option>'; Object.keys(seasonArchives).sort().reverse().forEach(s => { filterEl.innerHTML += `<option value="${s}">${s}</option>`; }); filterEl.value = 'current'; filterEl.onchange = (e) => updateProfileStats(id, e.target.value); const tier = getTier(p.wins, p.losses); const tierEl = document.getElementById('pModalTierBadge'); tierEl.textContent = tier.name; tierEl.className = `text-[10px] font-bold px-2 py-0.5 rounded shadow-sm ${tier.color}`; document.getElementById('pModalHeight').textContent = p.height ? p.height + 'cm' : '-'; document.getElementById('pModalReach').textContent = p.reach ? p.reach + 'cm' : '-'; document.getElementById('pModalStance').textContent = p.stance || '-'; const tagsContainer = document.getElementById('pModalTags'); tagsContainer.innerHTML = ''; (p.tags || []).forEach(tag => { tagsContainer.innerHTML += `<span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">#${tag}</span>`; }); updateProfileStats(id, 'current'); document.getElementById('profileModal').classList.remove('hidden'); };
         window.closeProfile = () => { document.getElementById('profileModal').classList.add('hidden'); }
         
         window.updateProfileStats = (id, filter) => { 
@@ -501,17 +493,14 @@
             document.getElementById('pBigWins').textContent = wins; document.getElementById('pBigLosses').textContent = losses; document.getElementById('pModalWinRate').textContent = `${winRate}%`; document.getElementById('pModalElo').textContent = p.elo || 1000; document.getElementById('pModalHighElo').textContent = p.careerHighElo || p.elo || 1000; 
             const container = document.getElementById('pModalMatchList'); container.innerHTML = ''; 
             if (matches.length === 0) { container.innerHTML = `<div class="text-center text-xs text-slate-400 py-4">해당 기간 기록이 없습니다.</div>`; return; } 
-            
             matches.forEach(m => { 
                 const isWin = m.winner === p.name; const resultText = isWin ? 'W' : 'L'; const resultColor = isWin ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'; 
                 const oppName = isWin ? m.loser : m.winner; 
                 const oppStats = m.snapshot[oppName] || { w:0, l:0, h:[] }; const oppRecordStr = `${oppStats.w}승 ${oppStats.l}패`; 
                 let oppDots = ''; (oppStats.h || []).forEach(res => { if (res === 'W') oppDots += `<div class="w-1 h-1 rounded-full bg-emerald-400"></div>`; else oppDots += `<div class="w-1 h-1 rounded-full bg-rose-400"></div>`; }); 
-                
                 const oppProfile = rankingsData.find(u => u.name === oppName);
                 const oppLink = oppProfile ? `onclick="openProfile('${oppProfile.id}')"` : '';
                 const oppCursor = oppProfile ? 'cursor-pointer hover:underline hover:text-blue-600' : '';
-
                 const div = document.createElement('div'); 
                 div.className = "flex items-center justify-between text-xs p-3 bg-slate-50 rounded-xl border border-slate-100"; 
                 div.innerHTML = `
@@ -536,47 +525,29 @@
         window.switchTab = (tab) => { ['ranking', 'matches', 'hof', 'tournament'].forEach(t => { document.getElementById(t + 'Section').classList.add('hidden'); const btn = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1)); btn.className = "tab-inactive flex-1 py-3 text-sm transition-colors text-center"; }); document.getElementById(tab + 'Section').classList.remove('hidden'); const activeBtn = document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)); activeBtn.className = "tab-active flex-1 py-3 text-sm transition-colors text-center"; };
 
         let editTargetId = null;
-
         window.requestEdit = () => { if (!currentProfileId) return; editTargetId = currentProfileId; document.getElementById('inputPin').value = ''; document.getElementById('pinModal').classList.remove('hidden'); document.getElementById('inputPin').focus(); };
         window.closePinModal = () => document.getElementById('pinModal').classList.add('hidden');
-        
         window.checkPin = async () => { 
             const input = document.getElementById('inputPin').value; 
             const p = rankingsData.find(x => x.id === editTargetId); 
             const userPin = p.password || "0000"; 
-            
             let isMatch = false;
-            if (userPin.length === 4) {
-                if (input === userPin) isMatch = true;
-            } else {
-                const inputHash = await hashPin(input);
-                if (inputHash === userPin) isMatch = true;
-            }
-
-            if (isMatch) { 
-                closePinModal(); openUserEditModal(p); 
-            } else { 
-                alert("비밀번호가 일치하지 않습니다."); document.getElementById('inputPin').value = ''; 
-            } 
+            if (userPin.length === 4) { if (input === userPin) isMatch = true; } 
+            else { const inputHash = await hashPin(input); if (inputHash === userPin) isMatch = true; }
+            if (isMatch) { closePinModal(); openUserEditModal(p); } 
+            else { alert("비밀번호가 일치하지 않습니다."); document.getElementById('inputPin').value = ''; } 
         };
 
         function openUserEditModal(p) {
             document.getElementById('userEditHeight').value = p.height || ''; document.getElementById('userEditReach').value = p.reach || ''; document.getElementById('userEditStance').value = p.stance || 'Orthodox'; document.getElementById('userEditGameId').value = p.gameId || ''; document.getElementById('userEditPin').value = ''; 
             document.getElementById('userImageUrlInput').value = p.imageUrl || ''; document.getElementById('userEditPreview').src = p.imageUrl || 'https://placehold.co/150?text=No+Img';
-            
             const tc = p.trunkColor || '#1f2937';
             document.getElementById('userEditTrunkColor').value = tc;
             document.querySelectorAll('#userEditModal .color-preset').forEach(el => {
                 const presetColor = el.dataset.color;
-                if((presetColor && presetColor.toLowerCase() === tc.toLowerCase()) || 
-                   el.style.backgroundColor === tc || 
-                   (tc.toUpperCase() === el.style.backgroundColor.toUpperCase())) {
-                    el.classList.add('active');
-                } else {
-                    el.classList.remove('active');
-                }
+                if((presetColor && presetColor.toLowerCase() === tc.toLowerCase()) || el.style.backgroundColor === tc || (tc.toUpperCase() === el.style.backgroundColor.toUpperCase())) { el.classList.add('active'); } 
+                else { el.classList.remove('active'); }
             });
-
             const container = document.getElementById('userStyleTags'); container.innerHTML = ''; 
             STYLE_OPTIONS.forEach(s => { const safeId = `u-style-${s.replace(/\s+/g, '-')}`; const checked = (p.tags || []).includes(s); container.innerHTML += `<div><input type="checkbox" id="${safeId}" value="${s}" class="style-checkbox absolute opacity-0 w-0 h-0" ${checked ? 'checked' : ''}><label for="${safeId}" class="inline-block px-3 py-1 text-xs font-bold border border-slate-300 rounded-full cursor-pointer text-slate-500 hover:bg-slate-100 transition select-none">${s}</label></div>`; });
             document.getElementById('userEditModal').classList.remove('hidden');
@@ -584,7 +555,6 @@
 
         window.closeUserEdit = () => document.getElementById('userEditModal').classList.add('hidden');
         window.updateUserPreview = (url) => { document.getElementById('userEditPreview').src = url || 'https://placehold.co/150?text=No+Img'; };
-
         window.saveUserProfile = async () => {
             if (!editTargetId) return;
             const newHeight = document.getElementById('userEditHeight').value.replace(/</g, "&lt;");
@@ -594,45 +564,24 @@
             const newImageUrl = document.getElementById('userImageUrlInput').value.trim().replace(/</g, "&lt;");
             const newTrunkColor = document.getElementById('userEditTrunkColor').value;
             const inputPin = document.getElementById('userEditPin').value;
-            
             const checkedTags = document.querySelectorAll('#userStyleTags .style-checkbox:checked'); 
             const newTags = Array.from(checkedTags).map(cb => cb.value).slice(0, 3);
-
             let newPassword = null;
-            if (inputPin && inputPin.length === 4) {
-                newPassword = await hashPin(inputPin);
-            }
-
+            if (inputPin && inputPin.length === 4) { newPassword = await hashPin(inputPin); }
             try {
                 await runTransaction(db, async (transaction) => {
                     const sfDoc = await transaction.get(docRef);
                     if (!sfDoc.exists()) throw "Doc missing";
-                    
                     const data = sfDoc.data();
                     const rankings = data.rankings || [];
-                    
                     const idx = rankings.findIndex(r => r.id === editTargetId);
                     if (idx === -1) throw "User not found";
-
-                    rankings[idx].height = newHeight;
-                    rankings[idx].reach = newReach;
-                    rankings[idx].stance = newStance;
-                    rankings[idx].gameId = newGameId;
-                    rankings[idx].imageUrl = newImageUrl;
-                    rankings[idx].trunkColor = newTrunkColor;
-                    rankings[idx].tags = newTags;
+                    rankings[idx].height = newHeight; rankings[idx].reach = newReach; rankings[idx].stance = newStance; rankings[idx].gameId = newGameId; rankings[idx].imageUrl = newImageUrl; rankings[idx].trunkColor = newTrunkColor; rankings[idx].tags = newTags;
                     if (newPassword) rankings[idx].password = newPassword;
-
                     transaction.update(docRef, { rankings: rankings });
                 });
-                
-                alert("정보가 수정되었습니다.");
-                closeUserEdit();
-                if (currentProfileId === editTargetId) openProfile(currentProfileId);
-            } catch (e) {
-                console.error(e);
-                alert("저장 중 오류가 발생했습니다. 다시 시도해주세요.");
-            }
+                alert("정보가 수정되었습니다."); closeUserEdit(); if (currentProfileId === editTargetId) openProfile(currentProfileId);
+            } catch (e) { console.error(e); alert("저장 중 오류가 발생했습니다. 다시 시도해주세요."); }
         };
     </script>
 </body>
