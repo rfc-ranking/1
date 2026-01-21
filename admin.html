@@ -40,6 +40,8 @@
         .rank-num-1 { color: #f59e0b; font-size: 1.2rem; text-shadow: 0 1px 2px rgba(245, 158, 11, 0.2); }
         .rank-num-2 { color: #94a3b8; font-size: 1.1rem; }
         .rank-num-3 { color: #ad8a56; font-size: 1.0rem; }
+        /* [New] Top 10 (4~10위) Emerald Style */
+        .rank-num-top10 { color: #047857; font-size: 1.0rem; font-weight: 900; text-shadow: 0 1px 2px rgba(4, 120, 87, 0.15); }
         .rank-num-normal { color: #64748b; font-size: 1.0rem; font-weight: 800; }
         .rank-unranked { color: #cbd5e1; font-size: 1.0rem; font-weight: 800; }
         
@@ -144,7 +146,14 @@
                 <!-- 1. Main: Input Match -->
                 <div id="mainSection" class="tab-content">
                     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 mb-6 relative z-30">
-                        <div class="bg-slate-50 p-4 border-b border-slate-100 flex justify-between items-center rounded-t-2xl"><h3 class="font-bold text-slate-700">⚔️ 경기 결과 입력</h3></div>
+                        <div class="bg-slate-50 p-4 border-b border-slate-100 flex justify-between items-center rounded-t-2xl">
+                            <h3 class="font-bold text-slate-700">⚔️ 경기 결과 입력</h3>
+                            <!-- [New] Reset Button -->
+                            <button onclick="resetMatchInputs()" class="text-xs bg-white border border-slate-200 text-slate-500 hover:text-blue-600 hover:border-blue-200 px-2.5 py-1.5 rounded-lg font-bold transition flex items-center gap-1 shadow-sm">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                                초기화
+                            </button>
+                        </div>
                         <div class="p-5">
                             <div class="space-y-4">
                                 <div class="grid grid-cols-2 gap-3">
@@ -255,25 +264,18 @@
                 <!-- 5. Settings: Rules/Memo -->
                 <div id="settingsSection" class="tab-content hidden">
                     <div class="space-y-6">
-                        <!-- [New] Notice Management Panel -->
-                        <div class="bg-indigo-50 rounded-2xl shadow-sm border border-indigo-100 overflow-hidden p-5">
-                            <h3 class="font-bold text-indigo-900 mb-2 flex items-center gap-2">
-                                📢 사용자 공지사항 (Popup)
-                                <span id="noticeStatusBadge" class="bg-gray-400 text-white text-[10px] px-2 py-0.5 rounded-full">OFF</span>
-                            </h3>
-                            <p class="text-[10px] text-indigo-700 mb-3">사용자 사이트 접속 시 팝업으로 띄울 내용을 작성합니다.</p>
-                            
-                            <div class="flex items-center gap-2 mb-3">
+                        <!-- Notice Management -->
+                        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden p-5">
+                            <div class="flex justify-between items-center mb-3">
+                                <h3 class="font-bold text-slate-700">📢 사용자 공지사항 관리</h3>
                                 <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" id="noticeActiveToggle" class="sr-only peer" onchange="updateNoticeUI()">
-                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                                    <input type="checkbox" id="noticeActiveToggle" class="sr-only peer" onchange="saveNoticeSettings()">
+                                    <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
                                     <span class="ml-2 text-xs font-bold text-slate-600">공지 활성화</span>
                                 </label>
                             </div>
-
-                            <textarea id="noticeContentInput" class="w-full h-24 p-3 text-sm border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white resize-none mb-2" placeholder="공지할 내용을 입력하세요..."></textarea>
-                            
-                            <button onclick="saveNotice()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl text-sm transition shadow-md">공지사항 저장 & 적용</button>
+                            <textarea id="noticeContentInput" class="w-full h-24 p-3 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 resize-none mb-3" placeholder="공지 내용을 입력하세요..."></textarea>
+                            <button onclick="saveNoticeSettings()" class="w-full bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-bold py-2 rounded-lg text-xs border border-indigo-100 transition">공지 저장하기</button>
                         </div>
 
                         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden p-5">
@@ -446,7 +448,8 @@
             
             <!-- Match Options -->
             <div id="exportMatchOptions" class="flex gap-2 mb-4 hidden">
-                <!-- Dynamically Injected -->
+                <button onclick="generateExportText(15)" class="flex-1 bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold py-2 rounded-lg text-xs transition border border-blue-100">최근 15경기</button>
+                <button onclick="generateExportText(30)" class="flex-1 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-bold py-2 rounded-lg text-xs transition border border-indigo-100">최근 30경기</button>
             </div>
 
             <textarea id="exportTextarea" class="w-full h-64 p-3 text-xs font-mono border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 resize-none mb-4" readonly placeholder="상단 버튼을 눌러 기록을 생성하세요..."></textarea>
@@ -489,34 +492,50 @@
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         
         // [Developer Convenience]
-        const AUTO_LOGIN_EMAIL = ""; 
-        const AUTO_LOGIN_PW = "";
+        const AUTO_LOGIN_EMAIL = "admin@gmail.com"; 
+        const AUTO_LOGIN_PW = "55555!";
 
         // [System] Admin Version Control
-        const ADMIN_VERSION = "v3.78"; 
-        const UPDATE_NOTE = "Notice Popup System"; 
+        // 주요 기능 변경 시에만 숫자를 올려주세요. UI에 즉시 반영됩니다.
+        const ADMIN_VERSION = "v3.83"; 
+        const UPDATE_NOTE = "Export UI Tweak";
 
-        // Apply Version to UI
-        document.title = `RFC 랭킹 매니저 (${ADMIN_VERSION} ${UPDATE_NOTE})`;
-        const adminVerEl = document.getElementById('adminVersionDisplay');
-        if(adminVerEl) adminVerEl.textContent = `${ADMIN_VERSION} ${UPDATE_NOTE}`;
+        // [System] UI Auto-Update Logic (Version Only)
+        function initVersionUI() {
+            try {
+                // 1. Update Browser Title
+                document.title = `RFC 랭킹 매니저 [${ADMIN_VERSION}]`;
+
+                // 2. Update Header Display
+                const adminVerEl = document.getElementById('adminVersionDisplay');
+                if(adminVerEl) {
+                    // [Modified] 버전명 옆에 업데이트 내역 텍스트 추가
+                    adminVerEl.innerHTML = `<span class="font-bold text-slate-600">${ADMIN_VERSION}</span> <span class="text-slate-400 font-normal ml-1 text-[11px]">${UPDATE_NOTE}</span>`;
+                }
+            } catch (e) {
+                console.warn("Version UI Update Failed:", e);
+            }
+        }
+        
+        // 실행
+        initVersionUI();
 
         const firebaseConfig = { apiKey: "AIzaSyDlj68ex-fM0ExRdD-tvCy-UyIneVoPmGk", authDomain: "rfk-ranking.firebaseapp.com", projectId: "rfk-ranking", storageBucket: "rfk-ranking.firebasestorage.app", messagingSenderId: "675366165774", appId: "1:675366165774:web:795d34c56eab630b4dcb5f", measurementId: "G-CXPDZQ8GTL" };
         const app = initializeApp(firebaseConfig); const db = getFirestore(app); const auth = getAuth(app); const appId = 'ranking-manager-default';
         
         let rankingsData = []; let matchHistoryData = []; let seasonArchives = {}; let activeSeason = "시즌 1"; let adminMemos = []; let ruleHtml = "";
-        let noticeData = { active: false, content: "" }; // [New] Notice Data
         let undoStack = []; const MAX_UNDO = 10;
         let searchQuery = "";
-        let enrichedHistory = []; 
+        let enrichedHistory = []; // For History Tab
         let viewHistorySeason = "";
-        let currentProfileId = null; 
+        let currentProfileId = null; // For Profile Modal
         
         // Tom Select Instances
         let p1Tom, p2Tom, pPenTom;
 
         const STYLE_OPTIONS = ["인파이터", "아웃복서", "슬러거", "하드 펀처", "바디 스내처", "볼륨 펀처", "스위치 히터", "브롤러", "카운터 펀처", "복서-펀처", "슬릭", "샤프슈터", "패스트 핸드"];
         
+        // [Modified] Color Presets Order: Black, White, Rainbow, Gray
         const COLOR_PRESETS = [
             { name: "Black", code: "#1f2937" }, 
             { name: "White", code: "#f8fafc" },
@@ -561,19 +580,23 @@
         async function hashPin(pin) {
             if (!pin) return "";
             try {
+                // crypto.subtle requires secure context (https)
                 if (window.crypto && window.crypto.subtle) {
                     const msgBuffer = new TextEncoder().encode(pin);
                     const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
                     const hashArray = Array.from(new Uint8Array(hashBuffer));
                     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
                 } else {
-                    return pin; 
+                    console.warn("Secure context required for crypto.subtle. Storing plaintext (not recommended for production).");
+                    return pin; // Fallback for insecure environments
                 }
             } catch (e) {
-                return pin; 
+                console.error("Hashing failed:", e);
+                return pin; // Fallback
             }
         }
 
+        // [Utility] Robust UUID Generator
         function generateUUID() {
             if (typeof crypto !== 'undefined' && crypto.randomUUID) {
                 return crypto.randomUUID();
@@ -591,6 +614,7 @@
                 document.getElementById('mainContent').classList.remove('hidden'); 
                 loadData(); 
             } else {
+                // Auto Login Logic
                 if(AUTO_LOGIN_EMAIL && AUTO_LOGIN_PW) {
                     document.getElementById('loginFormContainer').classList.add('hidden');
                     document.getElementById('autoLoginMsg').classList.remove('hidden');
@@ -606,8 +630,10 @@
         document.getElementById('searchInput').addEventListener('input', (e) => { searchQuery = e.target.value.toLowerCase(); renderRankings(); });
         
         const presetContainer = document.getElementById('trunkColorPresets');
-        presetContainer.innerHTML = ''; 
+        // [Modified] Render Standard Presets + 3 Custom Pickers
+        presetContainer.innerHTML = ''; // Clear container
 
+        // 1. Standard Presets
         COLOR_PRESETS.forEach(color => {
             const div = document.createElement('div');
             div.className = 'color-preset shadow-sm';
@@ -618,30 +644,41 @@
             presetContainer.appendChild(div);
         });
 
+        // 2. Custom Color Pickers (3 Slots)
         for(let i=1; i<=3; i++) {
             const wrapper = document.createElement('div');
-            wrapper.className = 'color-preset shadow-sm flex items-center justify-center bg-white border border-slate-200 custom-picker-slot relative'; 
+            wrapper.className = 'color-preset shadow-sm flex items-center justify-center bg-white border border-slate-200 custom-picker-slot relative'; // relative
             wrapper.title = `Custom Color ${i}`;
+            
+            // [New] Plus Badge Indicator
             const badge = document.createElement('div');
             badge.className = 'absolute -top-1 -right-1 w-3.5 h-3.5 bg-blue-600 text-white rounded-full flex items-center justify-center text-[9px] font-bold pointer-events-none shadow-sm z-10 leading-none pb-0.5';
             badge.textContent = '+';
             wrapper.appendChild(badge);
+
+            // [Fixed] Icon as separate element
             const icon = document.createElement('span');
             icon.className = 'text-[12px] opacity-40 pointer-events-none icon-placeholder grayscale';
             icon.textContent = '🎨';
             wrapper.appendChild(icon);
+            
             const input = document.createElement('input');
             input.type = 'color';
-            input.className = 'opacity-0 absolute inset-0 w-full h-full cursor-pointer'; 
-            input.value = '#ffffff'; 
+            input.className = 'opacity-0 absolute inset-0 w-full h-full cursor-pointer'; // Covers entire wrapper
+            input.value = '#ffffff'; // Default
+            
             input.addEventListener('input', (e) => {
                 const newColor = e.target.value;
                 wrapper.style.backgroundColor = newColor;
                 wrapper.dataset.color = newColor;
+                
+                // Hide icon only, keep input alive. Badge stays visible to indicate editability.
                 icon.style.display = 'none'; 
+                
                 selectPresetColor(newColor, wrapper);
             });
-            wrapper.appendChild(input); 
+
+            wrapper.appendChild(input); // Input is always present
             presetContainer.appendChild(wrapper);
         }
 
@@ -655,19 +692,16 @@
             const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'rankings', 'main');
             onSnapshot(docRef, (doc) => {
                 if (doc.exists()) {
-                    const data = doc.data(); 
-                    rankingsData = data.rankings || []; 
-                    matchHistoryData = data.matchHistory || []; 
-                    seasonArchives = data.seasonArchives || {}; 
-                    activeSeason = data.activeSeason || "시즌 1"; 
-                    adminMemos = data.adminMemos || []; 
-                    ruleHtml = data.ruleHtml || DEFAULT_RULE_HTML;
-                    // [New] Load Notice Data
-                    noticeData = data.noticeData || { active: false, content: "" };
-
+                    const data = doc.data(); rankingsData = data.rankings || []; matchHistoryData = data.matchHistory || []; seasonArchives = data.seasonArchives || {}; activeSeason = data.activeSeason || "시즌 1"; adminMemos = data.adminMemos || []; ruleHtml = data.ruleHtml || DEFAULT_RULE_HTML;
                     if(!viewHistorySeason) viewHistorySeason = activeSeason;
-                    updateSeasonUI(); renderMemos(); renderNoticeSettings(); // Render settings
-                    document.getElementById('ruleHtmlInput').value = ruleHtml;
+                    updateSeasonUI(); renderMemos(); document.getElementById('ruleHtmlInput').value = ruleHtml;
+                    
+                    // Notice Setting Load
+                    if(data.noticeData) {
+                        document.getElementById('noticeContentInput').value = data.noticeData.content || "";
+                        document.getElementById('noticeActiveToggle').checked = data.noticeData.active || false;
+                    }
+
                     rankingsData.forEach((p, i) => { 
                         if(p.defenseCount === undefined) p.defenseCount = 0; 
                         if(p.previousRank === undefined) p.previousRank = i + 1; 
@@ -675,56 +709,43 @@
                         if(p.elo === undefined) p.elo = 1000; 
                         if(p.careerHighElo === undefined) p.careerHighElo = p.elo; 
                         if(!p.trunkColor) p.trunkColor = '#1f2937'; 
+                        
+                        // [New] Calculate Choseong for Search
                         p.choseong = getChoseong(p.name);
                     });
                     renderRankings(); populateMatchSelectors(); renderSeasonList(); checkSeasonInactive();
+                    
                     enrichMatchHistory(); 
                     updateAdminHistorySeasonSelector();
                     renderAdminMatches();
+                    
+                    // Refresh profile modal if open
                     if (currentProfileId) updateProfileStats(currentProfileId, document.getElementById('pModalSeason').value);
                 }
             });
         }
-        
-        // [New] Notice Functions
-        window.renderNoticeSettings = () => {
-            const toggle = document.getElementById('noticeActiveToggle');
-            const content = document.getElementById('noticeContentInput');
-            const badge = document.getElementById('noticeStatusBadge');
+
+        // [New] Save Notice Settings
+        window.saveNoticeSettings = async () => {
+            const content = document.getElementById('noticeContentInput').value;
+            const active = document.getElementById('noticeActiveToggle').checked;
             
-            if (toggle) toggle.checked = noticeData.active;
-            if (content) content.value = noticeData.content || "";
-            if (badge) {
-                badge.textContent = noticeData.active ? "ON" : "OFF";
-                badge.className = noticeData.active 
-                    ? "bg-emerald-500 text-white text-[10px] px-2 py-0.5 rounded-full" 
-                    : "bg-gray-400 text-white text-[10px] px-2 py-0.5 rounded-full";
+            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'rankings', 'main');
+            try {
+                await runTransaction(db, async (transaction) => {
+                    const sfDoc = await transaction.get(docRef);
+                    if (!sfDoc.exists()) throw "Doc missing";
+                    transaction.set(docRef, { noticeData: { content, active } }, { merge: true });
+                });
+                // Optional: show small toast instead of alert
+                const btn = document.querySelector('button[onclick="saveNoticeSettings()"]');
+                const originalText = btn.innerText;
+                btn.innerText = "✅ 저장됨";
+                setTimeout(() => btn.innerText = originalText, 1500);
+            } catch(e) {
+                console.error(e);
+                alert("공지 저장 실패");
             }
-        };
-
-        window.updateNoticeUI = () => {
-             const toggle = document.getElementById('noticeActiveToggle');
-             const badge = document.getElementById('noticeStatusBadge');
-             if (badge && toggle) {
-                badge.textContent = toggle.checked ? "ON" : "OFF";
-                badge.className = toggle.checked 
-                    ? "bg-emerald-500 text-white text-[10px] px-2 py-0.5 rounded-full" 
-                    : "bg-gray-400 text-white text-[10px] px-2 py-0.5 rounded-full";
-             }
-        };
-
-        window.saveNotice = () => {
-            const toggle = document.getElementById('noticeActiveToggle');
-            const content = document.getElementById('noticeContentInput');
-            
-            noticeData = {
-                active: toggle.checked,
-                content: content.value,
-                updatedAt: Date.now()
-            };
-            
-            saveRankings();
-            showCustomAlert("📢 공지사항이 저장 및 적용되었습니다.");
         };
 
         function enrichMatchHistory() { 
@@ -832,21 +853,41 @@
             if (title) title.textContent = "📤 경기 기록 텍스트 내보내기";
             
             const options = document.getElementById('exportMatchOptions');
+            // [Modified] Re-inject match export buttons dynamically to restore them after Ranker List usage
             if (options) {
                 options.classList.remove('hidden'); 
+                // [Modified] Added Checkbox Toggle for Option 2
                 options.innerHTML = `
-                    <button onclick="generateExportText(15)" class="flex-1 bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold py-2 rounded-lg text-xs transition border border-blue-100">최근 15경기</button>
-                    <button onclick="generateExportText(30)" class="flex-1 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-bold py-2 rounded-lg text-xs transition border border-indigo-100">최근 30경기</button>
+                    <div class="flex gap-2 w-full mb-2">
+                        <button onclick="generateExportText(15)" class="flex-1 bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold py-2 rounded-lg text-xs transition border border-blue-100">최근 15경기</button>
+                        <button onclick="generateExportText(30)" class="flex-1 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-bold py-2 rounded-lg text-xs transition border border-indigo-100">최근 30경기</button>
+                    </div>
+                    <div class="flex justify-end px-1">
+                        <label class="inline-flex items-center cursor-pointer hover:bg-slate-50 p-1 rounded transition">
+                            <input type="checkbox" id="hideRankToggle" onchange="generateExportText()" class="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500 cursor-pointer">
+                            <span class="ml-2 text-xs text-slate-500 font-bold select-none">순위 숨기기</span>
+                        </label>
+                    </div>
                 `;
             }
             
             const textarea = document.getElementById('exportTextarea');
             if (textarea) textarea.value = ""; 
             
+            // Default to 15
+            window.lastExportCount = 15;
             generateExportText(15); 
         };
 
         window.generateExportText = (count) => {
+            // [New] Store last count to support toggle refresh
+            if (count) window.lastExportCount = count;
+            else count = window.lastExportCount || 15;
+
+            // [New] Check toggle state
+            const hideRank = document.getElementById('hideRankToggle')?.checked || false;
+
+            // [Fixed] Use viewHistorySeason instead of activeSeason to match what user sees
             const targetSeason = viewHistorySeason || activeSeason; 
             const filtered = matchHistoryData.filter(m => (m.season || "시즌 1") === targetSeason && m.type !== 'draw');
             const targets = filtered.slice(0, count);
@@ -881,6 +922,9 @@
                 }
 
                 const getPlayerLabel = (name) => {
+                    // [New] If checkbox is checked, return only name
+                    if (hideRank) return name;
+
                     const p = rankingsData.find(x => x.name === name);
                     if (!p) return `${name}(?)`;
                     if ((p.wins + p.losses) === 0) return `${p.name}(UR)`;
@@ -899,12 +943,12 @@
             try {
                 const successful = document.execCommand('copy');
                 if(successful) {
-                    showCustomAlert("✅ 클립보드에 복사되었습니다!"); 
+                    showCustomAlert("✅ 클립보드에 복사되었습니다!"); // Fixed with Custom Alert
                 } else {
                     throw new Error('Copy failed');
                 }
             } catch (err) {
-                showCustomAlert("복사 실패. 수동으로 복사해주세요."); 
+                showCustomAlert("복사 실패. 수동으로 복사해주세요."); // Fixed with Custom Alert
             }
         };
 
@@ -912,20 +956,25 @@
              const rankers = rankingsData.filter(p => (p.wins + p.losses) > 0).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
              let text = "";
              if (type === 'rank') {
+                 // Format: "Name (1)"
                  text = rankers.map((p, i) => `${p.name} (${i + 1})`).join('\n');
              } else {
+                 // Format: "Name #color"
                  text = rankers.map(p => `${p.name} ${p.trunkColor || '#1f2937'}`).join('\n');
              }
              const textarea = document.getElementById('exportTextarea');
              if(textarea) textarea.value = text;
         };
 
+        // [New] Helper for All Player List Export (Name vs Color)
         window.updateAllPlayerExport = (type) => {
              const allPlayers = [...rankingsData].sort((a, b) => a.name.localeCompare(b.name));
              let text = "";
              if (type === 'name') {
+                 // Format: "Name"
                  text = allPlayers.map(p => p.name).join('\n');
              } else {
+                 // Format: "Name #color"
                  text = allPlayers.map(p => `${p.name} ${p.trunkColor || '#1f2937'}`).join('\n');
              }
              const textarea = document.getElementById('exportTextarea');
@@ -948,12 +997,14 @@
                 const options = document.getElementById('exportMatchOptions');
                 if (options) {
                     options.classList.remove('hidden');
+                    // [New] Inject specific buttons for Ranker List
                     options.innerHTML = `
                         <button onclick="updateRankerExport('rank')" class="flex-1 bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold py-2 rounded-lg text-xs transition border border-blue-100">🔢 순위 형식 (이름+순위)</button>
                         <button onclick="updateRankerExport('color')" class="flex-1 bg-purple-50 text-purple-600 hover:bg-purple-100 font-bold py-2 rounded-lg text-xs transition border border-purple-100">🎨 색상 형식 (이름+색상)</button>
                     `;
                 }
                 
+                // Initialize with Rank format
                 updateRankerExport('rank');
 
             } catch (e) {
@@ -965,6 +1016,8 @@
         window.copyAllPlayerList = () => {
             try {
                 if (!rankingsData || rankingsData.length === 0) return showCustomAlert("데이터를 불러오는 중이거나 선수가 없습니다.");
+
+                // [Modified] Check only length (no filter needed for all players)
                 if (rankingsData.length === 0) return showCustomAlert("등록된 선수가 없습니다.");
                 
                 const modal = document.getElementById('exportModal');
@@ -976,12 +1029,14 @@
                 const options = document.getElementById('exportMatchOptions');
                 if (options) {
                     options.classList.remove('hidden');
+                    // [New] Inject specific buttons for All Player List
                     options.innerHTML = `
                         <button onclick="updateAllPlayerExport('name')" class="flex-1 bg-slate-50 text-slate-600 hover:bg-slate-100 font-bold py-2 rounded-lg text-xs transition border border-slate-200">📋 기본 형식 (이름만)</button>
                         <button onclick="updateAllPlayerExport('color')" class="flex-1 bg-purple-50 text-purple-600 hover:bg-purple-100 font-bold py-2 rounded-lg text-xs transition border border-purple-100">🎨 색상 형식 (이름+색상)</button>
                     `;
                 }
                 
+                // Initialize with Name format
                 updateAllPlayerExport('name');
 
             } catch (e) {
@@ -1005,8 +1060,7 @@
                     const sfDoc = await transaction.get(docRef);
                     if (!sfDoc.exists()) throw "Document does not exist!";
                     
-                    // [New] Include noticeData in payload
-                    const payload = { rankings: rankingsData, matchHistory: matchHistoryData, seasonArchives: seasonArchives, activeSeason: activeSeason, date: new Date().toISOString(), noticeData: noticeData }; 
+                    const payload = { rankings: rankingsData, matchHistory: matchHistoryData, seasonArchives: seasonArchives, activeSeason: activeSeason, date: new Date().toISOString() }; 
                     if(!isUndo) { payload.adminMemos = adminMemos; payload.ruleHtml = ruleHtml; } 
                     
                     transaction.set(docRef, payload, { merge: true });
@@ -1023,6 +1077,7 @@
         window.switchTab = (tab) => { document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden')); document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active')); document.getElementById(tab + 'Section').classList.remove('hidden'); document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active'); };
         function updateSeasonUI() { document.getElementById('currentSeasonBadge').textContent = activeSeason; document.querySelectorAll('.currentSeasonName').forEach(el => el.textContent = activeSeason); const num = parseInt(activeSeason.replace(/[^0-9]/g, '')) || 0; document.getElementById('newSeasonNameInput').value = `시즌 ${num + 1}`; }
         
+        // [Fixed] Use openRenameModal instead of prompt
         function renderSeasonList() { 
             const container = document.getElementById('seasonListContainer'); 
             container.innerHTML = ''; 
@@ -1185,20 +1240,33 @@
             alert(`반영 완료!\n${winner.name}: +${winCalc.change}\n${loser.name}: ${loseCalc.change}`); 
         };
         
+        // [New] Reset Match Inputs Button Logic
+        window.resetMatchInputs = () => {
+            // 1. Clear TomSelect instances
+            if(p1Tom) p1Tom.clear();
+            if(p2Tom) p2Tom.clear();
+            
+            // 2. Clear Radios
+            const radios = document.querySelectorAll('input[name="winner"]');
+            radios.forEach(r => r.checked = false);
+            
+            // 3. Reset Indicators
+            document.getElementById('p1TrunkIndicator').style.backgroundColor = '#f1f5f9';
+            document.getElementById('p2TrunkIndicator').style.backgroundColor = '#f1f5f9';
+            
+            // 4. Update Preview (Hide it)
+            updateMatchPreview();
+        };
+
+        // [Modified] Real-time Ranking Simulation Preview
         window.updateMatchPreview = () => { 
             let p1Idx = "";
             if (p1Tom) p1Idx = p1Tom.getValue();
-            else {
-                const el = document.getElementById('p1Select');
-                if(el) p1Idx = el.value;
-            }
+            else { const el = document.getElementById('p1Select'); if(el) p1Idx = el.value; }
 
             let p2Idx = "";
             if (p2Tom) p2Idx = p2Tom.getValue();
-            else {
-                const el = document.getElementById('p2Select');
-                if(el) p2Idx = el.value;
-            }
+            else { const el = document.getElementById('p2Select'); if(el) p2Idx = el.value; }
             
             if(p1Idx !== "") p1Idx = parseInt(p1Idx);
             if(p2Idx !== "") p2Idx = parseInt(p2Idx);
@@ -1209,58 +1277,138 @@
             const p1 = (p1Idx !== "" && !isNaN(p1Idx)) ? rankingsData[p1Idx] : null;
             const p2 = (p2Idx !== "" && !isNaN(p2Idx)) ? rankingsData[p2Idx] : null;
 
-            if (p1 && p1.trunkColor) {
-                p1Ind.style.backgroundColor = p1.trunkColor;
-            } else {
-                p1Ind.style.backgroundColor = '#f1f5f9'; 
-            }
+            if (p1 && p1.trunkColor) p1Ind.style.backgroundColor = p1.trunkColor;
+            else p1Ind.style.backgroundColor = '#f1f5f9'; 
 
-            if (p2 && p2.trunkColor) {
-                p2Ind.style.backgroundColor = p2.trunkColor;
-            } else {
-                p2Ind.style.backgroundColor = '#f1f5f9'; 
-            }
+            if (p2 && p2.trunkColor) p2Ind.style.backgroundColor = p2.trunkColor;
+            else p2Ind.style.backgroundColor = '#f1f5f9'; 
 
             if (!p1 || !p2 || p1Idx === p2Idx) { 
                 document.getElementById('matchPreview').classList.add('hidden'); 
                 return; 
             } 
             
-            document.getElementById('matchPreview').classList.remove('hidden'); 
-            
-            const blueWin = calculateHybridEloChange(p1.elo, p2.elo, true, p1); 
-            const redLose = calculateHybridEloChange(p2.elo, p1.elo, false, p2); 
-            const redWin = calculateHybridEloChange(p2.elo, p1.elo, true, p2); 
-            const blueLose = calculateHybridEloChange(p1.elo, p2.elo, false, p1); 
-            
-            let htmlContent = `<div class="font-bold text-blue-600">🔵 Blue승: +${blueWin.change} / 🔴 Red패: ${redLose.change}</div>
-                               <div class="font-bold text-red-600 mt-1">🔴 Red승: +${redWin.change} / 🔵 Blue패: ${blueLose.change}</div>`;
-            
             const checkedRadio = document.querySelector('input[name="winner"]:checked');
-            if (checkedRadio) {
-                const winnerVal = checkedRadio.value;
-                htmlContent += `<div class="mt-2 pt-2 border-t border-gray-200 text-xs text-slate-800">
-                    <div class="font-bold mb-1">🎯 예상 결과 (적용 후)</div>`;
-                
-                if (winnerVal === 'blue') {
-                    const newP1 = (p1.elo || 1000) + blueWin.change;
-                    const newP2 = (p2.elo || 1000) + redLose.change;
-                    htmlContent += `
-                        <div class="flex justify-between">
-                            <span class="text-blue-600 font-bold">🔵 ${p1.name}: ${p1.elo} → ${newP1}</span>
-                            <span class="text-red-600 font-bold">🔴 ${p2.name}: ${p2.elo} → ${newP2}</span>
-                        </div>`;
-                } else if (winnerVal === 'red') {
-                    const newP1 = (p1.elo || 1000) + blueLose.change;
-                    const newP2 = (p2.elo || 1000) + redWin.change;
-                    htmlContent += `
-                        <div class="flex justify-between">
-                            <span class="text-blue-600 font-bold">🔵 ${p1.name}: ${p1.elo} → ${newP1}</span>
-                            <span class="text-red-600 font-bold">🔴 ${p2.name}: ${p2.elo} → ${newP2}</span>
-                        </div>`;
-                }
-                htmlContent += `</div>`;
+            if (!checkedRadio) {
+                document.getElementById('matchPreview').classList.add('hidden');
+                return;
             }
+
+            document.getElementById('matchPreview').classList.remove('hidden'); 
+            const winnerVal = checkedRadio.value;
+
+            // 1. Current State Calculation
+            const currentRanked = rankingsData.filter(p => (p.wins + p.losses) > 0).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
+            const getRank = (id) => {
+                const idx = currentRanked.findIndex(p => p.id === id);
+                return idx === -1 ? 'Unranked' : `${idx + 1}위`;
+            };
+            const curRank1 = getRank(p1.id);
+            const curRank2 = getRank(p2.id);
+
+            // 2. Simulation Step (Deep Copy)
+            const simRankings = JSON.parse(JSON.stringify(rankingsData));
+            const simP1 = simRankings.find(p => p.id === p1.id);
+            const simP2 = simRankings.find(p => p.id === p2.id);
+            
+            let p1Change, p2Change;
+
+            if (winnerVal === 'blue') {
+                const w = calculateHybridEloChange(simP1.elo, simP2.elo, true, simP1);
+                const l = calculateHybridEloChange(simP2.elo, simP1.elo, false, simP2);
+                p1Change = w.change;
+                p2Change = l.change;
+                simP1.elo += p1Change; simP1.wins++;
+                simP2.elo += p2Change; simP2.losses++;
+            } else {
+                const w = calculateHybridEloChange(simP2.elo, simP1.elo, true, simP2);
+                const l = calculateHybridEloChange(simP1.elo, simP2.elo, false, simP1);
+                p2Change = w.change;
+                p1Change = l.change;
+                simP2.elo += p2Change; simP2.wins++;
+                simP1.elo += p1Change; simP1.losses++;
+            }
+
+            // 3. Re-sort for New Rank
+            const simRankedList = simRankings.filter(p => (p.wins + p.losses) > 0).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
+            
+            // [Modified] Helper to get numeric rank for comparison
+            const getNumericRank = (list, id) => {
+                const idx = list.findIndex(p => p.id === id);
+                return idx === -1 ? 99999 : idx + 1;
+            };
+            const curRank1Num = getNumericRank(currentRanked, p1.id);
+            const curRank2Num = getNumericRank(currentRanked, p2.id);
+            const newRank1Num = getNumericRank(simRankedList, simP1.id);
+            const newRank2Num = getNumericRank(simRankedList, simP2.id);
+
+            const displayRank = (num) => num === 99999 ? 'Unranked' : `${num}위`;
+
+            // [Modified] Color Logic
+            // Score: + is Red, - is Blue
+            const getScoreStyle = (change) => change > 0 ? 'text-red-600' : (change < 0 ? 'text-blue-600' : 'text-slate-500');
+            
+            // Rank: Lower number is better (1st > 2nd). 
+            // New < Old = Rise (Red). New > Old = Drop (Blue).
+            const getRankStyle = (oldR, newR) => {
+                if (oldR === 99999 && newR !== 99999) return 'text-red-600 font-bold'; // New Entry (Rise)
+                if (oldR === newR) return 'text-slate-500';
+                if (newR < oldR) return 'text-red-600 font-bold'; // Rise
+                return 'text-blue-600 font-bold'; // Drop
+            };
+
+            const p1ScoreClass = getScoreStyle(p1Change);
+            const p2ScoreClass = getScoreStyle(p2Change);
+            
+            const p1RankClass = getRankStyle(curRank1Num, newRank1Num);
+            const p2RankClass = getRankStyle(curRank2Num, newRank2Num);
+
+            // 4. Render HTML
+            let htmlContent = `
+                <div class="font-bold text-slate-800 mb-2 border-b border-gray-200 pb-2 flex justify-between items-center">
+                    <span class="text-base">🎯 예상 결과 (순위 변동 포함)</span>
+                    <span class="text-xs bg-slate-200 text-slate-600 px-2 py-0.5 rounded">Simulation</span>
+                </div>
+                <div class="space-y-3">
+                    <div class="flex flex-col">
+                        <div class="flex justify-between items-center">
+                            <!-- [Modified] Name: 16px (text-base) -->
+                            <span class="text-blue-600 font-bold truncate text-base">🔵 ${p1.name}</span>
+                            <span class="text-[15px] font-mono text-slate-600 font-bold">
+                                ${p1.elo} → ${simP1.elo} 
+                                <!-- [Modified] Score Change Color -->
+                                <span class="${p1ScoreClass}">(${p1Change >= 0 ? '+'+p1Change : p1Change})</span>
+                            </span>
+                        </div>
+                        <!-- [Modified] Rank: 15px -->
+                        <div class="text-right text-[15px] text-slate-500 font-medium">
+                            순위: ${displayRank(curRank1Num)} ➔ 
+                            <!-- [Modified] Rank Change Color -->
+                            <span class="${p1RankClass}">
+                                ${displayRank(newRank1Num)}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="flex flex-col">
+                        <div class="flex justify-between items-center">
+                            <!-- [Modified] Name: 16px (text-base) -->
+                            <span class="text-red-600 font-bold truncate text-base">🔴 ${p2.name}</span>
+                            <span class="text-[15px] font-mono text-slate-600 font-bold">
+                                ${p2.elo} → ${simP2.elo}
+                                <!-- [Modified] Score Change Color -->
+                                <span class="${p2ScoreClass}">(${p2Change >= 0 ? '+'+p2Change : p2Change})</span>
+                            </span>
+                        </div>
+                        <!-- [Modified] Rank: 15px -->
+                        <div class="text-right text-[15px] text-slate-500 font-medium">
+                            순위: ${displayRank(curRank2Num)} ➔ 
+                            <!-- [Modified] Rank Change Color -->
+                            <span class="${p2RankClass}">
+                                ${displayRank(newRank2Num)}
+                            </span>
+                        </div>
+                    </div>
+                </div>`;
 
             document.getElementById('previewContent').innerHTML = htmlContent;
         }
@@ -1412,6 +1560,7 @@
                 if(index === 0) rankClass = "rank-num-1";
                 else if(index === 1) rankClass = "rank-num-2";
                 else if(index === 2) rankClass = "rank-num-3";
+                else if(index <= 9) rankClass = "rank-num-top10"; // [New] Apply Emerald style for 4~10
                 
                 // [New] Calculate Tier for Badge & Border
                 const tier = getTier(item.wins, item.losses);
