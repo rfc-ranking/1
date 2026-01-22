@@ -108,7 +108,13 @@
             <div id="matchList" class="space-y-3"></div>
         </div>
 
-        <div id="hofSection" class="hidden fade-in"><div id="hofContent" class="space-y-6"></div></div>
+        <div id="hofSection" class="hidden fade-in">
+            <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between mb-4">
+                <span class="text-sm font-bold text-slate-600">시즌 선택</span>
+                <select id="hofSeasonSelector" class="text-sm font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded-lg p-2 outline-none focus:ring-2 focus:ring-blue-500"></select>
+            </div>
+            <div id="hofContent" class="space-y-6"></div>
+        </div>
         <div id="tournamentSection" class="hidden fade-in"><div id="bracketContainer" class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 overflow-x-auto min-h-[300px] flex items-center justify-center text-slate-400 text-sm">진행 중인 토너먼트가 없습니다.</div></div>
     </main>
 
@@ -210,22 +216,13 @@
         </div>
     </div>
 
-    <div id="rulesModal" class="fixed inset-0 z-[60] hidden" role="dialog" aria-modal="true">
-        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeRules()"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl shadow-2xl w-11/12 max-w-md p-6 max-h-[80vh] overflow-y-auto">
-            <h2 class="text-xl font-black text-slate-800 mb-4 border-b pb-2">📜 RFC 점수 산정 방식</h2>
-            <div id="ruleContentArea" class="space-y-5 text-sm text-slate-600">Loading...</div>
-            <button onclick="closeRules()" class="w-full mt-6 bg-slate-800 text-white font-bold py-3 rounded-xl hover:bg-slate-900 transition">확인했습니다</button>
-        </div>
-    </div>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // [System] Version Control (Auto Updated by Developer)
-        const APP_VERSION = "v3.70";
-        const UPDATE_NOTE = "Default: All Time Record";
+        const APP_VERSION = "v3.72";
+        const UPDATE_NOTE = "Style: HOF Text Size Up";
 
         // Apply Version to UI
         document.title = `RFC 랭킹전 (${APP_VERSION})`;
@@ -237,7 +234,7 @@
 
         const firebaseConfig = { apiKey: "AIzaSyDlj68ex-fM0ExRdD-tvCy-UyIneVoPmGk", authDomain: "rfk-ranking.firebaseapp.com", projectId: "rfk-ranking", storageBucket: "rfk-ranking.firebasestorage.app", messagingSenderId: "675366165774", appId: "1:675366165774:web:795d34c56eab630b4dcb5f", measurementId: "G-CXPDZQ8GTL" };
         const app = initializeApp(firebaseConfig); const db = getFirestore(app); const appId = 'ranking-manager-default';
-        let rankingsData = []; let matchHistoryData = []; let enrichedMatchHistory = []; let seasonArchives = {}; let activeSeason = ""; let viewSeason = ""; let currentProfileId = null;
+        let rankingsData = []; let matchHistoryData = []; let enrichedMatchHistory = []; let seasonArchives = {}; let activeSeason = ""; let viewSeason = ""; let viewHofSeason = ""; let currentProfileId = null;
         const STYLE_OPTIONS = ["인파이터", "아웃복서", "슬러거", "하드 펀처", "바디 스내처", "볼륨 펀처", "스위치 히터", "브롤러", "카운터 펀처", "복서-펀처", "슬릭", "샤프슈터", "패스트 핸드"];
         const COLOR_PRESETS = [
             { name: "Black", code: "#1f2937" }, { name: "White", code: "#f8fafc" },
@@ -277,6 +274,8 @@
                 if(ruleArea) { if(data.ruleHtml) ruleArea.innerHTML = data.ruleHtml; else ruleArea.innerHTML = "규칙 데이터가 없습니다."; }
                 
                 if (!viewSeason) viewSeason = activeSeason;
+                if (!viewHofSeason) viewHofSeason = activeSeason;
+
                 rankingsData.forEach(p => { if (!p.careerHighElo) p.careerHighElo = p.elo || 1000; });
                 
                 renderRankings();
@@ -369,7 +368,7 @@
             enrichedMatchHistory.reverse(); 
         }
 
-        function updateUI() { const now = new Date(); document.getElementById('currentDate').textContent = now.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' }); document.getElementById('seasonBadge').textContent = activeSeason; renderRankings(); updateSeasonSelector(); renderMatches(); renderHOF(); }
+        function updateUI() { const now = new Date(); document.getElementById('currentDate').textContent = now.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' }); document.getElementById('seasonBadge').textContent = activeSeason; renderRankings(); updateSeasonSelector(); updateHofSeasonSelector(); renderMatches(); renderHOF(); }
         
         function getTier(wins, losses) { 
             const matches = (wins || 0) + (losses || 0); 
@@ -462,8 +461,9 @@
             }
         }
 
-        function updateSeasonSelector() { const selector = document.getElementById('seasonSelector'); selector.innerHTML = ''; const opts = [activeSeason, ...Object.keys(seasonArchives).sort().reverse().filter(s => s !== activeSeason)]; opts.forEach(s => { const opt = document.createElement('option'); opt.value = s; opt.textContent = s + (s === activeSeason ? " (진행중)" : ""); selector.appendChild(opt); }); selector.value = viewSeason; selector.onchange = (e) => { viewSeason = e.target.value; renderMatches(); renderHOF(); }; }
-        
+        function updateSeasonSelector() { const selector = document.getElementById('seasonSelector'); selector.innerHTML = ''; const opts = [activeSeason, ...Object.keys(seasonArchives).sort().reverse().filter(s => s !== activeSeason)]; opts.forEach(s => { const opt = document.createElement('option'); opt.value = s; opt.textContent = s + (s === activeSeason ? " (진행중)" : ""); selector.appendChild(opt); }); selector.value = viewSeason; selector.onchange = (e) => { viewSeason = e.target.value; renderMatches(); }; }
+        function updateHofSeasonSelector() { const selector = document.getElementById('hofSeasonSelector'); selector.innerHTML = ''; const opts = [activeSeason, ...Object.keys(seasonArchives).sort().reverse().filter(s => s !== activeSeason)]; opts.forEach(s => { const opt = document.createElement('option'); opt.value = s; opt.textContent = s + (s === activeSeason ? " (진행중)" : ""); selector.appendChild(opt); }); selector.value = viewHofSeason; selector.onchange = (e) => { viewHofSeason = e.target.value; renderHOF(); }; }
+
         function renderMatches() { 
             const container = document.getElementById('matchList'); 
             container.innerHTML = ''; 
@@ -520,7 +520,44 @@
             }); 
         }
 
-        function renderHOF() { const container = document.getElementById('hofContent'); let data = null; if (viewSeason === activeSeason) { if (rankingsData.length > 0) { data = { season: activeSeason + " (진행중)", champion: rankingsData[0]?.name || "-", rank2: rankingsData[1]?.name || "-", rank3: rankingsData[2]?.name || "-" }; } } else { const arc = seasonArchives[viewSeason]; if (arc) { data = { season: viewSeason, champion: arc.champion, rank2: arc.rank2 || "-", rank3: arc.rank3 || "-" }; } } if (!data) { container.innerHTML = `<div class="text-center py-10 text-slate-400">데이터가 없습니다.</div>`; return; } container.innerHTML = `<div class="text-center mb-6"><h3 class="text-lg font-black text-slate-800">${data.season}</h3></div><div class="grid grid-cols-3 gap-3 items-end text-center mb-8 px-2"><div class="bg-white p-3 rounded-t-xl border-t-4 border-slate-300 shadow-sm order-1 h-32 flex flex-col justify-end pb-2"><div class="text-2xl mb-1">🥈</div><div class="font-bold text-slate-700 text-sm truncate">${data.rank2}</div></div><div class="bg-white p-3 rounded-t-xl border-t-4 border-amber-400 shadow-md order-2 h-40 flex flex-col justify-end pb-4 relative z-10 -mx-1"><div class="text-4xl mb-1">👑</div><div class="font-black text-slate-800 truncate">${data.champion}</div></div><div class="bg-white p-3 rounded-t-xl border-t-4 border-amber-700 shadow-sm order-3 h-28 flex flex-col justify-end pb-2"><div class="text-2xl mb-1">🥉</div><div class="font-bold text-slate-700 text-sm truncate">${data.rank3}</div></div></div>`; }
+        function renderHOF() { 
+            const container = document.getElementById('hofContent'); 
+            let data = null; 
+            
+            // Logic to determine Champion for the Selected HOF Season
+            if (viewHofSeason === activeSeason) { 
+                if (rankingsData.length > 0) { 
+                    // [New] Ensure we sort the active rankings by ELO to find the true current top 3
+                    const sorted = rankingsData.filter(p => (p.wins + p.losses) > 0).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
+                    data = { 
+                        season: activeSeason + " (진행중)", 
+                        champion: sorted[0]?.name || "-", 
+                        rank2: sorted[1]?.name || "-", 
+                        rank3: sorted[2]?.name || "-" 
+                    }; 
+                } 
+            } else { 
+                const arc = seasonArchives[viewHofSeason]; 
+                if (arc) { 
+                    // [New] Archive structure contains 'rankings' array. We must sort it to find top 3.
+                    const arcRankings = arc.rankings || [];
+                    const sorted = arcRankings.filter(p => (p.wins + p.losses) > 0).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
+                    
+                    data = { 
+                        season: viewHofSeason, 
+                        champion: sorted[0]?.name || "-", 
+                        rank2: sorted[1]?.name || "-", 
+                        rank3: sorted[2]?.name || "-" 
+                    }; 
+                } 
+            } 
+            
+            if (!data) { container.innerHTML = `<div class="text-center py-10 text-slate-400">데이터가 없습니다.</div>`; return; } 
+            
+            // [Modified] Text Size Upgrade (Base -> XL, Sm -> Base) -> (XL -> 2XL, Base -> XL)
+            // [Modified] Emoji Size Upgrade (4xl -> 5xl, 2xl -> 3xl)
+            container.innerHTML = `<div class="text-center mb-6"><h3 class="text-lg font-black text-slate-800">${data.season}</h3></div><div class="grid grid-cols-3 gap-3 items-end text-center mb-8 px-2"><div class="bg-white p-3 rounded-t-xl border-t-4 border-slate-300 shadow-sm order-1 h-32 flex flex-col justify-end pb-2"><div class="text-3xl mb-1">🥈</div><div class="font-bold text-slate-700 text-xl truncate">${data.rank2}</div></div><div class="bg-white p-3 rounded-t-xl border-t-4 border-amber-400 shadow-md order-2 h-40 flex flex-col justify-end pb-4 relative z-10 -mx-1"><div class="text-5xl mb-1">👑</div><div class="font-black text-slate-800 text-2xl truncate">${data.champion}</div></div><div class="bg-white p-3 rounded-t-xl border-t-4 border-amber-700 shadow-sm order-3 h-28 flex flex-col justify-end pb-2"><div class="text-3xl mb-1">🥉</div><div class="font-bold text-slate-700 text-xl truncate">${data.rank3}</div></div></div>`; 
+        }
         
         // [Modified] Default to 'all' and update Profile Stats
         window.openProfile = (id) => { 
