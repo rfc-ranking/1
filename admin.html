@@ -63,6 +63,16 @@
         .highlight-slow {
             animation: slowFade 10s cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
         }
+
+        /* [Option 1] type="search" styling adjustments for better UX */
+        input[type="search"]::-webkit-search-cancel-button {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            background: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e%3cline x1='18' y1='6' x2='6' y2='18'%3e%3c/line%3e%3cline x1='6' y1='6' x2='18' y2='18'%3e%3c/line%3e%3c/svg%3e") no-repeat center center;
+            cursor: pointer;
+            margin-left: 8px;
+        }
     </style>
 </head>
 <body class="text-slate-800 relative min-h-screen">
@@ -195,7 +205,10 @@
                         </div>
                     </div>
                     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden p-5">
-                        <h3 class="font-bold text-slate-700 mb-4 border-b pb-2">👤 선수 관리 도구</h3>
+                        <h3 class="font-bold text-slate-700 mb-4 border-b pb-2">
+                            👤 선수 관리 도구 
+                            <span id="totalPlayerCount" class="font-normal ml-1">(0명)</span>
+                        </h3>
                         <div class="flex gap-2 mb-3">
                             <button onclick="openNewPlayerModal()" class="flex-1 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 font-bold py-3 rounded-xl border border-emerald-100 transition">+ 새 선수 등록</button>
                             <button onclick="openDeletePlayersModal()" class="flex-1 bg-red-50 text-red-600 hover:bg-red-100 font-bold py-3 rounded-xl border border-red-100 transition flex items-center justify-center gap-1">
@@ -302,8 +315,13 @@
             <div class="lg:col-span-8 bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col h-[calc(100vh-140px)]">
                 <div class="bg-slate-50 p-4 border-b border-slate-100 flex justify-between items-center rounded-t-2xl">
                     <div><h3 class="font-bold text-slate-700">🔥 실시간 랭킹</h3><p class="text-[10px] text-slate-400 font-medium mt-0.5">현재 활성 시즌: <span class="currentSeasonName text-blue-600 font-bold"></span></p></div>
-                    <div class="flex-grow mx-4"><input type="text" id="searchInput" placeholder="🔎 선수 검색..." class="w-full text-xs border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"></div>
-                    <div class="flex gap-2"><button onclick="window.open('index.html')" class="bg-white border border-slate-200 text-slate-600 text-xs font-bold py-2 px-3 rounded-lg hover:bg-slate-50">🌐 사이트 보기</button><button onclick="saveRankings()" class="bg-indigo-600 text-white text-xs font-bold py-2 px-3 rounded-lg shadow hover:bg-indigo-700">💾 저장</button></div>
+                    <div class="flex items-center gap-2">
+                        <div class="relative">
+                            <input type="search" id="searchInput" placeholder="선수 검색..." class="w-[155px] text-xs border border-slate-200 rounded-lg pl-9 pr-2 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                            <div class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs">🔍</div>
+                        </div>
+                        <div class="flex gap-2"><button onclick="window.open('index.html')" class="bg-white border border-slate-200 text-slate-600 text-xs font-bold py-2 px-3 rounded-lg hover:bg-slate-50">🌐 사이트 보기</button><button onclick="saveRankings()" class="bg-indigo-600 text-white text-xs font-bold py-2 px-3 rounded-lg shadow hover:bg-indigo-700">💾 저장</button></div>
+                    </div>
                 </div>
                 <div id="rankingList" class="flex-grow overflow-y-auto p-2 space-y-1.5 bg-slate-50/50"></div>
             </div>
@@ -315,13 +333,15 @@
     <!-- [Modified] Delete Players Modal with History Checkbox -->
     <div id="deletePlayersModal" class="fixed inset-0 bg-black/50 hidden z-[9999] flex items-center justify-center" onclick="if(event.target === this) closeDeletePlayersModal()">
         <div class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-md flex flex-col max-h-[90vh]">
-            <h3 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2 flex justify-between items-center">
-                <span>🗑️ 선수 삭제</span>
-                <span id="deleteCountBadge" class="bg-red-100 text-red-600 text-xs px-2 py-1 rounded-full">0명 선택됨</span>
-            </h3>
-            
-            <div class="mb-3">
-                <input type="text" id="deleteSearchInput" placeholder="이름 검색..." class="w-full border p-2 rounded-lg text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-red-500" oninput="renderDeleteList()">
+            <div class="flex justify-between items-center mb-4 border-b pb-2">
+                <div class="flex items-center gap-2">
+                    <h3 class="text-lg font-bold text-slate-800">🗑️ 선수 삭제</h3>
+                    <span id="deleteCountBadge" class="bg-red-100 text-red-600 text-xs px-2 py-1 rounded-full whitespace-nowrap">0명 선택됨</span>
+                </div>
+                <div class="relative">
+                    <input type="search" id="deleteSearchInput" placeholder="이름 검색..." class="w-[155px] border p-2 pl-9 rounded-lg text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-red-500 transition" oninput="renderDeleteList()">
+                    <div class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-sm">🔍</div>
+                </div>
             </div>
 
             <div class="flex items-center gap-2 mb-2 px-1">
@@ -469,8 +489,8 @@
         
         // [System] Admin Version Control
         // 새로운 기능 추가 시 이 변수들만 수정하면 UI와 타이틀에 자동 반영됩니다.
-        const ADMIN_VERSION = "v3.95"; 
-        const UPDATE_NOTE = "Fix: Stats Reset Button";
+        const ADMIN_VERSION = "v3.98"; 
+        const UPDATE_NOTE = "UI: Player Count Color Fixed";
 
         // [System] UI Auto-Update Logic (Version Only)
         function initVersionUI() {
@@ -562,10 +582,45 @@
         const presetContainer = document.getElementById('trunkColorPresets');
         presetContainer.innerHTML = '';
         COLOR_PRESETS.forEach(color => { const div = document.createElement('div'); div.className = 'color-preset shadow-sm'; div.style.backgroundColor = color.code; div.dataset.color = color.code; div.title = color.name; div.onclick = () => selectPresetColor(color.code, div); presetContainer.appendChild(div); });
-        for(let i=1; i<=3; i++) { const wrapper = document.createElement('div'); wrapper.className = 'color-preset shadow-sm flex items-center justify-center bg-white border border-slate-200 custom-picker-slot relative'; wrapper.title = `Custom Color ${i}`; const badge = document.createElement('div'); badge.className = 'absolute -top-1 -right-1 w-3.5 h-3.5 bg-blue-600 text-white rounded-full flex items-center justify-center text-[9px] font-bold pointer-events-none shadow-sm z-10 leading-none pb-0.5'; badge.textContent = '+'; wrapper.appendChild(badge); const icon = document.createElement('span'); icon.className = 'text-[12px] opacity-40 pointer-events-none icon-placeholder grayscale'; icon.textContent = '🎨'; wrapper.appendChild(icon); const input = document.createElement('input'); input.type = 'color'; input.className = 'opacity-0 absolute inset-0 w-full h-full cursor-pointer'; input.value = '#ffffff'; input.addEventListener('input', (e) => { const newColor = e.target.value; wrapper.style.backgroundColor = newColor; wrapper.dataset.color = newColor; icon.style.display = 'none'; selectPresetColor(newColor, wrapper); }); wrapper.appendChild(input); presetContainer.appendChild(wrapper); }
-        function selectPresetColor(code, element) { document.getElementById('editTrunkColor').value = code; document.querySelectorAll('.color-preset').forEach(el => el.classList.remove('active')); if(element) element.classList.add('active'); }
+        
+        // [Fixed] Missing function & Custom Color Pickers restored
+        for(let i=1; i<=3; i++) { 
+            const wrapper = document.createElement('div'); 
+            wrapper.className = 'color-preset shadow-sm flex items-center justify-center bg-white border border-slate-200 custom-picker-slot relative'; 
+            wrapper.title = `Custom Color ${i}`; 
+            const badge = document.createElement('div'); 
+            badge.className = 'absolute -top-1 -right-1 w-3.5 h-3.5 bg-blue-600 text-white rounded-full flex items-center justify-center text-[9px] font-bold pointer-events-none shadow-sm z-10 leading-none pb-0.5'; 
+            badge.textContent = '+'; 
+            wrapper.appendChild(badge); 
+            const icon = document.createElement('span'); 
+            icon.className = 'text-[12px] opacity-40 pointer-events-none icon-placeholder grayscale'; 
+            icon.textContent = '🎨'; 
+            wrapper.appendChild(icon); 
+            const input = document.createElement('input'); 
+            input.type = 'color'; 
+            input.className = 'opacity-0 absolute inset-0 w-full h-full cursor-pointer'; 
+            input.value = '#ffffff'; 
+            input.addEventListener('input', (e) => { 
+                const newColor = e.target.value; 
+                wrapper.style.backgroundColor = newColor; 
+                wrapper.dataset.color = newColor; 
+                icon.style.display = 'none'; 
+                selectPresetColor(newColor, wrapper); 
+            }); 
+            wrapper.appendChild(input); 
+            presetContainer.appendChild(wrapper); 
+        }
 
-        function loadData() { const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'rankings', 'main'); onSnapshot(docRef, (doc) => { if (doc.exists()) { const data = doc.data(); rankingsData = data.rankings || []; matchHistoryData = data.matchHistory || []; seasonArchives = data.seasonArchives || {}; activeSeason = data.activeSeason || "시즌 1"; adminMemos = data.adminMemos || []; ruleHtml = data.ruleHtml || DEFAULT_RULE_HTML; if(!viewHistorySeason) viewHistorySeason = activeSeason; updateSeasonUI(); renderMemos(); document.getElementById('ruleHtmlInput').value = ruleHtml; if(data.noticeData) { document.getElementById('noticeContentInput').value = data.noticeData.content || ""; document.getElementById('noticeActiveToggle').checked = data.noticeData.active || false; } rankingsData.forEach((p, i) => { if(p.defenseCount === undefined) p.defenseCount = 0; if(p.previousRank === undefined) p.previousRank = i + 1; if(p.careerHighRank === undefined) p.careerHighRank = i + 1; if(p.elo === undefined) p.elo = 1000; if(p.careerHighElo === undefined) p.careerHighElo = p.elo; if(!p.trunkColor) p.trunkColor = '#1f2937'; p.choseong = getChoseong(p.name); }); renderRankings(); populateMatchSelectors(); renderSeasonList(); checkSeasonInactive(); enrichMatchHistory(); updateAdminHistorySeasonSelector(); renderAdminMatches(); if (currentProfileId) updateProfileStats(currentProfileId, document.getElementById('pModalSeason').value); } }); }
+        function selectPresetColor(code, element) { 
+            document.getElementById('editTrunkColor').value = code; 
+            document.querySelectorAll('.color-preset').forEach(el => el.classList.remove('active')); 
+            if(element) element.classList.add('active'); 
+        }
+
+        function loadData() { const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'rankings', 'main'); onSnapshot(docRef, (doc) => { if (doc.exists()) { const data = doc.data(); rankingsData = data.rankings || []; matchHistoryData = data.matchHistory || []; seasonArchives = data.seasonArchives || {}; activeSeason = data.activeSeason || "시즌 1"; adminMemos = data.adminMemos || []; ruleHtml = data.ruleHtml || DEFAULT_RULE_HTML; if(!viewHistorySeason) viewHistorySeason = activeSeason; updateSeasonUI(); renderMemos(); document.getElementById('ruleHtmlInput').value = ruleHtml; if(data.noticeData) { document.getElementById('noticeContentInput').value = data.noticeData.content || ""; document.getElementById('noticeActiveToggle').checked = data.noticeData.active || false; } rankingsData.forEach((p, i) => { if(p.defenseCount === undefined) p.defenseCount = 0; if(p.previousRank === undefined) p.previousRank = i + 1; if(p.careerHighRank === undefined) p.careerHighRank = i + 1; if(p.elo === undefined) p.elo = 1000; if(p.careerHighElo === undefined) p.careerHighElo = p.elo; if(!p.trunkColor) p.trunkColor = '#1f2937'; p.choseong = getChoseong(p.name); }); renderRankings(); populateMatchSelectors(); renderSeasonList(); checkSeasonInactive(); enrichMatchHistory(); updateAdminHistorySeasonSelector(); renderAdminMatches(); if (currentProfileId) updateProfileStats(currentProfileId, document.getElementById('pModalSeason').value); 
+        // [Added] Update Total Player Count Badge
+        if(document.getElementById('totalPlayerCount')) document.getElementById('totalPlayerCount').textContent = `(${rankingsData.length}명)`;
+        } }); }
 
         window.saveNoticeSettings = async () => { const content = document.getElementById('noticeContentInput').value; const active = document.getElementById('noticeActiveToggle').checked; const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'rankings', 'main'); try { await runTransaction(db, async (transaction) => { const sfDoc = await transaction.get(docRef); if (!sfDoc.exists()) throw "Doc missing"; transaction.set(docRef, { noticeData: { content, active } }, { merge: true }); }); const btn = document.querySelector('button[onclick="saveNoticeSettings()"]'); const originalText = btn.innerText; btn.innerText = "✅ 저장됨"; setTimeout(() => btn.innerText = originalText, 1500); } catch(e) { alert("공지 저장 실패"); } };
 
@@ -733,11 +788,180 @@
         window.tryDeletePlayer = () => { const idx = document.getElementById('editPlayerId').value; if(idx === undefined || idx === null || idx === "") return; const p = rankingsData[idx]; showConfirmModal(`⚠️ 정말 [${p.name}] 선수를 삭제하시겠습니까?\n이 작업은 복구할 수 없습니다.`, async () => { captureState(); rankingsData.splice(idx, 1); await saveRankings(); document.getElementById('editModal').classList.add('hidden'); renderRankings(); setTimeout(() => alert("선수가 삭제되었습니다."), 100); }); };
         window.deletePlayer = window.tryDeletePlayer;
         window.backupData = () => { const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ rankings: rankingsData, history: matchHistoryData, archives: seasonArchives, activeSeason: activeSeason }, null, 2)); const dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", `RFC_BACKUP_${new Date().toISOString().slice(0,10)}.json`); document.body.appendChild(dl); dl.click(); dl.remove(); };
-        window.openEditModal = (index) => { const p = rankingsData[index]; if (!p) return; document.getElementById('editPlayerId').value = index; document.getElementById('editOriginalName').value = p.name; document.getElementById('editName').value = p.name || ""; document.getElementById('editGameId').value = p.gameId || ""; document.getElementById('editElo').value = p.elo || 1000; document.getElementById('editWins').value = p.wins || 0; document.getElementById('editLosses').value = p.losses || 0; const imgUrl = p.imageUrl || ""; document.getElementById('editImageUrlInput').value = imgUrl; window.updatePreview(imgUrl); document.getElementById('editHeight').value = p.height || ""; document.getElementById('editReach').value = p.reach || ""; document.getElementById('editStance').value = p.stance || "Orthodox"; const tColor = p.trunkColor || '#1f2937'; document.getElementById('editTrunkColor').value = tColor; const allPresets = document.querySelectorAll('.color-preset'); let matched = false; allPresets.forEach(el => { const presetColor = el.dataset.color; el.classList.remove('active'); if (presetColor && presetColor.toLowerCase() === tColor.toLowerCase()) { el.classList.add('active'); matched = true; } }); if (!matched) { const firstCustom = document.querySelector('.custom-picker-slot'); if (firstCustom) { firstCustom.style.backgroundColor = tColor; firstCustom.dataset.color = tColor; const icon = firstCustom.querySelector('.icon-placeholder'); if(icon) icon.style.display = 'none'; firstCustom.classList.add('active'); const input = firstCustom.querySelector('input[type="color"]'); if(input) input.value = tColor; } } document.getElementById('editPassword').value = ""; const container = document.getElementById('styleTagsContainer'); container.innerHTML = ''; const currentStyles = p.tags || []; STYLE_OPTIONS.forEach(style => { const checked = currentStyles.includes(style) ? 'checked' : ''; const id = `style_${style}`; container.innerHTML += `<div><input type="checkbox" id="${id}" value="${style}" class="hidden style-checkbox" ${checked}><label for="${id}" class="cursor-pointer inline-block bg-white border border-slate-200 text-slate-500 px-3 py-1.5 rounded-full text-xs font-bold transition select-none hover:bg-slate-50">${style}</label></div>`; }); document.getElementById('editModal').classList.remove('hidden'); };
+        
+        // [Modified] ID-based Edit Modal Logic
+        window.openEditModal = (index) => { 
+            const p = rankingsData[index]; 
+            if (!p) return; 
+            
+            // [Changed] Store UUID instead of Index for safety
+            document.getElementById('editPlayerId').value = p.id; 
+            document.getElementById('editOriginalName').value = p.name; 
+            document.getElementById('editName').value = p.name || ""; 
+            document.getElementById('editGameId').value = p.gameId || ""; 
+            document.getElementById('editElo').value = p.elo || 1000; 
+            document.getElementById('editWins').value = p.wins || 0; 
+            document.getElementById('editLosses').value = p.losses || 0; 
+            const imgUrl = p.imageUrl || ""; 
+            document.getElementById('editImageUrlInput').value = imgUrl; 
+            window.updatePreview(imgUrl); 
+            document.getElementById('editHeight').value = p.height || ""; 
+            document.getElementById('editReach').value = p.reach || ""; 
+            document.getElementById('editStance').value = p.stance || "Orthodox"; 
+            const tColor = p.trunkColor || '#1f2937'; 
+            document.getElementById('editTrunkColor').value = tColor; 
+            
+            const allPresets = document.querySelectorAll('.color-preset'); 
+            let matched = false; 
+            allPresets.forEach(el => { 
+                const presetColor = el.dataset.color; 
+                el.classList.remove('active'); 
+                if (presetColor && presetColor.toLowerCase() === tColor.toLowerCase()) { 
+                    el.classList.add('active'); 
+                    matched = true; 
+                } 
+            }); 
+            if (!matched) { 
+                const firstCustom = document.querySelector('.custom-picker-slot'); 
+                if (firstCustom) { 
+                    firstCustom.style.backgroundColor = tColor; 
+                    firstCustom.dataset.color = tColor; 
+                    const icon = firstCustom.querySelector('.icon-placeholder'); 
+                    if(icon) icon.style.display = 'none'; 
+                    firstCustom.classList.add('active'); 
+                    const input = firstCustom.querySelector('input[type="color"]'); 
+                    if(input) input.value = tColor; 
+                } 
+            } 
+            document.getElementById('editPassword').value = ""; 
+            const container = document.getElementById('styleTagsContainer'); 
+            container.innerHTML = ''; 
+            const currentStyles = p.tags || []; 
+            STYLE_OPTIONS.forEach(style => { 
+                const checked = currentStyles.includes(style) ? 'checked' : ''; 
+                const id = `style_${style}`; 
+                container.innerHTML += `<div><input type="checkbox" id="${id}" value="${style}" class="hidden style-checkbox" ${checked}><label for="${id}" class="cursor-pointer inline-block bg-white border border-slate-200 text-slate-500 px-3 py-1.5 rounded-full text-xs font-bold transition select-none hover:bg-slate-50">${style}</label></div>`; 
+            }); 
+            document.getElementById('editModal').classList.remove('hidden'); 
+        };
+
         window.updatePreview = (url) => { const img = document.getElementById('previewImage'); if (!url) { img.src = "https://placehold.co/150?text=No+Img"; } else { img.src = url; } };
         window.removeImage = () => { document.getElementById('editImageUrlInput').value = ""; window.updatePreview(""); };
-        window.savePlayerDetails = async () => { const index = document.getElementById('editPlayerId').value; if (index === "") return; const p = rankingsData[index]; const newName = document.getElementById('editName').value.trim(); if (!newName) return showCustomAlert("이름은 필수입니다."); captureState(); if (newName !== p.name) { if (rankingsData.some((other, i) => i != index && other.name === newName)) { return showCustomAlert("이미 존재하는 이름입니다."); } const oldName = p.name; matchHistoryData.forEach(m => { if (m.winner === oldName) m.winner = newName; if (m.loser === oldName) m.loser = newName; if (m.blue === oldName) m.blue = newName; }); p.name = newName; } p.gameId = document.getElementById('editGameId').value.trim(); p.elo = parseInt(document.getElementById('editElo').value) || 1000; p.wins = parseInt(document.getElementById('editWins').value) || 0; p.losses = parseInt(document.getElementById('editLosses').value) || 0; p.imageUrl = document.getElementById('editImageUrlInput').value.trim(); p.height = document.getElementById('editHeight').value.trim(); p.reach = document.getElementById('editReach').value.trim(); p.stance = document.getElementById('editStance').value; p.trunkColor = document.getElementById('editTrunkColor').value; const newPw = document.getElementById('editPassword').value.trim(); if (newPw) { p.password = await hashPin(newPw); } const selectedStyles = []; document.querySelectorAll('.style-checkbox:checked').forEach(cb => { selectedStyles.push(cb.value); }); p.tags = selectedStyles; await saveRankings(); renderRankings(); document.getElementById('editModal').classList.add('hidden'); showCustomAlert("✅ 선수 정보가 수정되었습니다."); };
-        window.openProfile = (id) => { currentProfileId = id; const p = rankingsData.find(x => x.id === id); if (!p) return; document.getElementById('pModalName').textContent = p.name; document.getElementById('pModalCrown').classList.toggle('hidden', rankingsData.indexOf(p) !== 0); document.getElementById('pModalGameId').textContent = `ID: ${p.gameId || '-'}`; document.getElementById('pModalImg').src = p.imageUrl || "https://placehold.co/150?text=No+Img"; const filterEl = document.getElementById('pModalSeason'); filterEl.innerHTML = '<option value="all">전체 기록 (All Time)</option><option value="current">현재 시즌 (Current)</option>'; Object.keys(seasonArchives).sort().reverse().forEach(s => { filterEl.innerHTML += `<option value="${s}">${s}</option>`; }); filterEl.value = 'current'; filterEl.onchange = (e) => updateProfileStats(id, e.target.value); const tier = getTier(p.wins, p.losses); const tierEl = document.getElementById('pModalTierBadge'); tierEl.textContent = tier.name; tierEl.className = `text-[10px] font-bold px-2 py-0.5 rounded shadow-sm ${tier.color}`; document.getElementById('pModalHeight').textContent = p.height ? p.height + 'cm' : '-'; document.getElementById('pModalReach').textContent = p.reach ? p.reach + 'cm' : '-'; document.getElementById('pModalStance').textContent = p.stance || '-'; const tagsContainer = document.getElementById('pModalTags'); tagsContainer.innerHTML = ''; (p.tags || []).forEach(tag => { tagsContainer.innerHTML += `<span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">#${tag}</span>`; }); updateProfileStats(id, 'current'); const editBtn = document.getElementById('profileEditBtn'); if (editBtn) { editBtn.onclick = () => { closeProfile(); openEditModal(rankingsData.indexOf(p)); }; } document.getElementById('profileModal').classList.remove('hidden'); };
+        
+        // [Modified] ID-based Save Logic
+        window.savePlayerDetails = async () => { 
+            const id = document.getElementById('editPlayerId').value; 
+            if (!id) return; 
+            
+            // Find player by ID (Safe against sorting/filtering)
+            const index = rankingsData.findIndex(r => r.id === id);
+            if (index === -1) return showCustomAlert("선수를 찾을 수 없습니다. (삭제되었거나 데이터 불일치)");
+            
+            const p = rankingsData[index]; 
+            const newName = document.getElementById('editName').value.trim(); 
+            if (!newName) return showCustomAlert("이름은 필수입니다."); 
+            
+            captureState(); 
+            
+            if (newName !== p.name) { 
+                if (rankingsData.some((other, i) => i !== index && other.name === newName)) { 
+                    return showCustomAlert("이미 존재하는 이름입니다."); 
+                } 
+                const oldName = p.name; 
+                matchHistoryData.forEach(m => { 
+                    if (m.winner === oldName) m.winner = newName; 
+                    if (m.loser === oldName) m.loser = newName; 
+                    if (m.blue === oldName) m.blue = newName; 
+                }); 
+                p.name = newName; 
+            } 
+            
+            p.gameId = document.getElementById('editGameId').value.trim(); 
+            p.elo = parseInt(document.getElementById('editElo').value) || 1000; 
+            p.wins = parseInt(document.getElementById('editWins').value) || 0; 
+            p.losses = parseInt(document.getElementById('editLosses').value) || 0; 
+            p.imageUrl = document.getElementById('editImageUrlInput').value.trim(); 
+            p.height = document.getElementById('editHeight').value.trim(); 
+            p.reach = document.getElementById('editReach').value.trim(); 
+            p.stance = document.getElementById('editStance').value; 
+            p.trunkColor = document.getElementById('editTrunkColor').value; 
+            
+            const newPw = document.getElementById('editPassword').value.trim(); 
+            if (newPw) { 
+                p.password = await hashPin(newPw); 
+            } 
+            
+            const selectedStyles = []; 
+            document.querySelectorAll('.style-checkbox:checked').forEach(cb => { 
+                selectedStyles.push(cb.value); 
+            }); 
+            p.tags = selectedStyles; 
+            
+            await saveRankings(); 
+            renderRankings(); 
+            document.getElementById('editModal').classList.add('hidden'); 
+            showCustomAlert("✅ 선수 정보가 수정되었습니다."); 
+        };
+
+        // [Modified] ID-based Delete Logic
+        window.tryDeletePlayer = () => { 
+            const id = document.getElementById('editPlayerId').value; 
+            if(!id) return; 
+            
+            const index = rankingsData.findIndex(r => r.id === id);
+            if(index === -1) return showCustomAlert("선수를 찾을 수 없습니다.");
+            
+            const p = rankingsData[index]; 
+            showConfirmModal(`⚠️ 정말 [${p.name}] 선수를 삭제하시겠습니까?\n이 작업은 복구할 수 없습니다.`, async () => { 
+                captureState(); 
+                rankingsData.splice(index, 1); 
+                await saveRankings(); 
+                document.getElementById('editModal').classList.add('hidden'); 
+                renderRankings(); 
+                setTimeout(() => alert("선수가 삭제되었습니다."), 100); 
+            }); 
+        };
+
+        window.openProfile = (id) => { 
+            currentProfileId = id; 
+            const p = rankingsData.find(x => x.id === id); 
+            if (!p) return; 
+            document.getElementById('pModalName').textContent = p.name; 
+            document.getElementById('pModalCrown').classList.toggle('hidden', rankingsData.indexOf(p) !== 0); 
+            document.getElementById('pModalGameId').textContent = `ID: ${p.gameId || '-'}`; 
+            document.getElementById('pModalImg').src = p.imageUrl || "https://placehold.co/150?text=No+Img"; 
+            const filterEl = document.getElementById('pModalSeason'); 
+            filterEl.innerHTML = '<option value="all">전체 기록 (All Time)</option><option value="current">현재 시즌 (Current)</option>'; 
+            Object.keys(seasonArchives).sort().reverse().forEach(s => { filterEl.innerHTML += `<option value="${s}">${s}</option>`; }); 
+            filterEl.value = 'current'; 
+            filterEl.onchange = (e) => updateProfileStats(id, e.target.value); 
+            const tier = getTier(p.wins, p.losses); 
+            const tierEl = document.getElementById('pModalTierBadge'); 
+            tierEl.textContent = tier.name; 
+            tierEl.className = `text-[10px] font-bold px-2 py-0.5 rounded shadow-sm ${tier.color}`; 
+            document.getElementById('pModalHeight').textContent = p.height ? p.height + 'cm' : '-'; 
+            document.getElementById('pModalReach').textContent = p.reach ? p.reach + 'cm' : '-'; 
+            document.getElementById('pModalStance').textContent = p.stance || '-'; 
+            const tagsContainer = document.getElementById('pModalTags'); 
+            tagsContainer.innerHTML = ''; 
+            (p.tags || []).forEach(tag => { tagsContainer.innerHTML += `<span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">#${tag}</span>`; }); 
+            updateProfileStats(id, 'current'); 
+            
+            const editBtn = document.getElementById('profileEditBtn'); 
+            if (editBtn) { 
+                // [Modified] Find index by ID dynamically to prevent reference errors
+                editBtn.onclick = () => { 
+                    closeProfile(); 
+                    const freshIndex = rankingsData.findIndex(r => r.id === id);
+                    if (freshIndex !== -1) {
+                        openEditModal(freshIndex);
+                    } else {
+                        showCustomAlert("선수 데이터를 찾을 수 없습니다. (새로고침 권장)");
+                    }
+                }; 
+            } 
+            document.getElementById('profileModal').classList.remove('hidden'); 
+        };
         window.closeProfile = () => { document.getElementById('profileModal').classList.add('hidden'); }
         window.updateProfileStats = (id, filter) => { const p = rankingsData.find(x => x.id === id); let matches = enrichedHistory.filter(m => (m.winner === p.name || m.loser === p.name) && m.type !== 'draw'); if (filter === 'current') matches = matches.filter(m => m.season === activeSeason); else if (filter !== 'all') matches = matches.filter(m => m.season === filter); matches.sort((a, b) => new Date(b.date) - new Date(a.date)); let wins = 0, losses = 0; matches.forEach(m => { if (m.winner === p.name) wins++; else losses++; }); const total = wins + losses; const winRate = total > 0 ? Math.round((wins / total) * 100) : 0; document.getElementById('pBigWins').textContent = wins; document.getElementById('pBigLosses').textContent = losses; document.getElementById('pModalWinRate').textContent = `${winRate}%`; document.getElementById('pModalElo').textContent = p.elo || 1000; document.getElementById('pModalHighElo').textContent = p.careerHighElo || p.elo || 1000; const container = document.getElementById('pModalMatchList'); container.innerHTML = ''; if (matches.length === 0) { container.innerHTML = `<div class="text-center text-xs text-slate-400 py-4">해당 기간 기록이 없습니다.</div>`; return; } matches.forEach(m => { const isWin = m.winner === p.name; const resultText = isWin ? 'W' : 'L'; const resultColor = isWin ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'; const oppName = isWin ? m.loser : m.winner; const oppStats = m.snapshot[oppName] || { w:0, l:0, h:[] }; const oppRecordStr = `${oppStats.w}승 ${oppStats.l}패`; let oppDots = ''; (oppStats.h || []).forEach(res => { if (res === 'W') oppDots += `<div class="w-1 h-1 rounded-full bg-emerald-400"></div>`; else oppDots += `<div class="w-1 h-1 rounded-full bg-rose-400"></div>`; }); const div = document.createElement('div'); div.className = "flex items-center justify-between text-xs p-3 bg-slate-50 rounded-xl border border-slate-100"; div.innerHTML = `<div class="flex items-center gap-3 w-full"><span class="font-bold ${resultColor} w-8 h-8 flex items-center justify-center rounded-lg text-sm shrink-0">${resultText}</span><div class="flex flex-col w-full overflow-hidden"><div class="flex justify-between items-center w-full"><span class="font-bold text-slate-700 text-sm truncate">vs ${oppName}</span><span class="text-slate-300 font-medium text-[10px] shrink-0">${m.date}</span></div><div class="flex items-center gap-2 mt-0.5"><span class="text-[10px] text-slate-400 font-medium bg-white px-1.5 py-0.5 rounded border border-slate-100">당시: ${oppRecordStr}</span><div class="flex gap-0.5">${oppDots}</div></div></div></div>`; container.appendChild(div); }); };
         
@@ -790,6 +1014,10 @@
                 searchField: ['name', 'choseong', 'text'], 
                 create: false, 
                 maxOptions: null, 
+                onInitialize: function() {
+                    // [Added] 선수 검색 시 'X' 버튼(전체 삭제) 활성화를 위해 type="search" 적용
+                    this.control_input.setAttribute('type', 'search');
+                },
                 render: { 
                     option: function(data, escape) { 
                         const rankClass = data.isRanked ? "font-bold text-slate-700" : "text-slate-500";
