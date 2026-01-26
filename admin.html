@@ -176,6 +176,7 @@
                                             <div class="flex-grow min-w-0">
                                                 <select id="p1Select" class="w-full text-sm outline-none" placeholder="선수 검색..."></select>
                                             </div>
+                                            <!-- [Modified] Use 'background' for gradient support -->
                                             <div id="p1TrunkIndicator" class="w-3 h-6 rounded border border-slate-300 shadow-sm shrink-0 bg-slate-100" title="바지 색상"></div>
                                         </div>
                                     </div>
@@ -185,6 +186,7 @@
                                             <div class="flex-grow min-w-0">
                                                 <select id="p2Select" class="w-full text-sm outline-none" placeholder="선수 검색..."></select>
                                             </div>
+                                            <!-- [Modified] Use 'background' for gradient support -->
                                             <div id="p2TrunkIndicator" class="w-3 h-6 rounded border border-slate-300 shadow-sm shrink-0 bg-slate-100" title="바지 색상"></div>
                                         </div>
                                     </div>
@@ -484,13 +486,13 @@
         import { getFirestore, doc, setDoc, getDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         
-        const AUTO_LOGIN_EMAIL = ""; 
-        const AUTO_LOGIN_PW = "";
+        const AUTO_LOGIN_EMAIL = "admin@gmail.com"; 
+        const AUTO_LOGIN_PW = "55555!";
         
         // [System] Admin Version Control
         // 새로운 기능 추가 시 이 변수들만 수정하면 UI와 타이틀에 자동 반영됩니다.
-        const ADMIN_VERSION = "v4.03"; 
-        const UPDATE_NOTE = "UI: White Trunk Visibility Fixed";
+        const ADMIN_VERSION = "v4.06"; 
+        const UPDATE_NOTE = "Fix: Duplicate Logic Removed";
 
         // [System] UI Auto-Update Logic (Version Only)
         function initVersionUI() {
@@ -530,7 +532,7 @@
         // [Modified] Color Palette with Half & Half (CSS Gradient)
         const COLOR_PRESETS = [
             { name: "Black", code: "#1f2937" }, 
-            { name: "Half B/W", code: "linear-gradient(to bottom, #1f2937 50%, #f8fafc 50%)" }, // [Modified] 위(Black)/아래(White)
+            { name: "Half B/W", code: "linear-gradient(to bottom, #1f2937 50%, #f8fafc 50%)" },
             { name: "White", code: "#f8fafc" }, 
             { name: "Gray", code: "#94a3b8" },
             { name: "Red", code: "#ef4444" }, { name: "Orange", code: "#f97316" }, { name: "Amber", code: "#f59e0b" },
@@ -645,6 +647,22 @@
         window.copyRankerList = () => { try { if (!rankingsData || rankingsData.length === 0) return showCustomAlert("데이터를 불러오는 중이거나 선수가 없습니다."); const rankers = rankingsData.filter(p => (p.wins + p.losses) > 0); if (rankers.length === 0) return showCustomAlert("랭킹에 등록된 선수가 없습니다."); const modal = document.getElementById('exportModal'); if (modal) modal.classList.remove('hidden'); const title = document.getElementById('exportModalTitle'); if (title) title.textContent = "🏆 랭커 명단 추출"; const options = document.getElementById('exportMatchOptions'); if (options) { options.classList.remove('hidden'); options.innerHTML = `<button onclick="updateRankerExport('rank')" class="flex-1 bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold py-2 rounded-lg text-xs transition border border-blue-100">🔢 순위 형식 (이름+순위)</button><button onclick="updateRankerExport('color')" class="flex-1 bg-purple-50 text-purple-600 hover:bg-purple-100 font-bold py-2 rounded-lg text-xs transition border border-purple-100">🎨 색상 형식 (이름+색상)</button>`; } updateRankerExport('rank'); } catch (e) { showCustomAlert("명단 생성 중 오류가 발생했습니다."); } };
         window.copyAllPlayerList = () => { try { if (!rankingsData || rankingsData.length === 0) return showCustomAlert("데이터를 불러오는 중이거나 선수가 없습니다."); if (rankingsData.length === 0) return showCustomAlert("등록된 선수가 없습니다."); const modal = document.getElementById('exportModal'); if (modal) modal.classList.remove('hidden'); const title = document.getElementById('exportModalTitle'); if (title) title.textContent = "📋 전체 선수 명단 추출"; const options = document.getElementById('exportMatchOptions'); if (options) { options.classList.remove('hidden'); options.innerHTML = `<button onclick="updateAllPlayerExport('name')" class="flex-1 bg-slate-50 text-slate-600 hover:bg-slate-100 font-bold py-2 rounded-lg text-xs transition border border-slate-200">📋 기본 형식 (이름만)</button><button onclick="updateAllPlayerExport('color')" class="flex-1 bg-purple-50 text-purple-600 hover:bg-purple-100 font-bold py-2 rounded-lg text-xs transition border border-purple-100">🎨 색상 형식 (이름+색상)</button>`; } updateAllPlayerExport('name'); } catch (e) { showCustomAlert("명단 생성 중 오류가 발생했습니다."); } };
 
+        // [Fixed] Restore Missing backupData Function
+        window.backupData = () => { 
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ 
+                rankings: rankingsData, 
+                history: matchHistoryData, 
+                archives: seasonArchives, 
+                activeSeason: activeSeason 
+            }, null, 2)); 
+            const dl = document.createElement('a'); 
+            dl.setAttribute("href", dataStr); 
+            dl.setAttribute("download", `RFC_BACKUP_${new Date().toISOString().slice(0,10)}.json`); 
+            document.body.appendChild(dl); 
+            dl.click(); 
+            dl.remove(); 
+        };
+
         function captureState() { const currentState = { rankings: JSON.parse(JSON.stringify(rankingsData)), matchHistory: JSON.parse(JSON.stringify(matchHistoryData)), seasonArchives: JSON.parse(JSON.stringify(seasonArchives)), activeSeason: activeSeason }; undoStack.push(currentState); if (undoStack.length > MAX_UNDO) undoStack.shift(); updateUndoUI(); }
         window.executeUndo = async () => { if (undoStack.length === 0) return; const prevState = undoStack.pop(); rankingsData = prevState.rankings; matchHistoryData = prevState.matchHistory; seasonArchives = prevState.seasonArchives; activeSeason = prevState.activeSeason; await saveRankings(true); renderRankings(); updateUndoUI(); alert("이전 상태로 되돌렸습니다."); };
         function updateUndoUI() { const btn = document.getElementById('undoBtn'); const cnt = document.getElementById('undoCount'); if (undoStack.length > 0) { btn.classList.remove('hidden'); btn.classList.add('pop-in'); btn.disabled = false; cnt.textContent = undoStack.length; } else { btn.classList.add('hidden'); } }
@@ -664,8 +682,11 @@
         window.confirmRenameSeason = async () => { const oldName = document.getElementById('renameOldName').value; const newName = document.getElementById('renameInput').value.trim(); if(!newName || newName === oldName) { closeRenameModal(); return; } if(newName === activeSeason || seasonArchives[newName]) { showCustomAlert("이미 존재하는 시즌 이름입니다."); return; } captureState(); if (oldName === activeSeason) { activeSeason = newName; } else { seasonArchives[newName] = seasonArchives[oldName]; delete seasonArchives[oldName]; } matchHistoryData.forEach(m => { if(m.season === oldName) m.season = newName; }); await saveRankings(); renderSeasonList(); updateSeasonUI(); closeRenameModal(); showCustomAlert("시즌 이름이 변경되었습니다."); };
         window.renameSeason = window.openRenameModal; 
         window.finishAndStartNewSeason = () => { const n = document.getElementById('newSeasonNameInput').value.trim(); if(!n) return showCustomAlert("새 시즌 이름을 입력해주세요."); if(n === activeSeason || seasonArchives[n]) return showCustomAlert("이미 존재하는 시즌 이름입니다."); showConfirmModal(`[${activeSeason}]을 종료하고 [${n}]을 시작하시겠습니까?\n\n- 현재 랭킹은 보관함에 저장됩니다.\n- 모든 선수의 전적이 초기화됩니다.`, async () => { captureState(); seasonArchives[activeSeason] = { rankings: JSON.parse(JSON.stringify(rankingsData)) }; activeSeason = n; rankingsData.forEach(p => { p.previousRank = p.rank || rankingsData.indexOf(p) + 1; p.wins = 0; p.losses = 0; p.draws = 0; p.defenseCount = 0; p.elo = 1000; }); await saveRankings(); updateSeasonUI(); renderSeasonList(); renderRankings(); showCustomAlert(`새 시즌 [${n}]이 시작되었습니다!`); }); };
+        function getTierBonus(matchCount) { if (matchCount < 3) return { winMult: 1.0, lossMult: 1.0, tier: '🥉Bronze' }; else if (matchCount < 7) return { winMult: 1.1, lossMult: 0.9, tier: '🥈Silver' }; else return { winMult: 1.2, lossMult: 0.8, tier: '🥇Gold' }; }
+        function calculateHybridEloChange(p1Elo, p2Elo, isWin, p1Stats) { const matchCount = (p1Stats.wins || 0) + (p1Stats.losses || 0); const K = 60; const expected = 1 / (1 + Math.pow(10, (p2Elo - p1Elo) / 400)); const { winMult, lossMult, tier } = getTierBonus(matchCount); let finalChange = 0; let breakdown = ""; if (isWin) { let baseGain = K * (1 - expected); finalChange = (baseGain * winMult) + 5; breakdown = `${tier}승(x${winMult}) + 5`; } else { let baseLoss = K * (0 - expected); finalChange = (baseLoss * lossMult) + 5; breakdown = `${tier}패(x${lossMult}) + 5`; } return { change: Math.round(finalChange), msg: breakdown }; }
+        
+        window.resetMatchInputs = () => { if(p1Tom) p1Tom.clear(); if(p2Tom) p2Tom.clear(); const radios = document.querySelectorAll('input[name="winner"]'); radios.forEach(r => r.checked = false); document.getElementById('p1TrunkIndicator').style.backgroundColor = '#f1f5f9'; document.getElementById('p2TrunkIndicator').style.backgroundColor = '#f1f5f9'; updateMatchPreview(); };
         window.updateMatchPreview = () => { let p1Idx = ""; if (p1Tom) p1Idx = p1Tom.getValue(); else { const el = document.getElementById('p1Select'); if(el) p1Idx = el.value; } let p2Idx = ""; if (p2Tom) p2Idx = p2Tom.getValue(); else { const el = document.getElementById('p2Select'); if(el) p2Idx = el.value; } if(p1Idx !== "") p1Idx = parseInt(p1Idx); if(p2Idx !== "") p2Idx = parseInt(p2Idx); const p1Ind = document.getElementById('p1TrunkIndicator'); const p2Ind = document.getElementById('p2TrunkIndicator'); const p1 = (p1Idx !== "" && !isNaN(p1Idx)) ? rankingsData[p1Idx] : null; const p2 = (p2Idx !== "" && !isNaN(p2Idx)) ? rankingsData[p2Idx] : null; 
-        // [Modified] Use 'background' for preview indicators
         if (p1 && p1.trunkColor) p1Ind.style.background = p1.trunkColor; else p1Ind.style.background = '#f1f5f9'; 
         if (p2 && p2.trunkColor) p2Ind.style.background = p2.trunkColor; else p2Ind.style.background = '#f1f5f9'; 
         if (!p1 || !p2 || p1Idx === p2Idx) { document.getElementById('matchPreview').classList.add('hidden'); return; } const checkedRadio = document.querySelector('input[name="winner"]:checked'); if (!checkedRadio) { document.getElementById('matchPreview').classList.add('hidden'); return; } document.getElementById('matchPreview').classList.remove('hidden'); const winnerVal = checkedRadio.value; const currentRanked = rankingsData.filter(p => (p.wins + p.losses) > 0).sort((a, b) => (b.elo || 1000) - (a.elo || 1000)); const getRank = (id) => { const idx = currentRanked.findIndex(p => p.id === id); return idx === -1 ? 'Unranked' : `${idx + 1}위`; }; const curRank1 = getRank(p1.id); const curRank2 = getRank(p2.id); const simRankings = JSON.parse(JSON.stringify(rankingsData)); const simP1 = simRankings.find(p => p.id === p1.id); const simP2 = simRankings.find(p => p.id === p2.id); let p1Change, p2Change; if (winnerVal === 'blue') { const w = calculateHybridEloChange(simP1.elo, simP2.elo, true, simP1); const l = calculateHybridEloChange(simP2.elo, simP1.elo, false, simP2); p1Change = w.change; p2Change = l.change; simP1.elo += p1Change; simP1.wins++; simP2.elo += p2Change; simP2.losses++; } else { const w = calculateHybridEloChange(simP2.elo, simP1.elo, true, simP2); const l = calculateHybridEloChange(simP1.elo, simP2.elo, false, simP1); p2Change = w.change; p1Change = l.change; simP2.elo += p2Change; simP2.wins++; simP1.elo += p1Change; simP1.losses++; } const simRankedList = simRankings.filter(p => (p.wins + p.losses) > 0).sort((a, b) => (b.elo || 1000) - (a.elo || 1000)); const getNumericRank = (list, id) => { const idx = list.findIndex(p => p.id === id); return idx === -1 ? 99999 : idx + 1; }; const curRank1Num = getNumericRank(currentRanked, p1.id); const curRank2Num = getNumericRank(currentRanked, p2.id); const newRank1Num = getNumericRank(simRankedList, simP1.id); const newRank2Num = getNumericRank(simRankedList, simP2.id); const displayRank = (num) => num === 99999 ? 'Unranked' : `${num}위`; const getScoreStyle = (change) => change > 0 ? 'text-red-600' : (change < 0 ? 'text-blue-600' : 'text-slate-500'); const getRankStyle = (oldR, newR) => { if (oldR === 99999 && newR !== 99999) return 'text-red-600 font-bold'; if (oldR === newR) return 'text-slate-500'; if (newR < oldR) return 'text-red-600 font-bold'; return 'text-blue-600 font-bold'; }; const p1ScoreClass = getScoreStyle(p1Change); const p2ScoreClass = getScoreStyle(p2Change); const p1RankClass = getRankStyle(curRank1Num, newRank1Num); const p2RankClass = getRankStyle(curRank2Num, newRank2Num); let htmlContent = `<div class="font-bold text-slate-800 mb-2 border-b border-gray-200 pb-2 flex justify-between items-center"><span class="text-base">🎯 예상 결과 (순위 변동 포함)</span><span class="text-xs bg-slate-200 text-slate-600 px-2 py-0.5 rounded">Simulation</span></div><div class="space-y-3"><div class="flex flex-col"><div class="flex justify-between items-center"><span class="text-blue-600 font-bold truncate text-base">🔵 ${p1.name}</span><span class="text-[15px] font-mono text-slate-600 font-bold">${p1.elo} → ${simP1.elo} <span class="${p1ScoreClass}">(${p1Change >= 0 ? '+'+p1Change : p1Change})</span></span></div><div class="text-right text-[15px] text-slate-500 font-medium">순위: ${displayRank(curRank1Num)} ➔ <span class="${p1RankClass}">${displayRank(newRank1Num)}</span></div></div><div class="flex flex-col"><div class="flex justify-between items-center"><span class="text-red-600 font-bold truncate text-base">🔴 ${p2.name}</span><span class="text-[15px] font-mono text-slate-600 font-bold">${p2.elo} → ${simP2.elo} <span class="${p2ScoreClass}">(${p2Change >= 0 ? '+'+p2Change : p2Change})</span></span></div><div class="text-right text-[15px] text-slate-500 font-medium">순위: ${displayRank(curRank2Num)} ➔ <span class="${p2RankClass}">${displayRank(newRank2Num)}</span></div></div></div>`; document.getElementById('previewContent').innerHTML = htmlContent; }
@@ -970,218 +991,6 @@
         window.closeProfile = () => { document.getElementById('profileModal').classList.add('hidden'); }
         window.updateProfileStats = (id, filter) => { const p = rankingsData.find(x => x.id === id); let matches = enrichedHistory.filter(m => (m.winner === p.name || m.loser === p.name) && m.type !== 'draw'); if (filter === 'current') matches = matches.filter(m => m.season === activeSeason); else if (filter !== 'all') matches = matches.filter(m => m.season === filter); matches.sort((a, b) => new Date(b.date) - new Date(a.date)); let wins = 0, losses = 0; matches.forEach(m => { if (m.winner === p.name) wins++; else losses++; }); const total = wins + losses; const winRate = total > 0 ? Math.round((wins / total) * 100) : 0; document.getElementById('pBigWins').textContent = wins; document.getElementById('pBigLosses').textContent = losses; document.getElementById('pModalWinRate').textContent = `${winRate}%`; document.getElementById('pModalElo').textContent = p.elo || 1000; document.getElementById('pModalHighElo').textContent = p.careerHighElo || p.elo || 1000; const container = document.getElementById('pModalMatchList'); container.innerHTML = ''; if (matches.length === 0) { container.innerHTML = `<div class="text-center text-xs text-slate-400 py-4">해당 기간 기록이 없습니다.</div>`; return; } matches.forEach(m => { const isWin = m.winner === p.name; const resultText = isWin ? 'W' : 'L'; const resultColor = isWin ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'; const oppName = isWin ? m.loser : m.winner; const oppStats = m.snapshot[oppName] || { w:0, l:0, h:[] }; const oppRecordStr = `${oppStats.w}승 ${oppStats.l}패`; let oppDots = ''; (oppStats.h || []).forEach(res => { if (res === 'W') oppDots += `<div class="w-1 h-1 rounded-full bg-emerald-400"></div>`; else oppDots += `<div class="w-1 h-1 rounded-full bg-rose-400"></div>`; }); const div = document.createElement('div'); div.className = "flex items-center justify-between text-xs p-3 bg-slate-50 rounded-xl border border-slate-100"; div.innerHTML = `<div class="flex items-center gap-3 w-full"><span class="font-bold ${resultColor} w-8 h-8 flex items-center justify-center rounded-lg text-sm shrink-0">${resultText}</span><div class="flex flex-col w-full overflow-hidden"><div class="flex justify-between items-center w-full"><span class="font-bold text-slate-700 text-sm truncate">vs ${oppName}</span><span class="text-slate-300 font-medium text-[10px] shrink-0">${m.date}</span></div><div class="flex items-center gap-2 mt-0.5"><span class="text-[10px] text-slate-400 font-medium bg-white px-1.5 py-0.5 rounded border border-slate-100">당시: ${oppRecordStr}</span><div class="flex gap-0.5">${oppDots}</div></div></div></div>`; container.appendChild(div); }); };
         
-        window.populateMatchSelectors = () => { 
-            if (p1Tom) { p1Tom.destroy(); p1Tom = null; } 
-            if (p2Tom) { p2Tom.destroy(); p2Tom = null; } 
-            if (pPenTom) { pPenTom.destroy(); pPenTom = null; } 
-            
-            const s1 = document.getElementById('p1Select'); 
-            const s2 = document.getElementById('p2Select'); 
-            const sPen = document.getElementById('penaltyTargetSelect'); 
-            if(!s1 || !s2) return; 
-            
-            const sortedRankedIndices = rankingsData
-                .map((p, i) => ({ ...p, originalIndex: i }))
-                .filter(p => (p.wins + p.losses) > 0)
-                .sort((a, b) => (b.elo || 1000) - (a.elo || 1000))
-                .map(p => p.originalIndex); 
-            
-            const playerOptions = rankingsData.map((p, index) => { 
-                const rankIndex = sortedRankedIndices.indexOf(index); 
-                const isRanked = rankIndex !== -1; 
-                const rankPrefix = isRanked ? `${rankIndex + 1}. ` : ''; 
-                const displayName = `${rankPrefix}${p.name}`; 
-                
-                return { 
-                    value: index, 
-                    text: `${displayName} (${p.elo})`, 
-                    displayName: displayName, 
-                    name: p.name, 
-                    choseong: getChoseong(p.name), 
-                    elo: p.elo || 1000,
-                    isRanked: isRanked 
-                }; 
-            }); 
-            
-            playerOptions.sort((a, b) => {
-                if (a.isRanked && !b.isRanked) return -1;
-                if (!a.isRanked && b.isRanked) return 1;
-                if (b.elo !== a.elo) return b.elo - a.elo;
-                return a.name.localeCompare(b.name);
-            }); 
-            
-            if (typeof TomSelect === 'undefined') { console.error("Tom Select library not loaded."); return; } 
-            
-            const config = { 
-                options: playerOptions, 
-                valueField: 'value', 
-                labelField: 'text', 
-                searchField: ['name', 'choseong', 'text'], 
-                create: false, 
-                maxOptions: null, 
-                onInitialize: function() {
-                    // [Added] 선수 검색 시 'X' 버튼(전체 삭제) 활성화를 위해 type="search" 적용
-                    this.control_input.setAttribute('type', 'search');
-                },
-                render: { 
-                    option: function(data, escape) { 
-                        const rankClass = data.isRanked ? "font-bold text-slate-700" : "text-slate-500";
-                        return `<div><span class="${rankClass}">${escape(data.displayName)}</span> <span class="text-xs text-slate-400">(${data.elo})</span></div>`; 
-                    }, 
-                    item: function(data, escape) { 
-                        return `<div class="truncate block w-full">${escape(data.displayName)} <span class="text-xs text-gray-400">(${data.elo})</span></div>`; 
-                    } 
-                } 
-            }; 
-            
-            const previewConfig = { ...config, onChange: function(value) { updateMatchPreview(); } }; 
-            
-            try { 
-                p1Tom = new TomSelect('#p1Select', previewConfig); 
-                p2Tom = new TomSelect('#p2Select', previewConfig); 
-                if(sPen) pPenTom = new TomSelect('#penaltyTargetSelect', config); 
-            } catch(e) { console.error("Tom Select initialization failed:", e); } 
-        };
-
-        function renderRankings() { 
-            const list = document.getElementById('rankingList'); list.innerHTML = ''; 
-            const filteredData = rankingsData.filter(p => {
-                const nameMatch = p.name.toLowerCase().includes(searchQuery);
-                const choMatch = p.choseong && p.choseong.includes(searchQuery);
-                return nameMatch || choMatch;
-            });
-
-            const ranked = filteredData.filter(p => (p.wins + p.losses) > 0).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
-            const unranked = filteredData.filter(p => (p.wins + p.losses) === 0).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
-            
-            const now = Date.now();
-            const shouldHighlight = (id) => activeHighlight.ids.includes(id) && now < activeHighlight.endTime;
-
-            ranked.forEach((item, index) => { 
-                const globalIndex = rankingsData.indexOf(item);
-                const diff = (item.previousRank || (index + 1)) - (index + 1); 
-                let ch = diff > 0 ? `<span class="rank-up">▲${diff}</span>` : (diff < 0 ? `<span class="rank-down">▼${Math.abs(diff)}</span>` : '<span class="rank-keep">-</span>'); 
-                let rankClass = "rank-num-normal";
-                if(index === 0) rankClass = "rank-num-1";
-                else if(index === 1) rankClass = "rank-num-2";
-                else if(index === 2) rankClass = "rank-num-3";
-                else if(index <= 9) rankClass = "rank-num-top10"; 
-                
-                const tier = getTier(item.wins, item.losses);
-                
-                const highlightClass = shouldHighlight(item.id) ? 'highlight-slow' : '';
-
-                list.innerHTML += `
-                    <div id="rank-card-${item.id}" class="rank-card flex items-center p-3 border rounded-xl mb-2 bg-white hover:shadow-md ${tier.class} ${highlightClass}" onclick="openProfile('${item.id}')">
-                        <div class="w-10 text-center mr-2"><span class="${rankClass}">${index+1}</span><div class="text-[10px]">${ch}</div></div>
-                        <div class="shrink-0 relative mr-3">
-                            <img src="${item.imageUrl || 'https://placehold.co/150?text=No+Img'}" class="w-10 h-10 rounded-lg bg-slate-100 object-cover border border-slate-100" onerror="this.src='https://placehold.co/150?text=No+Img'">
-                            ${index === 0 ? `<div class="absolute -top-1 -right-1 text-sm">👑</div>` : ''}
-                        </div>
-                        <div class="flex-grow min-w-0">
-                            <div class="font-bold text-sm text-slate-800 flex items-center gap-2">
-                                <!-- [Modified] Use 'ring' for better white visibility -->
-                                <div class="w-1.5 h-4 rounded-sm shadow-sm ring-1 ring-inset ring-black/10" style="background: ${item.trunkColor || '#1f2937'};" title="트렁크 색상"></div>
-                                <span class="truncate">${item.name}</span>
-                                <span class="text-[9px] px-1.5 py-0.5 rounded-full ${tier.color} font-bold tracking-wide uppercase shadow-sm">${tier.name}</span>
-                            </div>
-                            <div class="flex items-center gap-1.5 mt-0.5">
-                                <span class="bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded border border-amber-200 font-bold">⚡${item.elo}</span>
-                                <span class="text-xs text-slate-400">| ${item.wins}승 ${item.losses}패</span>
-                            </div>
-                        </div>
-                        <button onclick="event.stopPropagation(); openEditModal(${globalIndex})" class="p-2 text-slate-300 hover:text-blue-600 transition">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                        </button>
-                    </div>`; 
-            }); 
-            
-            if(unranked.length > 0) {
-                list.innerHTML += `<div class="text-center text-xs text-slate-300 font-bold my-4">- Unranked / Search Results -</div>`;
-                unranked.forEach((item) => {
-                    const globalIndex = rankingsData.indexOf(item);
-                    const highlightClass = shouldHighlight(item.id) ? 'highlight-slow' : '';
-                    
-                    list.innerHTML += `
-                        <div id="rank-card-${item.id}" class="rank-card flex items-center p-3 border rounded-xl mb-2 bg-slate-50 opacity-80 hover:opacity-100 ${highlightClass}" onclick="openProfile('${item.id}')">
-                            <div class="w-10 text-center mr-2"><span class="rank-unranked">-</span></div>
-                            <div class="shrink-0 relative mr-3">
-                                <img src="${item.imageUrl || 'https://placehold.co/150?text=No+Img'}" class="w-10 h-10 rounded-lg bg-slate-100 object-cover border border-slate-100 grayscale" onerror="this.src='https://placehold.co/150?text=No+Img'">
-                            </div>
-                            <div class="flex-grow min-w-0">
-                                <div class="font-bold text-sm text-slate-500 flex items-center gap-2">
-                                    <!-- [Modified] Use 'ring' for better white visibility -->
-                                    <div class="w-1.5 h-4 rounded-sm shadow-sm ring-1 ring-inset ring-black/10" style="background: ${item.trunkColor || '#1f2937'};" title="트렁크 색상"></div>
-                                    <span class="truncate">${item.name}</span>
-                                </div>
-                                <div class="flex items-center gap-1.5 mt-0.5">
-                                    <span class="bg-slate-100 text-slate-400 text-[10px] px-1.5 py-0.5 rounded border border-slate-200 font-bold">New</span>
-                                    <span class="text-xs text-slate-400">| 0승 0패</span>
-                                </div>
-                            </div>
-                            <button onclick="event.stopPropagation(); openEditModal(${globalIndex})" class="p-2 text-slate-300 hover:text-blue-600 transition">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                            </button>
-                        </div>`;
-                });
-            }
-            populateMatchSelectors(); 
-        }
-
-        function scrollToTarget(winnerId) {
-            setTimeout(() => {
-                const winnerCard = document.getElementById(`rank-card-${winnerId}`);
-                if (winnerCard) {
-                    winnerCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
-            }, 100);
-        }
-
-        window.applyMatch = () => { 
-            const p1Idx = parseInt(document.getElementById('p1Select').value); 
-            const p2Idx = parseInt(document.getElementById('p2Select').value); 
-            const winnerVal = document.querySelector('input[name="winner"]:checked')?.value; 
-            if (!winnerVal || isNaN(p1Idx) || isNaN(p2Idx)) return alert("선택 오류"); 
-            if (p1Idx === p2Idx) return alert("동일 선수"); 
-            
-            const p1 = rankingsData[p1Idx]; 
-            const p2 = rankingsData[p2Idx]; 
-            const isBlueWin = winnerVal === 'blue'; 
-            const winner = isBlueWin ? p1 : p2; 
-            const loser = isBlueWin ? p2 : p1; 
-            
-            captureState(); 
-            const winCalc = calculateHybridEloChange(winner.elo, loser.elo, true, winner); 
-            const loseCalc = calculateHybridEloChange(loser.elo, winner.elo, false, loser); 
-            
-            winner.elo += winCalc.change; 
-            loser.elo += loseCalc.change; 
-            
-            if (winner.elo > (winner.careerHighElo || 0)) winner.careerHighElo = winner.elo; 
-            if (loser.elo > (loser.careerHighElo || 0)) loser.careerHighElo = loser.elo; 
-            
-            let type = 'ranking'; 
-            winner.wins++; 
-            loser.wins = loser.wins || 0; 
-            loser.losses++; 
-            
-            const today = getKSTDate(); 
-            winner.lastMatchDate = today; 
-            loser.lastMatchDate = today; 
-            
-            rankingsData.sort((a, b) => b.elo - a.elo); 
-            matchHistoryData.unshift({ date: today, winner: isBlueWin ? p1.name : p2.name, loser: isBlueWin ? p2.name : p1.name, type, season: activeSeason, blue: p1.name }); 
-            
-            activeHighlight = {
-                ids: [winner.id, loser.id],
-                endTime: Date.now() + 10000
-            };
-
-            saveRankings(); 
-            renderRankings(); 
-            scrollToTarget(winner.id); 
-        };
-
         window.openDeletePlayersModal = () => {
             deleteSelectedIds.clear();
             lastCheckedIndex = null; 
@@ -1326,7 +1135,7 @@
             const deleteCount = deleteSelectedIds.size; // Lock count
             
             const confirmMsg = isHistoryDelete 
-                ? `⚠️ 선택된 ${deleteCount}명의 선수와\n[관련된 모든 경기 기록]을 영구 삭제하시겠습니까?\n\n(주의: 상대방의 전적 기록은 유지되지만,\n로그 자체가 사라집니다)` 
+                ? `⚠️ 선택된 ${deleteCount}명의 선수와\n[관련된 모든 경기 기록]을 영구 삭제하시겠습니까?\n\n(주의: 상대방의 전적 횟수는 유지되지만,\n로그 자체가 사라집니다)` 
                 : `⚠️ 선택된 ${deleteCount}명의 선수를 정말 삭제하시겠습니까?\n이 작업은 복구할 수 없습니다.`;
 
             showConfirmModal(confirmMsg, async () => {
@@ -1380,6 +1189,236 @@
                     showCustomAlert("삭제 중 오류가 발생했습니다: " + e.message);
                 }
             });
+        };
+
+        window.populateMatchSelectors = () => { 
+            if (p1Tom) { p1Tom.destroy(); p1Tom = null; } 
+            if (p2Tom) { p2Tom.destroy(); p2Tom = null; } 
+            if (pPenTom) { pPenTom.destroy(); pPenTom = null; } 
+            
+            const s1 = document.getElementById('p1Select'); 
+            const s2 = document.getElementById('p2Select'); 
+            const sPen = document.getElementById('penaltyTargetSelect'); 
+            if(!s1 || !s2) return; 
+            
+            const sortedRankedIndices = rankingsData
+                .map((p, i) => ({ ...p, originalIndex: i }))
+                .filter(p => (p.wins + p.losses) > 0)
+                .sort((a, b) => (b.elo || 1000) - (a.elo || 1000))
+                .map(p => p.originalIndex); 
+            
+            const playerOptions = rankingsData.map((p, index) => { 
+                const rankIndex = sortedRankedIndices.indexOf(index); 
+                const isRanked = rankIndex !== -1; 
+                const rankPrefix = isRanked ? `${rankIndex + 1}. ` : ''; 
+                const displayName = `${rankPrefix}${p.name}`; 
+                
+                return { 
+                    value: index, 
+                    text: `${displayName} (${p.elo})`, 
+                    displayName: displayName, 
+                    name: p.name, 
+                    choseong: getChoseong(p.name), 
+                    elo: p.elo || 1000,
+                    isRanked: isRanked 
+                }; 
+            }); 
+            
+            playerOptions.sort((a, b) => {
+                if (a.isRanked && !b.isRanked) return -1;
+                if (!a.isRanked && b.isRanked) return 1;
+                if (b.elo !== a.elo) return b.elo - a.elo;
+                return a.name.localeCompare(b.name);
+            }); 
+            
+            if (typeof TomSelect === 'undefined') { console.error("Tom Select library not loaded."); return; } 
+            
+            const config = { 
+                options: playerOptions, 
+                valueField: 'value', 
+                labelField: 'text', 
+                searchField: ['name', 'choseong', 'text'], 
+                create: false, 
+                maxOptions: null, 
+                onInitialize: function() {
+                    // [Added] 선수 검색 시 'X' 버튼(전체 삭제) 활성화를 위해 type="search" 적용
+                    this.control_input.setAttribute('type', 'search');
+                },
+                render: { 
+                    option: function(data, escape) { 
+                        const rankClass = data.isRanked ? "font-bold text-slate-700" : "text-slate-500";
+                        return `<div><span class="${rankClass}">${escape(data.displayName)}</span> <span class="text-xs text-slate-400">(${data.elo})</span></div>`; 
+                    }, 
+                    item: function(data, escape) { 
+                        return `<div class="truncate block w-full">${escape(data.displayName)} <span class="text-xs text-gray-400">(${data.elo})</span></div>`; 
+                    } 
+                } 
+            }; 
+            
+            const previewConfig = { ...config, onChange: function(value) { updateMatchPreview(); } }; 
+            
+            try { 
+                p1Tom = new TomSelect('#p1Select', previewConfig); 
+                p2Tom = new TomSelect('#p2Select', previewConfig); 
+                if(sPen) pPenTom = new TomSelect('#penaltyTargetSelect', config); 
+            } catch(e) { console.error("Tom Select initialization failed:", e); } 
+        };
+
+        function renderRankings() { 
+            const list = document.getElementById('rankingList'); list.innerHTML = ''; 
+            const filteredData = rankingsData.filter(p => {
+                const nameMatch = p.name.toLowerCase().includes(searchQuery);
+                const choMatch = p.choseong && p.choseong.includes(searchQuery);
+                return nameMatch || choMatch;
+            });
+
+            const ranked = filteredData.filter(p => (p.wins + p.losses) > 0).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
+            const unranked = filteredData.filter(p => (p.wins + p.losses) === 0).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
+            
+            const now = Date.now();
+            const shouldHighlight = (id) => activeHighlight.ids.includes(id) && now < activeHighlight.endTime;
+
+            ranked.forEach((item, index) => { 
+                const globalIndex = rankingsData.indexOf(item);
+                const diff = (item.previousRank || (index + 1)) - (index + 1); 
+                let ch = diff > 0 ? `<span class="rank-up">▲${diff}</span>` : (diff < 0 ? `<span class="rank-down">▼${Math.abs(diff)}</span>` : '<span class="rank-keep">-</span>'); 
+                let rankClass = "rank-num-normal";
+                if(index === 0) rankClass = "rank-num-1";
+                else if(index === 1) rankClass = "rank-num-2";
+                else if(index === 2) rankClass = "rank-num-3";
+                else if(index <= 9) rankClass = "rank-num-top10"; 
+                
+                const tier = getTier(item.wins, item.losses);
+                const highlightClass = shouldHighlight(item.id) ? 'highlight-slow' : '';
+
+                list.innerHTML += `
+                    <div id="rank-card-${item.id}" class="rank-card flex items-center p-3 border rounded-xl mb-2 bg-white hover:shadow-md ${tier.class} ${highlightClass}" onclick="openProfile('${item.id}')">
+                        <div class="w-10 text-center mr-2"><span class="${rankClass}">${index+1}</span><div class="text-[10px]">${ch}</div></div>
+                        <div class="shrink-0 relative mr-3">
+                            <img src="${item.imageUrl || 'https://placehold.co/150?text=No+Img'}" class="w-10 h-10 rounded-lg bg-slate-100 object-cover border border-slate-100" onerror="this.src='https://placehold.co/150?text=No+Img'">
+                            ${index === 0 ? `<div class="absolute -top-1 -right-1 text-sm">👑</div>` : ''}
+                        </div>
+                        <div class="flex-grow min-w-0">
+                            <div class="font-bold text-sm text-slate-800 flex items-center gap-2">
+                                <!-- [Modified] Use 'ring' for better white visibility -->
+                                <div class="w-1.5 h-4 rounded-sm shadow-sm ring-1 ring-inset ring-black/10" style="background: ${item.trunkColor || '#1f2937'};" title="트렁크 색상"></div>
+                                <span class="truncate">${item.name}</span>
+                                <span class="text-[9px] px-1.5 py-0.5 rounded-full ${tier.color} font-bold tracking-wide uppercase shadow-sm">${tier.name}</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 mt-0.5">
+                                <span class="bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded border border-amber-200 font-bold">⚡${item.elo}</span>
+                                <span class="text-xs text-slate-400">| ${item.wins}승 ${item.losses}패</span>
+                            </div>
+                        </div>
+                        <button onclick="event.stopPropagation(); openEditModal(${globalIndex})" class="p-2 text-slate-300 hover:text-blue-600 transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                        </button>
+                    </div>`; 
+            }); 
+            
+            if(unranked.length > 0) {
+                list.innerHTML += `<div class="text-center text-xs text-slate-300 font-bold my-4">- Unranked / Search Results -</div>`;
+                unranked.forEach((item) => {
+                    const globalIndex = rankingsData.indexOf(item);
+                    const highlightClass = shouldHighlight(item.id) ? 'highlight-slow' : '';
+                    
+                    list.innerHTML += `
+                        <div id="rank-card-${item.id}" class="rank-card flex items-center p-3 border rounded-xl mb-2 bg-slate-50 opacity-80 hover:opacity-100 ${highlightClass}" onclick="openProfile('${item.id}')">
+                            <div class="w-10 text-center mr-2"><span class="rank-unranked">-</span></div>
+                            <div class="shrink-0 relative mr-3">
+                                <img src="${item.imageUrl || 'https://placehold.co/150?text=No+Img'}" class="w-10 h-10 rounded-lg bg-slate-100 object-cover border border-slate-100 grayscale" onerror="this.src='https://placehold.co/150?text=No+Img'">
+                            </div>
+                            <div class="flex-grow min-w-0">
+                                <div class="font-bold text-sm text-slate-500 flex items-center gap-2">
+                                    <!-- [Modified] Use 'ring' for better white visibility -->
+                                    <div class="w-1.5 h-4 rounded-sm shadow-sm ring-1 ring-inset ring-black/10" style="background: ${item.trunkColor || '#1f2937'};" title="트렁크 색상"></div>
+                                    <span class="truncate">${item.name}</span>
+                                </div>
+                                <div class="flex items-center gap-1.5 mt-0.5">
+                                    <span class="bg-slate-100 text-slate-400 text-[10px] px-1.5 py-0.5 rounded border border-slate-200 font-bold">New</span>
+                                    <span class="text-xs text-slate-400">| 0승 0패</span>
+                                </div>
+                            </div>
+                            <button onclick="event.stopPropagation(); openEditModal(${globalIndex})" class="p-2 text-slate-300 hover:text-blue-600 transition">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                            </button>
+                        </div>`;
+                });
+            }
+            populateMatchSelectors(); 
+        }
+
+        function scrollToTarget(winnerId) {
+            setTimeout(() => {
+                const winnerCard = document.getElementById(`rank-card-${winnerId}`);
+                if (winnerCard) {
+                    winnerCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 100);
+        }
+
+        window.applyMatch = () => { 
+            // 1. TomSelect 인스턴스에서 값 가져오기 (우선순위)
+            let val1 = p1Tom ? p1Tom.getValue() : document.getElementById('p1Select').value;
+            let val2 = p2Tom ? p2Tom.getValue() : document.getElementById('p2Select').value;
+
+            // 2. 값 유효성 검사 (빈 문자열 체크)
+            if (val1 === "" || val1 === null) return alert("🔵 Blue 선수를 선택해주세요.");
+            if (val2 === "" || val2 === null) return alert("🔴 Red 선수를 선택해주세요.");
+
+            const p1Idx = parseInt(val1);
+            const p2Idx = parseInt(val2);
+            
+            // 3. 승자 선택 확인
+            const winnerVal = document.querySelector('input[name="winner"]:checked')?.value; 
+            if (!winnerVal) return alert("승자를 선택해주세요 (Blue 승 / Red 승)."); 
+            
+            // 4. 동일 선수 체크
+            if (p1Idx === p2Idx) return alert("동일한 선수를 선택할 수 없습니다."); 
+            
+            const p1 = rankingsData[p1Idx]; 
+            const p2 = rankingsData[p2Idx]; 
+            
+            if (!p1 || !p2) return alert("선수 데이터 매칭 오류: 새로고침 후 다시 시도해주세요.");
+
+            // 5. 경기 결과 적용
+            const isBlueWin = winnerVal === 'blue'; 
+            const winner = isBlueWin ? p1 : p2; 
+            const loser = isBlueWin ? p2 : p1; 
+            
+            captureState(); 
+            const winCalc = calculateHybridEloChange(winner.elo, loser.elo, true, winner); 
+            const loseCalc = calculateHybridEloChange(loser.elo, winner.elo, false, loser); 
+            
+            winner.elo += winCalc.change; 
+            loser.elo += loseCalc.change; 
+            
+            if (winner.elo > (winner.careerHighElo || 0)) winner.careerHighElo = winner.elo; 
+            if (loser.elo > (loser.careerHighElo || 0)) loser.careerHighElo = loser.elo; 
+            
+            let type = 'ranking'; 
+            winner.wins++; 
+            loser.wins = loser.wins || 0; 
+            loser.losses++; 
+            
+            const today = getKSTDate(); 
+            winner.lastMatchDate = today; 
+            loser.lastMatchDate = today; 
+            
+            rankingsData.sort((a, b) => b.elo - a.elo); 
+            matchHistoryData.unshift({ date: today, winner: isBlueWin ? p1.name : p2.name, loser: isBlueWin ? p2.name : p1.name, type, season: activeSeason, blue: p1.name }); 
+            
+            activeHighlight = {
+                ids: [winner.id, loser.id],
+                endTime: Date.now() + 10000
+            };
+
+            saveRankings(); 
+            renderRankings(); 
+            scrollToTarget(winner.id); 
+            
+            // 6. 입력 초기화
+            resetMatchInputs();
         };
     </script>
 </body>
