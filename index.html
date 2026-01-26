@@ -133,7 +133,7 @@
             <div class="flex justify-between items-center px-1 pb-1 flex-wrap gap-2">
                 <span class="text-xs font-bold text-slate-400 hidden sm:block">Hybrid ELO 기준 정렬</span>
                 <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
-                    <!-- [Modified] Option 1: Native Search Input with Left-aligned Icon -->
+                    <!-- [Modified] Option 1: Native Search Input with Left-aligned Icon, Width 155px -->
                     <div class="relative flex-grow sm:flex-grow-0">
                         <input type="search" id="playerSearchInput" placeholder="선수/초성 검색" 
                                class="w-full sm:w-[155px] bg-white border border-slate-200 rounded-lg pl-9 pr-2 py-1 text-xs font-bold text-slate-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition placeholder-slate-400"
@@ -276,8 +276,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // [System] Version Control (Auto Updated by Developer)
-        const APP_VERSION = "v3.78";
-        const UPDATE_NOTE = "Fix: Search Input Width (155px)";
+        const APP_VERSION = "v3.83";
+        const UPDATE_NOTE = "UI: White Trunk Visibility Fixed";
 
         // Apply Version to UI
         document.title = `RFC 랭킹전 (${APP_VERSION})`;
@@ -296,12 +296,19 @@
         let activeHighlight = { ids: [], endTime: 0 };
 
         const STYLE_OPTIONS = ["인파이터", "아웃복서", "슬러거", "하드 펀처", "바디 스내처", "볼륨 펀처", "스위치 히터", "브롤러", "카운터 펀처", "복서-펀처", "슬릭", "샤프슈터", "패스트 핸드"];
+        
+        // [Modified] Color Palette with Half & Half (CSS Gradient)
         const COLOR_PRESETS = [
-            { name: "Black", code: "#1f2937" }, { name: "White", code: "#f8fafc" },
-            { name: "Red", code: "#ef4444" }, { name: "Blue", code: "#3b82f6" },
-            { name: "Green", code: "#22c55e" }, { name: "Yellow", code: "#eab308" },
-            { name: "Purple", code: "#a855f7" }, { name: "Orange", code: "#f97316" },
-            { name: "Pink", code: "#ec4899" }, { name: "Gray", code: "#94a3b8" }
+            { name: "Black", code: "#1f2937" }, 
+            { name: "Half B/W", code: "linear-gradient(to bottom, #1f2937 50%, #f8fafc 50%)" }, // [Modified] 위(Black)/아래(White)
+            { name: "White", code: "#f8fafc" }, 
+            { name: "Gray", code: "#94a3b8" },
+            { name: "Red", code: "#ef4444" }, { name: "Orange", code: "#f97316" }, { name: "Amber", code: "#f59e0b" },
+            { name: "Gold", code: "#FFD700" }, { name: "Yellow", code: "#eab308" }, { name: "Lime", code: "#84cc16" }, 
+            { name: "Green", code: "#22c55e" }, { name: "Emerald", code: "#10b981" }, { name: "Teal", code: "#14b8a6" }, 
+            { name: "Sky", code: "#0ea5e9" }, { name: "Blue", code: "#3b82f6" }, { name: "Indigo", code: "#6366f1" }, 
+            { name: "Purple", code: "#a855f7" }, { name: "Fuchsia", code: "#d946ef" }, { name: "Pink", code: "#ec4899" }, 
+            { name: "Rose", code: "#f43f5e" }
         ];
 
         const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'rankings', 'main');
@@ -386,7 +393,8 @@
         COLOR_PRESETS.forEach(color => {
             const div = document.createElement('div');
             div.className = 'color-preset shadow-sm';
-            div.style.backgroundColor = color.code;
+            // [Modified] Use 'background' for gradient support
+            div.style.background = color.code;
             div.dataset.color = color.code;
             div.title = color.name;
             div.onclick = () => selectUserPresetColor(color.code, div);
@@ -550,7 +558,8 @@
                         </div>
                         <div class="flex-grow min-w-0 flex flex-col justify-center py-1">
                             <div class="flex items-center gap-1.5 md:gap-2 mb-0.5 md:mb-1.5">
-                                <div class="w-1.5 h-4 rounded-sm shadow-sm border border-slate-100" style="background-color: ${p.trunkColor || '#1f2937'};" title="트렁크 색상"></div>
+                                <!-- [Modified] Use 'ring' for better white visibility -->
+                                <div class="w-1.5 h-4 rounded-sm shadow-sm ring-1 ring-inset ring-black/10" style="background: ${p.trunkColor || '#1f2937'};" title="트렁크 색상"></div>
                                 <span class="font-bold md:font-black text-slate-800 truncate text-sm md:text-lg tracking-tight">${p.name}</span>
                                 <span class="text-[9px] md:text-[10px] px-1.5 md:px-2 py-0.5 rounded-full ${tier.color} font-bold tracking-wide uppercase shadow-sm">${tier.name}</span>
                             </div>
@@ -583,7 +592,8 @@
                             </div>
                             <div class="flex-grow min-w-0 flex flex-col justify-center py-1">
                                 <div class="flex items-center gap-1.5 md:gap-2 mb-0.5 md:mb-1.5">
-                                    <div class="w-1.5 h-4 rounded-sm shadow-sm border border-slate-100" style="background-color: ${p.trunkColor || '#1f2937'};" title="트렁크 색상"></div>
+                                    <!-- [Modified] Use 'ring' for better white visibility -->
+                                    <div class="w-1.5 h-4 rounded-sm shadow-sm ring-1 ring-inset ring-black/10" style="background: ${p.trunkColor || '#1f2937'};" title="트렁크 색상"></div>
                                     <span class="font-bold text-slate-500 truncate text-sm md:text-lg">${p.name}</span>
                                 </div>
                                 <div class="flex items-center gap-2">
