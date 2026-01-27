@@ -486,13 +486,13 @@
         import { getFirestore, doc, setDoc, getDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         
-        const AUTO_LOGIN_EMAIL = ""; 
-        const AUTO_LOGIN_PW = "";
+        const AUTO_LOGIN_EMAIL = "admin@gmail.com"; 
+        const AUTO_LOGIN_PW = "55555!";
         
         // [System] Admin Version Control
         // 새로운 기능 추가 시 이 변수들만 수정하면 UI와 타이틀에 자동 반영됩니다.
-        const ADMIN_VERSION = "v4.06"; 
-        const UPDATE_NOTE = "Fix: Duplicate Logic Removed";
+        const ADMIN_VERSION = "v4.09"; 
+        const UPDATE_NOTE = "UI: Export Text with Match Count";
 
         // [System] UI Auto-Update Logic (Version Only)
         function initVersionUI() {
@@ -635,12 +635,154 @@
         window.saveNoticeSettings = async () => { const content = document.getElementById('noticeContentInput').value; const active = document.getElementById('noticeActiveToggle').checked; const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'rankings', 'main'); try { await runTransaction(db, async (transaction) => { const sfDoc = await transaction.get(docRef); if (!sfDoc.exists()) throw "Doc missing"; transaction.set(docRef, { noticeData: { content, active } }, { merge: true }); }); const btn = document.querySelector('button[onclick="saveNoticeSettings()"]'); const originalText = btn.innerText; btn.innerText = "✅ 저장됨"; setTimeout(() => btn.innerText = originalText, 1500); } catch(e) { alert("공지 저장 실패"); } };
 
         function enrichMatchHistory() { const chronological = [...matchHistoryData].reverse(); const statsTracker = {}; enrichedHistory = chronological.map(match => { const winner = match.winner; const loser = match.loser; if (!statsTracker[winner]) statsTracker[winner] = { w: 0, l: 0, h: [] }; if (!statsTracker[loser]) statsTracker[loser] = { w: 0, l: 0, h: [] }; const snapshot = { [winner]: { ...statsTracker[winner] }, [loser]: { ...statsTracker[loser] } }; if (match.type !== 'draw') { statsTracker[winner].w += 1; statsTracker[winner].h = [...statsTracker[winner].h, 'W'].slice(-6); statsTracker[loser].l += 1; statsTracker[loser].h = [...statsTracker[loser].h, 'L'].slice(-6); } return { ...match, snapshot }; }); enrichedHistory.reverse(); }
-        function renderAdminMatches() { const container = document.getElementById('adminMatchListContainer'); container.innerHTML = ''; const filtered = enrichedHistory.filter(m => (m.season || "시즌 1") === viewHistorySeason && m.type !== 'draw'); if (filtered.length === 0) { container.innerHTML = `<div class="text-center text-xs text-slate-400 py-10">기록된 경기가 없습니다.</div>`; return; } filtered.forEach((m, idx) => { const rawIndex = matchHistoryData.findIndex(raw => raw.date === m.date && raw.winner === m.winner && raw.loser === m.loser); const winStats = m.snapshot[m.winner] || { w:0, l:0, h:[] }; const loseStats = m.snapshot[m.loser] || { w:0, l:0, h:[] }; let winDots = ''; (winStats.h || []).forEach(r => winDots += `<div class="w-1.5 h-1.5 rounded-full ${r==='W'?'bg-emerald-400':'bg-rose-400'}"></div>`); let loseDots = ''; (loseStats.h || []).forEach(r => loseDots += `<div class="w-1.5 h-1.5 rounded-full ${r==='W'?'bg-emerald-400':'bg-rose-400'}"></div>`); const div = document.createElement('div'); div.className = "bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-2 relative group"; div.innerHTML = `<div class="flex justify-between items-center border-b border-slate-50 pb-2"><span class="text-[10px] font-bold text-slate-400">${m.date}</span><button onclick="deleteMatchLog(${rawIndex})" class="text-slate-300 hover:text-red-500 transition opacity-0 group-hover:opacity-100" title="기록 삭제 (점수는 되돌리지 않음)"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button></div><div class="flex items-center justify-between text-xs"><div class="flex flex-col items-start w-[45%]"><div class="flex items-center gap-1.5"><span class="text-xs font-black text-slate-800 truncate">${m.winner}</span><span class="bg-emerald-100 text-emerald-600 text-[9px] px-1 py-0.5 rounded font-bold">WIN</span></div><div class="flex items-center gap-2 mt-1"><span class="text-[9px] text-slate-400 font-medium bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">${winStats.w}승 ${winStats.l}패</span><div class="flex gap-0.5">${winDots}</div></div></div><div class="text-[10px] font-bold text-slate-300">VS</div><div class="flex flex-col items-end w-[45%]"><div class="flex items-center gap-1.5"><span class="bg-rose-100 text-rose-600 text-[9px] px-1 py-0.5 rounded font-bold">LOSE</span><span class="text-xs font-medium text-slate-500 truncate">${m.loser}</span></div><div class="flex items-center gap-2 mt-1"><div class="flex gap-0.5">${loseDots}</div><span class="text-[9px] text-slate-400 font-medium bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">${loseStats.w}승 ${loseStats.l}패</span></div></div></div>`; container.appendChild(div); }); }
+        
+        // [Modified] Render Matches Grouped by Date with Count
+        function renderAdminMatches() { 
+            const container = document.getElementById('adminMatchListContainer'); 
+            container.innerHTML = ''; 
+            const filtered = enrichedHistory.filter(m => (m.season || "시즌 1") === viewHistorySeason && m.type !== 'draw'); 
+            
+            if (filtered.length === 0) { 
+                container.innerHTML = `<div class="text-center text-xs text-slate-400 py-10">기록된 경기가 없습니다.</div>`; 
+                return; 
+            } 
+
+            // [Added] Calculate matches per date for the current view
+            const dateCounts = filtered.reduce((acc, m) => {
+                acc[m.date] = (acc[m.date] || 0) + 1;
+                return acc;
+            }, {});
+
+            let lastDate = "";
+
+            filtered.forEach((m, idx) => { 
+                // Find original index for deletion (using simple find - assumes uniqueness or first match)
+                const rawIndex = matchHistoryData.findIndex(raw => raw.date === m.date && raw.winner === m.winner && raw.loser === m.loser); 
+                const winStats = m.snapshot[m.winner] || { w:0, l:0, h:[] }; 
+                const loseStats = m.snapshot[m.loser] || { w:0, l:0, h:[] }; 
+                
+                let winDots = ''; 
+                (winStats.h || []).forEach(r => winDots += `<div class="w-1.5 h-1.5 rounded-full ${r==='W'?'bg-emerald-400':'bg-rose-400'}"></div>`); 
+                let loseDots = ''; 
+                (loseStats.h || []).forEach(r => loseDots += `<div class="w-1.5 h-1.5 rounded-full ${r==='W'?'bg-emerald-400':'bg-rose-400'}"></div>`); 
+                
+                // [Modified] Date Header Logic with Count
+                if (m.date !== lastDate) {
+                    const count = dateCounts[m.date];
+                    const dateHeader = document.createElement('div');
+                    dateHeader.className = "text-xs font-bold text-slate-500 mt-4 mb-2 px-1 flex items-center gap-1 sticky top-0 bg-f8fafc/90 backdrop-blur-sm z-10 py-1";
+                    // Sticky effect works best if container has relative positioning, simplistic approach here:
+                    dateHeader.style.cssText = "background-color: rgba(248, 250, 252, 0.95); backdrop-filter: blur(2px);";
+                    dateHeader.innerHTML = `<span>📅</span> ${m.date} <span class="text-slate-400 font-normal text-[11px] ml-1">(총 ${count}경기)</span>`;
+                    container.appendChild(dateHeader);
+                    lastDate = m.date;
+                }
+
+                const div = document.createElement('div'); 
+                div.className = "bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-2 relative group hover:border-blue-300 transition-colors"; 
+                
+                // [Modified] Card Layout: Date removed from inside, Delete button absolutely positioned
+                div.innerHTML = `
+                    <button onclick="deleteMatchLog(${rawIndex})" class="absolute top-2 right-2 text-slate-300 hover:text-red-500 transition opacity-0 group-hover:opacity-100 p-1" title="기록 삭제">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                    </button>
+                    <div class="flex items-center justify-between text-xs mt-1">
+                        <div class="flex flex-col items-start w-[45%]">
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-xs font-black text-slate-800 truncate">${m.winner}</span>
+                                <span class="bg-emerald-100 text-emerald-600 text-[9px] px-1 py-0.5 rounded font-bold">WIN</span>
+                            </div>
+                            <div class="flex items-center gap-2 mt-1">
+                                <span class="text-[9px] text-slate-400 font-medium bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">${winStats.w}승 ${winStats.l}패</span>
+                                <div class="flex gap-0.5">${winDots}</div>
+                            </div>
+                        </div>
+                        <div class="text-[10px] font-bold text-slate-300">VS</div>
+                        <div class="flex flex-col items-end w-[45%]">
+                            <div class="flex items-center gap-1.5">
+                                <span class="bg-rose-100 text-rose-600 text-[9px] px-1 py-0.5 rounded font-bold">LOSE</span>
+                                <span class="text-xs font-medium text-slate-500 truncate">${m.loser}</span>
+                            </div>
+                            <div class="flex items-center gap-2 mt-1">
+                                <div class="flex gap-0.5">${loseDots}</div>
+                                <span class="text-[9px] text-slate-400 font-medium bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">${loseStats.w}승 ${loseStats.l}패</span>
+                            </div>
+                        </div>
+                    </div>`; 
+                container.appendChild(div); 
+            }); 
+        }
+
         function updateAdminHistorySeasonSelector() { const selector = document.getElementById('adminHistorySeason'); selector.innerHTML = ''; const opts = [activeSeason, ...Object.keys(seasonArchives).sort().reverse().filter(s => s !== activeSeason)]; opts.forEach(s => { const opt = document.createElement('option'); opt.value = s; opt.textContent = s + (s === activeSeason ? " (진행중)" : ""); selector.appendChild(opt); }); selector.value = viewHistorySeason; selector.onchange = (e) => { viewHistorySeason = e.target.value; renderAdminMatches(); }; }
         window.deleteMatchLog = (idx) => { if (idx === -1) return; if(!confirm("⚠️ 경고: 이 기록을 삭제하시겠습니까?\n\n- 로그 목록에서만 사라집니다.\n- 이미 변동된 승/패 횟수나 점수(ELO)는 되돌아가지 않습니다.\n- 점수 수정이 필요하면 '선수 수정' 메뉴를 이용하세요.")) return; captureState(); matchHistoryData.splice(idx, 1); saveRankings(); renderAdminMatches(); alert("기록이 삭제되었습니다."); };
 
         window.openMatchExportModal = () => { const modal = document.getElementById('exportModal'); if (modal) modal.classList.remove('hidden'); const title = document.getElementById('exportModalTitle'); if (title) title.textContent = "📤 경기 기록 텍스트 내보내기"; const options = document.getElementById('exportMatchOptions'); if (options) { options.classList.remove('hidden'); options.innerHTML = `<div class="flex gap-2 w-full mb-2"><button onclick="generateExportText(15)" class="flex-1 bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold py-2 rounded-lg text-xs transition border border-blue-100">최근 15경기</button><button onclick="generateExportText(30)" class="flex-1 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-bold py-2 rounded-lg text-xs transition border border-indigo-100">최근 30경기</button></div><div class="flex justify-end px-1"><label class="inline-flex items-center cursor-pointer hover:bg-slate-50 p-1 rounded transition"><input type="checkbox" id="hideRankToggle" onchange="generateExportText()" class="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500 cursor-pointer"><span class="ml-2 text-xs text-slate-500 font-bold select-none">순위 숨기기</span></label></div>`; } const textarea = document.getElementById('exportTextarea'); if (textarea) textarea.value = ""; window.lastExportCount = 15; generateExportText(15); };
-        window.generateExportText = (count) => { if (count) window.lastExportCount = count; else count = window.lastExportCount || 15; const hideRank = document.getElementById('hideRankToggle')?.checked || false; const targetSeason = viewHistorySeason || activeSeason; const filtered = matchHistoryData.filter(m => (m.season || "시즌 1") === targetSeason && m.type !== 'draw'); const targets = filtered.slice(0, count); const textarea = document.getElementById('exportTextarea'); if (!textarea) return; if (targets.length === 0) { textarea.value = `[${targetSeason}] 기록된 경기가 없습니다.`; return; } const rankedList = rankingsData.filter(p => (p.wins + p.losses) > 0).sort((a, b) => (b.elo || 1000) - (a.elo || 1000)); let result = ""; let currentDate = ""; targets.forEach(m => { let dateStr = m.date; try { const parts = dateStr.split('-'); if (parts.length === 3) { const month = parseInt(parts[1], 10); const day = parseInt(parts[2], 10); dateStr = `${month}월 ${day}일`; } } catch(e) {} if (dateStr !== currentDate) { if (result !== "") result += "\n"; result += `📅 ${dateStr}\n`; currentDate = dateStr; } const getPlayerLabel = (name) => { if (hideRank) return name; const p = rankingsData.find(x => x.name === name); if (!p) return `${name}(?)`; if ((p.wins + p.losses) === 0) return `${p.name}(UR)`; const rank = rankedList.findIndex(rp => rp.id === p.id) + 1; return `${p.name}(${rank})`; }; result += `${getPlayerLabel(m.winner)} VS ${getPlayerLabel(m.loser)}\n`; }); textarea.value = result; };
+        
+        // [Modified] Generate Export Text with Match Counts
+        window.generateExportText = (count) => { 
+            if (count) window.lastExportCount = count; 
+            else count = window.lastExportCount || 15; 
+            
+            const hideRank = document.getElementById('hideRankToggle')?.checked || false; 
+            const targetSeason = viewHistorySeason || activeSeason; 
+            const filtered = matchHistoryData.filter(m => (m.season || "시즌 1") === targetSeason && m.type !== 'draw'); 
+            const targets = filtered.slice(0, count); 
+            const textarea = document.getElementById('exportTextarea'); 
+            
+            if (!textarea) return; 
+            if (targets.length === 0) { 
+                textarea.value = `[${targetSeason}] 기록된 경기가 없습니다.`; 
+                return; 
+            } 
+
+            // 1. 날짜 포맷 변환 및 카운트 계산
+            const processedTargets = targets.map(m => {
+                let dateStr = m.date;
+                try {
+                    const parts = dateStr.split('-');
+                    if (parts.length === 3) {
+                        const month = parseInt(parts[1], 10);
+                        const day = parseInt(parts[2], 10);
+                        dateStr = `${month}월 ${day}일`;
+                    }
+                } catch(e) {}
+                return { ...m, dateLabel: dateStr };
+            });
+
+            const dateCounts = processedTargets.reduce((acc, m) => {
+                acc[m.dateLabel] = (acc[m.dateLabel] || 0) + 1;
+                return acc;
+            }, {});
+
+            const rankedList = rankingsData.filter(p => (p.wins + p.losses) > 0).sort((a, b) => (b.elo || 1000) - (a.elo || 1000)); 
+            
+            let result = ""; 
+            let currentDate = ""; 
+            
+            // 2. 텍스트 생성
+            processedTargets.forEach(m => { 
+                if (m.dateLabel !== currentDate) { 
+                    if (result !== "") result += "\n"; 
+                    result += `📅 ${m.dateLabel} (총 ${dateCounts[m.dateLabel]}경기)\n`; 
+                    currentDate = m.dateLabel; 
+                } 
+                
+                const getPlayerLabel = (name) => { 
+                    if (hideRank) return name; 
+                    const p = rankingsData.find(x => x.name === name); 
+                    if (!p) return `${name}(?)`; 
+                    if ((p.wins + p.losses) === 0) return `${p.name}(UR)`; 
+                    const rank = rankedList.findIndex(rp => rp.id === p.id) + 1; 
+                    return `${p.name}(${rank})`; 
+                }; 
+                result += `${getPlayerLabel(m.winner)} VS ${getPlayerLabel(m.loser)}\n`; 
+            }); 
+            
+            textarea.value = result; 
+        };
+
         window.copyExportText = () => { const textarea = document.getElementById('exportTextarea'); if (!textarea) return; textarea.select(); try { const successful = document.execCommand('copy'); if(successful) { showCustomAlert("✅ 클립보드에 복사되었습니다!"); } else { throw new Error('Copy failed'); } } catch (err) { showCustomAlert("복사 실패. 수동으로 복사해주세요."); } };
         window.updateRankerExport = (type) => { const rankers = rankingsData.filter(p => (p.wins + p.losses) > 0).sort((a, b) => (b.elo || 1000) - (a.elo || 1000)); let text = ""; if (type === 'rank') { text = rankers.map((p, i) => `${p.name} (${i + 1})`).join('\n'); } else { text = rankers.map(p => `${p.name} ${p.trunkColor || '#1f2937'}`).join('\n'); } const textarea = document.getElementById('exportTextarea'); if(textarea) textarea.value = text; };
         window.updateAllPlayerExport = (type) => { const allPlayers = [...rankingsData].sort((a, b) => a.name.localeCompare(b.name)); let text = ""; if (type === 'name') { text = allPlayers.map(p => p.name).join('\n'); } else { text = allPlayers.map(p => `${p.name} ${p.trunkColor || '#1f2937'}`).join('\n'); } const textarea = document.getElementById('exportTextarea'); if(textarea) textarea.value = text; };
@@ -1423,4 +1565,3 @@
     </script>
 </body>
 </html>
-
