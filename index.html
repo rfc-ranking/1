@@ -133,7 +133,7 @@
             <div class="flex justify-between items-center px-1 pb-1 flex-wrap gap-2">
                 <span class="text-xs font-bold text-slate-400 hidden sm:block">Hybrid ELO 기준 정렬</span>
                 <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
-                    <!-- [Modified] Option 1: Native Search Input with Left-aligned Icon, Width 155px -->
+                    <!-- [Modified] Option 1: Native Search Input with Left-aligned Icon -->
                     <div class="relative flex-grow sm:flex-grow-0">
                         <input type="search" id="playerSearchInput" placeholder="선수/초성 검색" 
                                class="w-full sm:w-[155px] bg-white border border-slate-200 rounded-lg pl-9 pr-2 py-1 text-xs font-bold text-slate-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition placeholder-slate-400"
@@ -276,8 +276,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // [System] Version Control (Auto Updated by Developer)
-        const APP_VERSION = "v3.83";
-        const UPDATE_NOTE = "UI: White Trunk Visibility Fixed";
+        const APP_VERSION = "v3.84";
+        const UPDATE_NOTE = "UI: Match History Grouped by Date";
 
         // Apply Version to UI
         document.title = `RFC 랭킹전 (${APP_VERSION})`;
@@ -300,7 +300,7 @@
         // [Modified] Color Palette with Half & Half (CSS Gradient)
         const COLOR_PRESETS = [
             { name: "Black", code: "#1f2937" }, 
-            { name: "Half B/W", code: "linear-gradient(to bottom, #1f2937 50%, #f8fafc 50%)" }, // [Modified] 위(Black)/아래(White)
+            { name: "Half B/W", code: "linear-gradient(to bottom, #1f2937 50%, #f8fafc 50%)" },
             { name: "White", code: "#f8fafc" }, 
             { name: "Gray", code: "#94a3b8" },
             { name: "Red", code: "#ef4444" }, { name: "Orange", code: "#f97316" }, { name: "Amber", code: "#f59e0b" },
@@ -660,8 +660,8 @@
             
             // Optional: If you want tab selectors to also update header, uncomment below
             // selector.onchange = (e) => { 
-            //    viewSeason = e.target.value; 
-            //    renderMatches(); 
+            //     viewSeason = e.target.value; 
+            //     renderMatches(); 
             // };
             selector.onchange = (e) => { viewSeason = e.target.value; renderMatches(); }; 
         }
@@ -680,6 +680,7 @@
             selector.onchange = (e) => { viewHofSeason = e.target.value; renderHOF(); }; 
         }
 
+        // [Modified] Render Matches Grouped by Date with Count
         function renderMatches() { 
             const container = document.getElementById('matchList'); 
             container.innerHTML = ''; 
@@ -689,6 +690,14 @@
                 container.innerHTML = `<div class="text-center py-10 text-slate-400 text-sm">기록된 경기가 없습니다.</div>`; 
                 return; 
             } 
+
+            // 1. 날짜별 경기 수 계산
+            const dateCounts = filtered.reduce((acc, m) => {
+                acc[m.date] = (acc[m.date] || 0) + 1;
+                return acc;
+            }, {});
+
+            let lastDate = "";
             
             filtered.forEach(m => { 
                 const winStats = m.snapshot.season ? m.snapshot.season[m.winner] : (m.snapshot[m.winner] || { w:0, l:0, h:[] });
@@ -703,12 +712,21 @@
                 let winDots = ''; (winStats.h || []).forEach(r => winDots += `<div class="w-1.5 h-1.5 rounded-full ${r==='W'?'bg-emerald-400':'bg-rose-400'}"></div>`);
                 let loseDots = ''; (loseStats.h || []).forEach(r => loseDots += `<div class="w-1.5 h-1.5 rounded-full ${r==='W'?'bg-emerald-400':'bg-rose-400'}"></div>`);
                 
+                // 2. 날짜 헤더 표시 (그룹화)
+                if (m.date !== lastDate) {
+                    const count = dateCounts[m.date];
+                    const dateHeader = document.createElement('div');
+                    dateHeader.className = "text-sm font-bold text-slate-500 mt-6 mb-2 px-1 flex items-center gap-1";
+                    dateHeader.innerHTML = `<span>📅</span> ${m.date} <span class="text-slate-400 font-normal text-xs ml-1">(총 ${count}경기)</span>`;
+                    container.appendChild(dateHeader);
+                    lastDate = m.date;
+                }
+
                 const div = document.createElement('div'); 
                 div.className = "bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-3"; 
+                
+                // [Modified] Card Layout: Removed internal date row
                 div.innerHTML = `
-                    <div class="flex justify-between items-center border-b border-slate-50 pb-2">
-                        <span class="text-[10px] font-bold text-slate-400">${m.date}</span>
-                    </div>
                     <div class="flex items-center justify-between text-sm">
                         <div class="flex flex-col items-start w-[45%] ${cursorStyle(winProfile)}" ${winClick}>
                             <div class="flex items-center gap-1.5">
