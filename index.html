@@ -24,11 +24,15 @@
             transform: scale(1.01);
         }
         
+        /* [Modified] 2nd Place: Shiny Metallic Silver Style */
         .rank-2-glow {
-            background: linear-gradient(90deg, #ffffff 30%, #f1f5f9 100%) !important;
-            box-shadow: 0 10px 25px -5px rgba(113, 113, 122, 0.2), 0 8px 10px -6px rgba(113, 113, 122, 0.1) !important;
-            border: 1px solid #e4e4e7 !important;
-            border-left: 5px solid #71717a !important;
+            /* 대각선 빛 반사 효과 (흰색 -> 밝은 은색 -> 은색) */
+            background: linear-gradient(120deg, #ffffff 0%, #f8fafc 40%, #e2e8f0 100%) !important;
+            /* 은색 빛이 감도는 그림자 */
+            box-shadow: 0 10px 25px -5px rgba(148, 163, 184, 0.3), 0 8px 10px -6px rgba(148, 163, 184, 0.1) !important;
+            /* 맑은 은색 테두리 */
+            border: 1px solid #cbd5e1 !important;
+            border-left: 5px solid #94a3b8 !important;
             z-index: 9 !important;
         }
 
@@ -42,7 +46,7 @@
 
         /* 순위 숫자 반응형 크기 */
         .rank-num-1 { color: #f59e0b; font-size: 1.2rem; text-shadow: 0 1px 2px rgba(245, 158, 11, 0.2); }
-        .rank-num-2 { color: #71717a; font-size: 1.1rem; font-weight: 800; text-shadow: 0 1px 2px rgba(113, 113, 122, 0.1); }
+        .rank-num-2 { color: #64748b; font-size: 1.1rem; font-weight: 800; text-shadow: 0 1px 2px rgba(148, 163, 184, 0.2); }
         .rank-num-3 { color: #ad8a56; font-size: 1.0rem; }
         
         /* [Modified] Top 10 (4~10위): Brighter Emerald (#047857) 적용 */
@@ -200,7 +204,7 @@
             <div class="sticky top-0 bg-white/95 backdrop-blur z-10 pt-3 pb-2 flex justify-center cursor-pointer border-b border-slate-100" onclick="closeProfile()"><div class="w-12 h-1.5 bg-slate-200 rounded-full"></div></div>
             <div class="px-5 pb-8 relative mt-2">
                 <div class="absolute top-0 right-4 flex gap-3 z-20">
-                    <button onclick="requestEdit()" class="text-slate-400 hover:text-blue-600 p-2 text-sm font-bold flex items-center gap-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg> 정보 수정</button>
+                    <button onclick="requestEdit()" class="text-slate-400 hover:text-blue-600 p-2 text-sm font-bold flex items-center gap-1">✏️수정</button>
                     <button onclick="closeProfile()" class="text-slate-400 hover:text-slate-600 p-2 text-2xl font-bold">✕</button>
                 </div>
                 <div class="flex flex-col items-center">
@@ -276,8 +280,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // [System] Version Control (Auto Updated by Developer)
-        const APP_VERSION = "v3.84";
-        const UPDATE_NOTE = "UI: Match History Grouped by Date";
+        const APP_VERSION = "v3.87";
+        const UPDATE_NOTE = "UI: Compact Edit Button";
 
         // Apply Version to UI
         document.title = `RFC 랭킹전 (${APP_VERSION})`;
@@ -831,6 +835,7 @@
         window.closeProfile = () => { document.getElementById('profileModal').classList.add('hidden'); }
         
         // [Modified] Update Profile Stats with Intelligent Filter (Snapshot Selection)
+        // [Added] Display Score Change Logic
         window.updateProfileStats = (id, filter) => { 
             const p = rankingsData.find(x => x.id === id); 
             let matches = enrichedMatchHistory.filter(m => (m.winner === p.name || m.loser === p.name) && m.type !== 'draw'); 
@@ -874,11 +879,23 @@
                 const oppLink = oppProfile ? `onclick="openProfile('${oppProfile.id}')"` : '';
                 const oppCursor = oppProfile ? 'cursor-pointer hover:underline hover:text-blue-600' : '';
                 
+                // [Modified] Score Change Badge Logic (Text Only, 13px)
+                let scoreBadge = '';
+                if (isWin && m.winnerChange !== undefined) {
+                    scoreBadge = `<span class="text-[13px] font-black text-emerald-600 shrink-0">+${m.winnerChange}</span>`;
+                } else if (!isWin && m.loserChange !== undefined) {
+                    scoreBadge = `<span class="text-[13px] font-black text-rose-600 shrink-0">${m.loserChange}</span>`;
+                }
+
                 const div = document.createElement('div'); 
                 div.className = "flex items-center justify-between text-xs p-3 bg-slate-50 rounded-xl border border-slate-100"; 
+                // [Modified] Layout Change: Grouped Icon & Badge on the left
                 div.innerHTML = `
                     <div class="flex items-center gap-3 w-full">
-                        <span class="font-bold ${resultColor} w-8 h-8 flex items-center justify-center rounded-lg text-sm shrink-0">${resultText}</span>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <span class="font-bold ${resultColor} w-8 h-8 flex items-center justify-center rounded-lg text-sm shadow-sm">${resultText}</span>
+                            ${scoreBadge}
+                        </div>
                         <div class="flex flex-col w-full overflow-hidden">
                             <div class="flex justify-between items-center w-full">
                                 <span class="font-bold text-slate-700 text-sm truncate ${oppCursor}" ${oppLink}>vs ${oppName}</span>
