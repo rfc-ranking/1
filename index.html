@@ -276,8 +276,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // [System] Version Control (Auto Updated by Developer)
-        const APP_VERSION = "v3.90";
-        const UPDATE_NOTE = "UI: Active Season Emoji Indicator";
+        const APP_VERSION = "v3.91"; // Minor Bump
+        const UPDATE_NOTE = "Fix: HOF Filters Placement Players";
 
         // Apply Version to UI
         document.title = `RFC 랭킹전 (${APP_VERSION})`;
@@ -723,8 +723,8 @@
             
             // Optional: If you want tab selectors to also update header, uncomment below
             // selector.onchange = (e) => { 
-            //     viewSeason = e.target.value; 
-            //     renderMatches(); 
+            //      viewSeason = e.target.value; 
+            //      renderMatches(); 
             // };
             selector.onchange = (e) => { viewSeason = e.target.value; renderMatches(); }; 
         }
@@ -825,8 +825,9 @@
             // Logic to determine Champion for the Selected HOF Season
             if (viewHofSeason === activeSeason) { 
                 if (rankingsData.length > 0) { 
-                    // [New] Ensure we sort the active rankings by ELO to find the true current top 3
-                    const sorted = rankingsData.filter(p => (p.wins + p.losses) > 0).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
+                    // [Fix] Filter for Ranked Players only (>= 3 matches)
+                    const sorted = rankingsData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3)
+                                               .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
                     data = { 
                         season: activeSeason + " (진행중)", 
                         champion: sorted[0]?.name || "-", 
@@ -839,7 +840,9 @@
                 if (arc) { 
                     // [New] Archive structure contains 'rankings' array. We must sort it to find top 3.
                     const arcRankings = arc.rankings || [];
-                    const sorted = arcRankings.filter(p => (p.wins + p.losses) > 0).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
+                    // [Fix] Filter for Ranked Players only (>= 3 matches)
+                    const sorted = arcRankings.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3)
+                                              .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
                     
                     data = { 
                         season: viewHofSeason, 
