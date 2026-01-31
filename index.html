@@ -276,8 +276,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // [System] Version Control (Auto Updated by Developer)
-        const APP_VERSION = "v3.91"; // Minor Bump
-        const UPDATE_NOTE = "Fix: HOF Filters Placement Players";
+        const APP_VERSION = "v3.92"; // Minor Bump
+        const UPDATE_NOTE = "Update";
 
         // Apply Version to UI
         document.title = `RFC 랭킹전 (${APP_VERSION})`;
@@ -596,7 +596,7 @@
                             <div class="w-full border-t border-slate-200"></div>
                         </div>
                         <div class="relative flex justify-center">
-                            <span class="bg-[#f8fafc] px-3 text-xs font-bold text-slate-400">🌱 배치고사 진행중 (3경기 미만)</span>
+                            <span class="bg-[#f8fafc] px-3 text-xs font-bold text-slate-400">🐣 배치고사 진행중 (3경기)</span>
                         </div>
                     </div>`;
 
@@ -605,7 +605,7 @@
                     
                     container.innerHTML += `
                         <div id="rank-card-${p.id}" class="rank-card flex items-center p-3 md:p-4 border rounded-xl mb-2 bg-slate-50 opacity-90 hover:opacity-100 ${highlightClass}" onclick="openProfile('${p.id}')">
-                            <div class="w-10 text-center mr-2"><span class="text-lg md:text-xl">🌱</span></div>
+                            <div class="w-10 text-center mr-2"><span class="text-lg md:text-xl">🐣</span></div>
                             <div class="shrink-0 relative -my-2 md:-my-4">
                                 <img src="${p.imageUrl ? p.imageUrl : 'https://placehold.co/150?text=No+Img'}" 
                                      class="w-[60px] h-[60px] md:w-[90px] md:h-[90px] rounded-2xl bg-slate-100 object-cover border border-slate-100 md:border-2 md:border-slate-50 shadow-sm transition-all duration-300" 
