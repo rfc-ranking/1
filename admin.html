@@ -10,16 +10,25 @@
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
     
-    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; }
-        .rank-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; }
+        .rank-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; border-bottom: 1px solid #f1f5f9; }
+        .rank-card:last-child { border-bottom: none; }
         .rank-up { color: #dc2626; font-weight: 800; } .rank-down { color: #2563eb; font-weight: 800; } .rank-keep { color: #9ca3af; }
         
-        .tier-bronze { border-left: none; background: #ffffff; }
-        .tier-silver { border-left: none; background: #ffffff; }
-        .tier-gold { border-left: none; background: #ffffff; }
+        /* [Modified] Clean & Distinct Number Styles */
+        /* 화려한 배경/테두리 제거, 숫자 가독성 강화 */
+        .tier-bronze, .tier-silver, .tier-gold { background: #ffffff; border-left: none; }
 
+        /* [Modified] 1~3위 크기 1.2rem으로 일괄 조정 */
+        .rank-num-1 { color: #d97706; font-size: 1.2rem; font-weight: 900; font-style: italic; letter-spacing: -1px; } /* 진한 금색 */
+        .rank-num-2 { color: #64748b; font-size: 1.2rem; font-weight: 800; font-style: italic; letter-spacing: -1px; } /* 진한 회색 */
+        .rank-num-3 { color: #b45309; font-size: 1.2rem; font-weight: 800; font-style: italic; letter-spacing: -1px; } /* 진한 동색 */
+        .rank-num-top10 { color: #059669; font-size: 1.1rem; font-weight: 800; } /* 선명한 녹색 */
+        .rank-num-normal { color: #94a3b8; font-size: 1.0rem; font-weight: 700; }
+        .rank-unranked { color: #cbd5e1; font-size: 1.0rem; font-weight: 700; }
+        
         .style-checkbox:checked + label { background-color: #3b82f6 !important; color: white !important; border-color: #3b82f6 !important; }
         
         .boxrec-win { background: linear-gradient(180deg, #16a34a 0%, #15803d 100%); }
@@ -33,13 +42,6 @@
         .modal-enter { animation: modalSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
         @keyframes modalSlideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
-        .rank-num-1 { color: #f59e0b; font-size: 1.2rem; text-shadow: 0 1px 2px rgba(245, 158, 11, 0.2); }
-        .rank-num-2 { color: #94a3b8; font-size: 1.1rem; }
-        .rank-num-3 { color: #ad8a56; font-size: 1.0rem; }
-        .rank-num-top10 { color: #047857; font-size: 1.0rem; font-weight: 900; text-shadow: 0 1px 2px rgba(4, 120, 87, 0.15); }
-        .rank-num-normal { color: #64748b; font-size: 1.0rem; font-weight: 800; }
-        .rank-unranked { color: #cbd5e1; font-size: 1.0rem; font-weight: 800; }
-        
         .color-preset { width: 32px; height: 32px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; position: relative; }
         .color-preset:hover { transform: scale(1.1); }
         .color-preset.active { border-color: #3b82f6; box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3b82f6; }
@@ -142,7 +144,7 @@
                 <span id="saveStatus" class="text-xs font-medium text-emerald-500 transition-opacity opacity-0">✅ 저장됨 (Secure)</span>
             </div>
             <div class="mt-2 md:mt-0 text-xs text-slate-400 font-medium">
-                <span id="adminVersionDisplay">v4.23</span>
+                <span id="adminVersionDisplay">v4.30</span>
             </div>
         </header>
 
@@ -169,6 +171,16 @@
                         </div>
                         <div class="p-5">
                             <div class="space-y-4">
+                                <!-- Match Date Picker -->
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 mb-1 pl-1">📅 경기 날짜</label>
+                                    <div class="flex gap-2">
+                                        <input type="date" id="matchDateInput" class="flex-grow border border-slate-300 rounded-lg p-2 text-sm font-bold text-slate-700 outline-none focus:border-blue-500 bg-white">
+                                        <button onclick="setMatchDate('yesterday')" class="bg-white border border-slate-300 text-slate-600 hover:bg-slate-100 font-bold px-3 py-1.5 rounded-lg text-xs transition shadow-sm whitespace-nowrap">어제</button>
+                                        <button onclick="setMatchDate('today')" class="bg-white border border-slate-300 text-slate-600 hover:bg-slate-100 font-bold px-3 py-1.5 rounded-lg text-xs transition shadow-sm whitespace-nowrap">오늘</button>
+                                    </div>
+                                </div>
+
                                 <div class="grid grid-cols-2 gap-3">
                                     <div>
                                         <label class="block text-xs font-bold text-blue-600 mb-1 pl-1">🔵 Blue (검색가능)</label>
@@ -189,19 +201,18 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="grid grid-cols-2 gap-3 bg-slate-50 p-2 rounded-xl border border-slate-200">
-                                    <label class="cursor-pointer flex flex-col items-center gap-1 p-3 rounded-lg hover:bg-blue-100 transition border border-transparent has-[:checked]:bg-blue-100 has-[:checked]:border-blue-300">
-                                        <input type="radio" name="winner" value="blue" class="w-5 h-5 accent-blue-600" onchange="updateMatchPreview()">
-                                        <span class="text-sm font-bold text-blue-600">Blue 승</span>
+                                <div class="grid grid-cols-2 gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-200">
+                                    <label class="cursor-pointer flex items-center justify-center gap-2 p-2.5 rounded-lg hover:bg-blue-50 transition border border-transparent has-[:checked]:bg-blue-100 has-[:checked]:border-blue-300 has-[:checked]:shadow-sm">
+                                        <input type="radio" name="winner" value="blue" class="w-4 h-4 accent-blue-600" onchange="updateMatchPreview()">
+                                        <span class="text-xs font-bold text-blue-700">Blue 승</span>
                                     </label>
-                                    <label class="cursor-pointer flex flex-col items-center gap-1 p-3 rounded-lg hover:bg-red-100 transition border border-transparent has-[:checked]:bg-red-100 has-[:checked]:border-red-300">
-                                        <input type="radio" name="winner" value="red" class="w-5 h-5 accent-red-600" onchange="updateMatchPreview()">
-                                        <span class="text-sm font-bold text-red-600">Red 승</span>
+                                    <label class="cursor-pointer flex items-center justify-center gap-2 p-2.5 rounded-lg hover:bg-red-50 transition border border-transparent has-[:checked]:bg-red-100 has-[:checked]:border-red-300 has-[:checked]:shadow-sm">
+                                        <input type="radio" name="winner" value="red" class="w-4 h-4 accent-red-600" onchange="updateMatchPreview()">
+                                        <span class="text-xs font-bold text-red-700">Red 승</span>
                                     </label>
                                 </div>
                                 <div id="matchPreview" class="bg-gray-50 rounded-lg p-3 text-xs text-gray-600 border border-gray-200 hidden"><div id="previewContent" class="space-y-1"></div></div>
                                 <button onclick="applyMatch()" class="w-full bg-gradient-to-r from-slate-800 to-slate-900 hover:from-black text-white font-bold py-3 rounded-xl shadow-lg transition transform active:scale-95">경기 확정</button>
-                                <!-- [Moved] Rank Baseline Reset Button -->
                                 <button onclick="updateRankBaseline()" class="w-full bg-slate-100 text-slate-600 hover:bg-slate-200 font-bold py-3 rounded-xl text-xs transition border border-slate-200">📉 순위 변동(▲▼) 리셋</button>
                             </div>
                         </div>
@@ -229,7 +240,6 @@
                             </div>
                         </div>
 
-                        <!-- [Added] Batch Penalty for Inactive Users -->
                         <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 mb-3">
                             <h4 class="text-xs font-bold text-slate-700 mb-2 flex items-center gap-1">
                                 <span>💤</span> 장기 미참여자 관리
@@ -516,8 +526,8 @@
         const AUTO_LOGIN_PW = "";
         
         // [System] Admin Version Control
-        const ADMIN_VERSION = "v4.23"; 
-        const UPDATE_NOTE = "Fix: Rank Reset Logic (Only Ranked)";
+        const ADMIN_VERSION = "v4.30"; 
+        const UPDATE_NOTE = "Feat: UR Label for Export";
 
         function initVersionUI() {
             try {
@@ -641,6 +651,8 @@
                 document.getElementById('loginOverlay').classList.add('hidden');
                 document.getElementById('mainContent').classList.remove('hidden');
                 loadData();
+                
+                setTimeout(() => setMatchDate('today'), 100);
             } else {
                 if(AUTO_LOGIN_EMAIL && AUTO_LOGIN_PW) {
                     document.getElementById('loginFormContainer').classList.add('hidden');
@@ -781,6 +793,17 @@
 
         window.openMatchExportModal = () => { const modal = document.getElementById('exportModal'); if (modal) modal.classList.remove('hidden'); const title = document.getElementById('exportModalTitle'); if (title) title.textContent = "📤 경기 기록 텍스트 내보내기"; const options = document.getElementById('exportMatchOptions'); if (options) { options.classList.remove('hidden'); options.innerHTML = `<div class="flex gap-2 w-full mb-2"><button onclick="generateExportText(15)" class="flex-1 bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold py-2 rounded-lg text-xs transition border border-blue-100">최근 15경기</button><button onclick="generateExportText(30)" class="flex-1 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-bold py-2 rounded-lg text-xs transition border border-indigo-100">최근 30경기</button></div><div class="flex justify-end px-1"><label class="inline-flex items-center cursor-pointer hover:bg-slate-50 p-1 rounded transition"><input type="checkbox" id="hideRankToggle" onchange="generateExportText()" class="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500 cursor-pointer"><span class="ml-2 text-xs text-slate-500 font-bold select-none">순위 숨기기</span></label></div>`; } const textarea = document.getElementById('exportTextarea'); if (textarea) textarea.value = ""; window.lastExportCount = 15; generateExportText(15); };
         
+        // [Added] Helper for Text Export Format
+        function getPlayerStatusLabel(p, realRankList) {
+            const total = (p.wins || 0) + (p.losses || 0);
+            
+            // [Option 3] UR (Unranked) Style for Placement & New players (< 3 matches)
+            if (total < 3) return `${p.name}(UR)`;
+            
+            const rank = realRankList.findIndex(r => r.id === p.id) + 1;
+            return `${p.name}(${rank}위)`;
+        }
+
         window.generateExportText = (count) => { 
             if (count) window.lastExportCount = count; 
             else count = window.lastExportCount || 15; 
@@ -815,7 +838,6 @@
                 return acc;
             }, {});
 
-            // [Modified] Real Rankers List (Only >= 3 matches for Ranking Number)
             const realRankList = rankingsData.filter(p => ((p.wins || 0) + (p.losses || 0)) >= 3).sort((a, b) => (b.elo || 1000) - (a.elo || 1000)); 
             
             let result = ""; 
@@ -833,16 +855,8 @@
                     const p = rankingsData.find(x => x.name === name); 
                     if (!p) return `${name}(?)`; 
                     
-                    const totalMatches = (p.wins || 0) + (p.losses || 0);
-                    
-                    // [Option 1] Text Type Logic
-                    if (totalMatches === 0) return `${p.name}(New)`;
-                    if (totalMatches < 3) return `${p.name}(배치)`;
-                    
-                    const rank = realRankList.findIndex(rp => rp.id === p.id);
-                    if (rank !== -1) return `${p.name}(${rank + 1}위)`;
-                    
-                    return `${p.name}(?)`;
+                    // [Modified] Use Status Helper
+                    return getPlayerStatusLabel(p, realRankList);
                 }; 
                 result += `${getPlayerLabel(m.winner)} VS ${getPlayerLabel(m.loser)}\n`; 
             }); 
@@ -852,15 +866,6 @@
 
         window.copyExportText = () => { const textarea = document.getElementById('exportTextarea'); if (!textarea) return; textarea.select(); try { const successful = document.execCommand('copy'); if(successful) { showCustomAlert("✅ 클립보드에 복사되었습니다!"); } else { throw new Error('Copy failed'); } } catch (err) { showCustomAlert("복사 실패. 수동으로 복사해주세요."); } };
         
-        // [Added] Helper for Text Export Format
-        function getPlayerStatusLabel(p, realRankList) {
-            const total = (p.wins || 0) + (p.losses || 0);
-            if (total === 0) return `${p.name}(New)`;
-            if (total < 3) return `${p.name}(배치)`;
-            const rank = realRankList.findIndex(r => r.id === p.id) + 1;
-            return `${p.name}(${rank}위)`;
-        }
-
         window.updateRankerExport = (type) => { 
             // [Modified] Sort Logic: Ranked(>=3 matches) first, then Placement(<3 matches), then by ELO
             const rankers = rankingsData.filter(p => (p.wins + p.losses) > 0).sort((a, b) => {
@@ -881,7 +886,6 @@
             
             let text = ""; 
             if (type === 'rank') { 
-                // [Modified] Apply Status Logic
                 text = rankers.map(p => getPlayerStatusLabel(p, realRankList)).join('\n'); 
             } else if (type === 'id') { 
                 text = rankers.map(p => `${p.name} ${p.gameId || '-'}`).join('\n'); 
@@ -900,7 +904,6 @@
             if (type === 'name') { 
                 text = allPlayers.map(p => p.name).join('\n'); 
             } else if (type === 'status') {
-                // [Added] Status Export for All Players
                 text = allPlayers.map(p => getPlayerStatusLabel(p, realRankList)).join('\n');
             } else if (type === 'id') { 
                 text = allPlayers.map(p => `${p.name} ${p.gameId || '-'}`).join('\n'); 
@@ -923,7 +926,6 @@
                 const options = document.getElementById('exportMatchOptions'); 
                 if (options) { 
                     options.classList.remove('hidden'); 
-                    // [Modified] Updated Label
                     options.innerHTML = `<button onclick="updateRankerExport('rank')" class="flex-1 bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold py-2 rounded-lg text-xs transition border border-blue-100">🔢 순위 (이름+순위/배치)</button><button onclick="updateRankerExport('id')" class="flex-1 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 font-bold py-2 rounded-lg text-xs transition border border-emerald-100">🆔 ID (이름+ID)</button><button onclick="updateRankerExport('color')" class="flex-1 bg-purple-50 text-purple-600 hover:bg-purple-100 font-bold py-2 rounded-lg text-xs transition border border-purple-100">🎨 색상 (이름+색상)</button>`; 
                 } 
                 updateRankerExport('rank'); 
@@ -941,7 +943,6 @@
                 const options = document.getElementById('exportMatchOptions'); 
                 if (options) { 
                     options.classList.remove('hidden'); 
-                    // [Modified] Added Status Button
                     options.innerHTML = `
                         <div class="grid grid-cols-2 gap-2 w-full">
                             <button onclick="updateAllPlayerExport('name')" class="bg-slate-50 text-slate-600 hover:bg-slate-100 font-bold py-2 rounded-lg text-xs transition border border-slate-200">📋 기본 (이름만)</button>
@@ -1088,7 +1089,40 @@
             return { change: Math.round(finalChange), msg: breakdown }; 
         }
         
-        window.resetMatchInputs = () => { if(p1Tom) p1Tom.clear(); if(p2Tom) p2Tom.clear(); const radios = document.querySelectorAll('input[name="winner"]'); radios.forEach(r => r.checked = false); document.getElementById('p1TrunkIndicator').style.backgroundColor = '#f1f5f9'; document.getElementById('p2TrunkIndicator').style.backgroundColor = '#f1f5f9'; updateMatchPreview(); };
+        // [Added] Date Picker Helpers
+        window.setMatchDate = (type) => {
+            const input = document.getElementById('matchDateInput');
+            const today = new Date(getKSTDate()); 
+            
+            if(type === 'today') {
+                input.value = today.toISOString().split('T')[0];
+            } else if(type === 'yesterday') {
+                const yesterday = new Date(today);
+                yesterday.setDate(today.getDate() - 1);
+                input.value = yesterday.toISOString().split('T')[0];
+            }
+        };
+
+        // [Modified] Allow keeping date when resetting inputs
+        window.resetMatchInputs = (keepDate = false) => { 
+            if(p1Tom) p1Tom.clear(); 
+            if(p2Tom) p2Tom.clear(); 
+            const radios = document.querySelectorAll('input[name="winner"]'); 
+            radios.forEach(r => r.checked = false); 
+            
+            // [Fix] Add Null Check for Indicators
+            const p1Ind = document.getElementById('p1TrunkIndicator');
+            const p2Ind = document.getElementById('p2TrunkIndicator');
+            if(p1Ind) p1Ind.style.backgroundColor = '#f1f5f9'; 
+            if(p2Ind) p2Ind.style.backgroundColor = '#f1f5f9'; 
+            
+            updateMatchPreview(); 
+            
+            // [Modified] Reset Date to Today only if keepDate is false (clicked Reset Button)
+            if (!keepDate) {
+                setMatchDate('today');
+            }
+        };
         
         window.updateMatchPreview = () => { 
             let p1Idx = ""; if (p1Tom) p1Idx = p1Tom.getValue(); else { const el = document.getElementById('p1Select'); if(el) p1Idx = el.value; } 
@@ -1102,8 +1136,13 @@
             const p1 = (p1Idx !== "" && !isNaN(p1Idx)) ? rankingsData[p1Idx] : null; 
             const p2 = (p2Idx !== "" && !isNaN(p2Idx)) ? rankingsData[p2Idx] : null; 
             
-            if (p1 && p1.trunkColor) p1Ind.style.background = p1.trunkColor; else p1Ind.style.background = '#f1f5f9'; 
-            if (p2 && p2.trunkColor) p2Ind.style.background = p2.trunkColor; else p2Ind.style.background = '#f1f5f9'; 
+            // [Fix] Safe Style Access (Prevent Null Error)
+            if (p1Ind) {
+                if (p1 && p1.trunkColor) p1Ind.style.background = p1.trunkColor; else p1Ind.style.background = '#f1f5f9'; 
+            }
+            if (p2Ind) {
+                if (p2 && p2.trunkColor) p2Ind.style.background = p2.trunkColor; else p2Ind.style.background = '#f1f5f9'; 
+            }
             
             if (!p1 || !p2 || p1Idx === p2Idx) { document.getElementById('matchPreview').classList.add('hidden'); return; } 
             const checkedRadio = document.querySelector('input[name="winner"]:checked'); 
@@ -1116,7 +1155,7 @@
             
             const getRankText = (player) => {
                 const total = Number(player.wins || 0) + Number(player.losses || 0);
-                if (total < 3) return '🌱배치중';
+                if (total < 3) return '🐣배치중';
                 const idx = currentRanked.findIndex(p => p.id === player.id);
                 return idx === -1 ? 'Unranked' : `${idx + 1}위`;
             };
@@ -1147,7 +1186,7 @@
             
             const getNewRankText = (player) => {
                 const total = Number(player.wins || 0) + Number(player.losses || 0);
-                if (total < 3) return '🌱배치중';
+                if (total < 3) return '🐣배치중';
                 const idx = simRankedList.findIndex(p => p.id === player.id);
                 return idx === -1 ? 'Unranked' : `${idx + 1}위`;
             };
@@ -1171,7 +1210,6 @@
         window.updateRankBaseline = () => { 
             showConfirmModal("📉 순위 변동폭(▲▼)을 리셋하시겠습니까?\n현재 순위가 기준이 되어 변동폭이 0으로 초기화됩니다.", async () => { 
                 captureState(); 
-                // [Fix] Correct Baseline Calculation Logic (Only consider players with >= 3 matches)
                 const rankedList = rankingsData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3)
                                                .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
                 
@@ -1822,18 +1860,20 @@
                 const diff = (item.previousRank || realRank) - realRank; 
                 let ch = diff > 0 ? `<span class="rank-up">▲${diff}</span>` : (diff < 0 ? `<span class="rank-down">▼${Math.abs(diff)}</span>` : '<span class="rank-keep">-</span>'); 
                 
-                let rankClass = "rank-num-normal";
-                if(realRank === 1) rankClass = "rank-num-1";
-                else if(realRank === 2) rankClass = "rank-num-2";
-                else if(realRank === 3) rankClass = "rank-num-3";
-                else if(realRank <= 10) rankClass = "rank-num-top10"; 
+                let rankNumClass = "rank-num-normal";
+                if(realRank === 1) rankNumClass = "rank-num-1";
+                else if(realRank === 2) rankNumClass = "rank-num-2";
+                else if(realRank === 3) rankNumClass = "rank-num-3";
+                else if(realRank <= 10) rankNumClass = "rank-num-top10"; 
                 
                 const tier = getTier(item.wins, item.losses);
-                const highlightClass = shouldHighlight(item.id) ? 'highlight-slow' : '';
+                let cardClass = ""; // [Modified] Removed glow classes, using clean style
+                
+                if (shouldHighlight(item.id)) cardClass += ' highlight-slow';
 
                 list.innerHTML += `
-                    <div id="rank-card-${item.id}" class="rank-card flex items-center p-3 border rounded-xl mb-2 bg-white hover:shadow-md ${tier.class} ${highlightClass}" onclick="openProfile('${item.id}')">
-                        <div class="w-10 text-center mr-2"><span class="${rankClass}">${realRank}</span><div class="text-[10px]">${ch}</div></div>
+                    <div id="rank-card-${item.id}" class="rank-card flex items-center p-3 border rounded-xl mb-2 bg-white hover:shadow-md ${cardClass}" onclick="openProfile('${item.id}')">
+                        <div class="w-10 text-center mr-2"><span class="${rankNumClass}">${realRank}</span><div class="text-[10px]">${ch}</div></div>
                         <div class="shrink-0 relative mr-3">
                             <img src="${item.imageUrl || 'https://placehold.co/150?text=No+Img'}" class="w-10 h-10 rounded-lg bg-slate-100 object-cover border border-slate-100" onerror="this.src='https://placehold.co/150?text=No+Img'">
                             ${realRank === 1 ? `<div class="absolute -top-1 -right-1 text-sm">👑</div>` : ''}
@@ -1982,14 +2022,19 @@
             loser.wins = loser.wins || 0; 
             loser.losses++; 
             
-            const today = getKSTDate(); 
-            winner.lastMatchDate = today; 
-            loser.lastMatchDate = today; 
+            // [Modified] Use Custom Date if Available, else fallback to today
+            const dateInput = document.getElementById('matchDateInput').value;
+            const matchDate = dateInput || getKSTDate();
+            
+            // Only update lastMatchDate if the input date is today or later 
+            // (Typically we always update last activity, but logic can vary. Here we update it.)
+            winner.lastMatchDate = matchDate; 
+            loser.lastMatchDate = matchDate; 
             
             rankingsData.sort((a, b) => b.elo - a.elo); 
             
             matchHistoryData.unshift({ 
-                date: today, 
+                date: matchDate, // Use input date
                 winner: isBlueWin ? p1.name : p2.name, 
                 loser: isBlueWin ? p2.name : p1.name, 
                 type, 
@@ -1999,6 +2044,9 @@
                 loserChange: loseCalc.change  
             }); 
             
+            // Re-sort history to keep chronological order correct if past date was inserted
+            matchHistoryData.sort((a, b) => new Date(b.date) - new Date(a.date));
+
             activeHighlight = {
                 ids: [winner.id, loser.id],
                 endTime: Date.now() + 60000
@@ -2007,7 +2055,9 @@
             saveRankings(); 
             renderRankings(); 
             scrollToTarget(winner.id); 
-            resetMatchInputs();
+            
+            // [Modified] Keep date for consecutive inputs
+            resetMatchInputs(true);
         };
     </script>
 </body>
