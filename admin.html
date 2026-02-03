@@ -303,6 +303,24 @@
                     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden p-5 space-y-4">
                         <h3 class="font-bold text-slate-700">🛠️ 데이터 도구</h3>
                         <div class="grid grid-cols-2 gap-2"><input type="file" id="importFile" accept=".json" class="hidden"><button onclick="document.getElementById('importFile').click()" class="bg-slate-700 hover:bg-slate-800 text-white font-bold py-3 rounded-lg text-xs">📂 데이터 복원</button><button onclick="backupData()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3 rounded-lg text-xs">💾 데이터 백업</button></div>
+                        
+                        <!-- [Added] Data Correction Tool -->
+                        <div class="pt-4 border-t border-slate-100 space-y-2">
+                            <h4 class="text-xs font-bold text-indigo-600">🔧 데이터 보정</h4>
+                            <div class="bg-indigo-50 border border-indigo-100 rounded-lg p-3">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-xs font-bold text-indigo-800">데이터 무결성 검사 및 수정</span>
+                                </div>
+                                <p class="text-[10px] text-indigo-600 mb-2 leading-snug">
+                                    1. 과도한 순위 변동폭(예: +34) 초기화<br>
+                                    2. 3전 선수들의 누락된 '진입 날짜' 복구 (New 뱃지 활성화)
+                                </p>
+                                <button onclick="fixDataIntegrity()" class="w-full bg-white text-indigo-600 hover:bg-indigo-100 font-bold py-2 rounded-lg text-xs border border-indigo-200 shadow-sm transition">
+                                    ✨ 데이터 진단 및 복구 실행
+                                </button>
+                            </div>
+                        </div>
+
                         <div class="pt-4 border-t border-slate-100 space-y-2">
                             <h4 class="text-xs font-bold text-blue-600">👥 선수 명단 추출</h4>
                             <div class="grid grid-cols-1 gap-2">
@@ -522,12 +540,12 @@
         import { getFirestore, doc, setDoc, getDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         
-        const AUTO_LOGIN_EMAIL = ""; 
-        const AUTO_LOGIN_PW = "";
+        const AUTO_LOGIN_EMAIL = "admin@gmail.com"; 
+        const AUTO_LOGIN_PW = "55555!";
         
         // [System] Admin Version Control
-        const ADMIN_VERSION = "v4.30"; 
-        const UPDATE_NOTE = "Feat: UR Label for Export";
+        const ADMIN_VERSION = "v4.31"; 
+        const UPDATE_NOTE = "Update: Rank-In Badge Logic";
 
         function initVersionUI() {
             try {
@@ -1324,6 +1342,46 @@
             });
         };
 
+        // [Modified] Enhanced Fix Function: Handles Rank Diff & Missing Dates
+        window.fixDataIntegrity = () => {
+            const rankedPlayers = rankingsData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3)
+                                              .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
+            
+            let fixedRankCount = 0;
+            let fixedDateCount = 0;
+            const threshold = 15; 
+
+            rankingsData.forEach(p => {
+                const total = (p.wins || 0) + (p.losses || 0);
+                
+                // 1. 순위 변동폭 오류 수정 (기존 로직)
+                if (total >= 3) {
+                    const realRank = rankedPlayers.findIndex(rp => rp.id === p.id) + 1;
+                    const prev = p.previousRank || 999;
+                    if (Math.abs(prev - realRank) >= threshold || prev > rankedPlayers.length + 5) {
+                        p.previousRank = realRank;
+                        fixedRankCount++;
+                    }
+                }
+
+                // 2. [New] 누락된 Rank-In Date 채우기 (3전인 선수 대상)
+                // 업데이트 전에 3전이 된 선수는 날짜가 없어서 NEW 뱃지가 안 뜨는 문제 해결
+                if (total === 3 && !p.rankInDate && p.lastMatchDate) {
+                    p.rankInDate = p.lastMatchDate;
+                    fixedDateCount++;
+                }
+            });
+
+            if (fixedRankCount > 0 || fixedDateCount > 0) {
+                captureState();
+                saveRankings();
+                renderRankings();
+                showCustomAlert(`✅ 데이터 보정 완료\n\n- 순위 변동폭 정상화: ${fixedRankCount}명\n- New 뱃지(날짜) 복구: ${fixedDateCount}명`);
+            } else {
+                showCustomAlert("보정할 데이터가 없습니다.\n모든 데이터가 정상입니다.");
+            }
+        };
+
         window.resetAllStats = () => { 
             if (!rankingsData || rankingsData.length === 0) return showCustomAlert("데이터가 로드되지 않았습니다.");
             const msg = `📊 [${activeSeason}] 전적 초기화 확인\n\n현재 시즌의 다음 데이터가 모두 삭제됩니다:\n1. 모든 선수의 승/패/무/방어전 횟수 (0으로 초기화)\n2. 현재 시즌의 경기 기록 로그 (전체 삭제)\n\n(주의: ELO 점수는 유지됩니다)\n\n정말 초기화하시겠습니까?`;
@@ -1824,6 +1882,16 @@
             } catch(e) { console.error("Tom Select initialization failed:", e); } 
         };
 
+        // [Helper] Check if Rank-In Date is within 2 days
+        function isRecentRankIn(dateStr) {
+            if (!dateStr) return false;
+            const today = new Date(getKSTDate());
+            const rankIn = new Date(dateStr);
+            const diffTime = today - rankIn;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            return diffDays <= 2; // 0, 1, 2일차까지 True
+        }
+
         function renderRankings() { 
             const list = document.getElementById('rankingList'); list.innerHTML = ''; 
             const globalRankedPlayers = rankingsData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3)
@@ -1857,8 +1925,19 @@
             ranked.forEach((item) => { 
                 const globalIndex = rankingsData.indexOf(item); 
                 const realRank = globalRankedPlayers.findIndex(p => p.id === item.id) + 1;
+                
+                // [Modified] New Badge Logic: 3 matches AND within 2 days of rank-in
+                const totalMatches = (item.wins || 0) + (item.losses || 0);
                 const diff = (item.previousRank || realRank) - realRank; 
-                let ch = diff > 0 ? `<span class="rank-up">▲${diff}</span>` : (diff < 0 ? `<span class="rank-down">▼${Math.abs(diff)}</span>` : '<span class="rank-keep">-</span>'); 
+                
+                let ch = "";
+                // 조건: 3전(배치 완료 직후)이면서 랭크인 2일 이내일 때만 NEW 표시
+                // 4전 이상이거나 3일 지나면 변동폭 표시
+                if (totalMatches === 3 && isRecentRankIn(item.rankInDate)) {
+                     ch = `<span class="text-indigo-600 font-black text-[10px] bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100 animate-pulse">New</span>`;
+                } else {
+                     ch = diff > 0 ? `<span class="rank-up">▲${diff}</span>` : (diff < 0 ? `<span class="rank-down">▼${Math.abs(diff)}</span>` : '<span class="rank-keep">-</span>');
+                }
                 
                 let rankNumClass = "rank-num-normal";
                 if(realRank === 1) rankNumClass = "rank-num-1";
@@ -2033,6 +2112,21 @@
             
             rankingsData.sort((a, b) => b.elo - a.elo); 
             
+            // [Added] Option 1: 배치고사 완료(3전) 시점 순위 기준점 초기화 및 랭크인 날짜 저장
+            const rankedPlayersForSync = rankingsData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3);
+            
+            [winner, loser].forEach(p => {
+                const total = (p.wins || 0) + (p.losses || 0);
+                if (total === 3) {
+                    // 현재 랭커 리스트 내에서의 실제 등수 확인
+                    const realRank = rankedPlayersForSync.findIndex(rp => rp.id === p.id) + 1;
+                    if (realRank > 0) {
+                        p.previousRank = realRank; // 기준 순위를 현재 등수로 덮어쓰기
+                        p.rankInDate = matchDate; // [New] 진입 날짜 기록 (YYYY-MM-DD)
+                    }
+                }
+            });
+
             matchHistoryData.unshift({ 
                 date: matchDate, // Use input date
                 winner: isBlueWin ? p1.name : p2.name, 
