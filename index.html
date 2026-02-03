@@ -135,8 +135,11 @@
                 <span class="text-xs font-bold text-slate-400 hidden sm:block">Hybrid ELO 기준 정렬</span>
                 <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
                     <div class="relative flex-grow sm:flex-grow-0">
+                        <!-- [Modified] Added 'readonly' trick to prevent autocomplete -->
                         <input type="search" id="playerSearchInput" placeholder="선수/초성 검색" 
                                class="w-full sm:w-[155px] bg-white border border-slate-200 rounded-lg pl-9 pr-2 py-1 text-xs font-bold text-slate-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition placeholder-slate-400"
+                               readonly
+                               onfocus="this.removeAttribute('readonly');"
                                oninput="handleSearch(this.value)">
                         <div class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs">🔍</div>
                     </div>
@@ -276,8 +279,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // [System] Version Control (Auto Updated by Developer)
-        const APP_VERSION = "v3.93"; // Minor Bump
-        const UPDATE_NOTE = "Update: New Badge Logic";
+        const APP_VERSION = "v3.94"; // Minor Bump
+        const UPDATE_NOTE = "Update: Search Auto-complete Fix";
 
         // Apply Version to UI
         document.title = `RFC 랭킹전 (${APP_VERSION})`;
