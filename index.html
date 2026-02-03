@@ -276,8 +276,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // [System] Version Control (Auto Updated by Developer)
-        const APP_VERSION = "v3.92"; // Minor Bump
-        const UPDATE_NOTE = "Update";
+        const APP_VERSION = "v3.93"; // Minor Bump
+        const UPDATE_NOTE = "Update: New Badge Logic";
 
         // Apply Version to UI
         document.title = `RFC 랭킹전 (${APP_VERSION})`;
@@ -340,6 +340,8 @@
             }
             return result;
         }
+
+        function getKSTDate() { return new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Seoul" }); }
 
         onSnapshot(docRef, (docSnapshot) => {
             if (docSnapshot.exists()) {
@@ -468,6 +470,16 @@
             renderRankings();
         };
 
+        // [Helper] Check if Rank-In Date is within 2 days
+        function isRecentRankIn(dateStr) {
+            if (!dateStr) return false;
+            const today = new Date(getKSTDate());
+            const rankIn = new Date(dateStr);
+            const diffTime = today - rankIn;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            return diffDays <= 2; // 0, 1, 2일차까지 True
+        }
+
         // [Modified] Render Rankings with Search Filter & Real Rank Preservation
         function renderRankings() { 
             const container = document.getElementById('rankingList'); container.innerHTML = ''; 
@@ -484,7 +496,7 @@
             // [Modified] Only players with >= 3 matches are considered for numbering
             // Use Number() to safely handle string inputs (e.g. "1" + "2" = 3, not "12")
             const globalRankedPlayers = fullData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3)
-                                                .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
+                                                                        .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
 
             // 3. Apply Search Filter
             let filteredData = fullData;
@@ -499,7 +511,7 @@
 
             // 4. Separate Groups: Ranked (>=3) / Placement (1~2) / Unranked (0)
             const ranked = filteredData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3)
-                                       .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
+                                                                    .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
             
             const placement = filteredData.filter(p => {
                 const total = Number(p.wins || 0) + Number(p.losses || 0);
@@ -507,7 +519,7 @@
             }).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
             
             const unranked = filteredData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) === 0)
-                                         .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
+                                                                     .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
             
             // 현재 시간이 하이라이트 종료 시간 전이라면 하이라이트 적용
             const now = Date.now();
@@ -528,10 +540,20 @@
                 const diff = prevRank - realRank; 
                 
                 let diffHtml = `<span class="text-slate-300">-</span>`; 
+                
+                // [Modified] New Badge Logic: 3 matches AND within 2 days of rank-in
+                const totalMatches = (p.wins || 0) + (p.losses || 0);
+
                 // Only show diff for active season AND when not searching
                 if (viewRankingSeason === activeSeason && !searchQuery) {
-                    if (diff > 0) diffHtml = `<span class="text-rose-500 font-bold text-xs">▲${diff}</span>`; 
-                    else if (diff < 0) diffHtml = `<span class="text-blue-500 font-bold text-xs">▼${Math.abs(diff)}</span>`; 
+                    if (totalMatches === 3 && isRecentRankIn(p.rankInDate)) {
+                        // [Option 1] Show "New" badge for fresh rank-in (3 matches & within 2 days)
+                        diffHtml = `<span class="text-indigo-600 font-black text-[10px] bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100 animate-pulse">New</span>`;
+                    } else if (diff > 0) {
+                        diffHtml = `<span class="text-rose-500 font-bold text-xs">▲${diff}</span>`; 
+                    } else if (diff < 0) {
+                        diffHtml = `<span class="text-blue-500 font-bold text-xs">▼${Math.abs(diff)}</span>`; 
+                    }
                 }
                 
                 let rankNumClass = "rank-num-normal"; 
@@ -827,7 +849,7 @@
                 if (rankingsData.length > 0) { 
                     // [Fix] Filter for Ranked Players only (>= 3 matches)
                     const sorted = rankingsData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3)
-                                               .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
+                                                                .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
                     data = { 
                         season: activeSeason + " (진행중)", 
                         champion: sorted[0]?.name || "-", 
@@ -842,7 +864,7 @@
                     const arcRankings = arc.rankings || [];
                     // [Fix] Filter for Ranked Players only (>= 3 matches)
                     const sorted = arcRankings.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3)
-                                              .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
+                                                                 .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
                     
                     data = { 
                         season: viewHofSeason, 
