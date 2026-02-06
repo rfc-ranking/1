@@ -17,15 +17,12 @@
         .rank-card:last-child { border-bottom: none; }
         .rank-up { color: #dc2626; font-weight: 800; } .rank-down { color: #2563eb; font-weight: 800; } .rank-keep { color: #9ca3af; }
         
-        /* [Modified] Clean & Distinct Number Styles */
-        /* 화려한 배경/테두리 제거, 숫자 가독성 강화 */
         .tier-bronze, .tier-silver, .tier-gold { background: #ffffff; border-left: none; }
 
-        /* [Modified] 1~3위 크기 1.2rem으로 일괄 조정 */
-        .rank-num-1 { color: #d97706; font-size: 1.2rem; font-weight: 900; font-style: italic; letter-spacing: -1px; } /* 진한 금색 */
-        .rank-num-2 { color: #64748b; font-size: 1.2rem; font-weight: 800; font-style: italic; letter-spacing: -1px; } /* 진한 회색 */
-        .rank-num-3 { color: #b45309; font-size: 1.2rem; font-weight: 800; font-style: italic; letter-spacing: -1px; } /* 진한 동색 */
-        .rank-num-top10 { color: #059669; font-size: 1.1rem; font-weight: 800; } /* 선명한 녹색 */
+        .rank-num-1 { color: #d97706; font-size: 1.2rem; font-weight: 900; font-style: italic; letter-spacing: -1px; } 
+        .rank-num-2 { color: #64748b; font-size: 1.2rem; font-weight: 800; font-style: italic; letter-spacing: -1px; } 
+        .rank-num-3 { color: #b45309; font-size: 1.2rem; font-weight: 800; font-style: italic; letter-spacing: -1px; } 
+        .rank-num-top10 { color: #059669; font-size: 1.1rem; font-weight: 800; } 
         .rank-num-normal { color: #94a3b8; font-size: 1.0rem; font-weight: 700; }
         .rank-unranked { color: #cbd5e1; font-size: 1.0rem; font-weight: 700; }
         
@@ -144,7 +141,7 @@
                 <span id="saveStatus" class="text-xs font-medium text-emerald-500 transition-opacity opacity-0">✅ 저장됨 (Secure)</span>
             </div>
             <div class="mt-2 md:mt-0 text-xs text-slate-400 font-medium">
-                <span id="adminVersionDisplay">v4.30</span>
+                <span id="adminVersionDisplay">v4.34</span>
             </div>
         </header>
 
@@ -502,12 +499,23 @@
 
     <div id="exportModal" class="fixed inset-0 bg-black/50 hidden z-[9999] flex items-center justify-center" onclick="if(event.target === this) document.getElementById('exportModal').classList.add('hidden')">
         <div class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-lg">
-            <h3 id="exportModalTitle" class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">📤 텍스트 내보내기</h3>
-            <div id="exportMatchOptions" class="flex gap-2 mb-4 hidden"></div>
-            <textarea id="exportTextarea" class="w-full h-64 p-3 text-xs font-mono border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 resize-none mb-4" readonly placeholder="상단 버튼을 눌러 기록을 생성하세요..."></textarea>
-            <div class="flex justify-between items-center">
+            <h3 id="exportModalTitle" class="text-lg font-bold text-slate-800 mb-2 border-b pb-2">📤 텍스트 내보내기 / 수정</h3>
+            <p class="text-[11px] text-slate-500 mb-3">
+                텍스트를 자유롭게 수정 후 복사하거나, <strong>[이름 ID]</strong> 형식으로 작성하여 일괄 업데이트할 수 있습니다.
+            </p>
+            <div id="exportMatchOptions" class="flex gap-2 mb-3 hidden"></div>
+            <!-- readonly 제거, bg-white로 변경 -->
+            <textarea id="exportTextarea" class="w-full h-64 p-3 text-xs font-mono border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white resize-none mb-4" placeholder="상단 버튼을 눌러 기록을 생성하세요..."></textarea>
+            <div class="flex justify-between items-center gap-2">
                 <button onclick="document.getElementById('exportModal').classList.add('hidden')" class="bg-gray-100 text-gray-600 hover:bg-gray-200 px-4 py-2 rounded-lg text-sm font-bold transition">닫기</button>
-                <button onclick="copyExportText()" class="bg-slate-800 hover:bg-slate-900 text-white px-6 py-2 rounded-lg text-sm font-bold shadow transition flex items-center gap-2"><span>📋</span> 복사하기</button>
+                <div class="flex gap-2">
+                    <button onclick="applyBatchIdUpdate()" class="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-200 px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-1">
+                        <span>💾</span> ID 일괄 적용
+                    </button>
+                    <button onclick="copyExportText()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-bold shadow transition flex items-center gap-1">
+                        <span>📋</span> 복사
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -541,11 +549,11 @@
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         
         const AUTO_LOGIN_EMAIL = ""; 
-        const AUTO_LOGIN_PW = "!";
+        const AUTO_LOGIN_PW = "";
         
         // [System] Admin Version Control
-        const ADMIN_VERSION = "v4.31"; 
-        const UPDATE_NOTE = "Update: Rank-In Badge Logic";
+        const ADMIN_VERSION = "v4.34"; 
+        const UPDATE_NOTE = "Fix: Native Alert Removal";
 
         function initVersionUI() {
             try {
@@ -809,7 +817,7 @@
         function updateAdminHistorySeasonSelector() { const selector = document.getElementById('adminHistorySeason'); selector.innerHTML = ''; const opts = [activeSeason, ...Object.keys(seasonArchives).sort().reverse().filter(s => s !== activeSeason)]; opts.forEach(s => { const opt = document.createElement('option'); opt.value = s; opt.textContent = s + (s === activeSeason ? " 🟢" : ""); selector.appendChild(opt); }); selector.value = viewHistorySeason; selector.onchange = (e) => { viewHistorySeason = e.target.value; renderAdminMatches(); }; }
         window.deleteMatchLog = (idx) => { if (idx === -1) return; if(!confirm("⚠️ 경고: 이 기록을 삭제하시겠습니까?\n\n- 로그 목록에서만 사라집니다.\n- 이미 변동된 승/패 횟수나 점수(ELO)는 되돌아가지 않습니다.\n- 점수 수정이 필요하면 '선수 수정' 메뉴를 이용하세요.")) return; captureState(); matchHistoryData.splice(idx, 1); saveRankings(); renderAdminMatches(); alert("기록이 삭제되었습니다."); };
 
-        window.openMatchExportModal = () => { const modal = document.getElementById('exportModal'); if (modal) modal.classList.remove('hidden'); const title = document.getElementById('exportModalTitle'); if (title) title.textContent = "📤 경기 기록 텍스트 내보내기"; const options = document.getElementById('exportMatchOptions'); if (options) { options.classList.remove('hidden'); options.innerHTML = `<div class="flex gap-2 w-full mb-2"><button onclick="generateExportText(15)" class="flex-1 bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold py-2 rounded-lg text-xs transition border border-blue-100">최근 15경기</button><button onclick="generateExportText(30)" class="flex-1 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-bold py-2 rounded-lg text-xs transition border border-indigo-100">최근 30경기</button></div><div class="flex justify-end px-1"><label class="inline-flex items-center cursor-pointer hover:bg-slate-50 p-1 rounded transition"><input type="checkbox" id="hideRankToggle" onchange="generateExportText()" class="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500 cursor-pointer"><span class="ml-2 text-xs text-slate-500 font-bold select-none">순위 숨기기</span></label></div>`; } const textarea = document.getElementById('exportTextarea'); if (textarea) textarea.value = ""; window.lastExportCount = 15; generateExportText(15); };
+        window.openMatchExportModal = () => { const modal = document.getElementById('exportModal'); if (modal) modal.classList.remove('hidden'); const title = document.getElementById('exportModalTitle'); if (title) title.textContent = "📤 텍스트 내보내기 / 수정"; const options = document.getElementById('exportMatchOptions'); if (options) { options.classList.remove('hidden'); options.innerHTML = `<div class="flex gap-2 w-full mb-2"><button onclick="generateExportText(15)" class="flex-1 bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold py-2 rounded-lg text-xs transition border border-blue-100">최근 15경기</button><button onclick="generateExportText(30)" class="flex-1 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-bold py-2 rounded-lg text-xs transition border border-indigo-100">최근 30경기</button></div><div class="flex justify-end px-1"><label class="inline-flex items-center cursor-pointer hover:bg-slate-50 p-1 rounded transition"><input type="checkbox" id="hideRankToggle" onchange="generateExportText()" class="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500 cursor-pointer"><span class="ml-2 text-xs text-slate-500 font-bold select-none">순위 숨기기</span></label></div>`; } const textarea = document.getElementById('exportTextarea'); if (textarea) textarea.value = ""; window.lastExportCount = 15; generateExportText(15); };
         
         // [Added] Helper for Text Export Format
         function getPlayerStatusLabel(p, realRankList) {
@@ -971,6 +979,82 @@
                 } 
                 updateAllPlayerExport('name'); 
             } catch (e) { showCustomAlert("명단 생성 중 오류가 발생했습니다."); } 
+        };
+
+        // [Added] Batch ID Update Function
+        // [Modified] Replaced native alert/confirm with Custom Modals (Fix for popup issue)
+        window.applyBatchIdUpdate = async () => {
+            console.log("applyBatchIdUpdate called");
+            const textarea = document.getElementById('exportTextarea');
+            if (!textarea) return showCustomAlert("텍스트 입력창을 찾을 수 없습니다.");
+            
+            const text = textarea.value;
+            if (!text.trim()) return showCustomAlert("입력된 내용이 없습니다.");
+
+            const lines = text.split('\n').filter(line => line.trim() !== '');
+            const updates = [];
+            let notFoundCount = 0;
+            let sameIdCount = 0;
+            let formatErrorCount = 0;
+            
+            lines.forEach(line => {
+                const trimmedLine = line.trim();
+                // [Regex] (이름) (공백들) (ID) 패턴 매칭
+                const match = trimmedLine.match(/^(.*?)[\s\t]+([^\s\t]+)$/);
+                
+                if (match) {
+                    let name = match[1].trim();
+                    let newId = match[2].trim();
+                    
+                    // '-' 또는 'null' 등의 텍스트는 빈 ID로 처리
+                    if (['-', 'undefined', 'null', '(없음)'].includes(newId)) {
+                        newId = '';
+                    }
+
+                    const player = rankingsData.find(p => p.name === name);
+                    
+                    if (player) {
+                        const currentId = player.gameId || '';
+                        if (currentId !== newId) {
+                            updates.push({ player, newId });
+                        } else {
+                            sameIdCount++;
+                        }
+                    } else {
+                        console.warn(`[Batch Update] Player not found: "${name}"`);
+                        notFoundCount++;
+                    }
+                } else {
+                    formatErrorCount++;
+                }
+            });
+
+            if (updates.length === 0) {
+                let msg = "⚠️ 변경할 내용이 없습니다.";
+                if (notFoundCount > 0) msg += `\n- 이름 불일치: ${notFoundCount}명 (선수 명단 확인 필요)`;
+                if (sameIdCount > 0) msg += `\n- 변경사항 없음: ${sameIdCount}명 (기존 ID와 동일)`;
+                if (formatErrorCount > 0) msg += `\n- 형식 오류: ${formatErrorCount}줄 ("이름 ID" 형식이 아님)`;
+                
+                return showCustomAlert(msg);
+            }
+
+            const confirmMsg = `총 ${updates.length}명의 Game ID를 변경하시겠습니까?` + 
+                               (notFoundCount > 0 ? `\n(실패: ${notFoundCount}명 - 이름 없음)` : '') +
+                               `\n\n[변경 미리보기 (상위 5명)]\n${updates.slice(0, 5).map(u => `${u.player.name}: ${u.player.gameId || '(없음)'} ➔ ${u.newId || '(삭제)'}`).join('\n')}` +
+                               (updates.length > 5 ? `\n...외 ${updates.length - 5}명` : '');
+
+            // [Modified] Use showConfirmModal instead of native confirm
+            showConfirmModal(confirmMsg, async () => {
+                captureState(); 
+                updates.forEach(u => {
+                    u.player.gameId = u.newId;
+                });
+                await saveRankings();
+                renderRankings();
+                
+                showCustomAlert(`✅ ${updates.length}명의 정보가 성공적으로 업데이트되었습니다.`);
+                document.getElementById('exportModal').classList.add('hidden');
+            });
         };
 
         window.backupData = () => { 
@@ -1773,7 +1857,7 @@
             showConfirmModal(confirmMsg, async () => {
                 try {
                     captureState();
-                    const targets = rankingsData.filter(p => p && p.id && deleteSelectedIds.has(p.id));
+                    const targets = rankingsData.filter(p && p.id && deleteSelectedIds.has(p.id));
                     if (targets.length === 0) {
                         showCustomAlert("선택된 선수 데이터를 찾을 수 없습니다.");
                         closeDeletePlayersModal();
@@ -2133,7 +2217,7 @@
                 loser: isBlueWin ? p2.name : p1.name, 
                 type, 
                 season: activeSeason, 
-                blue: p1.name,
+                blue: p1.name, 
                 winnerChange: winCalc.change, 
                 loserChange: loseCalc.change  
             }); 
@@ -2153,7 +2237,82 @@
             // [Modified] Keep date for consecutive inputs
             resetMatchInputs(true);
         };
+        
+        // [Added] Batch ID Update Function
+        // [Modified] Replaced native alert/confirm with Custom Modals (Fix for popup issue)
+        window.applyBatchIdUpdate = async () => {
+            console.log("applyBatchIdUpdate called");
+            const textarea = document.getElementById('exportTextarea');
+            if (!textarea) return showCustomAlert("텍스트 입력창을 찾을 수 없습니다.");
+            
+            const text = textarea.value;
+            if (!text.trim()) return showCustomAlert("입력된 내용이 없습니다.");
+
+            const lines = text.split('\n').filter(line => line.trim() !== '');
+            const updates = [];
+            let notFoundCount = 0;
+            let sameIdCount = 0;
+            let formatErrorCount = 0;
+            
+            lines.forEach(line => {
+                const trimmedLine = line.trim();
+                // [Regex] (이름) (공백들) (ID) 패턴 매칭
+                const match = trimmedLine.match(/^(.*?)[\s\t]+([^\s\t]+)$/);
+                
+                if (match) {
+                    let name = match[1].trim();
+                    let newId = match[2].trim();
+                    
+                    // '-' 또는 'null' 등의 텍스트는 빈 ID로 처리
+                    if (['-', 'undefined', 'null', '(없음)'].includes(newId)) {
+                        newId = '';
+                    }
+
+                    const player = rankingsData.find(p => p.name === name);
+                    
+                    if (player) {
+                        const currentId = player.gameId || '';
+                        if (currentId !== newId) {
+                            updates.push({ player, newId });
+                        } else {
+                            sameIdCount++;
+                        }
+                    } else {
+                        console.warn(`[Batch Update] Player not found: "${name}"`);
+                        notFoundCount++;
+                    }
+                } else {
+                    formatErrorCount++;
+                }
+            });
+
+            if (updates.length === 0) {
+                let msg = "⚠️ 변경할 내용이 없습니다.";
+                if (notFoundCount > 0) msg += `\n- 이름 불일치: ${notFoundCount}명 (선수 명단 확인 필요)`;
+                if (sameIdCount > 0) msg += `\n- 변경사항 없음: ${sameIdCount}명 (기존 ID와 동일)`;
+                if (formatErrorCount > 0) msg += `\n- 형식 오류: ${formatErrorCount}줄 ("이름 ID" 형식이 아님)`;
+                
+                return showCustomAlert(msg);
+            }
+
+            const confirmMsg = `총 ${updates.length}명의 Game ID를 변경하시겠습니까?` + 
+                               (notFoundCount > 0 ? `\n(실패: ${notFoundCount}명 - 이름 없음)` : '') +
+                               `\n\n[변경 미리보기 (상위 5명)]\n${updates.slice(0, 5).map(u => `${u.player.name}: ${u.player.gameId || '(없음)'} ➔ ${u.newId || '(삭제)'}`).join('\n')}` +
+                               (updates.length > 5 ? `\n...외 ${updates.length - 5}명` : '');
+
+            // [Modified] Use showConfirmModal instead of native confirm
+            showConfirmModal(confirmMsg, async () => {
+                captureState(); 
+                updates.forEach(u => {
+                    u.player.gameId = u.newId;
+                });
+                await saveRankings();
+                renderRankings();
+                
+                showCustomAlert(`✅ ${updates.length}명의 정보가 성공적으로 업데이트되었습니다.`);
+                document.getElementById('exportModal').classList.add('hidden');
+            });
+        };
     </script>
 </body>
 </html>
-
