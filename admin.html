@@ -754,9 +754,73 @@
             if(element) element.classList.add('active'); 
         }
 
-        function loadData() { const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'rankings', 'main'); onSnapshot(docRef, (doc) => { if (doc.exists()) { const data = doc.data(); rankingsData = data.rankings || []; matchHistoryData = data.matchHistory || []; seasonArchives = data.seasonArchives || {}; activeSeason = data.activeSeason || "시즌 1"; adminMemos = data.adminMemos || []; ruleHtml = data.ruleHtml || DEFAULT_RULE_HTML; if(!viewHistorySeason) viewHistorySeason = activeSeason; updateSeasonUI(); renderMemos(); document.getElementById('ruleHtmlInput').value = ruleHtml; if(data.noticeData) { document.getElementById('noticeContentInput').value = data.noticeData.content || ""; document.getElementById('noticeActiveToggle').checked = data.noticeData.active || false; } rankingsData.forEach((p, i) => { if(p.defenseCount === undefined) p.defenseCount = 0; if(p.previousRank === undefined) p.previousRank = i + 1; if(p.careerHighRank === undefined) p.careerHighRank = i + 1; if(p.elo === undefined) p.elo = 1000; if(p.careerHighElo === undefined) p.careerHighElo = p.elo; if(!p.trunkColor) p.trunkColor = '#1f2937'; p.choseong = getChoseong(p.name); }); renderRankings(); populateMatchSelectors(); renderSeasonList(); checkSeasonInactive(); enrichMatchHistory(); updateAdminHistorySeasonSelector(); renderAdminMatches(); if (currentProfileId) updateProfileStats(currentProfileId, document.getElementById('pModalSeason').value); 
-        if(document.getElementById('totalPlayerCount')) document.getElementById('totalPlayerCount').textContent = `(${rankingsData.length}명)`;
-        } }); }
+        function loadData() { 
+            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'rankings', 'main'); 
+            
+            onSnapshot(docRef, (docSnap) => { 
+                if (docSnap.exists()) { 
+                    try {
+                        const data = docSnap.data(); 
+                        rankingsData = data.rankings || []; 
+                        matchHistoryData = data.matchHistory || []; 
+                        seasonArchives = data.seasonArchives || {}; 
+                        activeSeason = data.activeSeason || "시즌 1"; 
+                        adminMemos = data.adminMemos || []; 
+                        
+                        // [수정 1] 변수명 버그 수정 (DEFAULT_RULE_HTML -> LATEST_RULE_HTML)
+                        ruleHtml = data.ruleHtml || (typeof LATEST_RULE_HTML !== 'undefined' ? LATEST_RULE_HTML : ""); 
+
+                        if(!viewHistorySeason) viewHistorySeason = activeSeason; 
+                        
+                        updateSeasonUI(); 
+                        renderMemos(); 
+                        
+                        const ruleInput = document.getElementById('ruleHtmlInput');
+                        if(ruleInput) ruleInput.value = ruleHtml;
+
+                        if(data.noticeData) { 
+                            document.getElementById('noticeContentInput').value = data.noticeData.content || ""; 
+                            document.getElementById('noticeActiveToggle').checked = data.noticeData.active || false; 
+                        } 
+
+                        // [수정 2] 데이터 방어 로직 추가 (Null 데이터, 이름 없는 데이터 처리)
+                        rankingsData.forEach((p, i) => { 
+                            if (!p) return; // 데이터가 null이면 건너뜀
+
+                            if(p.defenseCount === undefined) p.defenseCount = 0; 
+                            if(p.previousRank === undefined) p.previousRank = i + 1; 
+                            if(p.careerHighRank === undefined) p.careerHighRank = i + 1; 
+                            if(p.elo === undefined) p.elo = 1000; 
+                            if(p.careerHighElo === undefined) p.careerHighElo = p.elo; 
+                            if(!p.trunkColor) p.trunkColor = '#1f2937'; 
+                            
+                            // 이름이 있을 때만 초성 변환 (오류 방지)
+                            if (p.name) {
+                                p.choseong = getChoseong(p.name); 
+                            } else {
+                                p.name = "(이름 없음)";
+                                p.choseong = "";
+                            }
+                        }); 
+
+                        renderRankings(); 
+                        populateMatchSelectors(); 
+                        renderSeasonList(); 
+                        checkSeasonInactive(); 
+                        enrichMatchHistory(); 
+                        updateAdminHistorySeasonSelector(); 
+                        renderAdminMatches(); 
+                        
+                        if (currentProfileId) updateProfileStats(currentProfileId, document.getElementById('pModalSeason').value); 
+                        if(document.getElementById('totalPlayerCount')) document.getElementById('totalPlayerCount').textContent = `(${rankingsData.length}명)`;
+                    
+                    } catch (err) {
+                        console.error("Data Load Error:", err);
+                        alert("데이터 처리 중 오류가 발생했습니다.\n" + err.message);
+                    }
+                } 
+            }); 
+        }
 
         window.saveNoticeSettings = async () => { const content = document.getElementById('noticeContentInput').value; const active = document.getElementById('noticeActiveToggle').checked; const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'rankings', 'main'); try { await runTransaction(db, async (transaction) => { const sfDoc = await transaction.get(docRef); if (!sfDoc.exists()) throw "Doc missing"; transaction.set(docRef, { noticeData: { content, active } }, { merge: true }); }); const btn = document.querySelector('button[onclick="saveNoticeSettings()"]'); const originalText = btn.innerText; btn.innerText = "✅ 저장됨"; setTimeout(() => btn.innerText = originalText, 1500); } catch(e) { alert("공지 저장 실패"); } };
 
@@ -2345,6 +2409,7 @@ function calculateHybridEloChange(p1Elo, p2Elo, isWin, p1Stats) {
     </script>
 </body>
 </html>
+
 
 
 
