@@ -607,14 +607,39 @@
         </h3>
         <ul class="text-xs space-y-1.5 opacity-90">
             <li>• <strong>랭킹 미진입:</strong> 3경기 완료 전까지 순위표에 표시되지 않습니다.</li>
-            <li>• <strong>점수 부스팅:</strong> 제자리 찾기를 위해 변동폭이 <strong>1.5배</strong>(K=90) 적용됩니다.</li>
+            <li>• <strong>점수 부스팅:</strong> 빠른 제자리 찾기를 위해 점수 변동폭이 평소보다 훨씬 큽니다.</li>
         </ul>
     </div>
+
+    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+        <h3 class="font-bold text-slate-700 mb-2 text-xs flex items-center gap-1">
+            <span class="text-base">⚖️</span> 점수 획득 예시 (내 점수 1000점일 때)
+        </h3>
+        <div class="space-y-1.5 text-[11px] text-slate-600">
+            <div class="flex justify-between items-center bg-white p-2 rounded border border-slate-100 shadow-sm">
+                <span>vs <strong>1200점</strong> (고수) 승리 시</span>
+                <span class="font-black text-red-500 text-xs">+35점 이상 🔥</span>
+            </div>
+            <div class="flex justify-between items-center bg-white p-2 rounded border border-slate-100 shadow-sm">
+                <span>vs <strong>1000점</strong> (동급) 승리 시</span>
+                <span class="font-bold text-blue-600 text-xs">+20점 내외</span>
+            </div>
+            <div class="flex justify-between items-center bg-white p-2 rounded border border-slate-100 shadow-sm">
+                <span>vs <strong>800점</strong> (하수) 승리 시</span>
+                <span class="font-bold text-slate-400 text-xs">+10점 미만 💧</span>
+            </div>
+        </div>
+        <p class="text-[10px] text-slate-400 mt-2 text-center leading-tight">
+            * 상대와의 점수 차이가 클수록 획득/차감 점수가 달라집니다.<br>
+            (강한 상대를 이기면 대박, 약한 상대에게 지면 쪽박)
+        </p>
+    </div>
+
     <div>
         <h3 class="font-bold text-slate-800 mb-2 text-sm flex items-center gap-1">
             <span class="text-lg">🏆</span> 정식 랭킹 & 티어 보너스
         </h3>
-        <p class="text-xs text-slate-500 mb-2">전적에 따라 <strong>승패 배율</strong>과 <strong>참여 점수</strong>가 달라집니다.</p>
+        <p class="text-xs text-slate-500 mb-2">전적에 따라 <strong>승패 배율</strong>과 <strong>기본 지급 점수</strong>가 늘어납니다.</p>
         <div class="grid grid-cols-2 gap-2 text-xs">
             <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
                 <div class="font-bold text-slate-500 mb-1 flex justify-between">
@@ -648,23 +673,8 @@
             </div>
         </div>
     </div>
-    <div class="bg-rose-50 p-3 rounded-xl border border-rose-100">
-        <span class="font-bold text-xs text-rose-800 block mb-1">💤 휴면 패널티</span>
-        <span class="text-[11px] text-rose-600 leading-tight block">30일 미활동 시 <span class="font-bold underline">-30점</span> (1패) 자동 차감</span>
-    </div>
 </div>`;
-
-        function getChoseong(str) {
-            const cho = ["ㄱ","ㄲ","ㄴ","ㄷ","ㄸ","ㄹ","ㅁ","ㅂ","ㅃ","ㅅ","ㅆ","ㅇ","ㅈ","ㅉ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"];
-            let result = "";
-            for(let i=0; i<str.length; i++) {
-                const code = str.charCodeAt(i) - 44032;
-                if(code > -1 && code < 11172) result += cho[Math.floor(code / 588)];
-                else result += str.charAt(i);
-            }
-            return result;
-        }
-
+        
         function getKSTDate() { return new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Seoul" }); }
         function getTier(wins, losses) { 
     const matches = (wins || 0) + (losses || 0); 
