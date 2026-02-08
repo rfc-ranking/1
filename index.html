@@ -13,6 +13,7 @@
         .tier-bronze { border-left: 5px solid #ad8a56; background: #f8fafc; }
         .tier-silver { border-left: 5px solid #94a3b8; background: #f8fafc; }
         .tier-gold { border-left: 5px solid #f59e0b; background: #f8fafc; }
+        .tier-platinum { border-left: 5px solid #06b6d4; background: #f8fafc; }
         
         /* 1~3위 전용 올림픽 글로우 효과 (Soft Version) */
         .rank-1-glow {
@@ -461,11 +462,20 @@
         function updateUI() { const now = new Date(); document.getElementById('currentDate').textContent = now.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' }); updateHeaderSeasonSelector(); renderRankings(); updateSeasonSelector(); updateHofSeasonSelector(); renderMatches(); renderHOF(); }
         
         function getTier(wins, losses) { 
-            const matches = (wins || 0) + (losses || 0); 
-            if (matches < 3) return { name: 'Bronze', class: 'tier-bronze', color: 'bg-white border border-amber-600 text-amber-700' }; 
-            if (matches < 7) return { name: 'Silver', class: 'tier-silver', color: 'bg-white border border-slate-400 text-slate-500' }; 
-            return { name: 'Gold', class: 'tier-gold', color: 'bg-white border border-yellow-500 text-yellow-600' }; 
-        }
+    const matches = (wins || 0) + (losses || 0); 
+    
+    // 3전 미만: 브론즈
+    if (matches < 3) return { name: 'Bronze', class: 'tier-bronze', color: 'bg-white border border-amber-600 text-amber-700' }; 
+    
+    // 3전 ~ 6전: 실버
+    if (matches < 7) return { name: 'Silver', class: 'tier-silver', color: 'bg-white border border-slate-400 text-slate-500' }; 
+    
+    // 7전 ~ 12전: 골드 (조건 변경됨)
+    if (matches < 13) return { name: 'Gold', class: 'tier-gold', color: 'bg-white border border-yellow-500 text-yellow-600' }; 
+    
+    // 13전 이상: 플래티넘 (신설)
+    return { name: 'Platinum', class: 'tier-platinum', color: 'bg-cyan-50 border border-cyan-500 text-cyan-700' }; 
+}
         
         // [New] Search Handler
         window.handleSearch = (val) => {
@@ -1064,4 +1074,5 @@
     </script>
 </body>
 </html>
+
 
