@@ -853,7 +853,7 @@
             }); 
         }
 
-        // [수정됨] 명예의 전당 - 분야별 Top 3 어워즈
+        // [수정됨] 명예의 전당 - 모든 부문 시상대(Podium) 스타일 & 프로필 연동
         function renderHOF() { 
             const container = document.getElementById('hofContent'); 
             let players = [];
@@ -881,12 +881,19 @@
                 return; 
             } 
 
-            // 2. 연승(Streak) 데이터 계산
-            const sortedHistory = [...targetHistory].sort((a, b) => new Date(a.date) - new Date(b.date));
+            // 2. 연승(Streak) 정밀 계산 (날짜+입력순 정렬)
+            const historyWithIndex = targetHistory.map((m, i) => ({ ...m, originalIndex: i }));
+            const sortedHistory = historyWithIndex.sort((a, b) => {
+                const dateA = new Date(a.date).getTime();
+                const dateB = new Date(b.date).getTime();
+                if (dateA !== dateB) return dateA - dateB;
+                return b.originalIndex - a.originalIndex;
+            });
+
             const streakMap = {}; 
             sortedHistory.forEach(m => {
-                const w = m.winner;
-                const l = m.loser;
+                const w = m.winner.trim();
+                const l = m.loser.trim();
                 if (!streakMap[w]) streakMap[w] = { current: 0, max: 0 };
                 streakMap[w].current += 1;
                 if (streakMap[w].current > streakMap[w].max) streakMap[w].max = streakMap[w].current;
@@ -894,40 +901,34 @@
                 streakMap[l].current = 0;
             });
             
-            // 선수 데이터에 연승 정보 매핑
             const playersWithStreak = players.map(p => {
-                return { ...p, maxStreak: (streakMap[p.name] ? streakMap[p.name].max : 0) };
+                return { ...p, maxStreak: (streakMap[p.name.trim()] ? streakMap[p.name.trim()].max : 0) };
             });
 
             // 3. 각 분야별 Top 3 선정
             
-            // [A] 챔피언 Top 3 (직전 시즌 vs 해당 시즌)
+            // [A] 챔피언 Top 3
             let championList = [];
             let champTitle = "THE CHAMPION";
-            let champSub = "Season Rank Top 3";
+            let champSub = "Rank #1";
 
             if (isCurrentSeason) {
-                // 현재 시즌 탭 -> 직전 시즌 데이터를 가져옴
-                const pastSeasons = Object.keys(seasonArchives).sort((a, b) => {
-                    return b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' });
-                });
+                const pastSeasons = Object.keys(seasonArchives).sort((a, b) => b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' }));
                 if (pastSeasons.length > 0) {
                     const prevName = pastSeasons[0];
                     const prevData = seasonArchives[prevName].rankings || [];
                     championList = prevData.filter(p => (p.wins + p.losses) >= 3)
                                          .sort((a, b) => (b.elo || 1000) - (a.elo || 1000))
                                          .slice(0, 3);
-                    champTitle = "PREVIOUS LEGENDS";
-                    champSub = `${prevName} Top 3`;
+                    champTitle = "DEFENDING CHAMPION";
+                    champSub = `${prevName} Legend`;
                 }
             } else {
-                // 과거 시즌 탭 -> 그 시즌 데이터 사용
                 championList = players.filter(p => (p.wins + p.losses) >= 3)
                                       .sort((a, b) => (b.elo || 1000) - (a.elo || 1000))
                                       .slice(0, 3);
             }
 
-            // [B] 최다 경기 Top 3
             const ironWillList = [...players].sort((a, b) => {
                 const totalA = a.wins + a.losses;
                 const totalB = b.wins + b.losses;
@@ -935,27 +936,25 @@
                 return (b.elo || 1000) - (a.elo || 1000);
             }).slice(0, 3);
 
-            // [C] 최다 승리 Top 3
             const conquerorList = [...players].sort((a, b) => {
                 if (a.wins !== b.wins) return b.wins - a.wins;
                 return (b.elo || 1000) - (a.elo || 1000);
             }).slice(0, 3);
 
-            // [D] 최다 연승 Top 3
             const streakList = [...playersWithStreak].sort((a, b) => {
                 if (a.maxStreak !== b.maxStreak) return b.maxStreak - a.maxStreak;
                 return (b.elo || 1000) - (a.elo || 1000);
             }).filter(p => p.maxStreak > 0).slice(0, 3);
 
 
-            // 4. Top 3 카드 생성 헬퍼
-            const createTop3Card = (title, sub, icon, list, colorClass, delay, type) => {
-                if (!list || list.length === 0) return ''; // 데이터 없으면 숨김
+            // 4. 시상대(Podium) 생성 헬퍼
+            const createPodiumSection = (title, sub, icon, list, colorFrom, colorTo, type) => {
+                if (!list || list.length === 0) return ''; 
 
                 const p1 = list[0];
-                const others = list.slice(1);
-                
-                // 값 표시 로직 (ELO, 경기수, 승수, 연승)
+                const p2 = list[1] || null;
+                const p3 = list[2] || null;
+
                 const getValue = (p) => {
                     if (type === 'elo') return `⚡${p.elo}`;
                     if (type === 'match') return `${p.wins+p.losses}전`;
@@ -964,66 +963,69 @@
                     return '';
                 };
 
-                return `
-                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-4 fade-in" style="animation-delay: ${delay}ms">
-                        <div class="bg-gradient-to-br ${colorClass} p-4 relative text-white">
-                            <div class="flex justify-between items-start relative z-10">
-                                <div>
-                                    <div class="text-[10px] font-bold opacity-80 tracking-wider uppercase">${sub}</div>
-                                    <div class="text-xl font-black italic tracking-tighter flex items-center gap-2">
-                                        <span class="text-2xl">${icon}</span> ${title}
-                                    </div>
+                const renderPodiumItem = (p, rank) => {
+                    if (!p) return `<div class="flex-1 w-full opacity-0"></div>`; // 빈 공간 유지
+                    
+                    const is1st = rank === 1;
+                    const height = is1st ? "h-36 sm:h-40" : (rank === 2 ? "h-28 sm:h-32" : "h-24 sm:h-28");
+                    const order = is1st ? "order-2 -mt-4 z-10" : (rank === 2 ? "order-1" : "order-3");
+                    const rankBadge = is1st ? "🥇" : (rank === 2 ? "🥈" : "🥉");
+                    const bgColor = is1st ? `bg-gradient-to-b from-${colorFrom} to-${colorTo} text-white shadow-lg` : "bg-white border border-slate-200 text-slate-700";
+                    const textColor = is1st ? "text-white" : "text-slate-800";
+                    const subTextColor = is1st ? "text-white/80" : "text-slate-400";
+                    const imgSize = is1st ? "w-14 h-14" : "w-10 h-10";
+                    const crown = is1st ? `<div class="absolute -top-3 text-lg filter drop-shadow-md transform -rotate-12">👑</div>` : '';
+
+                    return `
+                        <div class="flex-1 w-full flex flex-col items-center justify-end ${order}">
+                             <div class="relative flex flex-col items-center cursor-pointer group w-full" onclick="openProfile('${p.id}')">
+                                <div class="relative z-20 mb-2 transition-transform group-hover:scale-110">
+                                    ${crown}
+                                    <img src="${p.imageUrl || 'https://placehold.co/150?text=No+Img'}" class="${imgSize} rounded-full object-cover border-2 border-white shadow-sm bg-slate-200" onerror="this.src='https://placehold.co/150?text=No+Img'">
+                                    <div class="absolute -bottom-1 -right-1 text-xs shadow-sm bg-white rounded-full w-5 h-5 flex items-center justify-center border border-slate-100">${rankBadge}</div>
                                 </div>
-                                <div class="text-right">
-                                    <div class="text-3xl font-black leading-none">${getValue(p1)}</div>
-                                    <div class="text-[10px] font-bold opacity-80 mt-1">1st Place</div>
-                                </div>
-                            </div>
-                            
-                            <div class="mt-4 flex items-center gap-3 bg-white/20 p-2 rounded-xl backdrop-blur-sm border border-white/10">
-                                <img src="${p1.imageUrl || 'https://placehold.co/150?text=No+Img'}" class="w-10 h-10 rounded-full object-cover border-2 border-white/50 bg-white/30" onerror="this.src='https://placehold.co/150?text=No+Img'">
-                                <div>
-                                    <div class="font-black text-lg leading-tight truncate w-40">${p1.name}</div>
-                                    <div class="text-[10px] opacity-90">${p1.wins}승 ${p1.losses}패</div>
+                                <div class="${height} w-full ${bgColor} rounded-t-xl flex flex-col items-center pt-3 pb-2 px-1 shadow-sm relative overflow-hidden">
+                                    ${is1st ? `<div class="absolute inset-0 bg-white/10"></div>` : ''}
+                                    <div class="${textColor} font-black text-xs sm:text-sm truncate w-full text-center px-1">${p.name}</div>
+                                    <div class="${subTextColor} text-[10px] font-bold mt-0.5">${getValue(p)}</div>
+                                    ${is1st ? `<div class="mt-auto mb-1 text-[9px] font-bold bg-black/20 px-2 py-0.5 rounded-full text-white">#1</div>` : ''}
                                 </div>
                             </div>
                         </div>
+                    `;
+                };
 
-                        <div class="bg-white p-2">
-                            ${others.map((p, idx) => `
-                                <div class="flex justify-between items-center p-2.5 border-b last:border-0 border-slate-50 hover:bg-slate-50 transition rounded-lg" onclick="openProfile('${p.id}')">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-5 text-center font-bold text-slate-300 text-sm italic">#${idx + 2}</div>
-                                        <div class="flex items-center gap-2">
-                                            <img src="${p.imageUrl || 'https://placehold.co/150?text=No+Img'}" class="w-6 h-6 rounded-full object-cover bg-slate-100 border border-slate-100" onerror="this.src='https://placehold.co/150?text=No+Img'">
-                                            <span class="text-sm font-bold text-slate-700 truncate w-24">${p.name}</span>
-                                        </div>
-                                    </div>
-                                    <div class="text-xs font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded">${getValue(p)}</div>
-                                </div>
-                            `).join('')}
-                            ${others.length === 0 ? '<div class="text-center text-[10px] text-slate-300 py-2">2, 3위 데이터 없음</div>' : ''}
+                return `
+                    <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 mb-6 relative overflow-hidden fade-in">
+                        <div class="flex items-center gap-2 mb-6 border-b border-slate-100 pb-2">
+                            <span class="text-2xl">${icon}</span>
+                            <div>
+                                <div class="text-xs font-black text-slate-800 tracking-tight">${title}</div>
+                                <div class="text-[10px] text-slate-400 font-medium">${sub}</div>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-center items-end gap-2 px-2">
+                            ${renderPodiumItem(p2, 2)}
+                            ${renderPodiumItem(p1, 1)}
+                            ${renderPodiumItem(p3, 3)}
                         </div>
                     </div>
                 `;
             };
 
-            // 5. 최종 렌더링
+            // 5. 렌더링
             container.innerHTML = `
                 <div class="text-center mb-6">
                     <h3 class="text-xl font-black text-slate-800 tracking-tight">${seasonName}</h3>
-                    <p class="text-xs text-slate-400 mt-1 uppercase tracking-widest">Season Awards Top 3</p>
+                    <p class="text-xs text-slate-400 mt-1 uppercase tracking-widest">Season Awards Podium</p>
                 </div>
                 
                 <div class="px-1 pb-10">
-                    ${createTop3Card(champTitle, champSub, "👑", championList, "from-amber-400 to-orange-400", 0, "elo")}
-                    ${createTop3Card("UNSTOPPABLE", "Longest Streak", "🚀", streakList, "from-rose-500 to-pink-500", 100, "streak")}
-                    ${createTop3Card("THE CONQUEROR", "Most Wins", "⚔️", conquerorList, "from-blue-600 to-cyan-500", 200, "win")}
-                    ${createTop3Card("IRON WILL", "Most Matches", "🛡️", ironWillList, "from-slate-600 to-slate-500", 300, "match")}
-                </div>
-                
-                <div class="text-center text-[10px] text-slate-300 -mt-6">
-                    * 연승 기록은 해당 시즌 내 기록만 인정됩니다.
+                    ${createPodiumSection(champTitle, champSub, "👑", championList, "amber-400", "orange-500", "elo")}
+                    ${createPodiumSection("UNSTOPPABLE", "Longest Streak", "🚀", streakList, "rose-400", "pink-500", "streak")}
+                    ${createPodiumSection("THE CONQUEROR", "Most Wins", "⚔️", conquerorList, "blue-500", "indigo-600", "win")}
+                    ${createPodiumSection("IRON WILL", "Most Matches", "🛡️", ironWillList, "slate-500", "slate-700", "match")}
                 </div>
             `; 
         }
@@ -1207,6 +1209,7 @@
     </script>
 </body>
 </html>
+
 
 
 
