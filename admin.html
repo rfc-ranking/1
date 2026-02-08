@@ -17,7 +17,7 @@
         .rank-card:last-child { border-bottom: none; }
         .rank-up { color: #dc2626; font-weight: 800; } .rank-down { color: #2563eb; font-weight: 800; } .rank-keep { color: #9ca3af; }
         
-        .tier-bronze, .tier-silver, .tier-gold { background: #ffffff; border-left: none; }
+        .tier-bronze, .tier-silver, .tier-gold, .tier-platinum { background: #ffffff; border-left: none; }
 
         .rank-num-1 { color: #d97706; font-size: 1.2rem; font-weight: 900; font-style: italic; letter-spacing: -1px; } 
         .rank-num-2 { color: #64748b; font-size: 1.2rem; font-weight: 800; font-style: italic; letter-spacing: -1px; } 
@@ -600,55 +600,59 @@
         ];
         
         const LATEST_RULE_HTML = `
-        <div class="space-y-5 text-slate-700 font-sans">
-            <div class="bg-gradient-to-br from-indigo-50 to-blue-50 p-4 rounded-2xl border border-indigo-100 shadow-sm">
-                <h3 class="font-bold text-indigo-700 mb-2 text-sm flex items-center gap-1">
-                    <span class="text-lg">🐣</span> 배치고사 (첫 3경기)
-                </h3>
-                <ul class="text-xs space-y-1.5 opacity-90">
-                    <li class="flex items-start gap-1.5">
-                        <span class="text-indigo-400">•</span>
-                        <span><strong>랭킹 미진입:</strong> 3경기를 완료할 때까지 순위표에 등수가 표시되지 않습니다.</span>
-                    </li>
-                    <li class="flex items-start gap-1.5">
-                        <span class="text-indigo-400">•</span>
-                        <span><strong>점수 부스팅:</strong> 제자리 찾기를 위해 점수 변동폭이 <strong>1.5배</strong>(K=90) 적용됩니다.</span>
-                    </li>
-                </ul>
-            </div>
-            <div>
-                <h3 class="font-bold text-slate-800 mb-2 text-sm flex items-center gap-1">
-                    <span class="text-lg">🏆</span> 정식 랭킹 (4전~)
-                </h3>
-                <p class="text-xs text-slate-500 mb-2">배치 종료 후, 전적에 따라 승패 점수 배율이 달라집니다.</p>
-                <div class="grid grid-cols-2 gap-2 text-xs">
-                    <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
-                        <div class="font-bold text-slate-500 mb-1 flex items-center gap-1">🥈 실버 <span class="text-[10px] font-normal text-slate-400">(3~6전)</span></div>
-                        <div class="space-y-0.5">
-                            <div class="flex justify-between"><span>승리</span> <span class="text-blue-600 font-bold">x1.1</span></div>
-                            <div class="flex justify-between"><span>패배</span> <span class="text-red-500 font-bold">x0.9</span></div>
-                        </div>
-                    </div>
-                    <div class="bg-white p-3 rounded-xl border border-yellow-300 shadow-sm ring-1 ring-yellow-100">
-                        <div class="font-bold text-amber-600 mb-1 flex items-center gap-1">🥇 골드 <span class="text-[10px] font-normal text-amber-500">(7전~)</span></div>
-                        <div class="space-y-0.5">
-                            <div class="flex justify-between"><span>승리</span> <span class="text-blue-600 font-bold">x1.2</span></div>
-                            <div class="flex justify-between"><span>패배</span> <span class="text-red-500 font-bold">x0.8</span></div>
-                        </div>
-                    </div>
+<div class="space-y-5 text-slate-700 font-sans">
+    <div class="bg-gradient-to-br from-indigo-50 to-blue-50 p-4 rounded-2xl border border-indigo-100 shadow-sm">
+        <h3 class="font-bold text-indigo-700 mb-2 text-sm flex items-center gap-1">
+            <span class="text-lg">🐣</span> 배치고사 (첫 3경기)
+        </h3>
+        <ul class="text-xs space-y-1.5 opacity-90">
+            <li>• <strong>랭킹 미진입:</strong> 3경기 완료 전까지 순위표에 표시되지 않습니다.</li>
+            <li>• <strong>점수 부스팅:</strong> 제자리 찾기를 위해 변동폭이 <strong>1.5배</strong>(K=90) 적용됩니다.</li>
+        </ul>
+    </div>
+    <div>
+        <h3 class="font-bold text-slate-800 mb-2 text-sm flex items-center gap-1">
+            <span class="text-lg">🏆</span> 정식 랭킹 & 티어 보너스
+        </h3>
+        <p class="text-xs text-slate-500 mb-2">전적에 따라 <strong>승패 배율</strong>과 <strong>참여 점수</strong>가 달라집니다.</p>
+        <div class="grid grid-cols-2 gap-2 text-xs">
+            <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                <div class="font-bold text-slate-500 mb-1 flex justify-between">
+                    <span>🥈 실버 (3~6전)</span>
+                    <span class="text-blue-600">+7점</span>
+                </div>
+                <div class="space-y-0.5 text-[10px]">
+                    <div class="flex justify-between"><span>승리</span> <span class="text-blue-600 font-bold">x1.1</span></div>
+                    <div class="flex justify-between"><span>패배</span> <span class="text-red-500 font-bold">x0.9</span></div>
                 </div>
             </div>
-            <div class="grid grid-cols-2 gap-3">
-                <div class="bg-blue-50 p-3 rounded-xl border border-blue-100">
-                    <span class="font-bold text-xs text-blue-800 block mb-1">🎁 참여 보너스</span>
-                    <span class="text-[11px] text-blue-600 leading-tight block">승패 상관없이 매 경기 <span class="font-bold underline">+5점</span> 추가 지급</span>
+            <div class="bg-white p-3 rounded-xl border border-yellow-300 shadow-sm ring-1 ring-yellow-100">
+                <div class="font-bold text-amber-600 mb-1 flex justify-between">
+                    <span>🥇 골드 (7~12전)</span>
+                    <span class="text-blue-600">+9점</span>
                 </div>
-                <div class="bg-rose-50 p-3 rounded-xl border border-rose-100">
-                    <span class="font-bold text-xs text-rose-800 block mb-1">💤 휴면 패널티</span>
-                    <span class="text-[11px] text-rose-600 leading-tight block">30일 미활동 시 <span class="font-bold underline">-30점</span> (1패) 자동 차감</span>
+                <div class="space-y-0.5 text-[10px]">
+                    <div class="flex justify-between"><span>승리</span> <span class="text-blue-600 font-bold">x1.2</span></div>
+                    <div class="flex justify-between"><span>패배</span> <span class="text-red-500 font-bold">x0.8</span></div>
                 </div>
             </div>
-        </div>`;
+            <div class="col-span-2 bg-gradient-to-r from-cyan-50 to-white p-3 rounded-xl border border-cyan-200 shadow-sm">
+                <div class="font-bold text-cyan-700 mb-1 flex justify-between items-center">
+                    <span>💎 플래티넘 (13전~)</span>
+                    <span class="bg-cyan-100 text-cyan-800 px-2 py-0.5 rounded text-[10px] border border-cyan-200">+13점 지급</span>
+                </div>
+                <div class="flex gap-4 text-[10px] text-cyan-900">
+                    <span>승리 <strong class="text-blue-600">x1.2</strong></span>
+                    <span>패배 <strong class="text-red-500">x0.8</strong></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="bg-rose-50 p-3 rounded-xl border border-rose-100">
+        <span class="font-bold text-xs text-rose-800 block mb-1">💤 휴면 패널티</span>
+        <span class="text-[11px] text-rose-600 leading-tight block">30일 미활동 시 <span class="font-bold underline">-30점</span> (1패) 자동 차감</span>
+    </div>
+</div>`;
 
         function getChoseong(str) {
             const cho = ["ㄱ","ㄲ","ㄴ","ㄷ","ㄸ","ㄹ","ㅁ","ㅂ","ㅃ","ㅅ","ㅆ","ㅇ","ㅈ","ㅉ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"];
@@ -662,7 +666,14 @@
         }
 
         function getKSTDate() { return new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Seoul" }); }
-        function getTier(wins, losses) { const matches = (wins || 0) + (losses || 0); if (matches < 3) return { name: 'Bronze', class: 'tier-bronze', color: 'bg-white border border-amber-600 text-amber-700' }; if (matches < 7) return { name: 'Silver', class: 'tier-silver', color: 'bg-white border border-slate-400 text-slate-500' }; return { name: 'Gold', class: 'tier-gold', color: 'bg-white border border-yellow-500 text-yellow-600' }; }
+        function getTier(wins, losses) { 
+    const matches = (wins || 0) + (losses || 0); 
+    if (matches < 3) return { name: 'Bronze', class: 'tier-bronze', color: 'bg-white border border-amber-600 text-amber-700' }; 
+    if (matches < 7) return { name: 'Silver', class: 'tier-silver', color: 'bg-white border border-slate-400 text-slate-500' }; 
+    if (matches < 13) return { name: 'Gold', class: 'tier-gold', color: 'bg-white border border-yellow-500 text-yellow-600' }; 
+    // 13전 이상 플래티넘
+    return { name: 'Platinum', class: 'tier-platinum', color: 'bg-cyan-50 border border-cyan-500 text-cyan-700' }; 
+}
         async function hashPin(pin) { if (!pin) return ""; try { if (window.crypto && window.crypto.subtle) { const msgBuffer = new TextEncoder().encode(pin); const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer); const hashArray = Array.from(new Uint8Array(hashBuffer)); return hashArray.map(b => b.toString(16).padStart(2, '0')).join(''); } else { return pin; } } catch (e) { return pin; } }
         function generateUUID() { if (typeof crypto !== 'undefined' && crypto.randomUUID) { return crypto.randomUUID(); } return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) { var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8); return v.toString(16); }); }
 
@@ -1160,36 +1171,44 @@
             }); 
         };
 
-        function getTierBonus(matchCount) { if (matchCount < 3) return { winMult: 1.0, lossMult: 1.0, tier: '🥉Bronze' }; else if (matchCount < 7) return { winMult: 1.1, lossMult: 0.9, tier: '🥈Silver' }; else return { winMult: 1.2, lossMult: 0.8, tier: '🥇Gold' }; }
-        
-        function calculateHybridEloChange(p1Elo, p2Elo, isWin, p1Stats) { 
-            const matchCount = (p1Stats.wins || 0) + (p1Stats.losses || 0); 
-            let K = 60;
-            let isPlacement = false;
-            
-            if (matchCount < 3) {
-                K = 90; 
-                isPlacement = true;
-            }
+        // [수정됨] 티어별 보너스 설정 (배율 및 기본 점수)
+function getTierBonus(matchCount) { 
+    if (matchCount < 3) return { winMult: 1.0, lossMult: 1.0, base: 5, tier: '🥉Bronze' }; 
+    else if (matchCount < 7) return { winMult: 1.1, lossMult: 0.9, base: 7, tier: '🥈Silver' }; 
+    else if (matchCount < 13) return { winMult: 1.2, lossMult: 0.8, base: 9, tier: '🥇Gold' }; 
+    else return { winMult: 1.2, lossMult: 0.8, base: 13, tier: '💎Platinum' }; // 플래티넘: 골드 배율 + 13점
+}
 
-            const expected = 1 / (1 + Math.pow(10, (p2Elo - p1Elo) / 400)); 
-            const { winMult, lossMult, tier } = getTierBonus(matchCount); 
-            
-            let finalChange = 0; 
-            let breakdown = ""; 
-            const label = isPlacement ? '🐣배치' : tier;
+// [수정됨] 하이브리드 ELO 계산 로직
+function calculateHybridEloChange(p1Elo, p2Elo, isWin, p1Stats) { 
+    const matchCount = (p1Stats.wins || 0) + (p1Stats.losses || 0); 
+    let K = 60;
+    let isPlacement = false;
+    
+    if (matchCount < 3) {
+        K = 90; // 배치고사 부스팅
+        isPlacement = true;
+    }
 
-            if (isWin) { 
-                let baseGain = K * (1 - expected); 
-                finalChange = (baseGain * winMult) + 5; 
-                breakdown = `${label}승(x${winMult}) + 5`; 
-            } else { 
-                let baseLoss = K * (0 - expected); 
-                finalChange = (baseLoss * lossMult) + 5; 
-                breakdown = `${label}패(x${lossMult}) + 5`; 
-            } 
-            return { change: Math.round(finalChange), msg: breakdown }; 
-        }
+    const expected = 1 / (1 + Math.pow(10, (p2Elo - p1Elo) / 400)); 
+    // getTierBonus에서 base 점수까지 구조 분해 할당
+    const { winMult, lossMult, tier, base } = getTierBonus(matchCount); 
+    
+    let finalChange = 0; 
+    let breakdown = ""; 
+    const label = isPlacement ? '🐣배치' : tier;
+
+    if (isWin) { 
+        let baseGain = K * (1 - expected); 
+        finalChange = (baseGain * winMult) + base; // 동적 기본 점수 적용
+        breakdown = `${label}승(x${winMult}) + ${base}`; 
+    } else { 
+        let baseLoss = K * (0 - expected); 
+        finalChange = (baseLoss * lossMult) + base; // 동적 기본 점수 적용 (패배 감소폭 완화)
+        breakdown = `${label}패(x${lossMult}) + ${base}`; 
+    } 
+    return { change: Math.round(finalChange), msg: breakdown }; 
+}
         
         // [Added] Date Picker Helpers
         window.setMatchDate = (type) => {
@@ -2316,3 +2335,4 @@
     </script>
 </body>
 </html>
+
