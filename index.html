@@ -853,7 +853,7 @@
             }); 
         }
 
-        // [수정됨] 명예의 전당 - 모든 부문 시상대(Podium) 스타일 & 프로필 연동
+        // [수정됨] 명예의 전당 - 순서 변경(연승,플레이,승수,전시즌) 및 한글화
         function renderHOF() { 
             const container = document.getElementById('hofContent'); 
             let players = [];
@@ -881,7 +881,7 @@
                 return; 
             } 
 
-            // 2. 연승(Streak) 정밀 계산 (날짜+입력순 정렬)
+            // 2. 연승(Streak) 정밀 계산
             const historyWithIndex = targetHistory.map((m, i) => ({ ...m, originalIndex: i }));
             const sortedHistory = historyWithIndex.sort((a, b) => {
                 const dateA = new Date(a.date).getTime();
@@ -907,10 +907,10 @@
 
             // 3. 각 분야별 Top 3 선정
             
-            // [A] 챔피언 Top 3
+            // [A] 챔피언 Top 3 (한글 타이틀 적용)
             let championList = [];
-            let champTitle = "THE CHAMPION";
-            let champSub = "Rank #1";
+            let champTitle = "시즌 랭킹 TOP 3"; // 기본값 (과거 시즌)
+            let champSub = "최종 순위";
 
             if (isCurrentSeason) {
                 const pastSeasons = Object.keys(seasonArchives).sort((a, b) => b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' }));
@@ -920,8 +920,8 @@
                     championList = prevData.filter(p => (p.wins + p.losses) >= 3)
                                          .sort((a, b) => (b.elo || 1000) - (a.elo || 1000))
                                          .slice(0, 3);
-                    champTitle = "DEFENDING CHAMPION";
-                    champSub = `${prevName} Legend`;
+                    champTitle = "전시즌 TOP 3"; // [변경]
+                    champSub = `${prevName} 레전드`;
                 }
             } else {
                 championList = players.filter(p => (p.wins + p.losses) >= 3)
@@ -929,6 +929,7 @@
                                       .slice(0, 3);
             }
 
+            // [B] 최다 플레이 (Iron Will -> 최다 플레이)
             const ironWillList = [...players].sort((a, b) => {
                 const totalA = a.wins + a.losses;
                 const totalB = b.wins + b.losses;
@@ -936,11 +937,13 @@
                 return (b.elo || 1000) - (a.elo || 1000);
             }).slice(0, 3);
 
+            // [C] 최다승 (Conqueror -> 최다승)
             const conquerorList = [...players].sort((a, b) => {
                 if (a.wins !== b.wins) return b.wins - a.wins;
                 return (b.elo || 1000) - (a.elo || 1000);
             }).slice(0, 3);
 
+            // [D] 최다 연승 (Unstoppable -> 최다 연승)
             const streakList = [...playersWithStreak].sort((a, b) => {
                 if (a.maxStreak !== b.maxStreak) return b.maxStreak - a.maxStreak;
                 return (b.elo || 1000) - (a.elo || 1000);
@@ -964,7 +967,7 @@
                 };
 
                 const renderPodiumItem = (p, rank) => {
-                    if (!p) return `<div class="flex-1 w-full opacity-0"></div>`; // 빈 공간 유지
+                    if (!p) return `<div class="flex-1 w-full opacity-0"></div>`;
                     
                     const is1st = rank === 1;
                     const height = is1st ? "h-36 sm:h-40" : (rank === 2 ? "h-28 sm:h-32" : "h-24 sm:h-28");
@@ -1004,7 +1007,6 @@
                                 <div class="text-[10px] text-slate-400 font-medium">${sub}</div>
                             </div>
                         </div>
-
                         <div class="flex justify-center items-end gap-2 px-2">
                             ${renderPodiumItem(p2, 2)}
                             ${renderPodiumItem(p1, 1)}
@@ -1014,7 +1016,7 @@
                 `;
             };
 
-            // 5. 렌더링
+            // 5. 렌더링 (순서 변경됨)
             container.innerHTML = `
                 <div class="text-center mb-6">
                     <h3 class="text-xl font-black text-slate-800 tracking-tight">${seasonName}</h3>
@@ -1022,10 +1024,13 @@
                 </div>
                 
                 <div class="px-1 pb-10">
+                    ${createPodiumSection("최다 연승", "멈출 수 없는 기세", "🚀", streakList, "rose-400", "pink-500", "streak")}
+                    
+                    ${createPodiumSection("최다 플레이", "지치지 않는 열정", "🛡️", ironWillList, "slate-500", "slate-700", "match")}
+                    
+                    ${createPodiumSection("최다승", "압도적인 승리", "⚔️", conquerorList, "blue-500", "indigo-600", "win")}
+                    
                     ${createPodiumSection(champTitle, champSub, "👑", championList, "amber-400", "orange-500", "elo")}
-                    ${createPodiumSection("UNSTOPPABLE", "Longest Streak", "🚀", streakList, "rose-400", "pink-500", "streak")}
-                    ${createPodiumSection("THE CONQUEROR", "Most Wins", "⚔️", conquerorList, "blue-500", "indigo-600", "win")}
-                    ${createPodiumSection("IRON WILL", "Most Matches", "🛡️", ironWillList, "slate-500", "slate-700", "match")}
                 </div>
             `; 
         }
@@ -1209,6 +1214,7 @@
     </script>
 </body>
 </html>
+
 
 
 
