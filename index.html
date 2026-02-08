@@ -853,46 +853,179 @@
             }); 
         }
 
+        // [수정됨] 명예의 전당 - 분야별 Top 3 어워즈
         function renderHOF() { 
             const container = document.getElementById('hofContent'); 
-            let data = null; 
+            let players = [];
+            let seasonName = "";
+            let targetHistory = [];
+            let isCurrentSeason = false;
             
-            // Logic to determine Champion for the Selected HOF Season
+            // 1. 데이터 가져오기
             if (viewHofSeason === activeSeason) { 
-                if (rankingsData.length > 0) { 
-                    // [Fix] Filter for Ranked Players only (>= 3 matches)
-                    const sorted = rankingsData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3)
-                                                                .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
-                    data = { 
-                        season: activeSeason + " (진행중)", 
-                        champion: sorted[0]?.name || "-", 
-                        rank2: sorted[1]?.name || "-", 
-                        rank3: sorted[2]?.name || "-" 
-                    }; 
-                } 
+                isCurrentSeason = true;
+                seasonName = activeSeason + " (진행중)";
+                players = rankingsData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) > 0);
+                targetHistory = matchHistoryData.filter(m => m.season === activeSeason && m.type !== 'draw');
             } else { 
                 const arc = seasonArchives[viewHofSeason]; 
                 if (arc) { 
-                    // [New] Archive structure contains 'rankings' array. We must sort it to find top 3.
-                    const arcRankings = arc.rankings || [];
-                    // [Fix] Filter for Ranked Players only (>= 3 matches)
-                    const sorted = arcRankings.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3)
-                                                                 .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
-                    
-                    data = { 
-                        season: viewHofSeason, 
-                        champion: sorted[0]?.name || "-", 
-                        rank2: sorted[1]?.name || "-", 
-                        rank3: sorted[2]?.name || "-" 
-                    }; 
+                    seasonName = viewHofSeason;
+                    players = (arc.rankings || []).filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) > 0);
+                    targetHistory = matchHistoryData.filter(m => m.season === viewHofSeason && m.type !== 'draw');
                 } 
             } 
             
-            if (!data) { container.innerHTML = `<div class="text-center py-10 text-slate-400">데이터가 없습니다.</div>`; return; } 
+            if (players.length === 0 && !isCurrentSeason) { 
+                container.innerHTML = `<div class="text-center py-20 text-slate-400 flex flex-col items-center gap-2"><span class="text-4xl grayscale opacity-50">🏆</span><span>데이터가 없습니다.</span></div>`; 
+                return; 
+            } 
+
+            // 2. 연승(Streak) 데이터 계산
+            const sortedHistory = [...targetHistory].sort((a, b) => new Date(a.date) - new Date(b.date));
+            const streakMap = {}; 
+            sortedHistory.forEach(m => {
+                const w = m.winner;
+                const l = m.loser;
+                if (!streakMap[w]) streakMap[w] = { current: 0, max: 0 };
+                streakMap[w].current += 1;
+                if (streakMap[w].current > streakMap[w].max) streakMap[w].max = streakMap[w].current;
+                if (!streakMap[l]) streakMap[l] = { current: 0, max: 0 };
+                streakMap[l].current = 0;
+            });
             
-            // [Modified] Text Size Upgrade (Base -> XL, Sm -> Base) -> (XL -> 2XL, Base -> XL)
-            // [Modified] Emoji Size Upgrade (4xl -> 5xl, 2xl -> 3xl)
-            container.innerHTML = `<div class="text-center mb-6"><h3 class="text-lg font-black text-slate-800">${data.season}</h3></div><div class="grid grid-cols-3 gap-3 items-end text-center mb-8 px-2"><div class="bg-white p-3 rounded-t-xl border-t-4 border-slate-300 shadow-sm order-1 h-32 flex flex-col justify-end pb-2"><div class="text-3xl mb-1">🥈</div><div class="font-bold text-slate-700 text-xl truncate">${data.rank2}</div></div><div class="bg-white p-3 rounded-t-xl border-t-4 border-amber-400 shadow-md order-2 h-40 flex flex-col justify-end pb-4 relative z-10 -mx-1"><div class="text-5xl mb-1">👑</div><div class="font-black text-slate-800 text-2xl truncate">${data.champion}</div></div><div class="bg-white p-3 rounded-t-xl border-t-4 border-amber-700 shadow-sm order-3 h-28 flex flex-col justify-end pb-2"><div class="text-3xl mb-1">🥉</div><div class="font-bold text-slate-700 text-xl truncate">${data.rank3}</div></div></div>`; 
+            // 선수 데이터에 연승 정보 매핑
+            const playersWithStreak = players.map(p => {
+                return { ...p, maxStreak: (streakMap[p.name] ? streakMap[p.name].max : 0) };
+            });
+
+            // 3. 각 분야별 Top 3 선정
+            
+            // [A] 챔피언 Top 3 (직전 시즌 vs 해당 시즌)
+            let championList = [];
+            let champTitle = "THE CHAMPION";
+            let champSub = "Season Rank Top 3";
+
+            if (isCurrentSeason) {
+                // 현재 시즌 탭 -> 직전 시즌 데이터를 가져옴
+                const pastSeasons = Object.keys(seasonArchives).sort((a, b) => {
+                    return b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' });
+                });
+                if (pastSeasons.length > 0) {
+                    const prevName = pastSeasons[0];
+                    const prevData = seasonArchives[prevName].rankings || [];
+                    championList = prevData.filter(p => (p.wins + p.losses) >= 3)
+                                         .sort((a, b) => (b.elo || 1000) - (a.elo || 1000))
+                                         .slice(0, 3);
+                    champTitle = "PREVIOUS LEGENDS";
+                    champSub = `${prevName} Top 3`;
+                }
+            } else {
+                // 과거 시즌 탭 -> 그 시즌 데이터 사용
+                championList = players.filter(p => (p.wins + p.losses) >= 3)
+                                      .sort((a, b) => (b.elo || 1000) - (a.elo || 1000))
+                                      .slice(0, 3);
+            }
+
+            // [B] 최다 경기 Top 3
+            const ironWillList = [...players].sort((a, b) => {
+                const totalA = a.wins + a.losses;
+                const totalB = b.wins + b.losses;
+                if (totalA !== totalB) return totalB - totalA;
+                return (b.elo || 1000) - (a.elo || 1000);
+            }).slice(0, 3);
+
+            // [C] 최다 승리 Top 3
+            const conquerorList = [...players].sort((a, b) => {
+                if (a.wins !== b.wins) return b.wins - a.wins;
+                return (b.elo || 1000) - (a.elo || 1000);
+            }).slice(0, 3);
+
+            // [D] 최다 연승 Top 3
+            const streakList = [...playersWithStreak].sort((a, b) => {
+                if (a.maxStreak !== b.maxStreak) return b.maxStreak - a.maxStreak;
+                return (b.elo || 1000) - (a.elo || 1000);
+            }).filter(p => p.maxStreak > 0).slice(0, 3);
+
+
+            // 4. Top 3 카드 생성 헬퍼
+            const createTop3Card = (title, sub, icon, list, colorClass, delay, type) => {
+                if (!list || list.length === 0) return ''; // 데이터 없으면 숨김
+
+                const p1 = list[0];
+                const others = list.slice(1);
+                
+                // 값 표시 로직 (ELO, 경기수, 승수, 연승)
+                const getValue = (p) => {
+                    if (type === 'elo') return `⚡${p.elo}`;
+                    if (type === 'match') return `${p.wins+p.losses}전`;
+                    if (type === 'win') return `${p.wins}승`;
+                    if (type === 'streak') return `${p.maxStreak}연승`;
+                    return '';
+                };
+
+                return `
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-4 fade-in" style="animation-delay: ${delay}ms">
+                        <div class="bg-gradient-to-br ${colorClass} p-4 relative text-white">
+                            <div class="flex justify-between items-start relative z-10">
+                                <div>
+                                    <div class="text-[10px] font-bold opacity-80 tracking-wider uppercase">${sub}</div>
+                                    <div class="text-xl font-black italic tracking-tighter flex items-center gap-2">
+                                        <span class="text-2xl">${icon}</span> ${title}
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-3xl font-black leading-none">${getValue(p1)}</div>
+                                    <div class="text-[10px] font-bold opacity-80 mt-1">1st Place</div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4 flex items-center gap-3 bg-white/20 p-2 rounded-xl backdrop-blur-sm border border-white/10">
+                                <img src="${p1.imageUrl || 'https://placehold.co/150?text=No+Img'}" class="w-10 h-10 rounded-full object-cover border-2 border-white/50 bg-white/30" onerror="this.src='https://placehold.co/150?text=No+Img'">
+                                <div>
+                                    <div class="font-black text-lg leading-tight truncate w-40">${p1.name}</div>
+                                    <div class="text-[10px] opacity-90">${p1.wins}승 ${p1.losses}패</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-2">
+                            ${others.map((p, idx) => `
+                                <div class="flex justify-between items-center p-2.5 border-b last:border-0 border-slate-50 hover:bg-slate-50 transition rounded-lg" onclick="openProfile('${p.id}')">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-5 text-center font-bold text-slate-300 text-sm italic">#${idx + 2}</div>
+                                        <div class="flex items-center gap-2">
+                                            <img src="${p.imageUrl || 'https://placehold.co/150?text=No+Img'}" class="w-6 h-6 rounded-full object-cover bg-slate-100 border border-slate-100" onerror="this.src='https://placehold.co/150?text=No+Img'">
+                                            <span class="text-sm font-bold text-slate-700 truncate w-24">${p.name}</span>
+                                        </div>
+                                    </div>
+                                    <div class="text-xs font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded">${getValue(p)}</div>
+                                </div>
+                            `).join('')}
+                            ${others.length === 0 ? '<div class="text-center text-[10px] text-slate-300 py-2">2, 3위 데이터 없음</div>' : ''}
+                        </div>
+                    </div>
+                `;
+            };
+
+            // 5. 최종 렌더링
+            container.innerHTML = `
+                <div class="text-center mb-6">
+                    <h3 class="text-xl font-black text-slate-800 tracking-tight">${seasonName}</h3>
+                    <p class="text-xs text-slate-400 mt-1 uppercase tracking-widest">Season Awards Top 3</p>
+                </div>
+                
+                <div class="px-1 pb-10">
+                    ${createTop3Card(champTitle, champSub, "👑", championList, "from-amber-400 to-orange-400", 0, "elo")}
+                    ${createTop3Card("UNSTOPPABLE", "Longest Streak", "🚀", streakList, "from-rose-500 to-pink-500", 100, "streak")}
+                    ${createTop3Card("THE CONQUEROR", "Most Wins", "⚔️", conquerorList, "from-blue-600 to-cyan-500", 200, "win")}
+                    ${createTop3Card("IRON WILL", "Most Matches", "🛡️", ironWillList, "from-slate-600 to-slate-500", 300, "match")}
+                </div>
+                
+                <div class="text-center text-[10px] text-slate-300 -mt-6">
+                    * 연승 기록은 해당 시즌 내 기록만 인정됩니다.
+                </div>
+            `; 
         }
         
         // [Modified] Default to 'all' and update Profile Stats
@@ -1074,5 +1207,6 @@
     </script>
 </body>
 </html>
+
 
 
