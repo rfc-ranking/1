@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RFC 매칭 로비</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Pretendard', sans-serif; background-color: #0f172a; color: #f8fafc; }
+        .glass-panel { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .live-pulse { animation: pulse-red 2s infinite; }
+        @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); } }
+        .pop-in { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col pb-20">
+
+    <div id="liveStatusBar" class="hidden bg-red-600 text-white px-4 py-3 shadow-lg shadow-red-900/50 flex justify-between items-center sticky top-0 z-50">
+        <div class="flex items-center gap-2">
+            <span class="relative flex h-3 w-3">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+            </span>
+            <span class="font-black italic tracking-wider">LIVE NOW</span>
+        </div>
+        <a id="youtubeLink" href="#" target="_blank" class="bg-white text-red-600 text-xs font-bold px-3 py-1.5 rounded-full hover:bg-red-50 transition">방송 보러가기 ▶</a>
+    </div>
+
+    <div class="max-w-md mx-auto w-full p-4">
+        <div class="glass-panel rounded-2xl p-4 flex justify-between items-center shadow-lg">
+            <div>
+                <div class="text-xs text-slate-400 font-bold mb-1">비공개 매치 룸 코드</div>
+                <div id="roomCodeDisplay" class="text-xl font-mono font-black text-blue-400 tracking-widest">LOADING...</div>
+            </div>
+            <button onclick="copyRoomCode()" class="bg-slate-700 hover:bg-slate-600 text-slate-300 px-3 py-2 rounded-lg text-xs font-bold transition">복사</button>
+        </div>
+    </div>
+
+    <div id="loginSection" class="max-w-md mx-auto w-full px-4 mt-4 hidden">
+        <div class="bg-slate-800 rounded-2xl p-6 border border-slate-700 text-center">
+            <h2 class="text-xl font-bold mb-2">👋 선수 로그인</h2>
+            <p class="text-sm text-slate-400 mb-4">매칭을 등록하거나 신청하려면 로그인이 필요합니다.</p>
+            <div class="flex flex-col gap-2">
+                <input type="text" id="loginName" placeholder="선수 닉네임" class="bg-slate-900 border border-slate-600 rounded-xl p-3 text-white focus:border-blue-500 outline-none transition">
+                <input type="password" id="loginPin" placeholder="PIN 번호 (4자리)" class="bg-slate-900 border border-slate-600 rounded-xl p-3 text-white focus:border-blue-500 outline-none transition text-center tracking-[0.5em] font-bold" maxlength="4">
+                <button onclick="login()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl mt-2 shadow-lg shadow-blue-900/20 transition">접속하기</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="userPanel" class="max-w-md mx-auto w-full px-4 mt-2 hidden">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-3">
+                <img id="myProfileImg" src="" class="w-10 h-10 rounded-full bg-slate-700 object-cover border border-slate-600">
+                <div>
+                    <div id="myDisplayName" class="font-bold text-white">Guest</div>
+                    <div id="myEloDisplay" class="text-xs text-amber-400 font-bold">ELO 1000</div>
+                </div>
+            </div>
+            <button onclick="logout()" class="text-xs text-slate-500 underline hover:text-slate-300">로그아웃</button>
+        </div>
+        <button id="createBtn" onclick="createLobby()" class="w-full bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-black py-4 rounded-2xl shadow-lg shadow-indigo-900/30 transition transform active:scale-95 text-lg flex items-center justify-center gap-2">
+            <span>🥊</span> 매치 대기방 만들기
+        </button>
+    </div>
+
+    <div class="max-w-md mx-auto w-full px-4 mt-6">
+        <h3 class="text-sm font-bold text-slate-400 mb-3 flex items-center gap-2">
+            <span>🔥</span> 현재 대기중인 매치
+            <span id="matchCount" class="bg-slate-800 text-slate-300 px-2 py-0.5 rounded text-[10px]">0</span>
+        </h3>
+        <div id="matchList" class="space-y-3 pb-10">
+            <div class="text-center py-10 text-slate-600">대기 중인 매칭이 없습니다.</div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, setDoc, onSnapshot, runTransaction, getDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyDlj68ex-fM0ExRdD-tvCy-UyIneVoPmGk", authDomain: "rfk-ranking.firebaseapp.com", projectId: "rfk-ranking", storageBucket: "rfk-ranking.firebasestorage.app", messagingSenderId: "675366165774", appId: "1:675366165774:web:795d34c56eab630b4dcb5f", measurementId: "G-CXPDZQ8GTL" };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const appId = 'ranking-manager-default';
+        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'rankings', 'main');
+
+        let rankingsData = [];
+        let matchmakingQueue = [];
+        let currentUser = null;
+
+        // PIN 해시 함수 (기존 로직 동일)
+        async function hashPin(pin) {
+            if (!pin) return "";
+            const msgBuffer = new TextEncoder().encode(pin);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // 초기 데이터 로드 및 리스너
+        onSnapshot(docRef, (docSnap) => {
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                rankingsData = data.rankings || [];
+                
+                // 매칭 정보 (Live, Code, Queue)
+                const info = data.matchInfo || {};
+                const queue = data.matchmakingQueue || [];
+                matchmakingQueue = queue;
+
+                updateHeaderInfo(info);
+                checkLoginStatus(); // 데이터 로드 후 로그인 체크
+                renderMatchList();
+            }
+        });
+
+        function updateHeaderInfo(info) {
+            const liveBar = document.getElementById('liveStatusBar');
+            const ytLink = document.getElementById('youtubeLink');
+            const codeDisplay = document.getElementById('roomCodeDisplay');
+
+            if (info.isLive) {
+                liveBar.classList.remove('hidden');
+                ytLink.href = info.url || "#";
+            } else {
+                liveBar.classList.add('hidden');
+            }
+
+            codeDisplay.textContent = info.code || "비공개";
+            window.currentRoomCode = info.code || "";
+        }
+
+        window.copyRoomCode = () => {
+            if(!window.currentRoomCode) return alert("코드가 없습니다.");
+            navigator.clipboard.writeText(window.currentRoomCode);
+            alert("방 코드가 복사되었습니다: " + window.currentRoomCode);
+        }
+
+        // --- 로그인 로직 ---
+        window.login = async () => {
+            const name = document.getElementById('loginName').value.trim();
+            const pin = document.getElementById('loginPin').value.trim();
+            
+            const player = rankingsData.find(p => p.name === name);
+            if (!player) return alert("존재하지 않는 선수입니다.");
+
+            const hashed = await hashPin(pin);
+            if (player.password !== hashed && player.password !== pin) { // 구버전 호환
+                return alert("비밀번호가 일치하지 않습니다.");
+            }
+
+            localStorage.setItem('rfc_player_id', player.id);
+            checkLoginStatus();
+        }
+
+        function checkLoginStatus() {
+            const id = localStorage.getItem('rfc_player_id');
+            if (id) {
+                const player = rankingsData.find(p => p.id === id);
+                if (player) {
+                    currentUser = player;
+                    document.getElementById('loginSection').classList.add('hidden');
+                    document.getElementById('userPanel').classList.remove('hidden');
+                    
+                    document.getElementById('myDisplayName').textContent = player.name;
+                    document.getElementById('myEloDisplay').textContent = `ELO ${player.elo || 1000}`;
+                    document.getElementById('myProfileImg').src = player.imageUrl || "https://placehold.co/150?text=No+Img";
+                    
+                    // 이미 만든 방이 있는지 확인
+                    const myRoom = matchmakingQueue.find(m => m.hostId === currentUser.id && m.status !== 'matched');
+                    const btn = document.getElementById('createBtn');
+                    if (myRoom) {
+                        btn.textContent = "🚫 내 대기방 취소하기";
+                        btn.onclick = () => cancelLobby(myRoom.id);
+                        btn.className = "w-full bg-slate-700 hover:bg-slate-600 text-slate-300 font-bold py-4 rounded-2xl transition";
+                    } else {
+                        btn.textContent = "🥊 매치 대기방 만들기";
+                        btn.onclick = createLobby;
+                        btn.className = "w-full bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-black py-4 rounded-2xl shadow-lg shadow-indigo-900/30 transition transform active:scale-95 text-lg flex items-center justify-center gap-2";
+                    }
+                } else {
+                    logout(); // 데이터에 없으면 로그아웃
+                }
+            } else {
+                document.getElementById('loginSection').classList.remove('hidden');
+                document.getElementById('userPanel').classList.add('hidden');
+                currentUser = null;
+            }
+        }
+
+        window.logout = () => {
+            localStorage.removeItem('rfc_player_id');
+            currentUser = null;
+            location.reload();
+        }
+
+        // --- 매칭 로직 (Firestore 연동) ---
+        
+        // 1. 방 만들기
+        window.createLobby = async () => {
+            if (!currentUser) return alert("로그인이 필요합니다.");
+            const newMatch = {
+                id: Date.now().toString(),
+                hostId: currentUser.id,
+                hostName: currentUser.name,
+                hostElo: currentUser.elo || 1000,
+                challengerId: null,
+                challengerName: null,
+                status: 'open', // open, pending, matched
+                timestamp: new Date().toISOString()
+            };
+
+            try {
+                await updateDoc(docRef, {
+                    matchmakingQueue: arrayUnion(newMatch)
+                });
+            } catch(e) { alert("방 생성 실패: " + e.message); }
+        };
+
+        // 2. 방 취소 (삭제)
+        window.cancelLobby = async (matchId) => {
+            const target = matchmakingQueue.find(m => m.id === matchId);
+            if (!target) return;
+            try {
+                await updateDoc(docRef, {
+                    matchmakingQueue: arrayRemove(target)
+                });
+            } catch(e) { alert("취소 실패: " + e.message); }
+        };
+
+        // 3. 도전 신청 (Join)
+        window.joinLobby = async (matchId) => {
+            if (!currentUser) return alert("로그인이 필요합니다.");
+            
+            // 트랜잭션으로 안전하게 업데이트
+            try {
+                await runTransaction(db, async (transaction) => {
+                    const sfDoc = await transaction.get(docRef);
+                    if (!sfDoc.exists()) throw "Document does not exist!";
+                    
+                    const data = sfDoc.data();
+                    const queue = data.matchmakingQueue || [];
+                    const matchIndex = queue.findIndex(m => m.id === matchId);
+                    
+                    if (matchIndex === -1) throw "방이 사라졌습니다.";
+                    if (queue[matchIndex].status !== 'open') throw "이미 진행 중인 매치입니다.";
+
+                    // 업데이트
+                    queue[matchIndex].challengerId = currentUser.id;
+                    queue[matchIndex].challengerName = currentUser.name;
+                    queue[matchIndex].challengerElo = currentUser.elo || 1000;
+                    queue[matchIndex].status = 'pending';
+
+                    transaction.update(docRef, { matchmakingQueue: queue });
+                });
+            } catch (e) { alert("신청 실패: " + e); }
+        };
+
+        // 4. 도전 수락 (Accept) -> Matched 상태로 변경
+        window.acceptMatch = async (matchId) => {
+             try {
+                await runTransaction(db, async (transaction) => {
+                    const sfDoc = await transaction.get(docRef);
+                    const data = sfDoc.data();
+                    const queue = data.matchmakingQueue || [];
+                    const matchIndex = queue.findIndex(m => m.id === matchId);
+                    
+                    if (matchIndex === -1) throw "오류";
+                    
+                    queue[matchIndex].status = 'matched';
+                    transaction.update(docRef, { matchmakingQueue: queue });
+                });
+            } catch (e) { alert("수락 실패: " + e); }
+        };
+
+        // 5. 도전 거절 (Reject) -> 다시 Open 상태로
+        window.rejectMatch = async (matchId) => {
+            try {
+                await runTransaction(db, async (transaction) => {
+                    const sfDoc = await transaction.get(docRef);
+                    const data = sfDoc.data();
+                    const queue = data.matchmakingQueue || [];
+                    const matchIndex = queue.findIndex(m => m.id === matchId);
+                    
+                    if (matchIndex === -1) throw "오류";
+                    
+                    queue[matchIndex].challengerId = null;
+                    queue[matchIndex].challengerName = null;
+                    queue[matchIndex].status = 'open';
+                    
+                    transaction.update(docRef, { matchmakingQueue: queue });
+                });
+            } catch (e) { alert("거절 실패: " + e); }
+        };
+
+        // --- 렌더링 ---
+        function renderMatchList() {
+            const container = document.getElementById('matchList');
+            container.innerHTML = '';
+            
+            // 'matched' 상태인 것은 10분 뒤에 사라지게 하거나, 별도 섹션으로 빼는 게 좋음.
+            // 여기서는 심플하게 모든 리스트를 보여주되 정렬 (내 것 우선 -> 상태순 -> 시간순)
+            
+            const list = matchmakingQueue.filter(m => m.status !== 'closed'); // closed는 안보여줌
+            document.getElementById('matchCount').textContent = list.length;
+
+            if (list.length === 0) {
+                container.innerHTML = '<div class="text-center py-10 text-slate-600">대기 중인 매칭이 없습니다.</div>';
+                return;
+            }
+
+            list.forEach(m => {
+                const isMyHost = currentUser && m.hostId === currentUser.id;
+                const isMyChallenger = currentUser && m.challengerId === currentUser.id;
+                
+                let cardHtml = '';
+                
+                // 1. Matched 상태 (경기 성사됨)
+                if (m.status === 'matched') {
+                    cardHtml = `
+                        <div class="bg-gradient-to-r from-emerald-900 to-green-900 rounded-xl p-4 border border-emerald-500/50 shadow-lg relative overflow-hidden pop-in">
+                            <div class="absolute inset-0 bg-emerald-500/10 animate-pulse"></div>
+                            <div class="relative z-10 text-center">
+                                <div class="text-emerald-400 font-black text-xl italic tracking-widest mb-1">MATCH CONFIRMED!</div>
+                                <div class="text-white font-bold flex items-center justify-center gap-2 mb-2">
+                                    <span>${m.hostName}</span>
+                                    <span class="text-xs text-slate-400">VS</span>
+                                    <span>${m.challengerName}</span>
+                                </div>
+                                <div class="text-xs text-emerald-200 bg-emerald-950/50 py-2 rounded-lg">
+                                    비공개 방으로 이동하세요!<br>
+                                    Code: <span class="font-mono font-bold text-white select-all">${window.currentRoomCode || "관리자 문의"}</span>
+                                </div>
+                                ${isMyHost ? `<button onclick="cancelLobby('${m.id}')" class="mt-2 text-[10px] text-slate-500 underline">대기방 삭제(종료)</button>` : ''}
+                            </div>
+                        </div>
+                    `;
+                } 
+                // 2. Pending 상태 (도전자가 들어옴)
+                else if (m.status === 'pending') {
+                    cardHtml = `
+                        <div class="bg-slate-800 rounded-xl p-4 border border-blue-500/50 shadow-md relative pop-in">
+                            <div class="flex justify-between items-center mb-3">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                                    <span class="text-blue-400 font-bold text-sm">매칭 대기중...</span>
+                                </div>
+                                <span class="text-xs text-slate-500">방장: ${m.hostName}</span>
+                            </div>
+                            <div class="bg-slate-900 rounded-lg p-3 flex justify-between items-center mb-3">
+                                <div class="text-center w-[45%]">
+                                    <div class="text-white font-bold">${m.hostName}</div>
+                                    <div class="text-[10px] text-slate-500">ELO ${m.hostElo}</div>
+                                </div>
+                                <div class="text-slate-600 font-bold text-xs">VS</div>
+                                <div class="text-center w-[45%]">
+                                    <div class="text-white font-bold">${m.challengerName}</div>
+                                    <div class="text-[10px] text-slate-500">ELO ${m.challengerElo}</div>
+                                </div>
+                            </div>
+                            
+                            ${isMyHost ? `
+                                <div class="flex gap-2">
+                                    <button onclick="rejectMatch('${m.id}')" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-300 py-2 rounded-lg text-xs font-bold transition">거절</button>
+                                    <button onclick="acceptMatch('${m.id}')" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-lg text-xs font-bold transition shadow-lg shadow-blue-500/20">수락하기 (경기 시작)</button>
+                                </div>
+                            ` : (isMyChallenger ? `
+                                <div class="text-center text-xs text-slate-400 py-2 bg-slate-900/50 rounded-lg animate-pulse">
+                                    방장의 수락을 기다리는 중...
+                                </div>
+                            ` : `
+                                <div class="text-center text-xs text-slate-500 py-2">
+                                    현재 매칭 진행 중 (다른 플레이어)
+                                </div>
+                            `)}
+                        </div>
+                    `;
+                }
+                // 3. Open 상태 (도전자 모집 중)
+                else {
+                    cardHtml = `
+                        <div class="bg-slate-800 rounded-xl p-4 border border-slate-700 shadow-sm hover:border-slate-600 transition pop-in">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-xl">🥊</div>
+                                    <div>
+                                        <div class="text-white font-bold">${m.hostName}</div>
+                                        <div class="text-xs text-slate-400">ELO ${m.hostElo} • 도전자 찾는 중</div>
+                                    </div>
+                                </div>
+                                ${isMyHost ? `
+                                    <button onclick="cancelLobby('${m.id}')" class="text-xs text-red-400 bg-red-900/20 px-3 py-1.5 rounded-lg border border-red-900/30 hover:bg-red-900/40 transition">취소</button>
+                                ` : `
+                                    <button onclick="joinLobby('${m.id}')" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-4 py-2 rounded-lg shadow-lg shadow-indigo-900/20 transition transform active:scale-95">
+                                        도전하기 ⚔️
+                                    </button>
+                                `}
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                container.innerHTML += cardHtml;
+            });
+        }
+    </script>
+</body>
+</html>
