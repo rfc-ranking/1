@@ -136,7 +136,6 @@
                 <span class="text-xs font-bold text-slate-400 hidden sm:block">Hybrid ELO 기준 정렬</span>
                 <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
                     <div class="relative flex-grow sm:flex-grow-0">
-                        <!-- [Modified] Added 'readonly' trick to prevent autocomplete -->
                         <input type="search" id="playerSearchInput" placeholder="선수/초성 검색" 
                                class="w-full sm:w-[155px] bg-white border border-slate-200 rounded-lg pl-9 pr-2 py-1 text-xs font-bold text-slate-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition placeholder-slate-400"
                                readonly
@@ -464,17 +463,10 @@
         function getTier(wins, losses) { 
     const matches = (wins || 0) + (losses || 0); 
     
-    // 3전 미만: 브론즈
-    if (matches < 3) return { name: 'Bronze', class: 'tier-bronze', color: 'bg-white border border-amber-600 text-amber-700' }; 
-    
-    // 3전 ~ 6전: 실버
-    if (matches < 7) return { name: 'Silver', class: 'tier-silver', color: 'bg-white border border-slate-400 text-slate-500' }; 
-    
-    // 7전 ~ 12전: 골드 (조건 변경됨)
-    if (matches < 13) return { name: 'Gold', class: 'tier-gold', color: 'bg-white border border-yellow-500 text-yellow-600' }; 
-    
-    // 13전 이상: 플래티넘 (신설)
-    return { name: 'Platinum', class: 'tier-platinum', color: 'bg-cyan-50 border border-cyan-500 text-cyan-700' }; 
+    if (matches < 3) return { name: 'BRONZE', class: 'tier-bronze', color: 'bg-white border border-amber-600 text-amber-700' }; 
+    if (matches < 7) return { name: 'SILVER', class: 'tier-silver', color: 'bg-white border border-slate-400 text-slate-500' }; 
+    if (matches < 13) return { name: 'GOLD', class: 'tier-gold', color: 'bg-white border border-yellow-500 text-yellow-600' }; 
+    return { name: 'PLATINUM', class: 'tier-platinum', color: 'bg-white border border-cyan-500 text-cyan-600' }; 
 }
         
         // [New] Search Handler
@@ -509,7 +501,7 @@
             // [Modified] Only players with >= 3 matches are considered for numbering
             // Use Number() to safely handle string inputs (e.g. "1" + "2" = 3, not "12")
             const globalRankedPlayers = fullData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3)
-                                                                        .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
+                                                                    .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
 
             // 3. Apply Search Filter
             let filteredData = fullData;
@@ -524,7 +516,7 @@
 
             // 4. Separate Groups: Ranked (>=3) / Placement (1~2) / Unranked (0)
             const ranked = filteredData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3)
-                                                                    .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
+                                                    .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
             
             const placement = filteredData.filter(p => {
                 const total = Number(p.wins || 0) + Number(p.losses || 0);
@@ -532,7 +524,7 @@
             }).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
             
             const unranked = filteredData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) === 0)
-                                                                     .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
+                                                     .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
             
             // 현재 시간이 하이라이트 종료 시간 전이라면 하이라이트 적용
             const now = Date.now();
@@ -603,7 +595,6 @@
                         </div>
                         <div class="flex-grow min-w-0 flex flex-col justify-center py-1">
                             <div class="flex items-center gap-1.5 md:gap-2 mb-0.5 md:mb-1.5">
-                                <!-- [Modified] Use 'ring' for better white visibility -->
                                 <div class="w-1.5 h-4 rounded-sm shadow-sm ring-1 ring-inset ring-black/10" style="background: ${p.trunkColor || '#1f2937'};" title="트렁크 색상"></div>
                                 <span class="font-bold md:font-black text-slate-800 truncate text-sm md:text-lg tracking-tight">${p.name}</span>
                                 <span class="text-[9px] md:text-[10px] px-1.5 md:px-2 py-0.5 rounded-full ${tier.color} font-bold tracking-wide uppercase shadow-sm">${tier.name}</span>
@@ -648,14 +639,13 @@
                             </div>
                             <div class="flex-grow min-w-0 flex flex-col justify-center py-1">
                                 <div class="flex items-center gap-1.5 md:gap-2 mb-0.5 md:mb-1.5">
-                                    <!-- [Modified] Use 'ring' for better white visibility -->
                                     <div class="w-1.5 h-4 rounded-sm shadow-sm ring-1 ring-inset ring-black/10" style="background: ${p.trunkColor || '#1f2937'};" title="트렁크 색상"></div>
                                     <span class="font-bold text-slate-600 truncate text-sm md:text-lg">${p.name}</span>
                                     <span class="text-[9px] bg-slate-100 text-slate-500 border px-1.5 rounded font-bold">Placement</span>
                                 </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="font-bold text-slate-400 text-xs">⚡${p.elo || 1000} (임시)</span>
-                                    <span class="text-xs text-slate-300">| ${p.wins}승 ${p.losses}패</span>
+                                <div class="flex items-center gap-1.5 mt-0.5">
+                                    <span class="bg-amber-50 text-amber-600/70 text-[10px] px-1.5 py-0.5 rounded border border-amber-100 font-bold">⚡${p.elo || 1000} (임시)</span>
+                                    <span class="text-xs text-slate-400">| ${p.wins}승 ${p.losses}패</span>
                                 </div>
                             </div>
                             <div class="flex flex-col items-end justify-center shrink-0 md:h-full"></div>
@@ -688,7 +678,6 @@
                             </div>
                             <div class="flex-grow min-w-0 flex flex-col justify-center py-1">
                                 <div class="flex items-center gap-1.5 md:gap-2 mb-0.5 md:mb-1.5">
-                                    <!-- [Modified] Use 'ring' for better white visibility -->
                                     <div class="w-1.5 h-4 rounded-sm shadow-sm ring-1 ring-inset ring-black/10" style="background: ${p.trunkColor || '#1f2937'};" title="트렁크 색상"></div>
                                     <span class="font-bold text-slate-500 truncate text-sm md:text-lg">${p.name}</span>
                                 </div>
@@ -758,8 +747,8 @@
             
             // Optional: If you want tab selectors to also update header, uncomment below
             // selector.onchange = (e) => { 
-            //      viewSeason = e.target.value; 
-            //      renderMatches(); 
+            //     viewSeason = e.target.value; 
+            //     renderMatches(); 
             // };
             selector.onchange = (e) => { viewSeason = e.target.value; renderMatches(); }; 
         }
@@ -925,8 +914,8 @@
                 }
             } else {
                 championList = players.filter(p => (p.wins + p.losses) >= 3)
-                                      .sort((a, b) => (b.elo || 1000) - (a.elo || 1000))
-                                      .slice(0, 3);
+                                     .sort((a, b) => (b.elo || 1000) - (a.elo || 1000))
+                                     .slice(0, 3);
             }
 
             // [B] 최다 플레이 (Iron Will -> 최다 플레이)
@@ -1214,8 +1203,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
