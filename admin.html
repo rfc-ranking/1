@@ -135,7 +135,7 @@
                 <span id="saveStatus" class="text-xs font-medium text-emerald-500 transition-opacity opacity-0">✅ 저장됨 (Secure)</span>
             </div>
             <div class="mt-2 md:mt-0 text-xs text-slate-400 font-medium">
-                <span id="adminVersionDisplay">v4.37</span>
+                <span id="adminVersionDisplay">v4.38</span>
             </div>
         </header>
 
@@ -533,8 +533,8 @@
         const AUTO_LOGIN_PW = "";
         
         // [System] Admin Version Control
-        const ADMIN_VERSION = "v4.36"; 
-        const UPDATE_NOTE = "Update: Advanced Search (Hangul)";
+        const ADMIN_VERSION = "v4.38"; 
+        const UPDATE_NOTE = "Fix: Empty Data Init & Hangul";
 
         function initVersionUI() {
             try {
@@ -795,6 +795,7 @@
             if(element) element.classList.add('active'); 
         }
 
+        // [Fix] Modified loadData to handle empty database case
         function loadData() { 
             const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'rankings', 'main'); 
             onSnapshot(docRef, (doc) => { 
@@ -839,7 +840,28 @@
                     renderAdminMatches(); 
                     if (currentProfileId) updateProfileStats(currentProfileId, document.getElementById('pModalSeason').value); 
                     if(document.getElementById('totalPlayerCount')) document.getElementById('totalPlayerCount').textContent = `(${rankingsData.length}명)`;
-                } 
+                } else {
+                    console.log("No existing data found. Initializing empty state.");
+                    // Initialize default empty state if DB is empty
+                    rankingsData = [];
+                    matchHistoryData = [];
+                    seasonArchives = {};
+                    activeSeason = "시즌 1";
+                    ruleHtml = LATEST_RULE_HTML;
+                    
+                    updateSeasonUI();
+                    renderRankings();
+                    populateMatchSelectors();
+                    renderSeasonList();
+                    updateAdminHistorySeasonSelector();
+                    renderAdminMatches();
+                    
+                    // Clear loading messages
+                    if(document.getElementById('totalPlayerCount')) document.getElementById('totalPlayerCount').textContent = `(0명)`;
+                }
+            }, (error) => {
+                console.error("Firebase Read Error:", error);
+                alert("데이터를 불러오는 중 오류가 발생했습니다.\n" + error.message);
             }); 
         }
 
