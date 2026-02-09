@@ -135,7 +135,7 @@
                 <span id="saveStatus" class="text-xs font-medium text-emerald-500 transition-opacity opacity-0">✅ 저장됨 (Secure)</span>
             </div>
             <div class="mt-2 md:mt-0 text-xs text-slate-400 font-medium">
-                <span id="adminVersionDisplay">v4.36</span>
+                <span id="adminVersionDisplay">v4.37</span>
             </div>
         </header>
 
@@ -533,8 +533,8 @@
         const AUTO_LOGIN_PW = "";
         
         // [System] Admin Version Control
-        const ADMIN_VERSION = "v4.36"; 
-        const UPDATE_NOTE = "Update: Advanced Search (Hangul)";
+        const ADMIN_VERSION = "v4.39"; 
+        const UPDATE_NOTE = "Update: Auto Login Enabled";
 
         function initVersionUI() {
             try {
@@ -570,13 +570,18 @@
             CHO: ["ㄱ","ㄲ","ㄴ","ㄷ","ㄸ","ㄹ","ㅁ","ㅂ","ㅃ","ㅅ","ㅆ","ㅇ","ㅈ","ㅉ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"],
             JUNG: ["ㅏ","ㅐ","ㅑ","ㅒ","ㅓ","ㅔ","ㅕ","ㅖ","ㅗ","ㅘ","ㅙ","ㅚ","ㅛ","ㅜ","ㅝ","ㅞ","ㅟ","ㅠ","ㅡ","ㅢ","ㅣ"],
             JONG: ["","ㄱ","ㄲ","ㄳ","ㄴ","ㄵ","ㄶ","ㄷ","ㄹ","ㄺ","ㄻ","ㄼ","ㄽ","ㄾ","ㄿ","ㅀ","ㅁ","ㅂ","ㅄ","ㅅ","ㅆ","ㅇ","ㅈ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"],
-            // 겹받침 분해 맵
+            // 겹받침 분해 맵 (종성용)
             COMPLEX_JONG: {
                 'ㄳ':'ㄱㅅ', 'ㄵ':'ㄴㅈ', 'ㄶ':'ㄴㅎ', 'ㄺ':'ㄹㄱ', 'ㄻ':'ㄹㅁ', 'ㄼ':'ㄹㅂ', 
                 'ㄽ':'ㄹㅅ', 'ㄾ':'ㄹㅌ', 'ㄿ':'ㄹㅍ', 'ㅀ':'ㄹㅎ', 'ㅄ':'ㅂㅅ'
             },
+            // [Added] 낱자 겹받침 분해 맵 (검색어 처리용)
+            JAMO_MAP: {
+                'ㄳ':'ㄱㅅ', 'ㄵ':'ㄴㅈ', 'ㄶ':'ㄴㅎ', 'ㄺ':'ㄹㄱ', 'ㄻ':'ㄹㅁ', 'ㄼ':'ㄹㅂ', 
+                'ㄽ':'ㄹㅅ', 'ㄾ':'ㄹㅌ', 'ㄿ':'ㄹㅍ', 'ㅀ':'ㄹㅎ', 'ㅄ':'ㅂㅅ'
+            },
             
-            // 초성 추출 (기존 getChoseong 대체)
+            // 초성 추출
             getCho: function(str) {
                 let result = "";
                 for(let i=0; i<str.length; i++) {
@@ -587,7 +592,7 @@
                 return result;
             },
 
-            // 완전 자모 분해 (삶 -> ㅅㅏㄹㅁ)
+            // 완전 자모 분해 (삶 -> ㅅㅏㄹㅁ, ㄻ -> ㄹㅁ)
             disassemble: function(str) {
                 let result = "";
                 for (let i = 0; i < str.length; i++) {
@@ -610,7 +615,12 @@
 
                         result += cho + jung + jong;
                     } else {
-                        result += char;
+                        // [Modified] 낱자 겹받침 처리 (ㄻ -> ㄹㅁ)
+                        if (this.JAMO_MAP[char]) {
+                            result += this.JAMO_MAP[char];
+                        } else {
+                            result += char;
+                        }
                     }
                 }
                 return result;
@@ -1437,7 +1447,7 @@ function calculateHybridEloChange(p1Elo, p2Elo, isWin, p1Stats) {
             showConfirmModal("📉 순위 변동폭(▲▼)을 리셋하시겠습니까?\n현재 순위가 기준이 되어 변동폭이 0으로 초기화됩니다.", async () => { 
                 captureState(); 
                 const rankedList = rankingsData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3)
-                                               .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
+                                                .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
                 
                 rankedList.forEach((p, index) => { 
                     p.previousRank = index + 1; 
@@ -1873,14 +1883,16 @@ function calculateHybridEloChange(p1Elo, p2Elo, isWin, p1Stats) {
             listContainer.innerHTML = '';
             lastCheckedIndex = null; 
             
-            // [Modified] Delete Modal Advanced Search
+            // [Modified] Delete Modal Advanced Search (Query Decomposition)
             const queryJamo = Hangul.disassemble(query.replace(/\s/g, ""));
+            const qClean = query.replace(/\s/g, "");
             
             let filtered = rankingsData.filter(p => {
                 const name = p.name || "";
                 const nameClean = name.replace(/\s/g, "").toLowerCase();
-                if (nameClean.includes(query.replace(/\s/g, ""))) return true;
-                if (p.choseong && p.choseong.includes(query)) return true;
+                if (nameClean.includes(qClean)) return true;
+                // [Modified] Check both raw query and decomposed query against choseong
+                if (p.choseong && (p.choseong.includes(qClean) || p.choseong.includes(queryJamo))) return true;
                 if (p.jamo && p.jamo.includes(queryJamo)) return true;
                 return false;
             });
@@ -1962,14 +1974,16 @@ function calculateHybridEloChange(p1Elo, p2Elo, isWin, p1Stats) {
             const query = document.getElementById('deleteSearchInput').value.toLowerCase();
             const isChecked = document.getElementById('deleteAllCheckbox').checked;
             
-            // [Modified] Select All Advanced Search
+            // [Modified] Select All Advanced Search (Query Decomposition)
             const queryJamo = Hangul.disassemble(query.replace(/\s/g, ""));
+            const qClean = query.replace(/\s/g, "");
             
             const filtered = rankingsData.filter(p => {
                 const name = p.name || "";
                 const nameClean = name.replace(/\s/g, "").toLowerCase();
-                if (nameClean.includes(query.replace(/\s/g, ""))) return true;
-                if (p.choseong && p.choseong.includes(query)) return true;
+                if (nameClean.includes(qClean)) return true;
+                // [Modified] Check both raw query and decomposed query
+                if (p.choseong && (p.choseong.includes(qClean) || p.choseong.includes(queryJamo))) return true;
                 if (p.jamo && p.jamo.includes(queryJamo)) return true;
                 return false;
             });
@@ -2088,7 +2102,7 @@ function calculateHybridEloChange(p1Elo, p2Elo, isWin, p1Stats) {
                 onInitialize: function() {
                     this.control_input.setAttribute('type', 'search');
                 },
-                // [New] Advanced Search Score Function
+                // [New] Advanced Search Score Function (With Compound Jamo Support)
                 score: function(search) {
                     const term = search.toLowerCase().replace(/\s/g, "");
                     const termJamo = Hangul.disassemble(term);
@@ -2096,8 +2110,9 @@ function calculateHybridEloChange(p1Elo, p2Elo, isWin, p1Stats) {
                     return function(item) {
                         // 1. Name match (High priority)
                         if (item.name.toLowerCase().replace(/\s/g, "").includes(term)) return 100;
-                        // 2. Choseong match
-                        if (item.choseong && item.choseong.includes(term)) return 80;
+                        // 2. Choseong match (Check raw input AND decomposed jamo)
+                        // 'ㄻ' input -> term='ㄻ', termJamo='ㄹㅁ' -> item.choseong matches 'ㄹㅁ'
+                        if (item.choseong && (item.choseong.includes(term) || item.choseong.includes(termJamo))) return 80;
                         // 3. Jamo decomposition match (Low priority)
                         if (item.jamo && item.jamo.includes(termJamo)) return 60;
                         
@@ -2137,19 +2152,20 @@ function calculateHybridEloChange(p1Elo, p2Elo, isWin, p1Stats) {
         function renderRankings() { 
             const list = document.getElementById('rankingList'); list.innerHTML = ''; 
             const globalRankedPlayers = rankingsData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3)
-                                                                    .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
+                                                                        .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
 
-            // [Modified] Real-time Ranking Advanced Search
+            // [Modified] Real-time Ranking Advanced Search (Query Decomposition)
             const queryJamo = Hangul.disassemble(searchQuery.replace(/\s/g, ""));
+            const qClean = searchQuery.replace(/\s/g, "");
             
             const filteredData = rankingsData.filter(p => {
                 const name = p.name || "";
                 const nameClean = name.replace(/\s/g, "").toLowerCase();
                 
                 // 1. Text Match
-                if (nameClean.includes(searchQuery.replace(/\s/g, ""))) return true;
-                // 2. Choseong Match
-                if (p.choseong && p.choseong.includes(searchQuery)) return true;
+                if (nameClean.includes(qClean)) return true;
+                // 2. Choseong Match - [Modified] Check both raw query and decomposed query
+                if (p.choseong && (p.choseong.includes(qClean) || p.choseong.includes(queryJamo))) return true;
                 // 3. Jamo Match
                 if (p.jamo && p.jamo.includes(queryJamo)) return true;
                 
@@ -2157,7 +2173,7 @@ function calculateHybridEloChange(p1Elo, p2Elo, isWin, p1Stats) {
             });
 
             const ranked = filteredData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3)
-                                                    .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
+                                                        .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
             
             const placement = filteredData.filter(p => {
                 const total = Number(p.wins || 0) + Number(p.losses || 0);
@@ -2165,7 +2181,7 @@ function calculateHybridEloChange(p1Elo, p2Elo, isWin, p1Stats) {
             }).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
             
             const unranked = filteredData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) === 0)
-                                                     .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
+                                                             .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
             
             const now = Date.now();
             const shouldHighlight = (id) => activeHighlight.ids.includes(id) && now < activeHighlight.endTime;
