@@ -135,7 +135,7 @@
                 <span id="saveStatus" class="text-xs font-medium text-emerald-500 transition-opacity opacity-0">✅ 저장됨 (Secure)</span>
             </div>
             <div class="mt-2 md:mt-0 text-xs text-slate-400 font-medium">
-                <span id="adminVersionDisplay">v4.34</span>
+                <span id="adminVersionDisplay">v4.36</span>
             </div>
         </header>
 
@@ -358,7 +358,7 @@
                     <div><h3 class="font-bold text-slate-700">🔥 실시간 랭킹</h3><p class="text-[10px] text-slate-400 font-medium mt-0.5">현재 활성 시즌: <span class="currentSeasonName text-blue-600 font-bold"></span></p></div>
                     <div class="flex items-center gap-2">
                         <div class="relative">
-                            <input type="search" id="searchInput" placeholder="선수 검색..." class="w-[155px] text-xs border border-slate-200 rounded-lg pl-9 pr-2 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                            <input type="search" id="searchInput" placeholder="선수/초성 검색" class="w-[155px] text-xs border border-slate-200 rounded-lg pl-9 pr-2 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
                             <div class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs">🔍</div>
                         </div>
                         <div class="flex gap-2"><button onclick="window.open('index.html')" class="bg-white border border-slate-200 text-slate-600 text-xs font-bold py-2 px-3 rounded-lg hover:bg-slate-50">🌐 사이트 보기</button><button onclick="saveRankings()" class="bg-indigo-600 text-white text-xs font-bold py-2 px-3 rounded-lg shadow hover:bg-indigo-700">💾 저장</button></div>
@@ -377,7 +377,7 @@
                     <span id="deleteCountBadge" class="bg-red-100 text-red-600 text-xs px-2 py-1 rounded-full whitespace-nowrap">0명 선택됨</span>
                 </div>
                 <div class="relative">
-                    <input type="search" id="deleteSearchInput" placeholder="이름 검색..." class="w-[155px] border p-2 pl-9 rounded-lg text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-red-500 transition" oninput="renderDeleteList()">
+                    <input type="search" id="deleteSearchInput" placeholder="이름/초성 검색" class="w-[155px] border p-2 pl-9 rounded-lg text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-red-500 transition" oninput="renderDeleteList()">
                     <div class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-sm">🔍</div>
                 </div>
             </div>
@@ -533,8 +533,8 @@
         const AUTO_LOGIN_PW = "";
         
         // [System] Admin Version Control
-        const ADMIN_VERSION = "v4.34"; 
-        const UPDATE_NOTE = "Fix: Native Alert Removal";
+        const ADMIN_VERSION = "v4.36"; 
+        const UPDATE_NOTE = "Update: Advanced Search (Hangul)";
 
         function initVersionUI() {
             try {
@@ -564,6 +564,58 @@
         let lastCheckedIndex = null; 
         
         let batchPenaltyTargets = [];
+
+        // [New] 고급 한글 검색 유틸리티 (자모 분해, 겹받침 처리)
+        const Hangul = {
+            CHO: ["ㄱ","ㄲ","ㄴ","ㄷ","ㄸ","ㄹ","ㅁ","ㅂ","ㅃ","ㅅ","ㅆ","ㅇ","ㅈ","ㅉ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"],
+            JUNG: ["ㅏ","ㅐ","ㅑ","ㅒ","ㅓ","ㅔ","ㅕ","ㅖ","ㅗ","ㅘ","ㅙ","ㅚ","ㅛ","ㅜ","ㅝ","ㅞ","ㅟ","ㅠ","ㅡ","ㅢ","ㅣ"],
+            JONG: ["","ㄱ","ㄲ","ㄳ","ㄴ","ㄵ","ㄶ","ㄷ","ㄹ","ㄺ","ㄻ","ㄼ","ㄽ","ㄾ","ㄿ","ㅀ","ㅁ","ㅂ","ㅄ","ㅅ","ㅆ","ㅇ","ㅈ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"],
+            // 겹받침 분해 맵
+            COMPLEX_JONG: {
+                'ㄳ':'ㄱㅅ', 'ㄵ':'ㄴㅈ', 'ㄶ':'ㄴㅎ', 'ㄺ':'ㄹㄱ', 'ㄻ':'ㄹㅁ', 'ㄼ':'ㄹㅂ', 
+                'ㄽ':'ㄹㅅ', 'ㄾ':'ㄹㅌ', 'ㄿ':'ㄹㅍ', 'ㅀ':'ㄹㅎ', 'ㅄ':'ㅂㅅ'
+            },
+            
+            // 초성 추출 (기존 getChoseong 대체)
+            getCho: function(str) {
+                let result = "";
+                for(let i=0; i<str.length; i++) {
+                    const code = str.charCodeAt(i) - 44032;
+                    if(code > -1 && code < 11172) result += this.CHO[Math.floor(code / 588)];
+                    else result += str.charAt(i);
+                }
+                return result;
+            },
+
+            // 완전 자모 분해 (삶 -> ㅅㅏㄹㅁ)
+            disassemble: function(str) {
+                let result = "";
+                for (let i = 0; i < str.length; i++) {
+                    const char = str.charAt(i);
+                    const code = char.charCodeAt(0) - 44032;
+                    
+                    if (code > -1 && code < 11172) {
+                        const choIdx = Math.floor(code / 588);
+                        const jungIdx = Math.floor((code - (choIdx * 588)) / 28);
+                        const jongIdx = code % 28;
+                        
+                        const cho = this.CHO[choIdx];
+                        const jung = this.JUNG[jungIdx];
+                        let jong = this.JONG[jongIdx];
+
+                        // 겹받침 분해 (ex: ㄺ -> ㄹㄱ)
+                        if(this.COMPLEX_JONG[jong]) {
+                            jong = this.COMPLEX_JONG[jong];
+                        }
+
+                        result += cho + jung + jong;
+                    } else {
+                        result += char;
+                    }
+                }
+                return result;
+            }
+        };
 
         const STYLE_OPTIONS = ["인파이터", "아웃복서", "슬러거", "하드 펀처", "바디 스내처", "볼륨 펀처", "스위치 히터", "브롤러", "카운터 펀처", "복서-펀처", "슬릭", "샤프슈터", "패스트 핸드"];
         
@@ -599,7 +651,7 @@
         <div class="grid grid-cols-2 gap-2 text-xs">
             <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
                 <div class="font-bold text-slate-500 mb-1 flex justify-between">
-                    <span>🥈 실버 (3~6전)</span>
+                    <span>🥈 SILVER (3~6전)</span>
                     <span class="text-blue-600">+7점</span>
                 </div>
                 <div class="space-y-0.5 text-[10px]">
@@ -609,7 +661,7 @@
             </div>
             <div class="bg-white p-3 rounded-xl border border-yellow-300 shadow-sm ring-1 ring-yellow-100">
                 <div class="font-bold text-amber-600 mb-1 flex justify-between">
-                    <span>🥇 골드 (7~12전)</span>
+                    <span>🥇 GOLD (7~12전)</span>
                     <span class="text-blue-600">+9점</span>
                 </div>
                 <div class="space-y-0.5 text-[10px]">
@@ -619,7 +671,7 @@
             </div>
             <div class="col-span-2 bg-gradient-to-r from-cyan-50 to-white p-3 rounded-xl border border-cyan-200 shadow-sm">
                 <div class="font-bold text-cyan-700 mb-1 flex justify-between items-center">
-                    <span>💎 플래티넘 (13전~)</span>
+                    <span>💎 PLATINUM (13전~)</span>
                     <span class="bg-cyan-100 text-cyan-800 px-2 py-0.5 rounded text-[10px] border border-cyan-200">+13점 지급</span>
                 </div>
                 <div class="flex gap-4 text-[10px] text-cyan-900">
@@ -712,7 +764,10 @@
             }
         });
 
-        document.getElementById('searchInput').addEventListener('input', (e) => { searchQuery = e.target.value.toLowerCase(); renderRankings(); });
+        document.getElementById('searchInput').addEventListener('input', (e) => { 
+            searchQuery = e.target.value.toLowerCase(); 
+            renderRankings(); 
+        });
         
         const presetContainer = document.getElementById('trunkColorPresets');
         presetContainer.innerHTML = '';
@@ -751,9 +806,52 @@
             if(element) element.classList.add('active'); 
         }
 
-        function loadData() { const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'rankings', 'main'); onSnapshot(docRef, (doc) => { if (doc.exists()) { const data = doc.data(); rankingsData = data.rankings || []; matchHistoryData = data.matchHistory || []; seasonArchives = data.seasonArchives || {}; activeSeason = data.activeSeason || "시즌 1"; adminMemos = data.adminMemos || []; ruleHtml = data.ruleHtml || DEFAULT_RULE_HTML; if(!viewHistorySeason) viewHistorySeason = activeSeason; updateSeasonUI(); renderMemos(); document.getElementById('ruleHtmlInput').value = ruleHtml; if(data.noticeData) { document.getElementById('noticeContentInput').value = data.noticeData.content || ""; document.getElementById('noticeActiveToggle').checked = data.noticeData.active || false; } rankingsData.forEach((p, i) => { if(p.defenseCount === undefined) p.defenseCount = 0; if(p.previousRank === undefined) p.previousRank = i + 1; if(p.careerHighRank === undefined) p.careerHighRank = i + 1; if(p.elo === undefined) p.elo = 1000; if(p.careerHighElo === undefined) p.careerHighElo = p.elo; if(!p.trunkColor) p.trunkColor = '#1f2937'; p.choseong = getChoseong(p.name); }); renderRankings(); populateMatchSelectors(); renderSeasonList(); checkSeasonInactive(); enrichMatchHistory(); updateAdminHistorySeasonSelector(); renderAdminMatches(); if (currentProfileId) updateProfileStats(currentProfileId, document.getElementById('pModalSeason').value); 
-        if(document.getElementById('totalPlayerCount')) document.getElementById('totalPlayerCount').textContent = `(${rankingsData.length}명)`;
-        } }); }
+        function loadData() { 
+            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'rankings', 'main'); 
+            onSnapshot(docRef, (doc) => { 
+                if (doc.exists()) { 
+                    const data = doc.data(); 
+                    rankingsData = data.rankings || []; 
+                    matchHistoryData = data.matchHistory || []; 
+                    seasonArchives = data.seasonArchives || {}; 
+                    activeSeason = data.activeSeason || "시즌 1"; 
+                    adminMemos = data.adminMemos || []; 
+                    ruleHtml = data.ruleHtml || DEFAULT_RULE_HTML; 
+                    if(!viewHistorySeason) viewHistorySeason = activeSeason; 
+                    updateSeasonUI(); 
+                    renderMemos(); 
+                    document.getElementById('ruleHtmlInput').value = ruleHtml; 
+                    if(data.noticeData) { 
+                        document.getElementById('noticeContentInput').value = data.noticeData.content || ""; 
+                        document.getElementById('noticeActiveToggle').checked = data.noticeData.active || false; 
+                    } 
+                    
+                    // [Modified] 데이터 전처리: 초성 및 자모 완전 분해 데이터 생성
+                    rankingsData.forEach((p, i) => { 
+                        if(p.defenseCount === undefined) p.defenseCount = 0; 
+                        if(p.previousRank === undefined) p.previousRank = i + 1; 
+                        if(p.careerHighRank === undefined) p.careerHighRank = i + 1; 
+                        if(p.elo === undefined) p.elo = 1000; 
+                        if(p.careerHighElo === undefined) p.careerHighElo = p.elo; 
+                        if(!p.trunkColor) p.trunkColor = '#1f2937'; 
+                        
+                        // 검색용 데이터 생성
+                        p.choseong = Hangul.getCho(p.name);       // 초성 (ㅎㄱㄷ)
+                        p.jamo = Hangul.disassemble(p.name);      // 자모 분해 (ㅎㅗㅇㄱㅣㄹㄷㅗㅇ)
+                    }); 
+                    
+                    renderRankings(); 
+                    populateMatchSelectors(); 
+                    renderSeasonList(); 
+                    checkSeasonInactive(); 
+                    enrichMatchHistory(); 
+                    updateAdminHistorySeasonSelector(); 
+                    renderAdminMatches(); 
+                    if (currentProfileId) updateProfileStats(currentProfileId, document.getElementById('pModalSeason').value); 
+                    if(document.getElementById('totalPlayerCount')) document.getElementById('totalPlayerCount').textContent = `(${rankingsData.length}명)`;
+                } 
+            }); 
+        }
 
         window.saveNoticeSettings = async () => { const content = document.getElementById('noticeContentInput').value; const active = document.getElementById('noticeActiveToggle').checked; const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'rankings', 'main'); try { await runTransaction(db, async (transaction) => { const sfDoc = await transaction.get(docRef); if (!sfDoc.exists()) throw "Doc missing"; transaction.set(docRef, { noticeData: { content, active } }, { merge: true }); }); const btn = document.querySelector('button[onclick="saveNoticeSettings()"]'); const originalText = btn.innerText; btn.innerText = "✅ 저장됨"; setTimeout(() => btn.innerText = originalText, 1500); } catch(e) { alert("공지 저장 실패"); } };
 
@@ -1774,11 +1872,19 @@ function calculateHybridEloChange(p1Elo, p2Elo, isWin, p1Stats) {
             const listContainer = document.getElementById('deletePlayerList');
             listContainer.innerHTML = '';
             lastCheckedIndex = null; 
+            
+            // [Modified] Delete Modal Advanced Search
+            const queryJamo = Hangul.disassemble(query.replace(/\s/g, ""));
+            
             let filtered = rankingsData.filter(p => {
-                const nameMatch = p.name.toLowerCase().includes(query);
-                const choMatch = p.choseong && p.choseong.includes(query);
-                return nameMatch || choMatch;
+                const name = p.name || "";
+                const nameClean = name.replace(/\s/g, "").toLowerCase();
+                if (nameClean.includes(query.replace(/\s/g, ""))) return true;
+                if (p.choseong && p.choseong.includes(query)) return true;
+                if (p.jamo && p.jamo.includes(queryJamo)) return true;
+                return false;
             });
+            
             filtered.sort((a, b) => {
                 const aTotal = (a.wins || 0) + (a.losses || 0);
                 const bTotal = (b.wins || 0) + (b.losses || 0);
@@ -1855,10 +1961,17 @@ function calculateHybridEloChange(p1Elo, p2Elo, isWin, p1Stats) {
         window.toggleDeleteSelectAll = () => {
             const query = document.getElementById('deleteSearchInput').value.toLowerCase();
             const isChecked = document.getElementById('deleteAllCheckbox').checked;
+            
+            // [Modified] Select All Advanced Search
+            const queryJamo = Hangul.disassemble(query.replace(/\s/g, ""));
+            
             const filtered = rankingsData.filter(p => {
-                const nameMatch = p.name.toLowerCase().includes(query);
-                const choMatch = p.choseong && p.choseong.includes(query);
-                return nameMatch || choMatch;
+                const name = p.name || "";
+                const nameClean = name.replace(/\s/g, "").toLowerCase();
+                if (nameClean.includes(query.replace(/\s/g, ""))) return true;
+                if (p.choseong && p.choseong.includes(query)) return true;
+                if (p.jamo && p.jamo.includes(queryJamo)) return true;
+                return false;
             });
             filtered.forEach(p => {
                 if (isChecked) deleteSelectedIds.add(p.id);
@@ -1946,7 +2059,9 @@ function calculateHybridEloChange(p1Elo, p2Elo, isWin, p1Stats) {
                     text: `${displayName} (${p.elo})`, 
                     displayName: displayName, 
                     name: p.name, 
-                    choseong: getChoseong(p.name), 
+                    // [Modified] Add search properties
+                    choseong: p.choseong,
+                    jamo: p.jamo,
                     elo: p.elo || 1000,
                     isRanked: isRanked 
                 }; 
@@ -1966,11 +2081,28 @@ function calculateHybridEloChange(p1Elo, p2Elo, isWin, p1Stats) {
                 options: playerOptions, 
                 valueField: 'value', 
                 labelField: 'text', 
-                searchField: ['name', 'choseong', 'text'], 
+                // [Modified] Custom search logic via score function
+                searchField: ['text'], 
                 create: false, 
                 maxOptions: null, 
                 onInitialize: function() {
                     this.control_input.setAttribute('type', 'search');
+                },
+                // [New] Advanced Search Score Function
+                score: function(search) {
+                    const term = search.toLowerCase().replace(/\s/g, "");
+                    const termJamo = Hangul.disassemble(term);
+                    
+                    return function(item) {
+                        // 1. Name match (High priority)
+                        if (item.name.toLowerCase().replace(/\s/g, "").includes(term)) return 100;
+                        // 2. Choseong match
+                        if (item.choseong && item.choseong.includes(term)) return 80;
+                        // 3. Jamo decomposition match (Low priority)
+                        if (item.jamo && item.jamo.includes(termJamo)) return 60;
+                        
+                        return 0;
+                    };
                 },
                 render: { 
                     option: function(data, escape) { 
@@ -2007,10 +2139,21 @@ function calculateHybridEloChange(p1Elo, p2Elo, isWin, p1Stats) {
             const globalRankedPlayers = rankingsData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3)
                                                                     .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
 
+            // [Modified] Real-time Ranking Advanced Search
+            const queryJamo = Hangul.disassemble(searchQuery.replace(/\s/g, ""));
+            
             const filteredData = rankingsData.filter(p => {
-                const nameMatch = p.name.toLowerCase().includes(searchQuery);
-                const choMatch = p.choseong && p.choseong.includes(searchQuery);
-                return nameMatch || choMatch;
+                const name = p.name || "";
+                const nameClean = name.replace(/\s/g, "").toLowerCase();
+                
+                // 1. Text Match
+                if (nameClean.includes(searchQuery.replace(/\s/g, ""))) return true;
+                // 2. Choseong Match
+                if (p.choseong && p.choseong.includes(searchQuery)) return true;
+                // 3. Jamo Match
+                if (p.jamo && p.jamo.includes(queryJamo)) return true;
+                
+                return false;
             });
 
             const ranked = filteredData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3)
