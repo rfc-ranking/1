@@ -279,8 +279,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // [System] Version Control (Auto Updated by Developer)
-        const APP_VERSION = "v3.94"; // Minor Bump
-        const UPDATE_NOTE = "Update: Search Auto-complete Fix";
+        const APP_VERSION = "v3.96"; // Bump Version
+        const UPDATE_NOTE = "Update: Advanced Search Fix (Compound Jamo)";
 
         // Apply Version to UI
         document.title = `RFC 랭킹전 (${APP_VERSION})`;
@@ -332,17 +332,67 @@
             }
         }
 
-        // [New] Choseong Helper
-        function getChoseong(str) {
-            const cho = ["ㄱ","ㄲ","ㄴ","ㄷ","ㄸ","ㄹ","ㅁ","ㅂ","ㅃ","ㅅ","ㅆ","ㅇ","ㅈ","ㅉ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"];
-            let result = "";
-            for(let i=0; i<str.length; i++) {
-                const code = str.charCodeAt(i) - 44032;
-                if(code > -1 && code < 11172) result += cho[Math.floor(code / 588)];
-                else result += str.charAt(i);
+        // [New] 고급 한글 검색 유틸리티 (자모 분해, 겹받침 처리)
+        const Hangul = {
+            CHO: ["ㄱ","ㄲ","ㄴ","ㄷ","ㄸ","ㄹ","ㅁ","ㅂ","ㅃ","ㅅ","ㅆ","ㅇ","ㅈ","ㅉ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"],
+            JUNG: ["ㅏ","ㅐ","ㅑ","ㅒ","ㅓ","ㅔ","ㅕ","ㅖ","ㅗ","ㅘ","ㅙ","ㅚ","ㅛ","ㅜ","ㅝ","ㅞ","ㅟ","ㅠ","ㅡ","ㅢ","ㅣ"],
+            JONG: ["","ㄱ","ㄲ","ㄳ","ㄴ","ㄵ","ㄶ","ㄷ","ㄹ","ㄺ","ㄻ","ㄼ","ㄽ","ㄾ","ㄿ","ㅀ","ㅁ","ㅂ","ㅄ","ㅅ","ㅆ","ㅇ","ㅈ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"],
+            // 겹받침 분해 맵 (종성용)
+            COMPLEX_JONG: {
+                'ㄳ':'ㄱㅅ', 'ㄵ':'ㄴㅈ', 'ㄶ':'ㄴㅎ', 'ㄺ':'ㄹㄱ', 'ㄻ':'ㄹㅁ', 'ㄼ':'ㄹㅂ', 
+                'ㄽ':'ㄹㅅ', 'ㄾ':'ㄹㅌ', 'ㄿ':'ㄹㅍ', 'ㅀ':'ㄹㅎ', 'ㅄ':'ㅂㅅ'
+            },
+            // [Added] 낱자 겹받침 분해 맵 (검색어 처리용)
+            JAMO_MAP: {
+                'ㄳ':'ㄱㅅ', 'ㄵ':'ㄴㅈ', 'ㄶ':'ㄴㅎ', 'ㄺ':'ㄹㄱ', 'ㄻ':'ㄹㅁ', 'ㄼ':'ㄹㅂ', 
+                'ㄽ':'ㄹㅅ', 'ㄾ':'ㄹㅌ', 'ㄿ':'ㄹㅍ', 'ㅀ':'ㄹㅎ', 'ㅄ':'ㅂㅅ'
+            },
+            
+            // 초성 추출
+            getCho: function(str) {
+                let result = "";
+                for(let i=0; i<str.length; i++) {
+                    const code = str.charCodeAt(i) - 44032;
+                    if(code > -1 && code < 11172) result += this.CHO[Math.floor(code / 588)];
+                    else result += str.charAt(i);
+                }
+                return result;
+            },
+
+            // 완전 자모 분해 (삶 -> ㅅㅏㄹㅁ, ㄻ -> ㄹㅁ)
+            disassemble: function(str) {
+                let result = "";
+                for (let i = 0; i < str.length; i++) {
+                    const char = str.charAt(i);
+                    const code = char.charCodeAt(0) - 44032;
+                    
+                    if (code > -1 && code < 11172) {
+                        const choIdx = Math.floor(code / 588);
+                        const jungIdx = Math.floor((code - (choIdx * 588)) / 28);
+                        const jongIdx = code % 28;
+                        
+                        const cho = this.CHO[choIdx];
+                        const jung = this.JUNG[jungIdx];
+                        let jong = this.JONG[jongIdx];
+
+                        // 겹받침 분해 (ex: ㄺ -> ㄹㄱ)
+                        if(this.COMPLEX_JONG[jong]) {
+                            jong = this.COMPLEX_JONG[jong];
+                        }
+
+                        result += cho + jung + jong;
+                    } else {
+                        // [Modified] 낱자 겹받침 처리 (ㄻ -> ㄹㅁ)
+                        if (this.JAMO_MAP[char]) {
+                            result += this.JAMO_MAP[char];
+                        } else {
+                            result += char;
+                        }
+                    }
+                }
+                return result;
             }
-            return result;
-        }
+        };
 
         function getKSTDate() { return new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Seoul" }); }
 
@@ -363,9 +413,10 @@
 
                 rankingsData.forEach(p => { 
                     if (!p.careerHighElo) p.careerHighElo = p.elo || 1000; 
-                    // [Fix] Generate choseong data
-                    p.choseong = getChoseong(p.name);
-                });
+                    // [Fix] Generate search index data
+                    p.choseong = Hangul.getCho(p.name);
+                    p.jamo = Hangul.disassemble(p.name);
+                }); 
                 
                 renderRankings();
                 enrichMatchHistory(); 
@@ -495,28 +546,46 @@
                 fullData = [...rankingsData];
             } else {
                 fullData = [...(seasonArchives[viewRankingSeason]?.rankings || [])];
+                
+                // [Fix] Ensure archive data also has search index
+                fullData.forEach(p => {
+                    if(!p.choseong) p.choseong = Hangul.getCho(p.name);
+                    if(!p.jamo) p.jamo = Hangul.disassemble(p.name);
+                });
             }
 
             // 2. Calculate Global Rankings (Based on ELO) - for finding 'Real Rank'
             // [Modified] Only players with >= 3 matches are considered for numbering
             // Use Number() to safely handle string inputs (e.g. "1" + "2" = 3, not "12")
             const globalRankedPlayers = fullData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3)
-                                                                    .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
+                                                                        .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
 
             // 3. Apply Search Filter
             let filteredData = fullData;
             if (searchQuery) {
+                // [Modified] Decompose query for complex consonant search (e.g. ㄻ -> ㄹㅁ)
+                const queryJamo = Hangul.disassemble(searchQuery.replace(/\s/g, ""));
+                const qClean = searchQuery.replace(/\s/g, "");
+                
                 filteredData = fullData.filter(p => {
                     const name = p.name || "";
-                    // [Fix] Generate choseong on the fly if missing (for archive data)
-                    const ch = p.choseong || getChoseong(name);
-                    return name.toLowerCase().includes(searchQuery) || ch.includes(searchQuery);
+                    const nameClean = name.replace(/\s/g, "").toLowerCase();
+                    
+                    // 1. Text Match
+                    if (nameClean.includes(qClean)) return true;
+                    // 2. Choseong Match - [Modified] Check both raw query and decomposed query
+                    // (e.g. '로마첸코' -> 'ㄹㅁㅊㅋ'. If query is 'ㄻ'->'ㄹㅁ', 'ㄹㅁㅊㅋ' includes 'ㄹㅁ')
+                    if (p.choseong && (p.choseong.includes(qClean) || p.choseong.includes(queryJamo))) return true;
+                    // 3. Jamo Match
+                    if (p.jamo && p.jamo.includes(queryJamo)) return true;
+                    
+                    return false;
                 });
             }
 
             // 4. Separate Groups: Ranked (>=3) / Placement (1~2) / Unranked (0)
             const ranked = filteredData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3)
-                                                    .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
+                                                        .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
             
             const placement = filteredData.filter(p => {
                 const total = Number(p.wins || 0) + Number(p.losses || 0);
@@ -524,7 +593,7 @@
             }).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
             
             const unranked = filteredData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) === 0)
-                                                     .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
+                                                             .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
             
             // 현재 시간이 하이라이트 종료 시간 전이라면 하이라이트 적용
             const now = Date.now();
@@ -641,7 +710,7 @@
                                 <div class="flex items-center gap-1.5 md:gap-2 mb-0.5 md:mb-1.5">
                                     <div class="w-1.5 h-4 rounded-sm shadow-sm ring-1 ring-inset ring-black/10" style="background: ${p.trunkColor || '#1f2937'};" title="트렁크 색상"></div>
                                     <span class="font-bold text-slate-600 truncate text-sm md:text-lg">${p.name}</span>
-                                    <span class="text-[9px] bg-slate-100 text-slate-500 border px-1.5 rounded font-bold">Placement</span>
+                                    <span class="text-[9px] px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500 border border-slate-200 font-bold tracking-wide uppercase shadow-sm">Placement</span>
                                 </div>
                                 <div class="flex items-center gap-1.5 mt-0.5">
                                     <span class="bg-amber-50 text-amber-600/70 text-[10px] px-1.5 py-0.5 rounded border border-amber-100 font-bold">⚡${p.elo || 1000} (임시)</span>
@@ -747,8 +816,8 @@
             
             // Optional: If you want tab selectors to also update header, uncomment below
             // selector.onchange = (e) => { 
-            //     viewSeason = e.target.value; 
-            //     renderMatches(); 
+            //      viewSeason = e.target.value; 
+            //      renderMatches(); 
             // };
             selector.onchange = (e) => { viewSeason = e.target.value; renderMatches(); }; 
         }
@@ -907,8 +976,8 @@
                     const prevName = pastSeasons[0];
                     const prevData = seasonArchives[prevName].rankings || [];
                     championList = prevData.filter(p => (p.wins + p.losses) >= 3)
-                                         .sort((a, b) => (b.elo || 1000) - (a.elo || 1000))
-                                         .slice(0, 3);
+                                             .sort((a, b) => (b.elo || 1000) - (a.elo || 1000))
+                                             .slice(0, 3);
                     champTitle = "전시즌 TOP 3"; // [변경]
                     champSub = `${prevName} 레전드`;
                 }
