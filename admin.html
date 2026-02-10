@@ -71,6 +71,12 @@
             cursor: pointer;
             margin-left: 8px;
         }
+
+        /* [Added] Red Theme for Tom Select Dropdown Hover */
+        .red-theme .ts-dropdown .active {
+            background-color: #fee2e2 !important; /* Red-100 */
+            color: #b91c1c !important;            /* Red-700 */
+        }
     </style>
 </head>
 <body class="text-slate-800 relative min-h-screen">
@@ -532,16 +538,22 @@
         const AUTO_LOGIN_EMAIL = ""; 
         const AUTO_LOGIN_PW = "";
         
-        // [System] Admin Version Control
-        const ADMIN_VERSION = "v4.39"; 
-        const UPDATE_NOTE = "Update: 초성검색";
+        // [System] 통합 버전 관리 설정 (이곳만 수정하면 UI 전체 반영)
+        const ADMIN_CONFIG = {
+            version: "v4.41",
+            updateNote: "Update: Red Theme & Game ID Display",
+            title: "RFC 랭킹 매니저 (Admin)"
+        };
 
         function initVersionUI() {
             try {
-                document.title = `RFC 랭킹 매니저 [${ADMIN_VERSION}]`;
+                // 1. 브라우저 탭 제목 업데이트
+                document.title = `${ADMIN_CONFIG.title} [${ADMIN_CONFIG.version}]`;
+                
+                // 2. 상단 헤더 버전 정보 업데이트
                 const adminVerEl = document.getElementById('adminVersionDisplay');
                 if(adminVerEl) {
-                    adminVerEl.innerHTML = `<span class="font-bold text-slate-600">${ADMIN_VERSION}</span> <span class="text-slate-400 font-normal ml-1 text-[11px]">${UPDATE_NOTE}</span>`;
+                    adminVerEl.innerHTML = `<span class="font-bold text-slate-600">${ADMIN_CONFIG.version}</span> <span class="text-slate-400 font-normal ml-1 text-[11px]">${ADMIN_CONFIG.updateNote}</span>`;
                 }
             } catch (e) {
                 console.warn("Version UI Update Failed", e);
@@ -2073,6 +2085,7 @@ function calculateHybridEloChange(p1Elo, p2Elo, isWin, p1Stats) {
                     text: `${displayName} (${p.elo})`, 
                     displayName: displayName, 
                     name: p.name, 
+                    gameId: p.gameId || '-', // [Added] Game ID for display
                     // [Modified] Add search properties
                     choseong: p.choseong,
                     jamo: p.jamo,
@@ -2122,19 +2135,37 @@ function calculateHybridEloChange(p1Elo, p2Elo, isWin, p1Stats) {
                 render: { 
                     option: function(data, escape) { 
                         const rankClass = data.isRanked ? "font-bold text-slate-700" : "text-slate-500";
-                        return `<div><span class="${rankClass}">${escape(data.displayName)}</span> <span class="text-xs text-slate-400">(${data.elo})</span></div>`; 
+                        // [Modified] Two-line display for options
+                        return `<div class="flex flex-col py-1 leading-tight">
+                                    <div><span class="${rankClass}">${escape(data.displayName)}</span> <span class="text-xs text-slate-400">(${data.elo})</span></div>
+                                    <div class="text-[10px] text-slate-400">ID: ${escape(data.gameId)}</div>
+                                </div>`; 
                     }, 
                     item: function(data, escape) { 
-                        return `<div class="truncate block w-full">${escape(data.displayName)} <span class="text-xs text-gray-400">(${data.elo})</span></div>`; 
+                        // [Modified] Two-line display for selected item
+                        return `<div class="flex flex-col w-full leading-tight py-0.5">
+                                    <div class="truncate"><span class="font-bold text-slate-700">${escape(data.displayName)}</span> <span class="text-xs text-gray-400">(${data.elo})</span></div>
+                                    <div class="text-[10px] text-gray-400 truncate">${escape(data.gameId)}</div>
+                                </div>`; 
                     } 
                 } 
             }; 
             
             const previewConfig = { ...config, onChange: function(value) { updateMatchPreview(); } }; 
             
+            // [Added] Red Config with Red Theme Class
+            const redConfig = {
+                ...config,
+                onChange: function(value) { updateMatchPreview(); },
+                onInitialize: function() {
+                    this.control_input.setAttribute('type', 'search');
+                    this.wrapper.classList.add('red-theme');
+                }
+            };
+
             try { 
                 p1Tom = new TomSelect('#p1Select', previewConfig); 
-                p2Tom = new TomSelect('#p2Select', previewConfig); 
+                p2Tom = new TomSelect('#p2Select', redConfig); // Use Red Config
                 if(sPen) pPenTom = new TomSelect('#penaltyTargetSelect', config); 
             } catch(e) { console.error("Tom Select initialization failed:", e); } 
         };
