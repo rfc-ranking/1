@@ -9,23 +9,23 @@
     <style>
         body { font-family: 'Pretendard', sans-serif; background-color: #f1f5f9; -webkit-tap-highlight-color: transparent; }
         
-        /* 기본 티어 스타일 (4위 이하 적용) - 연회색 배경(Unified Gray) */
-        .tier-bronze { border-left: 5px solid #ad8a56; background: #f8fafc; }
-        .tier-silver { border-left: 5px solid #94a3b8; background: #f8fafc; }
-        .tier-gold { border-left: 5px solid #f59e0b; background: #f8fafc; }
-        .tier-platinum { border-left: 5px solid #06b6d4; background: #f8fafc; }
-        
-        /* 1~3위 전용 올림픽 글로우 효과 (Soft Version) */
-        .rank-1-glow {
-            background: linear-gradient(90deg, #ffffff 30%, #fffbeb 100%) !important;
-            box-shadow: 0 10px 25px -5px rgba(234, 179, 8, 0.2), 0 8px 10px -6px rgba(234, 179, 8, 0.1) !important;
-            border: 1px solid #fef08a !important; 
-            border-left: 5px solid #f59e0b !important;
-            z-index: 10 !important;
-            transform: scale(1.01);
+        /* 기본 티어 스타일 (4위 이하 적용) - 왼쪽 테두리 제거 */
+        .tier-bronze, .tier-silver, .tier-gold, .tier-platinum { 
+            border-left: none; 
+            background: #f8fafc; 
         }
         
-        /* [Modified] 2nd Place: Shiny Metallic Silver Style */
+        /* [User Site] 1위 전용 글로우 효과 */
+        .rank-1-glow {
+            background: linear-gradient(90deg, #ffffff 30%, #fffbeb 100%) !important;
+            box-shadow: 0 10px 25px -5px rgba(234, 179, 8, 0.3), 0 8px 10px -6px rgba(234, 179, 8, 0.2) !important;
+            border: 1px solid #fef08a !important; 
+            border-left: 5px solid #f59e0b !important;
+            z-index: 20 !important;
+            transform: scale(1.02);
+        }
+        
+        /* 2nd Place */
         .rank-2-glow {
             background: linear-gradient(120deg, #ffffff 0%, #f8fafc 40%, #e2e8f0 100%) !important;
             box-shadow: 0 10px 25px -5px rgba(148, 163, 184, 0.3), 0 8px 10px -6px rgba(148, 163, 184, 0.1) !important;
@@ -34,6 +34,7 @@
             z-index: 9 !important;
         }
 
+        /* 3rd Place */
         .rank-3-glow {
             background: linear-gradient(90deg, #ffffff 30%, #fff7ed 100%) !important;
             box-shadow: 0 10px 25px -5px rgba(173, 138, 86, 0.15), 0 8px 10px -6px rgba(173, 138, 86, 0.1) !important;
@@ -42,16 +43,56 @@
             z-index: 8 !important;
         }
 
+        /* [User Style] Veteran Badge (Luxury Gold) */
+        .v-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 16px;
+            height: 16px;
+            font-size: 9px;
+            font-weight: 900;
+            border-radius: 4px;
+            margin-left: 4px;
+            vertical-align: middle;
+            line-height: 1;
+            cursor: help;
+        }
+        .v-gold { 
+            background: linear-gradient(135deg, #fbbf24, #d97706); 
+            color: white; 
+            text-shadow: 0 1px 1px rgba(0,0,0,0.1); 
+            border: 1px solid #f59e0b; 
+        }
+
+        /* [User Style] Bounty Style (Style B. Wanted Poster) */
+        .bounty-pill-dark {
+            font-size: 12px; /* 12px로 수정됨 */
+            background-color: #1f2937;
+            color: #fbbf24;
+            padding: 1px 5px;
+            border-radius: 4px;
+            margin-left: 3px;
+            font-weight: 800;
+            vertical-align: middle;
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
         /* 순위 숫자 반응형 크기 */
         .rank-num-1 { color: #f59e0b; font-size: 1.2rem; text-shadow: 0 1px 2px rgba(245, 158, 11, 0.2); }
         .rank-num-2 { color: #64748b; font-size: 1.1rem; font-weight: 800; text-shadow: 0 1px 2px rgba(148, 163, 184, 0.2); }
         .rank-num-3 { color: #ad8a56; font-size: 1.0rem; }
-        
-        /* [Modified] Top 10 (4~10위): Brighter Emerald (#047857) 적용 */
         .rank-num-top10 { color: #047857; font-size: 1.0rem; font-weight: 900; text-shadow: 0 1px 2px rgba(4, 120, 87, 0.15); }
-        
         .rank-num-normal { color: #94a3b8; font-size: 1.0rem; font-weight: 800; }
         .rank-unranked { color: #cbd5e1; font-size: 1.0rem; font-weight: 800; }
+
+        /* [User Style] Rank Change Colors */
+        .rank-up { color: #dc2626; font-weight: 800; font-size: 0.75rem; }    /* Red-600 */
+        .rank-down { color: #2563eb; font-weight: 800; font-size: 0.75rem; } /* Blue-600 */
+        .rank-keep { color: #cbd5e1; font-size: 0.75rem; }
 
         .rank-4-10-border {
             box-shadow: 0 4px 6px -1px rgba(4, 120, 87, 0.05), 0 2px 4px -1px rgba(4, 120, 87, 0.03) !important;
@@ -83,7 +124,6 @@
         .color-preset.active { border-color: #3b82f6; box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3b82f6; }
         .color-preset.active::after { content: '✔'; color: white; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 12px; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
         
-        /* Highlight Animation for User View (Optional) */
         @keyframes slowFade {
             0% { transform: scale(1); background-color: #ffffff; z-index: 20; }
             10% { transform: scale(1.02); background-color: #bfdbfe !important; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.5); z-index: 20; border-color: #3b82f6; }
@@ -278,17 +318,33 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // [System] Version Control (Auto Updated by Developer)
-        const APP_VERSION = "v3.96"; // Bump Version
-        const UPDATE_NOTE = "Update: Advanced Search Fix (Compound Jamo)";
+        // [System] 통합 버전 관리 설정 (이곳만 수정하면 UI 전체 반영)
+        // 🚀 새로운 기능 추가 시 여기만 수정하세요. 자동으로 반영됩니다.
+        const USER_CONFIG = {
+            version: "v4.15",
+            updateNote: "UI: 현상금 뱃지 크기 수정 (12px)",
+            title: "RFC 랭킹전"
+        };
 
-        // Apply Version to UI
-        document.title = `RFC 랭킹전 (${APP_VERSION})`;
-        const versionEl = document.getElementById('displayVersion'); // Footer
-        if(versionEl) versionEl.textContent = `${APP_VERSION} ${UPDATE_NOTE}`;
-        
-        const headerVerEl = document.getElementById('headerVersion'); // Header
-        if(headerVerEl) headerVerEl.textContent = APP_VERSION;
+        // 버전 정보 UI 자동 반영 함수
+        function initSystemUI() {
+            try {
+                // 1. 브라우저 탭 제목 설정
+                document.title = `${USER_CONFIG.title} (${USER_CONFIG.version})`;
+
+                // 2. 헤더(Header) 버전 배지 설정
+                const headerVerEl = document.getElementById('headerVersion');
+                if(headerVerEl) headerVerEl.textContent = USER_CONFIG.version;
+
+                // 3. 푸터(Footer) 상세 버전 정보 설정
+                const footerVerEl = document.getElementById('displayVersion');
+                if(footerVerEl) footerVerEl.textContent = `${USER_CONFIG.version} ${USER_CONFIG.updateNote}`;
+                
+            } catch (e) {
+                console.warn("System UI Init Failed", e);
+            }
+        }
+        initSystemUI();
 
         const firebaseConfig = { apiKey: "AIzaSyDlj68ex-fM0ExRdD-tvCy-UyIneVoPmGk", authDomain: "rfk-ranking.firebaseapp.com", projectId: "rfk-ranking", storageBucket: "rfk-ranking.firebasestorage.app", messagingSenderId: "675366165774", appId: "1:675366165774:web:795d34c56eab630b4dcb5f", measurementId: "G-CXPDZQ8GTL" };
         const app = initializeApp(firebaseConfig); const db = getFirestore(app); const appId = 'ranking-manager-default';
@@ -394,6 +450,13 @@
             }
         };
 
+        // [Helper] Check Veteran Status
+        function isVeteran(p) {
+            const total = (p.wins || 0) + (p.losses || 0);
+            const score = p.elo || 1000;
+            return total >= 10 && score >= 1300;
+        }
+
         function getKSTDate() { return new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Seoul" }); }
 
         onSnapshot(docRef, (docSnapshot) => {
@@ -416,6 +479,9 @@
                     // [Fix] Generate search index data
                     p.choseong = Hangul.getCho(p.name);
                     p.jamo = Hangul.disassemble(p.name);
+                    // [New] Bounty Init (Display Only)
+                    if(p.bounty === undefined) p.bounty = 0;
+                    if(isVeteran(p) && p.bounty < 10) p.bounty = 10;
                 }); 
                 
                 renderRankings();
@@ -512,13 +578,13 @@
         function updateUI() { const now = new Date(); document.getElementById('currentDate').textContent = now.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' }); updateHeaderSeasonSelector(); renderRankings(); updateSeasonSelector(); updateHofSeasonSelector(); renderMatches(); renderHOF(); }
         
         function getTier(wins, losses) { 
-    const matches = (wins || 0) + (losses || 0); 
-    
-    if (matches < 3) return { name: 'BRONZE', class: 'tier-bronze', color: 'bg-white border border-amber-600 text-amber-700' }; 
-    if (matches < 7) return { name: 'SILVER', class: 'tier-silver', color: 'bg-white border border-slate-400 text-slate-500' }; 
-    if (matches < 13) return { name: 'GOLD', class: 'tier-gold', color: 'bg-white border border-yellow-500 text-yellow-600' }; 
-    return { name: 'PLATINUM', class: 'tier-platinum', color: 'bg-white border border-cyan-500 text-cyan-600' }; 
-}
+            const matches = (wins || 0) + (losses || 0); 
+            
+            if (matches < 3) return { name: 'BRONZE', class: 'tier-bronze', color: 'bg-white border border-amber-600 text-amber-700' }; 
+            if (matches < 7) return { name: 'SILVER', class: 'tier-silver', color: 'bg-white border border-slate-400 text-slate-500' }; 
+            if (matches < 13) return { name: 'GOLD', class: 'tier-gold', color: 'bg-white border border-yellow-500 text-yellow-600' }; 
+            return { name: 'PLATINUM', class: 'tier-platinum', color: 'bg-white border border-cyan-500 text-cyan-600' }; 
+        }
         
         // [New] Search Handler
         window.handleSearch = (val) => {
@@ -605,84 +671,93 @@
             }
 
             // 5. Render Ranked Players
-            ranked.forEach((p, idx) => { 
-                // [Core Logic] Find Real Rank from Global List
-                const realRank = globalRankedPlayers.findIndex(item => item.id === p.id) + 1;
+            ranked.forEach((item, idx) => { 
+                const globalIndex = rankingsData.indexOf(item); 
+                const realRank = globalRankedPlayers.findIndex(p => p.id === item.id) + 1;
+                const tier = getTier(item.wins, item.losses);
+                const totalMatches = (item.wins || 0) + (item.losses || 0);
                 
-                const tier = getTier(p.wins, p.losses); 
-                const prevRank = p.previousRank || realRank; 
-                const diff = prevRank - realRank; 
+                // [Added] Check Veteran Status
+                const vet = isVeteran(item);
+                let vetBadge = '';
+                let cardClass = tier.class;
+                let rankNumClass = "rank-num-normal";
+                let vetNameBadge = ''; // Inline Badge
                 
-                let diffHtml = `<span class="text-slate-300">-</span>`; 
-                
-                // [Modified] New Badge Logic: 3 matches AND within 2 days of rank-in
-                const totalMatches = (p.wins || 0) + (p.losses || 0);
+                if (vet) {
+                    // [Modified] Badge Position: Absolute on Image (Bottom-Right)
+                    // Adjusted 2px up (from -7px to -5px)
+                    vetBadge = `<div class="absolute bottom-[-5px] -right-2 text-lg filter drop-shadow-md z-10">🎖️</div>`;
+                }
 
-                // Only show diff for active season AND when not searching
-                if (viewRankingSeason === activeSeason && !searchQuery) {
-                    if (totalMatches === 3 && isRecentRankIn(p.rankInDate)) {
-                        // [Option 1] Show "New" badge for fresh rank-in (3 matches & within 2 days)
-                        diffHtml = `<span class="text-indigo-600 font-black text-[10px] bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100 animate-pulse">New</span>`;
-                    } else if (diff > 0) {
-                        diffHtml = `<span class="text-rose-500 font-bold text-xs">▲${diff}</span>`; 
-                    } else if (diff < 0) {
-                        diffHtml = `<span class="text-blue-500 font-bold text-xs">▼${Math.abs(diff)}</span>`; 
-                    }
+                // [Logic] Rank Style Priority: 1 > 2 > 3 > Veteran > Tier
+                // 1~3위 효과가 베테랑 효과보다 우선 적용됨
+                if (realRank === 1) {
+                    rankNumClass = "rank-num-1 font-black";
+                    cardClass = 'rank-1-glow';
+                } else if (realRank === 2) {
+                    rankNumClass = "rank-num-2 font-black";
+                    cardClass = 'rank-2-glow';
+                } else if (realRank === 3) {
+                    rankNumClass = "rank-num-3 font-black";
+                    cardClass = 'rank-3-glow';
+                } else {
+                    if (realRank <= 10) rankNumClass = "rank-num-top10";
+                }
+
+                // [New] Apply Inline Badge for Veterans (Name Line)
+                if (vet) {
+                    vetNameBadge = '<span class="v-badge v-gold" title="Veteran">V</span>';
+                }
+
+                // [New] Bounty Logic (Style 1 - Stat Line)
+                let bountyStatHtml = '';
+                if (vet && item.bounty && item.bounty > 0) {
+                     // [Modified] Removed divider (|) span
+                     bountyStatHtml = `<span class="text-[12px] font-black text-amber-600 flex items-center gap-0.5 bg-amber-50 px-1.5 rounded border border-amber-100" title="현상금">💰+${item.bounty}</span>`;
+                }
+
+                // Rank Change Logic
+                const prevRank = item.previousRank || realRank; 
+                const diff = prevRank - realRank; 
+                let diffHtml = ""; 
+                if (totalMatches === 3 && isRecentRankIn(item.rankInDate)) {
+                      diffHtml = `<span class="text-indigo-600 font-black text-[10px] bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100 animate-pulse">New</span>`;
+                } else {
+                      diffHtml = diff > 0 ? `<span class="rank-up">▲${diff}</span>` : (diff < 0 ? `<span class="rank-down">▼${Math.abs(diff)}</span>` : '<span class="rank-keep">-</span>');
                 }
                 
-                let rankNumClass = "rank-num-normal"; 
-                if (realRank === 1) rankNumClass = "rank-num-1 font-black"; 
-                else if (realRank === 2) rankNumClass = "rank-num-2 font-black"; 
-                else if (realRank === 3) rankNumClass = "rank-num-3 font-black";
-                else if (realRank <= 10) rankNumClass = "rank-num-top10"; 
-
-                // Use dots relevant to the viewed season
-                const myMatches = enrichedMatchHistory.filter(m => (m.winner === p.name || m.loser === p.name) && m.season === viewRankingSeason && m.type !== 'draw').slice(0, 6); 
-                let dots = ''; myMatches.forEach(m => { if (m.winner === p.name) dots += `<div class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-sm"></div>`; else dots += `<div class="w-1.5 h-1.5 rounded-full bg-rose-500 shadow-sm"></div>`; }); 
-                
-                let cardClass = tier.class;
-                // Apply glow based on Real Rank
-                if (realRank === 1) cardClass = 'rank-1-glow';
-                else if (realRank === 2) cardClass = 'rank-2-glow';
-                else if (realRank === 3) cardClass = 'rank-3-glow';
-                else if (realRank >= 3 && realRank <= 9) cardClass += ' rank-4-10-border'; 
-                
-                // Add highlight class if applicable
-                if (shouldHighlight(p.id)) cardClass += ' highlight-slow';
+                if (shouldHighlight(item.id)) cardClass += ' highlight-slow';
 
                 container.innerHTML += `
-                    <div class="bg-white rounded-2xl p-3 md:p-4 shadow-sm border border-slate-100 flex items-center gap-3 md:gap-4 relative overflow-hidden transition-transform active:scale-[0.99] cursor-pointer ${cardClass}" onclick="openProfile('${p.id}')">
-                        <div class="flex flex-col items-center justify-center w-8 md:w-10 shrink-0">
-                            <span class="${rankNumClass}">${realRank}</span>
-                            <div class="mt-0.5">${diffHtml}</div>
+                    <div id="rank-card-${item.id}" class="rank-card flex items-center p-3 border rounded-xl mb-2 bg-white hover:shadow-md ${cardClass}" onclick="openProfile('${item.id}')">
+                        <div class="w-10 text-center mr-2"><span class="${rankNumClass}">${realRank}</span><div class="text-[10px]">${diffHtml}</div></div>
+                        <div class="shrink-0 relative mr-3">
+                            <img src="${item.imageUrl || 'https://placehold.co/150?text=No+Img'}" class="w-10 h-10 rounded-lg bg-slate-100 object-cover border border-slate-100" onerror="this.src='https://placehold.co/150?text=No+Img'">
+                            ${realRank === 1 ? `<div class="absolute -top-1 -right-1 text-sm">👑</div>` : ''}
+                            ${vetBadge} <!-- [Modified] Badge Moved Here (Image Bottom-Right) -->
                         </div>
-                        <div class="shrink-0 relative -my-2 md:-my-4">
-                            <img src="${p.imageUrl ? p.imageUrl : 'https://placehold.co/150?text=No+Img'}" 
-                                 class="w-[60px] h-[60px] md:w-[90px] md:h-[90px] rounded-2xl bg-slate-100 object-cover border border-slate-100 md:border-2 md:border-slate-50 shadow-sm md:shadow-md transition-all duration-300"
-                                 onerror="this.src='https://placehold.co/150?text=No+Img'">
-                            ${realRank === 1 ? `<div class="absolute -top-2 -right-2 text-sm md:text-xl drop-shadow-md">👑</div>` : ''}
-                        </div>
-                        <div class="flex-grow min-w-0 flex flex-col justify-center py-1">
-                            <div class="flex items-center gap-1.5 md:gap-2 mb-0.5 md:mb-1.5">
-                                <div class="w-1.5 h-4 rounded-sm shadow-sm ring-1 ring-inset ring-black/10" style="background: ${p.trunkColor || '#1f2937'};" title="트렁크 색상"></div>
-                                <span class="font-bold md:font-black text-slate-800 truncate text-sm md:text-lg tracking-tight">${p.name}</span>
-                                <span class="text-[9px] md:text-[10px] px-1.5 md:px-2 py-0.5 rounded-full ${tier.color} font-bold tracking-wide uppercase shadow-sm">${tier.name}</span>
+                        <div class="flex-grow min-w-0">
+                            <div class="font-bold text-sm text-slate-800 flex items-center gap-2">
+                                <div class="w-1.5 h-4 rounded-sm shadow-sm ring-1 ring-inset ring-black/10" style="background: ${item.trunkColor || '#1f2937'};" title="트렁크 색상"></div>
+                                <span class="truncate">${item.name}</span>
+                                <span class="text-[9px] px-1.5 py-0.5 rounded-full ${tier.color} font-bold tracking-wide uppercase shadow-sm">${tier.name}</span>
+                                ${vetNameBadge} <!-- Moved to Right of Tier -->
                             </div>
-                            <div class="flex items-center gap-2 md:gap-2.5">
-                                <span class="font-bold md:font-black text-amber-700 bg-amber-50 px-1.5 md:px-2 py-0.5 rounded border border-amber-100 text-xs md:text-sm shadow-sm">⚡${p.elo || 1000}</span>
-                                <div class="h-2.5 md:h-3 w-px bg-slate-200"></div>
-                                <span class="text-slate-500 md:text-slate-600 font-medium md:font-bold text-xs md:text-sm tracking-tight">${p.wins}승 ${p.losses}패</span>
+                            <div class="flex items-center gap-1.5 mt-0.5">
+                                <span class="bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded border border-amber-200 font-bold">⚡${item.elo}</span>
+                                <span class="text-xs text-slate-400">| ${item.wins}승 ${item.losses}패</span>
+                                ${bountyStatHtml} <!-- Style 1: Added here -->
                             </div>
                         </div>
                         <div class="flex flex-col items-end justify-center shrink-0 md:h-full">
                             <div class="flex gap-1 p-1 md:p-1.5">
-                                ${dots || '<span class="text-[8px] md:text-[10px] text-slate-300 font-medium px-1">New</span>'}
+                                <!-- Dots or New Badge -->
                             </div>
                         </div>
                     </div>`; 
             }); 
 
-            // 6. Render Placement Players (New)
             if (placement.length > 0) {
                 // [Added] Distinct Section Divider
                 container.innerHTML += `
@@ -816,8 +891,8 @@
             
             // Optional: If you want tab selectors to also update header, uncomment below
             // selector.onchange = (e) => { 
-            //      viewSeason = e.target.value; 
-            //      renderMatches(); 
+            //     viewSeason = e.target.value; 
+            //     renderMatches(); 
             // };
             selector.onchange = (e) => { viewSeason = e.target.value; renderMatches(); }; 
         }
@@ -976,15 +1051,15 @@
                     const prevName = pastSeasons[0];
                     const prevData = seasonArchives[prevName].rankings || [];
                     championList = prevData.filter(p => (p.wins + p.losses) >= 3)
-                                             .sort((a, b) => (b.elo || 1000) - (a.elo || 1000))
-                                             .slice(0, 3);
+                                                                 .sort((a, b) => (b.elo || 1000) - (a.elo || 1000))
+                                                                 .slice(0, 3);
                     champTitle = "전시즌 TOP 3"; // [변경]
                     champSub = `${prevName} 레전드`;
                 }
             } else {
                 championList = players.filter(p => (p.wins + p.losses) >= 3)
-                                     .sort((a, b) => (b.elo || 1000) - (a.elo || 1000))
-                                     .slice(0, 3);
+                                                     .sort((a, b) => (b.elo || 1000) - (a.elo || 1000))
+                                                     .slice(0, 3);
             }
 
             // [B] 최다 플레이 (Iron Will -> 최다 플레이)
@@ -1071,7 +1146,7 @@
                             ${renderPodiumItem(p3, 3)}
                         </div>
                     </div>
-                `;
+                `; 
             };
 
             // 5. 렌더링 (순서 변경됨)
@@ -1120,6 +1195,12 @@
             document.getElementById('pModalReach').textContent = p.reach ? p.reach + 'cm' : '-'; 
             document.getElementById('pModalStance').textContent = p.stance || '-'; 
             
+            // [Added] Append Veteran Badge if applicable
+            const vet = isVeteran(p);
+            if(vet) {
+                document.getElementById('pModalName').innerHTML += ` <span class="text-lg">🎖️</span>`;
+            }
+
             const tagsContainer = document.getElementById('pModalTags'); 
             tagsContainer.innerHTML = ''; 
             (p.tags || []).forEach(tag => { tagsContainer.innerHTML += `<span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">#${tag}</span>`; }); 
