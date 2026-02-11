@@ -67,7 +67,7 @@
 
         /* [User Style] Bounty Style (Style B. Wanted Poster) */
         .bounty-pill-dark {
-            font-size: 12px; /* 12px로 수정됨 */
+            font-size: 13px; /* 13px로 수정됨 */
             background-color: #1f2937;
             color: #fbbf24;
             padding: 1px 5px;
@@ -321,8 +321,8 @@
         // [System] 통합 버전 관리 설정 (이곳만 수정하면 UI 전체 반영)
         // 🚀 새로운 기능 추가 시 여기만 수정하세요. 자동으로 반영됩니다.
         const USER_CONFIG = {
-            version: "v4.15",
-            updateNote: "UI: 현상금 뱃지 크기 수정 (12px)",
+            version: "v4.16",
+            updateNote: "UI: 현상금 폰트 크기 상향 (13px)",
             title: "RFC 랭킹전"
         };
 
@@ -714,7 +714,7 @@
                 let bountyStatHtml = '';
                 if (vet && item.bounty && item.bounty > 0) {
                      // [Modified] Removed divider (|) span
-                     bountyStatHtml = `<span class="text-[12px] font-black text-amber-600 flex items-center gap-0.5 bg-amber-50 px-1.5 rounded border border-amber-100" title="현상금">💰+${item.bounty}</span>`;
+                     bountyStatHtml = `<span class="text-[13px] font-black text-amber-600 flex items-center gap-0.5 bg-amber-50 px-1.5 rounded border border-amber-100" title="현상금">💰+${item.bounty}</span>`;
                 }
 
                 // Rank Change Logic
