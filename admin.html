@@ -73,7 +73,7 @@
 
         /* [User Sync] Bounty Style */
         .bounty-pill-dark {
-            font-size: 12px;
+            font-size: 13px; /* [Fix] 12px -> 13px */
             background-color: #1f2937;
             color: #fbbf24;
             padding: 1px 5px;
@@ -373,7 +373,8 @@
                                 </div>
                                 <p class="text-[10px] text-indigo-600 mb-2 leading-snug">
                                     1. 과도한 순위 변동폭(예: +34) 초기화<br>
-                                    2. 3전 선수들의 누락된 '진입 날짜' 복구 (New 뱃지 활성화)
+                                    2. 3전 선수들의 누락된 '진입 날짜' 복구<br>
+                                    <span class="text-emerald-600">3. 베테랑 달성 시 현상금 자동 부여 (10점)</span>
                                 </p>
                                 <button onclick="fixDataIntegrity()" class="w-full bg-white text-indigo-600 hover:bg-indigo-100 font-bold py-2 rounded-lg text-xs border border-indigo-200 shadow-sm transition">
                                     ✨ 데이터 진단 및 복구 실행
@@ -606,13 +607,13 @@
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         
         const AUTO_LOGIN_EMAIL = ""; 
-        const AUTO_LOGIN_PW = "!";
+        const AUTO_LOGIN_PW = "";
         
         // [System] 통합 버전 관리 설정 (이곳만 수정하면 UI 전체 반영)
         // 🚀 새로운 기능 추가 시 여기만 수정하세요. 자동으로 반영됩니다.
         const ADMIN_CONFIG = {
-            version: "v4.55",
-            updateNote: "Fix: 스크롤 이동 오류 수정",
+            version: "v4.60",
+            updateNote: "베테랑 현상금 자동 부여 및 UI 크기 조정",
             title: "RFC 매니저 (Admin)"
         };
 
@@ -844,6 +845,13 @@
                         if(p.careerHighElo === undefined) p.careerHighElo = p.elo; 
                         if(!p.trunkColor) p.trunkColor = '#1f2937'; 
                         if(p.bounty === undefined) p.bounty = 0;
+
+                        // [Fix] 데이터 로드 시 베테랑 최소 현상금(10) 보정
+                        // 기존 베테랑 선수들의 현상금이 0으로 표시되는 문제 해결
+                        if (isVeteran(p) && p.bounty < 10) {
+                            p.bounty = 10;
+                        }
+
                         p.choseong = Hangul.getCho(p.name);
                         p.jamo = Hangul.disassemble(p.name);
                     }); 
@@ -930,12 +938,28 @@
                 const w = calculateHybridEloChange(simP1.elo, simP2.elo, true, simP1, isP2Veteran); 
                 const l = calculateHybridEloChange(simP2.elo, simP1.elo, false, simP2, false); 
                 p1Change = w.change; p2Change = l.change; 
+                
+                // [Fix] 미리보기(Simulation)에 패배자 현상금 패널티 반영
+                if (isP2Veteran) {
+                    let b = parseInt(simP2.bounty || 0, 10);
+                    if(b < 10) b = 10; // 베테랑 기본값 보정
+                    p2Change -= Math.floor(b / 2);
+                }
+
                 simP1.elo += p1Change; simP1.wins++; 
                 simP2.elo += p2Change; simP2.losses++; 
             } else { 
                 const w = calculateHybridEloChange(simP2.elo, simP1.elo, true, simP2, isP1Veteran); 
                 const l = calculateHybridEloChange(simP1.elo, simP2.elo, false, simP1, false); 
                 p2Change = w.change; p1Change = l.change; 
+                
+                // [Fix] 미리보기(Simulation)에 패배자 현상금 패널티 반영
+                if (isP1Veteran) {
+                    let b = parseInt(simP1.bounty || 0, 10);
+                    if(b < 10) b = 10; // 베테랑 기본값 보정
+                    p1Change -= Math.floor(b / 2);
+                }
+
                 simP2.elo += p2Change; simP2.wins++; 
                 simP1.elo += p1Change; simP1.losses++; 
             } 
@@ -1076,7 +1100,8 @@
                 // [New] Bounty Logic (Style 1 - Stat Line)
                 let bountyStatHtml = '';
                 if (vet && item.bounty && item.bounty > 0) {
-                     bountyStatHtml = `<span class="text-[12px] font-black text-amber-600 flex items-center gap-0.5 bg-amber-50 px-1.5 rounded border border-amber-100" title="현상금">💰+${item.bounty}</span>`;
+                     // [Fix] text-[12px] -> text-[13px] (1px 증가)
+                     bountyStatHtml = `<span class="text-[13px] font-black text-amber-600 flex items-center gap-0.5 bg-amber-50 px-1.5 rounded border border-amber-100" title="현상금">💰+${item.bounty}</span>`;
                 }
 
                 // Rank Change Logic
@@ -1175,14 +1200,15 @@
             // Note: Loser's calc is based on standard ELO, bounty penalty is separate
             const loseCalc = calculateHybridEloChange(loser.elo, winner.elo, false, loser, false); 
             
-            // 2. Apply Bounty Logic (Fixed: Type Casting)
+            // 2. Apply Bounty Logic (Fixed: Type Casting & Logic)
             // If Winner is Veteran: Accumulate Bounty (+10)
             if (isWinnerVeteran) {
-                // [Fix] 강제 형변환 적용 (Type Casting)
                 let currentBounty = parseInt(winner.bounty || 0, 10);
                 if (isNaN(currentBounty)) currentBounty = 0;
 
-                if (currentBounty === 0) currentBounty = 10; 
+                // [Fix] 베테랑은 최소 10을 가지므로, 승리 시 기존 값 + 10이 기본
+                // 만약 오류로 0이었다면, 기본10 + 승리10 = 20으로 보정
+                if (currentBounty < 10) currentBounty = 20; 
                 else currentBounty += 10;
                 
                 winner.bounty = currentBounty;
@@ -1237,6 +1263,21 @@
                         p.previousRank = realRank; // 기준 순위를 현재 등수로 덮어쓰기
                         p.rankInDate = matchDate; // [New] 진입 날짜 기록 (YYYY-MM-DD)
                     }
+                }
+            });
+
+            // [Veteran System] Post-Match Status Check
+            // 경기 후 베테랑 조건(10전+1300점) 달성 여부 확인 및 현상금 자동 부여/회수
+            [winner, loser].forEach(p => {
+                if (isVeteran(p)) {
+                    // 베테랑인데 현상금이 없다면 최소 10점 부여 (신규 진입 or 유지)
+                    // (기존 베테랑이 승리하여 누적된 경우는 이미 값이 있으므로 영향 없음)
+                    if (!p.bounty || p.bounty < 10) {
+                        p.bounty = 10;
+                    }
+                } else {
+                    // 베테랑 조건 미달 시 현상금 회수 (강등)
+                    p.bounty = 0;
                 }
             });
 
@@ -1495,7 +1536,48 @@
         window.resetBatchInactiveForm = () => { document.getElementById('inactiveDaysInput').value = 30; document.getElementById('penaltyScoreInput').value = 30; document.getElementById('inactiveListArea').classList.add('hidden'); document.getElementById('inactiveUserList').innerHTML = ''; batchPenaltyTargets = []; };
         window.checkBatchInactiveUsers = () => { const daysInput = document.getElementById('inactiveDaysInput'); const scoreInput = document.getElementById('penaltyScoreInput'); const days = parseInt(daysInput.value) || 30; const score = parseInt(scoreInput.value) || 30; const today = new Date(getKSTDate()); const rankedPlayers = rankingsData.filter(p => (p.wins + p.losses) > 0).sort((a, b) => (b.elo || 1000) - (a.elo || 1000)); batchPenaltyTargets = []; const listEl = document.getElementById('inactiveUserList'); listEl.innerHTML = ''; rankingsData.forEach(p => { const totalMatches = (p.wins || 0) + (p.losses || 0); if (totalMatches === 0) return; if(!p.lastMatchDate) return; const last = new Date(p.lastMatchDate); const diffTime = today - last; const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); if(diffDays >= days) { const rank = rankedPlayers.findIndex(rp => rp.id === p.id) + 1; batchPenaltyTargets.push({ ...p, diffDays, rank }); } }); batchPenaltyTargets.sort((a, b) => b.diffDays - a.diffDays); const area = document.getElementById('inactiveListArea'); if(batchPenaltyTargets.length > 0) { document.getElementById('inactiveCountDisplay').textContent = batchPenaltyTargets.length; batchPenaltyTargets.forEach(t => { const li = document.createElement('li'); li.className = "flex justify-between items-center border-b border-slate-50 last:border-0 pb-1 mb-1 last:pb-0 last:mb-0"; li.innerHTML = `<div class="flex items-center gap-1.5"><span class="text-[10px] font-black text-blue-600 min-w-[24px] text-right">#${t.rank}</span><span class="font-bold text-slate-700">${t.name}</span><span class="text-[10px] bg-slate-100 text-slate-500 px-1 rounded">${t.elo}점</span></div><span class="text-red-500 font-bold text-[10px]">${t.diffDays}일 전</span>`; listEl.appendChild(li); }); const btn = document.getElementById('btnApplyBatchPenalty'); btn.innerHTML = `<span>💀</span> 일괄 -${score}점 적용하기`; btn.onclick = () => confirmBatchPenalty(days, score); area.classList.remove('hidden'); area.classList.add('pop-in'); } else { area.classList.add('hidden'); showCustomAlert(`${days}일 이상 미참여자가 없습니다.\n(전적 0회 및 Unranked 제외)`); } };
         window.confirmBatchPenalty = (days, score) => { const count = batchPenaltyTargets.length; if(count === 0) return; const msg = `💀 장기 미참여자 일괄 패널티\n\n기준: ${days}일 이상 미참여\n대상: 총 ${count}명\n내용: 전원 ELO -${score}점 차감\n\n정말 실행하시겠습니까?`; showConfirmModal(msg, async () => { captureState(); const targetIds = new Set(batchPenaltyTargets.map(t => t.id)); rankingsData.forEach(p => { if(targetIds.has(p.id)) { p.elo -= score; } }); rankingsData.sort((a, b) => b.elo - a.elo); await saveRankings(); renderRankings(); document.getElementById('inactiveListArea').classList.add('hidden'); batchPenaltyTargets = []; showCustomAlert(`✅ ${count}명에게 -${score}점 패널티가 적용되었습니다.`); }); };
-        window.fixDataIntegrity = () => { const rankedPlayers = rankingsData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3).sort((a, b) => (b.elo || 1000) - (a.elo || 1000)); let fixedRankCount = 0; let fixedDateCount = 0; const threshold = 15; rankingsData.forEach(p => { const total = (p.wins || 0) + (p.losses || 0); if (total >= 3) { const realRank = rankedPlayers.findIndex(rp => rp.id === p.id) + 1; const prev = p.previousRank || 999; if (Math.abs(prev - realRank) >= threshold || prev > rankedPlayers.length + 5) { p.previousRank = realRank; fixedRankCount++; } } if (total === 3 && !p.rankInDate && p.lastMatchDate) { p.rankInDate = p.lastMatchDate; fixedDateCount++; } }); if (fixedRankCount > 0 || fixedDateCount > 0) { captureState(); saveRankings(); renderRankings(); showCustomAlert(`✅ 데이터 보정 완료\n\n- 순위 변동폭 정상화: ${fixedRankCount}명\n- New 뱃지(날짜) 복구: ${fixedDateCount}명`); } else { showCustomAlert("보정할 데이터가 없습니다.\n모든 데이터가 정상입니다."); } };
+        window.fixDataIntegrity = () => { 
+            const rankedPlayers = rankingsData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3).sort((a, b) => (b.elo || 1000) - (a.elo || 1000)); 
+            let fixedRankCount = 0; 
+            let fixedDateCount = 0; 
+            let fixedBountyCount = 0;
+            const threshold = 15; 
+            
+            rankingsData.forEach(p => { 
+                const total = (p.wins || 0) + (p.losses || 0); 
+                if (total >= 3) { 
+                    const realRank = rankedPlayers.findIndex(rp => rp.id === p.id) + 1; 
+                    const prev = p.previousRank || 999; 
+                    if (Math.abs(prev - realRank) >= threshold || prev > rankedPlayers.length + 5) { 
+                        p.previousRank = realRank; 
+                        fixedRankCount++; 
+                    } 
+                } 
+                if (total === 3 && !p.rankInDate && p.lastMatchDate) { 
+                    p.rankInDate = p.lastMatchDate; 
+                    fixedDateCount++; 
+                }
+                
+                // [Added] Retroactive Veteran Bounty Fix
+                if (isVeteran(p) && (!p.bounty || p.bounty < 10)) {
+                   p.bounty = 10;
+                   fixedBountyCount++;
+                }
+                if (!isVeteran(p) && p.bounty > 0) {
+                   p.bounty = 0;
+                   fixedBountyCount++;
+                }
+            }); 
+            
+            if (fixedRankCount > 0 || fixedDateCount > 0 || fixedBountyCount > 0) { 
+                captureState(); 
+                saveRankings(); 
+                renderRankings(); 
+                showCustomAlert(`✅ 데이터 보정 완료\n\n- 순위 변동폭 정상화: ${fixedRankCount}명\n- New 뱃지(날짜) 복구: ${fixedDateCount}명\n- 베테랑 현상금 보정: ${fixedBountyCount}명`); 
+            } else { 
+                showCustomAlert("보정할 데이터가 없습니다.\n모든 데이터가 정상입니다."); 
+            } 
+        };
         window.resetAllStats = () => { if (!rankingsData || rankingsData.length === 0) return showCustomAlert("데이터가 로드되지 않았습니다."); const msg = `📊 [${activeSeason}] 전적 초기화 확인\n\n현재 시즌의 다음 데이터가 모두 삭제됩니다:\n1. 모든 선수의 승/패/무/방어전 횟수 (0으로 초기화)\n2. 현재 시즌의 경기 기록 로그 (전체 삭제)\n\n(주의: ELO 점수는 유지됩니다)\n\n정말 초기화하시겠습니까?`; showConfirmModal(msg, async () => { try { captureState(); rankingsData.forEach(p => { p.wins = 0; p.losses = 0; p.draws = 0; p.defenseCount = 0; }); matchHistoryData = matchHistoryData.filter(m => m.season !== activeSeason); await saveRankings(); renderRankings(); enrichMatchHistory(); updateAdminHistorySeasonSelector(); renderAdminMatches(); showCustomAlert("✅ 현재 시즌 전적이 초기화되었습니다."); } catch (e) { showCustomAlert("초기화 중 오류 발생: " + e.message); } }); };
         window.resetAllElo = () => { if (!rankingsData || rankingsData.length === 0) return showCustomAlert("데이터가 로드되지 않았습니다."); showConfirmModal(`⚡ [${activeSeason}] ELO 초기화 확인\n\n현재 시즌의 모든 선수 점수를\n[1000점]으로 리셋하시겠습니까?\n\n(주의: 전적 횟수는 유지됩니다)`, async () => { captureState(); rankingsData.forEach(p => { p.elo = 1000; p.careerHighElo = 1000; }); await saveRankings(); renderRankings(); showCustomAlert("모든 선수의 ELO가 1000점으로 초기화되었습니다."); }); };
         window.resetEverything = () => { showConfirmModal("🚨 시스템 전체를 리셋하시겠습니까?\n\n- 모든 시즌 기록 삭제\n- 모든 선수 스탯 초기화\n- 되돌릴 수 없습니다.", async () => { matchHistoryData = []; seasonArchives = {}; activeSeason = "시즌 1"; rankingsData.forEach(p => { p.wins=0; p.losses=0; p.defenseCount=0; p.elo=1000; p.careerHighElo=1000; }); await saveRankings(); location.reload(); }); };
@@ -1510,7 +1592,36 @@
         window.openEditModal = (index) => { const p = rankingsData[index]; if (!p) return; document.getElementById('editPlayerId').value = p.id; document.getElementById('editOriginalName').value = p.name; document.getElementById('editName').value = p.name || ""; document.getElementById('editGameId').value = p.gameId || ""; document.getElementById('editElo').value = p.elo || 1000; document.getElementById('editWins').value = p.wins || 0; document.getElementById('editLosses').value = p.losses || 0; const imgUrl = p.imageUrl || ""; document.getElementById('editImageUrlInput').value = imgUrl; window.updatePreview(imgUrl); document.getElementById('editHeight').value = p.height || ""; document.getElementById('editReach').value = p.reach || ""; document.getElementById('editStance').value = p.stance || "Orthodox"; const tColor = p.trunkColor || '#1f2937'; document.getElementById('editTrunkColor').value = tColor; const allPresets = document.querySelectorAll('.color-preset'); let matched = false; allPresets.forEach(el => { const presetColor = el.dataset.color; el.classList.remove('active'); if (presetColor && presetColor.toLowerCase() === tColor.toLowerCase()) { el.classList.add('active'); matched = true; } }); if (!matched) { const firstCustom = document.querySelector('.custom-picker-slot'); if (firstCustom) { firstCustom.style.backgroundColor = tColor; firstCustom.dataset.color = tColor; const icon = firstCustom.querySelector('.icon-placeholder'); if(icon) icon.style.display = 'none'; firstCustom.classList.add('active'); const input = firstCustom.querySelector('input[type="color"]'); if(input) input.value = tColor; } } document.getElementById('editPassword').value = ""; const container = document.getElementById('styleTagsContainer'); container.innerHTML = ''; const currentStyles = p.tags || []; STYLE_OPTIONS.forEach(style => { const checked = currentStyles.includes(style) ? 'checked' : ''; const id = `style_${style}`; container.innerHTML += `<div><input type="checkbox" id="${id}" value="${style}" class="hidden style-checkbox" ${checked}><label for="${id}" class="cursor-pointer inline-block bg-white border border-slate-200 text-slate-500 px-3 py-1.5 rounded-full text-xs font-bold transition select-none hover:bg-slate-50">${style}</label></div>`; }); document.getElementById('editModal').classList.remove('hidden'); };
         window.updatePreview = (url) => { const img = document.getElementById('previewImage'); if (!url) { img.src = "https://placehold.co/150?text=No+Img"; } else { img.src = url; } };
         window.removeImage = () => { document.getElementById('editImageUrlInput').value = ""; window.updatePreview(""); };
-        window.savePlayerDetails = async () => { const id = document.getElementById('editPlayerId').value; if (!id) return; const index = rankingsData.findIndex(r => r.id === id); if (index === -1) return showCustomAlert("선수를 찾을 수 없습니다. (삭제되었거나 데이터 불일치)"); const p = rankingsData[index]; const newName = document.getElementById('editName').value.trim(); if (!newName) return showCustomAlert("이름은 필수입니다."); captureState(); if (newName !== p.name) { if (rankingsData.some((other, i) => i !== index && other.name === newName)) { return showCustomAlert("이미 존재하는 이름입니다."); } const oldName = p.name; matchHistoryData.forEach(m => { if (m.winner === oldName) m.winner = newName; if (m.loser === oldName) m.loser = newName; if (m.blue === oldName) m.blue = newName; }); p.name = newName; } p.gameId = document.getElementById('editGameId').value.trim(); p.elo = parseInt(document.getElementById('editElo').value) || 1000; p.wins = parseInt(document.getElementById('editWins').value) || 0; p.losses = parseInt(document.getElementById('editLosses').value) || 0; p.imageUrl = document.getElementById('editImageUrlInput').value.trim(); p.height = document.getElementById('editHeight').value.trim(); p.reach = document.getElementById('editReach').value.trim(); p.stance = document.getElementById('editStance').value; p.trunkColor = document.getElementById('editTrunkColor').value; const newPw = document.getElementById('editPassword').value.trim(); if (newPw) { p.password = await hashPin(newPw); } const selectedStyles = []; document.querySelectorAll('.style-checkbox:checked').forEach(cb => { selectedStyles.push(cb.value); }); p.tags = selectedStyles; await saveRankings(); renderRankings(); document.getElementById('editModal').classList.add('hidden'); showCustomAlert("✅ 선수 정보가 수정되었습니다."); };
+        window.savePlayerDetails = async () => { 
+            const id = document.getElementById('editPlayerId').value; if (!id) return; 
+            const index = rankingsData.findIndex(r => r.id === id); if (index === -1) return showCustomAlert("선수를 찾을 수 없습니다. (삭제되었거나 데이터 불일치)"); 
+            const p = rankingsData[index]; 
+            const newName = document.getElementById('editName').value.trim(); if (!newName) return showCustomAlert("이름은 필수입니다."); 
+            captureState(); 
+            if (newName !== p.name) { 
+                if (rankingsData.some((other, i) => i !== index && other.name === newName)) { return showCustomAlert("이미 존재하는 이름입니다."); } 
+                const oldName = p.name; 
+                matchHistoryData.forEach(m => { if (m.winner === oldName) m.winner = newName; if (m.loser === oldName) m.loser = newName; if (m.blue === oldName) m.blue = newName; }); 
+                p.name = newName; 
+            } 
+            p.gameId = document.getElementById('editGameId').value.trim(); 
+            p.elo = parseInt(document.getElementById('editElo').value) || 1000; 
+            p.wins = parseInt(document.getElementById('editWins').value) || 0; 
+            p.losses = parseInt(document.getElementById('editLosses').value) || 0; 
+            p.imageUrl = document.getElementById('editImageUrlInput').value.trim(); 
+            p.height = document.getElementById('editHeight').value.trim(); 
+            p.reach = document.getElementById('editReach').value.trim(); 
+            p.stance = document.getElementById('editStance').value; 
+            p.trunkColor = document.getElementById('editTrunkColor').value; 
+            const newPw = document.getElementById('editPassword').value.trim(); if (newPw) { p.password = await hashPin(newPw); } 
+            const selectedStyles = []; document.querySelectorAll('.style-checkbox:checked').forEach(cb => { selectedStyles.push(cb.value); }); p.tags = selectedStyles; 
+            
+            // [Veteran System] Check Manual Updates
+            if (isVeteran(p) && (!p.bounty || p.bounty < 10)) { p.bounty = 10; }
+            if (!isVeteran(p)) { p.bounty = 0; }
+            
+            await saveRankings(); renderRankings(); document.getElementById('editModal').classList.add('hidden'); showCustomAlert("✅ 선수 정보가 수정되었습니다."); 
+        };
         window.tryDeletePlayer = () => { const id = document.getElementById('editPlayerId').value; if(!id) return; const index = rankingsData.findIndex(r => r.id === id); if(index === -1) return showCustomAlert("선수를 찾을 수 없습니다."); const p = rankingsData[index]; showConfirmModal(`⚠️ 정말 [${p.name}] 선수를 삭제하시겠습니까?\n이 작업은 복구할 수 없습니다.`, async () => { captureState(); rankingsData.splice(index, 1); await saveRankings(); document.getElementById('editModal').classList.add('hidden'); renderRankings(); setTimeout(() => alert("선수가 삭제되었습니다."), 100); }); };
         window.deletePlayer = window.tryDeletePlayer;
         window.openProfile = (id) => { currentProfileId = id; const p = rankingsData.find(x => x.id === id); if (!p) return; const rankedPlayers = rankingsData.filter(r => (Number(r.wins || 0) + Number(r.losses || 0)) >= 3).sort((a, b) => (b.elo || 1000) - (a.elo || 1000)); const isRank1 = rankedPlayers.length > 0 && rankedPlayers[0].id === id; document.getElementById('pModalName').textContent = p.name; document.getElementById('pModalCrown').classList.toggle('hidden', !isRank1); document.getElementById('pModalGameId').textContent = `ID: ${p.gameId || '-'}`; document.getElementById('pModalImg').src = p.imageUrl || "https://placehold.co/150?text=No+Img"; const filterEl = document.getElementById('pModalSeason'); filterEl.innerHTML = '<option value="all">전체 기록 (All Time)</option><option value="current">현재 시즌 (Current)</option>'; Object.keys(seasonArchives).sort().reverse().forEach(s => { filterEl.innerHTML += `<option value="${s}">${s}</option>`; }); filterEl.value = 'current'; filterEl.onchange = (e) => updateProfileStats(id, e.target.value); const tier = getTier(p.wins, p.losses); const tierEl = document.getElementById('pModalTierBadge'); tierEl.textContent = tier.name; tierEl.className = `text-[10px] font-bold px-2 py-0.5 rounded shadow-sm ${tier.color}`; document.getElementById('pModalHeight').textContent = p.height ? p.height + 'cm' : '-'; document.getElementById('pModalReach').textContent = p.reach ? p.reach + 'cm' : '-'; document.getElementById('pModalStance').textContent = p.stance || '-'; const vet = isVeteran(p); if(vet) { document.getElementById('pModalName').innerHTML += ` <span class="text-lg">🎖️</span>`; } const tagsContainer = document.getElementById('pModalTags'); tagsContainer.innerHTML = ''; (p.tags || []).forEach(tag => { tagsContainer.innerHTML += `<span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">#${tag}</span>`; }); updateProfileStats(id, 'current'); const editBtn = document.getElementById('profileEditBtn'); if (editBtn) { editBtn.onclick = () => { closeProfile(); const freshIndex = rankingsData.findIndex(r => r.id === id); if (freshIndex !== -1) { openEditModal(freshIndex); } else { showCustomAlert("선수 데이터를 찾을 수 없습니다. (새로고침 권장)"); } }; } document.getElementById('profileModal').classList.remove('hidden'); };
