@@ -305,15 +305,6 @@
         </div>
     </div>
 
-    <div id="rulesModal" class="fixed inset-0 z-[60] hidden" role="dialog" aria-modal="true">
-        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeRules()"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl shadow-2xl w-11/12 max-w-md p-6 max-h-[80vh] overflow-y-auto">
-            <h2 class="text-xl font-black text-slate-800 mb-4 border-b pb-2">📜 RFC 점수 산정 방식</h2>
-            <div id="ruleContentArea" class="space-y-5 text-sm text-slate-600">Loading...</div>
-            <button onclick="closeRules()" class="w-full mt-6 bg-slate-800 text-white font-bold py-3 rounded-xl hover:bg-slate-900 transition">확인했습니다</button>
-        </div>
-    </div>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -321,8 +312,8 @@
         // [System] 통합 버전 관리 설정 (이곳만 수정하면 UI 전체 반영)
         // 🚀 새로운 기능 추가 시 여기만 수정하세요. 자동으로 반영됩니다.
         const USER_CONFIG = {
-            version: "v4.16",
-            updateNote: "UI: 현상금 폰트 크기 상향 (13px)",
+            version: "v4.18",
+            updateNote: "UI: 리스트 전체 대형 이미지 적용",
             title: "RFC 랭킹전"
         };
 
@@ -729,18 +720,19 @@
                 
                 if (shouldHighlight(item.id)) cardClass += ' highlight-slow';
 
+                // [Modified v4.18] Apply Large Image Style (Same as Placement)
                 container.innerHTML += `
-                    <div id="rank-card-${item.id}" class="rank-card flex items-center p-3 border rounded-xl mb-2 bg-white hover:shadow-md ${cardClass}" onclick="openProfile('${item.id}')">
+                    <div id="rank-card-${item.id}" class="rank-card flex items-center p-3 md:p-4 border rounded-xl mb-2 bg-white hover:shadow-md ${cardClass}" onclick="openProfile('${item.id}')">
                         <div class="w-10 text-center mr-2"><span class="${rankNumClass}">${realRank}</span><div class="text-[10px]">${diffHtml}</div></div>
-                        <div class="shrink-0 relative mr-3">
-                            <img src="${item.imageUrl || 'https://placehold.co/150?text=No+Img'}" class="w-10 h-10 rounded-lg bg-slate-100 object-cover border border-slate-100" onerror="this.src='https://placehold.co/150?text=No+Img'">
+                        <div class="shrink-0 relative mr-3 -my-2 md:-my-4">
+                            <img src="${item.imageUrl || 'https://placehold.co/150?text=No+Img'}" class="w-[60px] h-[60px] md:w-[90px] md:h-[90px] rounded-2xl bg-slate-100 object-cover border border-slate-100" onerror="this.src='https://placehold.co/150?text=No+Img'">
                             ${realRank === 1 ? `<div class="absolute -top-1 -right-1 text-sm">👑</div>` : ''}
                             ${vetBadge} <!-- [Modified] Badge Moved Here (Image Bottom-Right) -->
                         </div>
-                        <div class="flex-grow min-w-0">
-                            <div class="font-bold text-sm text-slate-800 flex items-center gap-2">
+                        <div class="flex-grow min-w-0 flex flex-col justify-center py-1">
+                            <div class="flex items-center gap-1.5 md:gap-2 mb-0.5 md:mb-1.5">
                                 <div class="w-1.5 h-4 rounded-sm shadow-sm ring-1 ring-inset ring-black/10" style="background: ${item.trunkColor || '#1f2937'};" title="트렁크 색상"></div>
-                                <span class="truncate">${item.name}</span>
+                                <span class="font-bold text-slate-800 truncate text-sm md:text-lg">${item.name}</span>
                                 <span class="text-[9px] px-1.5 py-0.5 rounded-full ${tier.color} font-bold tracking-wide uppercase shadow-sm">${tier.name}</span>
                                 ${vetNameBadge} <!-- Moved to Right of Tier -->
                             </div>
@@ -773,10 +765,11 @@
                 placement.forEach((p) => {
                     const highlightClass = shouldHighlight(p.id) ? 'highlight-slow' : '';
                     
+                    // [Modified v4.18] Revert to Large Image Style
                     container.innerHTML += `
                         <div id="rank-card-${p.id}" class="rank-card flex items-center p-3 md:p-4 border rounded-xl mb-2 bg-slate-50 opacity-90 hover:opacity-100 ${highlightClass}" onclick="openProfile('${p.id}')">
                             <div class="w-10 text-center mr-2"><span class="text-lg md:text-xl">🐣</span></div>
-                            <div class="shrink-0 relative -my-2 md:-my-4">
+                            <div class="shrink-0 relative mr-3 -my-2 md:-my-4">
                                 <img src="${p.imageUrl ? p.imageUrl : 'https://placehold.co/150?text=No+Img'}" 
                                      class="w-[60px] h-[60px] md:w-[90px] md:h-[90px] rounded-2xl bg-slate-100 object-cover border border-slate-100 md:border-2 md:border-slate-50 shadow-sm transition-all duration-300" 
                                      onerror="this.src='https://placehold.co/150?text=No+Img'">
@@ -812,10 +805,11 @@
                 unranked.forEach((p) => {
                     const highlightClass = shouldHighlight(p.id) ? 'highlight-slow' : '';
                     
+                    // [Modified v4.18] Revert to Large Image Style
                     container.innerHTML += `
-                        <div class="bg-white rounded-2xl p-3 md:p-4 shadow-sm border border-slate-100 flex items-center gap-3 md:gap-4 relative overflow-hidden transition-transform active:scale-[0.99] cursor-pointer opacity-80 ${highlightClass}" onclick="openProfile('${p.id}')">
+                        <div class="bg-white rounded-2xl p-3 md:p-4 shadow-sm border border-slate-100 flex items-center gap-3 relative overflow-hidden transition-transform active:scale-[0.99] cursor-pointer opacity-80 ${highlightClass}" onclick="openProfile('${p.id}')">
                             <div class="flex flex-col items-center justify-center w-8 md:w-10 shrink-0"><span class="rank-unranked">-</span></div>
-                            <div class="shrink-0 relative -my-2 md:-my-4">
+                            <div class="shrink-0 relative mr-3 -my-2 md:-my-4">
                                 <img src="${p.imageUrl ? p.imageUrl : 'https://placehold.co/150?text=No+Img'}" 
                                      class="w-[60px] h-[60px] md:w-[90px] md:h-[90px] rounded-2xl bg-slate-100 object-cover border border-slate-100 md:border-2 md:border-slate-50 grayscale shadow-sm transition-all duration-300" 
                                      onerror="this.src='https://placehold.co/150?text=No+Img'">
