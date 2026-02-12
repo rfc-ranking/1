@@ -318,8 +318,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v4.29",
-            updateNote: "HoF 부문별 타이틀 텍스트 크기 확대 (20px / 14px)",
+            version: "v4.30",
+            updateNote: "HoF 부문별 타이틀 반응형 크기 조절 (모바일 최적화)",
             title: "RFC 랭킹전"
         };
 
@@ -1004,14 +1004,14 @@
                     `;
                 };
 
-                // [Modified] 타이틀 20px, 서브타이틀 14px 로 확대 및 여백/이모지 크기(text-3xl) 조정
+                // [Modified] 타이틀 및 서브타이틀 반응형 적용 (모바일에서 축소)
                 return `
-                    <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 mb-6 relative overflow-hidden fade-in">
-                        <div class="flex items-center gap-3 mb-6 border-b border-slate-100 pb-3">
-                            <span class="text-3xl">${icon}</span>
+                    <div class="bg-white rounded-2xl p-3 sm:p-4 shadow-sm border border-slate-100 mb-6 relative overflow-hidden fade-in">
+                        <div class="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6 border-b border-slate-100 pb-2 sm:pb-3">
+                            <span class="text-2xl sm:text-3xl">${icon}</span>
                             <div>
-                                <div class="text-[20px] font-black text-slate-800 tracking-tight leading-none">${title}</div>
-                                <div class="text-[14px] text-slate-400 font-medium mt-1">${sub}</div>
+                                <div class="text-base sm:text-[20px] font-black text-slate-800 tracking-tight leading-none">${title}</div>
+                                <div class="text-[11px] sm:text-[14px] text-slate-400 font-medium mt-0.5 sm:mt-1">${sub}</div>
                             </div>
                         </div>
                         <div class="flex justify-center items-end gap-2 px-2 h-auto pt-4 pb-2">
