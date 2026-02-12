@@ -318,8 +318,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v4.30",
-            updateNote: "HoF 부문별 타이틀 반응형 크기 조절 (모바일 최적화)",
+            version: "v4.31",
+            updateNote: "HoF 부문별 타이틀 크기 조절 (2위 이름 크기와 밸런스 맞춤)",
             title: "RFC 랭킹전"
         };
 
@@ -1008,10 +1008,10 @@
                 return `
                     <div class="bg-white rounded-2xl p-3 sm:p-4 shadow-sm border border-slate-100 mb-6 relative overflow-hidden fade-in">
                         <div class="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6 border-b border-slate-100 pb-2 sm:pb-3">
-                            <span class="text-2xl sm:text-3xl">${icon}</span>
+                            <span class="text-xl sm:text-2xl">${icon}</span>
                             <div>
-                                <div class="text-base sm:text-[20px] font-black text-slate-800 tracking-tight leading-none">${title}</div>
-                                <div class="text-[11px] sm:text-[14px] text-slate-400 font-medium mt-0.5 sm:mt-1">${sub}</div>
+                                <div class="text-sm sm:text-base font-black text-slate-800 tracking-tight leading-none">${title}</div>
+                                <div class="text-[10px] sm:text-xs text-slate-400 font-medium mt-0.5 sm:mt-1">${sub}</div>
                             </div>
                         </div>
                         <div class="flex justify-center items-end gap-2 px-2 h-auto pt-4 pb-2">
@@ -1229,4 +1229,3 @@
     </script>
 </body>
 </html>
-
