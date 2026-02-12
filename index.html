@@ -67,7 +67,7 @@
 
         /* [User Style] Bounty Style (Style B. Wanted Poster) */
         .bounty-pill-dark {
-            font-size: 13px; /* 13px로 수정됨 */
+            font-size: 13px;
             background-color: #1f2937;
             color: #fbbf24;
             padding: 1px 5px;
@@ -133,7 +133,6 @@
             animation: slowFade 10s cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
         }
 
-        /* [Option 1] type="search" styling adjustments for better UX */
         input[type="search"]::-webkit-search-cancel-button {
             -webkit-appearance: none;
             height: 16px;
@@ -212,7 +211,7 @@
             <span class="text-xs font-black text-slate-400 tracking-widest uppercase">RFC Ranking System</span>
             <span id="displayVersion" class="text-[10px] text-slate-500 font-bold ml-1 bg-white border border-slate-200 px-1.5 py-0.5 rounded shadow-sm">v?.??</span>
         </div>
-        <a href="admin.html" class="text-[10px] text-slate-300 hover:text-blue-500 transition-colors font-bold no-underline flex items-center justify-center gap-1">
+        <a href="rfc_admin.html" class="text-[10px] text-slate-300 hover:text-blue-500 transition-colors font-bold no-underline flex items-center justify-center gap-1">
             <span>🔒</span> Admin Access
         </a>
     </footer>
@@ -318,28 +317,19 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // [System] 통합 버전 관리 설정 (이곳만 수정하면 UI 전체 반영)
-        // 🚀 새로운 기능 추가 시 여기만 수정하세요. 자동으로 반영됩니다.
         const USER_CONFIG = {
-            version: "v4.20",
-            updateNote: "BugFix: 명예의 전당 렌더링 오류 수정",
+            version: "v4.29",
+            updateNote: "HoF 부문별 타이틀 텍스트 크기 확대 (20px / 14px)",
             title: "RFC 랭킹전"
         };
 
-        // 버전 정보 UI 자동 반영 함수
         function initSystemUI() {
             try {
-                // 1. 브라우저 탭 제목 설정
                 document.title = `${USER_CONFIG.title} (${USER_CONFIG.version})`;
-
-                // 2. 헤더(Header) 버전 배지 설정
                 const headerVerEl = document.getElementById('headerVersion');
                 if(headerVerEl) headerVerEl.textContent = USER_CONFIG.version;
-
-                // 3. 푸터(Footer) 상세 버전 정보 설정
                 const footerVerEl = document.getElementById('displayVersion');
                 if(footerVerEl) footerVerEl.textContent = `${USER_CONFIG.version} ${USER_CONFIG.updateNote}`;
-                
             } catch (e) {
                 console.warn("System UI Init Failed", e);
             }
@@ -349,14 +339,11 @@
         const firebaseConfig = { apiKey: "AIzaSyDlj68ex-fM0ExRdD-tvCy-UyIneVoPmGk", authDomain: "rfk-ranking.firebaseapp.com", projectId: "rfk-ranking", storageBucket: "rfk-ranking.firebasestorage.app", messagingSenderId: "675366165774", appId: "1:675366165774:web:795d34c56eab630b4dcb5f", measurementId: "G-CXPDZQ8GTL" };
         const app = initializeApp(firebaseConfig); const db = getFirestore(app); const appId = 'ranking-manager-default';
         let rankingsData = []; let matchHistoryData = []; let enrichedMatchHistory = []; let seasonArchives = {}; let activeSeason = ""; let viewSeason = ""; let viewHofSeason = ""; let viewRankingSeason = ""; let currentProfileId = null;
-        let searchQuery = ""; // [New] Global Search Query
-        
-        // [Fix] Add missing activeHighlight variable from Admin logic
+        let searchQuery = ""; 
         let activeHighlight = { ids: [], endTime: 0 };
 
         const STYLE_OPTIONS = ["인파이터", "아웃복서", "슬러거", "하드 펀처", "바디 스내처", "볼륨 펀처", "스위치 히터", "브롤러", "카운터 펀처", "복서-펀처", "슬릭", "샤프슈터", "패스트 핸드"];
         
-        // [Modified] Color Palette with Half & Half (CSS Gradient)
         const COLOR_PRESETS = [
             { name: "Black", code: "#1f2937" }, 
             { name: "Half B/W", code: "linear-gradient(to bottom, #1f2937 50%, #f8fafc 50%)" },
@@ -388,23 +375,12 @@
             }
         }
 
-        // [New] 고급 한글 검색 유틸리티 (자모 분해, 겹받침 처리)
         const Hangul = {
             CHO: ["ㄱ","ㄲ","ㄴ","ㄷ","ㄸ","ㄹ","ㅁ","ㅂ","ㅃ","ㅅ","ㅆ","ㅇ","ㅈ","ㅉ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"],
             JUNG: ["ㅏ","ㅐ","ㅑ","ㅒ","ㅓ","ㅔ","ㅕ","ㅖ","ㅗ","ㅘ","ㅙ","ㅚ","ㅛ","ㅜ","ㅝ","ㅞ","ㅟ","ㅠ","ㅡ","ㅢ","ㅣ"],
             JONG: ["","ㄱ","ㄲ","ㄳ","ㄴ","ㄵ","ㄶ","ㄷ","ㄹ","ㄺ","ㄻ","ㄼ","ㄽ","ㄾ","ㄿ","ㅀ","ㅁ","ㅂ","ㅄ","ㅅ","ㅆ","ㅇ","ㅈ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"],
-            // 겹받침 분해 맵 (종성용)
-            COMPLEX_JONG: {
-                'ㄳ':'ㄱㅅ', 'ㄵ':'ㄴㅈ', 'ㄶ':'ㄴㅎ', 'ㄺ':'ㄹㄱ', 'ㄻ':'ㄹㅁ', 'ㄼ':'ㄹㅂ', 
-                'ㄽ':'ㄹㅅ', 'ㄾ':'ㄹㅌ', 'ㄿ':'ㄹㅍ', 'ㅀ':'ㄹㅎ', 'ㅄ':'ㅂㅅ'
-            },
-            // [Added] 낱자 겹받침 분해 맵 (검색어 처리용)
-            JAMO_MAP: {
-                'ㄳ':'ㄱㅅ', 'ㄵ':'ㄴㅈ', 'ㄶ':'ㄴㅎ', 'ㄺ':'ㄹㄱ', 'ㄻ':'ㄹㅁ', 'ㄼ':'ㄹㅂ', 
-                'ㄽ':'ㄹㅅ', 'ㄾ':'ㄹㅌ', 'ㄿ':'ㄹㅍ', 'ㅀ':'ㄹㅎ', 'ㅄ':'ㅂㅅ'
-            },
-            
-            // 초성 추출
+            COMPLEX_JONG: { 'ㄳ':'ㄱㅅ', 'ㄵ':'ㄴㅈ', 'ㄶ':'ㄴㅎ', 'ㄺ':'ㄹㄱ', 'ㄻ':'ㄹㅁ', 'ㄼ':'ㄹㅂ', 'ㄽ':'ㄹㅅ', 'ㄾ':'ㄹㅌ', 'ㄿ':'ㄹㅍ', 'ㅀ':'ㄹㅎ', 'ㅄ':'ㅂㅅ' },
+            JAMO_MAP: { 'ㄳ':'ㄱㅅ', 'ㄵ':'ㄴㅈ', 'ㄶ':'ㄴㅎ', 'ㄺ':'ㄹㄱ', 'ㄻ':'ㄹㅁ', 'ㄼ':'ㄹㅂ', 'ㄽ':'ㄹㅅ', 'ㄾ':'ㄹㅌ', 'ㄿ':'ㄹㅍ', 'ㅀ':'ㄹㅎ', 'ㅄ':'ㅂㅅ' },
             getCho: function(str) {
                 let result = "";
                 for(let i=0; i<str.length; i++) {
@@ -414,43 +390,29 @@
                 }
                 return result;
             },
-
-            // 완전 자모 분해 (삶 -> ㅅㅏㄹㅁ, ㄻ -> ㄹㅁ)
             disassemble: function(str) {
                 let result = "";
                 for (let i = 0; i < str.length; i++) {
                     const char = str.charAt(i);
                     const code = char.charCodeAt(0) - 44032;
-                    
                     if (code > -1 && code < 11172) {
                         const choIdx = Math.floor(code / 588);
                         const jungIdx = Math.floor((code - (choIdx * 588)) / 28);
                         const jongIdx = code % 28;
-                        
                         const cho = this.CHO[choIdx];
                         const jung = this.JUNG[jungIdx];
                         let jong = this.JONG[jongIdx];
-
-                        // 겹받침 분해 (ex: ㄺ -> ㄹㄱ)
-                        if(this.COMPLEX_JONG[jong]) {
-                            jong = this.COMPLEX_JONG[jong];
-                        }
-
+                        if(this.COMPLEX_JONG[jong]) jong = this.COMPLEX_JONG[jong];
                         result += cho + jung + jong;
                     } else {
-                        // [Modified] 낱자 겹받침 처리 (ㄻ -> ㄹㅁ)
-                        if (this.JAMO_MAP[char]) {
-                            result += this.JAMO_MAP[char];
-                        } else {
-                            result += char;
-                        }
+                        if (this.JAMO_MAP[char]) result += this.JAMO_MAP[char];
+                        else result += char;
                     }
                 }
                 return result;
             }
         };
 
-        // [Helper] Check Veteran Status
         function isVeteran(p) {
             const total = (p.wins || 0) + (p.losses || 0);
             const score = p.elo || 1000;
@@ -476,10 +438,8 @@
 
                 rankingsData.forEach(p => { 
                     if (!p.careerHighElo) p.careerHighElo = p.elo || 1000; 
-                    // [Fix] Generate search index data
                     p.choseong = Hangul.getCho(p.name);
                     p.jamo = Hangul.disassemble(p.name);
-                    // [New] Bounty Init (Display Only)
                     if(p.bounty === undefined) p.bounty = 0;
                     if(isVeteran(p) && p.bounty < 10) p.bounty = 10;
                 }); 
@@ -515,7 +475,6 @@
         COLOR_PRESETS.forEach(color => {
             const div = document.createElement('div');
             div.className = 'color-preset shadow-sm';
-            // [Modified] Use 'background' for gradient support
             div.style.background = color.code;
             div.dataset.color = color.code;
             div.title = color.name;
@@ -529,7 +488,6 @@
             if(element) element.classList.add('active');
         }
 
-        // [Modified] Enrich Match History with Dual Snapshot (All & Season)
         function enrichMatchHistory() { 
             const chronological = [...matchHistoryData].reverse(); 
             const allTimeTracker = {}; 
@@ -540,33 +498,21 @@
                 const loser = match.loser; 
                 const season = match.season || "시즌 1";
 
-                // Initialize All Time
                 if (!allTimeTracker[winner]) allTimeTracker[winner] = { w: 0, l: 0, h: [] };
                 if (!allTimeTracker[loser]) allTimeTracker[loser] = { w: 0, l: 0, h: [] };
                 
-                // Initialize Season
                 if (!seasonTracker[season]) seasonTracker[season] = {};
                 if (!seasonTracker[season][winner]) seasonTracker[season][winner] = { w: 0, l: 0, h: [] };
                 if (!seasonTracker[season][loser]) seasonTracker[season][loser] = { w: 0, l: 0, h: [] };
 
-                // Create Snapshot (Dual)
                 const snapshot = { 
-                    all: { 
-                        [winner]: { ...allTimeTracker[winner] }, 
-                        [loser]: { ...allTimeTracker[loser] } 
-                    },
-                    season: {
-                        [winner]: { ...seasonTracker[season][winner] },
-                        [loser]: { ...seasonTracker[season][loser] }
-                    }
+                    all: { [winner]: { ...allTimeTracker[winner] }, [loser]: { ...allTimeTracker[loser] } },
+                    season: { [winner]: { ...seasonTracker[season][winner] }, [loser]: { ...seasonTracker[season][loser] } }
                 };
                 
                 if (match.type !== 'draw') { 
-                    // Update All Time
                     allTimeTracker[winner].w++; allTimeTracker[winner].h = [...allTimeTracker[winner].h, 'W'].slice(-6); 
                     allTimeTracker[loser].l++; allTimeTracker[loser].h = [...allTimeTracker[loser].h, 'L'].slice(-6); 
-                    
-                    // Update Season
                     seasonTracker[season][winner].w++; seasonTracker[season][winner].h = [...seasonTracker[season][winner].h, 'W'].slice(-6);
                     seasonTracker[season][loser].l++; seasonTracker[season][loser].h = [...seasonTracker[season][loser].h, 'L'].slice(-6);
                 } 
@@ -575,93 +521,69 @@
             enrichedMatchHistory.reverse(); 
         }
 
-        function updateUI() { const now = new Date(); document.getElementById('currentDate').textContent = now.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' }); updateHeaderSeasonSelector(); renderRankings(); updateSeasonSelector(); updateHofSeasonSelector(); renderMatches(); renderHOF(); }
+        function updateUI() { 
+            const now = new Date(); 
+            document.getElementById('currentDate').textContent = now.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' }); 
+            updateHeaderSeasonSelector(); renderRankings(); updateSeasonSelector(); updateHofSeasonSelector(); renderMatches(); renderHOF(); 
+        }
         
         function getTier(wins, losses) { 
             const matches = (wins || 0) + (losses || 0); 
-            
             if (matches < 3) return { name: 'BRONZE', class: 'tier-bronze', color: 'bg-white border border-amber-600 text-amber-700' }; 
             if (matches < 7) return { name: 'SILVER', class: 'tier-silver', color: 'bg-white border border-slate-400 text-slate-500' }; 
             if (matches < 13) return { name: 'GOLD', class: 'tier-gold', color: 'bg-white border border-yellow-500 text-yellow-600' }; 
             return { name: 'PLATINUM', class: 'tier-platinum', color: 'bg-white border border-cyan-500 text-cyan-600' }; 
         }
         
-        // [New] Search Handler
         window.handleSearch = (val) => {
             searchQuery = val.trim().toLowerCase();
             renderRankings();
         };
 
-        // [Helper] Check if Rank-In Date is within 2 days
         function isRecentRankIn(dateStr) {
             if (!dateStr) return false;
             const today = new Date(getKSTDate());
             const rankIn = new Date(dateStr);
             const diffTime = today - rankIn;
             const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-            return diffDays <= 2; // 0, 1, 2일차까지 True
+            return diffDays <= 2; 
         }
 
-        // [Modified] Render Rankings with Search Filter & Real Rank Preservation
         function renderRankings() { 
             const container = document.getElementById('rankingList'); container.innerHTML = ''; 
-            
-            // 1. Determine Full Data Source
             let fullData = [];
             if (viewRankingSeason === activeSeason) {
                 fullData = [...rankingsData];
             } else {
                 fullData = [...(seasonArchives[viewRankingSeason]?.rankings || [])];
-                
-                // [Fix] Ensure archive data also has search index
                 fullData.forEach(p => {
                     if(!p.choseong) p.choseong = Hangul.getCho(p.name);
                     if(!p.jamo) p.jamo = Hangul.disassemble(p.name);
                 });
             }
 
-            // 2. Calculate Global Rankings (Based on ELO) - for finding 'Real Rank'
-            // [Modified] Only players with >= 3 matches are considered for numbering
-            // Use Number() to safely handle string inputs (e.g. "1" + "2" = 3, not "12")
-            const globalRankedPlayers = fullData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3)
-                                                                        .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
-
-            // 3. Apply Search Filter
+            const globalRankedPlayers = fullData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
             let filteredData = fullData;
             if (searchQuery) {
-                // [Modified] Decompose query for complex consonant search (e.g. ㄻ -> ㄹㅁ)
                 const queryJamo = Hangul.disassemble(searchQuery.replace(/\s/g, ""));
                 const qClean = searchQuery.replace(/\s/g, "");
-                
                 filteredData = fullData.filter(p => {
                     const name = p.name || "";
                     const nameClean = name.replace(/\s/g, "").toLowerCase();
-                    
-                    // 1. Text Match
                     if (nameClean.includes(qClean)) return true;
-                    // 2. Choseong Match - [Modified] Check both raw query and decomposed query
-                    // (e.g. '로마첸코' -> 'ㄹㅁㅊㅋ'. If query is 'ㄻ'->'ㄹㅁ', 'ㄹㅁㅊㅋ' includes 'ㄹㅁ')
                     if (p.choseong && (p.choseong.includes(qClean) || p.choseong.includes(queryJamo))) return true;
-                    // 3. Jamo Match
                     if (p.jamo && p.jamo.includes(queryJamo)) return true;
-                    
                     return false;
                 });
             }
 
-            // 4. Separate Groups: Ranked (>=3) / Placement (1~2) / Unranked (0)
-            const ranked = filteredData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3)
-                                                        .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
-            
+            const ranked = filteredData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
             const placement = filteredData.filter(p => {
                 const total = Number(p.wins || 0) + Number(p.losses || 0);
                 return total > 0 && total < 3;
             }).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
+            const unranked = filteredData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) === 0).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
             
-            const unranked = filteredData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) === 0)
-                                                             .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
-            
-            // 현재 시간이 하이라이트 종료 시간 전이라면 하이라이트 적용
             const now = Date.now();
             const shouldHighlight = (id) => activeHighlight.ids.includes(id) && now < activeHighlight.endTime;
 
@@ -670,54 +592,30 @@
                 return;
             }
 
-            // 5. Render Ranked Players
             ranked.forEach((item, idx) => { 
                 const globalIndex = rankingsData.indexOf(item); 
                 const realRank = globalRankedPlayers.findIndex(p => p.id === item.id) + 1;
                 const tier = getTier(item.wins, item.losses);
                 const totalMatches = (item.wins || 0) + (item.losses || 0);
                 
-                // [Added] Check Veteran Status
                 const vet = isVeteran(item);
                 let vetBadge = '';
                 let cardClass = tier.class;
                 let rankNumClass = "rank-num-normal";
-                let vetNameBadge = ''; // Inline Badge
+                let vetNameBadge = ''; 
                 
-                if (vet) {
-                    // [Modified] Badge Position: Absolute on Image (Bottom-Right)
-                    // Adjusted 2px up (from -7px to -5px)
-                    vetBadge = `<div class="absolute bottom-[-5px] -right-2 text-lg filter drop-shadow-md z-10">🎖️</div>`;
-                }
+                if (vet) vetBadge = `<div class="absolute bottom-[-5px] -right-2 text-lg filter drop-shadow-md z-10">🎖️</div>`;
+                if (realRank === 1) { rankNumClass = "rank-num-1 font-black"; cardClass = 'rank-1-glow'; } 
+                else if (realRank === 2) { rankNumClass = "rank-num-2 font-black"; cardClass = 'rank-2-glow'; } 
+                else if (realRank === 3) { rankNumClass = "rank-num-3 font-black"; cardClass = 'rank-3-glow'; } 
+                else { if (realRank <= 10) rankNumClass = "rank-num-top10"; }
+                if (vet) vetNameBadge = '<span class="v-badge v-gold" title="Veteran">V</span>'; 
 
-                // [Logic] Rank Style Priority: 1 > 2 > 3 > Veteran > Tier
-                // 1~3위 효과가 베테랑 효과보다 우선 적용됨
-                if (realRank === 1) {
-                    rankNumClass = "rank-num-1 font-black";
-                    cardClass = 'rank-1-glow';
-                } else if (realRank === 2) {
-                    rankNumClass = "rank-num-2 font-black";
-                    cardClass = 'rank-2-glow';
-                } else if (realRank === 3) {
-                    rankNumClass = "rank-num-3 font-black";
-                    cardClass = 'rank-3-glow';
-                } else {
-                    if (realRank <= 10) rankNumClass = "rank-num-top10";
-                }
-
-                // [New] Apply Inline Badge for Veterans (Name Line)
-                if (vet) {
-                    vetNameBadge = '<span class="v-badge v-gold" title="Veteran">V</span>';
-                }
-
-                // [New] Bounty Logic (Style 1 - Stat Line)
                 let bountyStatHtml = '';
                 if (vet && item.bounty && item.bounty > 0) {
-                     // [Modified] Removed divider (|) span
-                     bountyStatHtml = `<span class="text-[13px] font-black text-amber-600 flex items-center gap-0.5 bg-amber-50 px-1.5 rounded border border-amber-100" title="현상금">💰+${item.bounty}</span>`;
+                      bountyStatHtml = `<span class="text-[13px] font-black text-amber-600 flex items-center gap-0.5 bg-amber-50 px-1.5 rounded border border-amber-100" title="현상금">💰+${item.bounty}</span>`;
                 }
 
-                // Rank Change Logic
                 const prevRank = item.previousRank || realRank; 
                 const diff = prevRank - realRank; 
                 let diffHtml = ""; 
@@ -729,38 +627,35 @@
                 
                 if (shouldHighlight(item.id)) cardClass += ' highlight-slow';
 
-                // [Modified v4.18] Apply Large Image Style (Same as Placement)
                 container.innerHTML += `
                     <div id="rank-card-${item.id}" class="rank-card flex items-center p-3 md:p-4 border rounded-xl mb-2 bg-white hover:shadow-md ${cardClass}" onclick="openProfile('${item.id}')">
                         <div class="w-10 text-center mr-2"><span class="${rankNumClass}">${realRank}</span><div class="text-[10px]">${diffHtml}</div></div>
                         <div class="shrink-0 relative mr-3 -my-2 md:-my-4">
                             <img src="${item.imageUrl || 'https://placehold.co/150?text=No+Img'}" class="w-[60px] h-[60px] md:w-[90px] md:h-[90px] rounded-2xl bg-slate-100 object-cover border border-slate-100" onerror="this.src='https://placehold.co/150?text=No+Img'">
                             ${realRank === 1 ? `<div class="absolute -top-1 -right-1 text-sm">👑</div>` : ''}
-                            ${vetBadge} <!-- [Modified] Badge Moved Here (Image Bottom-Right) -->
+                            ${vetBadge} 
                         </div>
                         <div class="flex-grow min-w-0 flex flex-col justify-center py-1">
                             <div class="flex items-center gap-1.5 md:gap-2 mb-0.5 md:mb-1.5">
                                 <div class="w-1.5 h-4 rounded-sm shadow-sm ring-1 ring-inset ring-black/10" style="background: ${item.trunkColor || '#1f2937'};" title="트렁크 색상"></div>
                                 <span class="font-bold text-slate-800 truncate text-sm md:text-lg">${item.name}</span>
                                 <span class="text-[9px] px-1.5 py-0.5 rounded-full ${tier.color} font-bold tracking-wide uppercase shadow-sm">${tier.name}</span>
-                                ${vetNameBadge} <!-- Moved to Right of Tier -->
+                                ${vetNameBadge} 
                             </div>
                             <div class="flex items-center gap-1.5 mt-0.5">
                                 <span class="bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded border border-amber-200 font-bold">⚡${item.elo}</span>
                                 <span class="text-xs text-slate-400">| ${item.wins}승 ${item.losses}패</span>
-                                ${bountyStatHtml} <!-- Style 1: Added here -->
+                                ${bountyStatHtml} 
                             </div>
                         </div>
                         <div class="flex flex-col items-end justify-center shrink-0 md:h-full">
                             <div class="flex gap-1 p-1 md:p-1.5">
-                                <!-- Dots or New Badge -->
                             </div>
                         </div>
                     </div>`; 
             }); 
 
             if (placement.length > 0) {
-                // [Added] Distinct Section Divider
                 container.innerHTML += `
                     <div class="relative py-4">
                         <div class="absolute inset-0 flex items-center" aria-hidden="true">
@@ -774,7 +669,6 @@
                 placement.forEach((p) => {
                     const highlightClass = shouldHighlight(p.id) ? 'highlight-slow' : '';
                     
-                    // [Modified v4.18] Revert to Large Image Style
                     container.innerHTML += `
                         <div id="rank-card-${p.id}" class="rank-card flex items-center p-3 md:p-4 border rounded-xl mb-2 bg-slate-50 opacity-90 hover:opacity-100 ${highlightClass}" onclick="openProfile('${p.id}')">
                             <div class="w-10 text-center mr-2"><span class="text-lg md:text-xl">🐣</span></div>
@@ -800,7 +694,6 @@
             }
 
             if(unranked.length > 0) {
-                // [Added] Distinct Section Divider for Unranked
                 container.innerHTML += `
                     <div class="relative py-4">
                         <div class="absolute inset-0 flex items-center" aria-hidden="true">
@@ -814,7 +707,6 @@
                 unranked.forEach((p) => {
                     const highlightClass = shouldHighlight(p.id) ? 'highlight-slow' : '';
                     
-                    // [Modified v4.18] Revert to Large Image Style
                     container.innerHTML += `
                         <div class="bg-white rounded-2xl p-3 md:p-4 shadow-sm border border-slate-100 flex items-center gap-3 relative overflow-hidden transition-transform active:scale-[0.99] cursor-pointer opacity-80 ${highlightClass}" onclick="openProfile('${p.id}')">
                             <div class="flex flex-col items-center justify-center w-8 md:w-10 shrink-0"><span class="rank-unranked">-</span></div>
@@ -838,7 +730,6 @@
             }
         }
 
-        // [Modified] Update Header Season Selector Logic (Global Sync)
         function updateHeaderSeasonSelector() {
             const selector = document.getElementById('headerSeasonSelect');
             if (!selector) return;
@@ -849,30 +740,24 @@
             opts.forEach(s => {
                 const opt = document.createElement('option');
                 opt.value = s;
-                // [Modified] Use Emoji Indicator
                 opt.textContent = s + (s === activeSeason ? " 🟢" : "");
                 selector.appendChild(opt);
             });
             
             selector.value = viewRankingSeason;
             
-            // [Core Change] Sync All Tabs on Header Change
             selector.onchange = (e) => {
                 const newSeason = e.target.value;
-                
-                // 1. Update State Variables
                 viewRankingSeason = newSeason;
                 viewSeason = newSeason;
                 viewHofSeason = newSeason;
                 
-                // 2. Sync Individual Selectors (if they exist in DOM)
                 const matchesSelect = document.getElementById('seasonSelector');
                 if(matchesSelect) matchesSelect.value = newSeason;
                 
                 const hofSelect = document.getElementById('hofSeasonSelector');
                 if(hofSelect) hofSelect.value = newSeason;
 
-                // 3. Render All Views
                 renderRankings();
                 renderMatches(); 
                 renderHOF();
@@ -886,17 +771,10 @@
             opts.forEach(s => { 
                 const opt = document.createElement('option'); 
                 opt.value = s; 
-                // [Modified] Use Emoji Indicator
                 opt.textContent = s + (s === activeSeason ? " 🟢" : ""); 
                 selector.appendChild(opt); 
             }); 
             selector.value = viewSeason; 
-            
-            // Optional: If you want tab selectors to also update header, uncomment below
-            // selector.onchange = (e) => { 
-            //     viewSeason = e.target.value; 
-            //     renderMatches(); 
-            // };
             selector.onchange = (e) => { viewSeason = e.target.value; renderMatches(); }; 
         }
 
@@ -907,7 +785,6 @@
             opts.forEach(s => { 
                 const opt = document.createElement('option'); 
                 opt.value = s; 
-                // [Modified] Use Emoji Indicator
                 opt.textContent = s + (s === activeSeason ? " 🟢" : ""); 
                 selector.appendChild(opt); 
             }); 
@@ -915,7 +792,6 @@
             selector.onchange = (e) => { viewHofSeason = e.target.value; renderHOF(); }; 
         }
 
-        // [Modified] Render Matches Grouped by Date with Count
         function renderMatches() { 
             const container = document.getElementById('matchList'); 
             container.innerHTML = ''; 
@@ -926,7 +802,6 @@
                 return; 
             } 
 
-            // 1. 날짜별 경기 수 계산
             const dateCounts = filtered.reduce((acc, m) => {
                 acc[m.date] = (acc[m.date] || 0) + 1;
                 return acc;
@@ -947,7 +822,6 @@
                 let winDots = ''; (winStats.h || []).forEach(r => winDots += `<div class="w-1.5 h-1.5 rounded-full ${r==='W'?'bg-emerald-400':'bg-rose-400'}"></div>`);
                 let loseDots = ''; (loseStats.h || []).forEach(r => loseDots += `<div class="w-1.5 h-1.5 rounded-full ${r==='W'?'bg-emerald-400':'bg-rose-400'}"></div>`);
                 
-                // 2. 날짜 헤더 표시 (그룹화)
                 if (m.date !== lastDate) {
                     const count = dateCounts[m.date];
                     const dateHeader = document.createElement('div');
@@ -959,8 +833,6 @@
 
                 const div = document.createElement('div'); 
                 div.className = "bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-3"; 
-                
-                // [Modified] Card Layout: Removed internal date row
                 div.innerHTML = `
                     <div class="flex items-center justify-between text-sm">
                         <div class="flex flex-col items-start w-[45%] ${cursorStyle(winProfile)}" ${winClick}>
@@ -989,7 +861,6 @@
             }); 
         }
 
-        // [Restore] 명예의 전당 렌더링 함수 복구
         function renderHOF() { 
             const container = document.getElementById('hofContent'); 
             let players = [];
@@ -997,7 +868,6 @@
             let targetHistory = [];
             let isCurrentSeason = false;
             
-            // 1. 데이터 가져오기
             if (viewHofSeason === activeSeason) { 
                 isCurrentSeason = true;
                 seasonName = activeSeason + " (진행중)";
@@ -1017,7 +887,6 @@
                 return; 
             } 
 
-            // 2. 연승(Streak) 정밀 계산
             const historyWithIndex = targetHistory.map((m, i) => ({ ...m, originalIndex: i }));
             const sortedHistory = historyWithIndex.sort((a, b) => {
                 const dateA = new Date(a.date).getTime();
@@ -1041,11 +910,8 @@
                 return { ...p, maxStreak: (streakMap[p.name.trim()] ? streakMap[p.name.trim()].max : 0) };
             });
 
-            // 3. 각 분야별 Top 3 선정
-            
-            // [A] 챔피언 Top 3 (한글 타이틀 적용)
             let championList = [];
-            let champTitle = "시즌 랭킹 TOP 3"; // 기본값 (과거 시즌)
+            let champTitle = "시즌 랭킹 TOP 3";
             let champSub = "최종 순위";
 
             if (isCurrentSeason) {
@@ -1054,9 +920,9 @@
                     const prevName = pastSeasons[0];
                     const prevData = seasonArchives[prevName].rankings || [];
                     championList = prevData.filter(p => (p.wins + p.losses) >= 3)
-                                                                 .sort((a, b) => (b.elo || 1000) - (a.elo || 1000))
-                                                                 .slice(0, 3);
-                    champTitle = "전시즌 TOP 3"; // [변경]
+                                                                     .sort((a, b) => (b.elo || 1000) - (a.elo || 1000))
+                                                                     .slice(0, 3);
+                    champTitle = "전시즌 TOP 3";
                     champSub = `${prevName} 레전드`;
                 }
             } else {
@@ -1065,7 +931,6 @@
                                                      .slice(0, 3);
             }
 
-            // [B] 최다 플레이 (Iron Will -> 최다 플레이)
             const ironWillList = [...players].sort((a, b) => {
                 const totalA = a.wins + a.losses;
                 const totalB = b.wins + b.losses;
@@ -1073,20 +938,17 @@
                 return (b.elo || 1000) - (a.elo || 1000);
             }).slice(0, 3);
 
-            // [C] 최다승 (Conqueror -> 최다승)
             const conquerorList = [...players].sort((a, b) => {
                 if (a.wins !== b.wins) return b.wins - a.wins;
                 return (b.elo || 1000) - (a.elo || 1000);
             }).slice(0, 3);
 
-            // [D] 최다 연승 (Unstoppable -> 최다 연승)
             const streakList = [...playersWithStreak].sort((a, b) => {
                 if (a.maxStreak !== b.maxStreak) return b.maxStreak - a.maxStreak;
                 return (b.elo || 1000) - (a.elo || 1000);
             }).filter(p => p.maxStreak > 0).slice(0, 3);
 
 
-            // 4. 시상대(Podium) 생성 헬퍼
             const createPodiumSection = (title, sub, icon, list, colorFrom, colorTo, type) => {
                 if (!list || list.length === 0) return ''; 
 
@@ -1106,44 +968,53 @@
                     if (!p) return `<div class="flex-1 w-full opacity-0"></div>`;
                     
                     const is1st = rank === 1;
-                    const height = is1st ? "h-36 sm:h-40" : (rank === 2 ? "h-28 sm:h-32" : "h-24 sm:h-28");
-                    const order = is1st ? "order-2 -mt-4 z-10" : (rank === 2 ? "order-1" : "order-3");
-                    const rankBadge = is1st ? "🥇" : (rank === 2 ? "🥈" : "🥉");
-                    const bgColor = is1st ? `bg-gradient-to-b from-${colorFrom} to-${colorTo} text-white shadow-lg` : "bg-white border border-slate-200 text-slate-700";
-                    const textColor = is1st ? "text-white" : "text-slate-800";
-                    const subTextColor = is1st ? "text-white/80" : "text-slate-400";
-                    const imgSize = is1st ? "w-14 h-14" : "w-10 h-10";
-                    const crown = is1st ? `<div class="absolute -top-3 text-lg filter drop-shadow-md transform -rotate-12">👑</div>` : '';
+                    const order = is1st ? "order-2 z-10 -mt-4 sm:-mt-6" : (rank === 2 ? "order-1" : "order-3");
+                    
+                    const imgSizeClass = is1st ? "w-[85px] h-[85px] sm:w-[120px] sm:h-[120px]" : "w-[70px] h-[70px] sm:w-[100px] sm:h-[100px]";
+                    const imgBorder = is1st ? "border-2 border-amber-400 shadow-xl" : "border border-slate-200 shadow-md";
+                    
+                    const badgeClass = is1st ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white" : (rank === 2 ? "bg-slate-700 text-white" : "bg-orange-700 text-white");
+                    const badgeText = rank + "위";
+                    const badgeSize = is1st ? "text-[10px] sm:text-xs" : "text-[10px] sm:text-[11px]";
+                    
+                    // [Modified] 왕관(👑) 제거
+                    const crown = '';
+                    
+                    const plateHeight = is1st ? "h-16 sm:h-20" : "h-14 sm:h-16";
+                    const plateBg = is1st ? "bg-gradient-to-b from-amber-100 to-amber-50 border border-amber-200 text-amber-900" : "bg-slate-50 border border-slate-200 text-slate-700";
+                    
+                    const nameSize = is1st ? "text-sm sm:text-[20px]" : "text-xs sm:text-base";
+                    const statColor = is1st ? "text-amber-600" : "text-slate-400";
+                    const statSize = is1st ? "text-[10px] sm:text-[14px]" : "text-[10px] sm:text-xs";
 
                     return `
                         <div class="flex-1 w-full flex flex-col items-center justify-end ${order}">
                              <div class="relative flex flex-col items-center cursor-pointer group w-full" onclick="openProfile('${p.id}')">
-                                <div class="relative z-20 mb-2 transition-transform group-hover:scale-110">
+                                <div class="relative z-20 mb-2 transition-transform group-hover:scale-110 flex justify-center">
                                     ${crown}
-                                    <img src="${p.imageUrl || 'https://placehold.co/150?text=No+Img'}" class="${imgSize} rounded-full object-cover border-2 border-white shadow-sm bg-slate-200" onerror="this.src='https://placehold.co/150?text=No+Img'">
-                                    <div class="absolute -bottom-1 -right-1 text-xs shadow-sm bg-white rounded-full w-5 h-5 flex items-center justify-center border border-slate-100">${rankBadge}</div>
+                                    <img src="${p.imageUrl || 'https://placehold.co/150?text=No+Img'}" class="${imgSizeClass} rounded-2xl object-cover ${imgBorder} bg-slate-200" onerror="this.src='https://placehold.co/150?text=No+Img'">
+                                    <div class="absolute -top-2 -left-2 ${badgeSize} shadow-sm ${badgeClass} font-bold rounded-lg px-2 py-0.5 border border-white z-30">${badgeText}</div>
                                 </div>
-                                <div class="${height} w-full ${bgColor} rounded-t-xl flex flex-col items-center pt-3 pb-2 px-1 shadow-sm relative overflow-hidden">
-                                    ${is1st ? `<div class="absolute inset-0 bg-white/10"></div>` : ''}
-                                    <div class="${textColor} font-black text-xs sm:text-sm truncate w-full text-center px-1">${p.name}</div>
-                                    <div class="${subTextColor} text-[10px] font-bold mt-0.5">${getValue(p)}</div>
-                                    ${is1st ? `<div class="mt-auto mb-1 text-[9px] font-bold bg-black/20 px-2 py-0.5 rounded-full text-white">#1</div>` : ''}
+                                <div class="${plateHeight} w-full ${plateBg} rounded-lg flex flex-col items-center justify-center shadow-sm">
+                                    <div class="font-black ${nameSize} truncate w-full text-center px-1 leading-tight">${p.name}</div>
+                                    <div class="${statColor} ${statSize} font-bold mt-0.5 sm:mt-1">${getValue(p)}</div>
                                 </div>
                             </div>
                         </div>
                     `;
                 };
 
+                // [Modified] 타이틀 20px, 서브타이틀 14px 로 확대 및 여백/이모지 크기(text-3xl) 조정
                 return `
                     <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 mb-6 relative overflow-hidden fade-in">
-                        <div class="flex items-center gap-2 mb-6 border-b border-slate-100 pb-2">
-                            <span class="text-2xl">${icon}</span>
+                        <div class="flex items-center gap-3 mb-6 border-b border-slate-100 pb-3">
+                            <span class="text-3xl">${icon}</span>
                             <div>
-                                <div class="text-xs font-black text-slate-800 tracking-tight">${title}</div>
-                                <div class="text-[10px] text-slate-400 font-medium">${sub}</div>
+                                <div class="text-[20px] font-black text-slate-800 tracking-tight leading-none">${title}</div>
+                                <div class="text-[14px] text-slate-400 font-medium mt-1">${sub}</div>
                             </div>
                         </div>
-                        <div class="flex justify-center items-end gap-2 px-2">
+                        <div class="flex justify-center items-end gap-2 px-2 h-auto pt-4 pb-2">
                             ${renderPodiumItem(p2, 2)}
                             ${renderPodiumItem(p1, 1)}
                             ${renderPodiumItem(p3, 3)}
@@ -1152,7 +1023,6 @@
                 `; 
             };
 
-            // 5. 렌더링 (순서 변경됨)
             container.innerHTML = `
                 <div class="text-center mb-6">
                     <h3 class="text-xl font-black text-slate-800 tracking-tight">${seasonName}</h3>
@@ -1161,17 +1031,13 @@
                 
                 <div class="px-1 pb-10">
                     ${createPodiumSection("최다 연승", "멈출 수 없는 기세", "🚀", streakList, "rose-400", "pink-500", "streak")}
-                    
                     ${createPodiumSection("최다 플레이", "지치지 않는 열정", "🛡️", ironWillList, "slate-500", "slate-700", "match")}
-                    
                     ${createPodiumSection("최다승", "압도적인 승리", "⚔️", conquerorList, "blue-500", "indigo-600", "win")}
-                    
                     ${createPodiumSection(champTitle, champSub, "👑", championList, "amber-400", "orange-500", "elo")}
                 </div>
             `; 
         }
         
-        // [Modified] Default to 'all' and update Profile Stats
         window.openProfile = (id) => { 
             currentProfileId = id; 
             const p = rankingsData.find(x => x.id === id); 
@@ -1185,7 +1051,6 @@
             filterEl.innerHTML = '<option value="all">전체 기록 (All Time)</option><option value="current">현재 시즌 (Current)</option>'; 
             Object.keys(seasonArchives).sort().reverse().forEach(s => { filterEl.innerHTML += `<option value="${s}">${s}</option>`; }); 
             
-            // Set Default to All
             filterEl.value = 'all'; 
             filterEl.onchange = (e) => updateProfileStats(id, e.target.value); 
             
@@ -1198,7 +1063,6 @@
             document.getElementById('pModalReach').textContent = p.reach ? p.reach + 'cm' : '-'; 
             document.getElementById('pModalStance').textContent = p.stance || '-'; 
             
-            // [Added] Append Veteran Badge if applicable
             const vet = isVeteran(p);
             if(vet) {
                 document.getElementById('pModalName').innerHTML += ` <span class="text-lg">🎖️</span>`;
@@ -1208,14 +1072,11 @@
             tagsContainer.innerHTML = ''; 
             (p.tags || []).forEach(tag => { tagsContainer.innerHTML += `<span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">#${tag}</span>`; }); 
             
-            // Initial call with 'all'
             updateProfileStats(id, 'all'); 
             document.getElementById('profileModal').classList.remove('hidden'); 
         };
         window.closeProfile = () => { document.getElementById('profileModal').classList.add('hidden'); }
         
-        // [Modified] Update Profile Stats with Intelligent Filter (Snapshot Selection)
-        // [Added] Display Score Change Logic
         window.updateProfileStats = (id, filter) => { 
             const p = rankingsData.find(x => x.id === id); 
             let matches = enrichedMatchHistory.filter(m => (m.winner === p.name || m.loser === p.name) && m.type !== 'draw'); 
@@ -1246,7 +1107,6 @@
                 const resultColor = isWin ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'; 
                 const oppName = isWin ? m.loser : m.winner; 
                 
-                // [Logic] Determine Data Source (All vs Season)
                 const snapshotType = filter === 'all' ? 'all' : 'season';
                 const snapshotData = m.snapshot[snapshotType] || {};
                 const oppStats = snapshotData[oppName] || { w:0, l:0, h:[] }; 
@@ -1255,11 +1115,6 @@
                 let oppDots = ''; 
                 (oppStats.h || []).forEach(res => { if (res === 'W') oppDots += `<div class="w-1 h-1 rounded-full bg-emerald-400"></div>`; else oppDots += `<div class="w-1 h-1 rounded-full bg-rose-400"></div>`; }); 
                 
-                const oppProfile = rankingsData.find(u => u.name === oppName);
-                const oppLink = oppProfile ? `onclick="openProfile('${oppProfile.id}')"` : '';
-                const oppCursor = oppProfile ? 'cursor-pointer hover:underline hover:text-blue-600' : '';
-                
-                // [Modified] Score Change Badge Logic (Text Only, 13px)
                 let scoreBadge = '';
                 if (isWin && m.winnerChange !== undefined) {
                     scoreBadge = `<span class="text-[13px] font-black text-emerald-600 shrink-0">+${m.winnerChange}</span>`;
@@ -1267,9 +1122,24 @@
                     scoreBadge = `<span class="text-[13px] font-black text-rose-600 shrink-0">${m.loserChange}</span>`;
                 }
 
+                let oppRankBadge = '';
+                const oppRankVal = isWin ? m.loserRankBefore : m.winnerRankBefore;
+                if (oppRankVal !== undefined) {
+                    if (oppRankVal > 0) {
+                        oppRankBadge = `<span class="bg-slate-200 text-slate-500 text-[14px] px-2 py-0.5 rounded-md font-bold leading-none no-underline shadow-sm">${oppRankVal}위</span>`;
+                    } else {
+                        oppRankBadge = `<span class="bg-slate-100 text-slate-400 text-[14px] px-2 py-0.5 rounded-md font-bold leading-none no-underline shadow-sm border border-slate-200">배치중</span>`;
+                    }
+                } else {
+                    oppRankBadge = `<span class="bg-slate-100 text-slate-400 text-[14px] px-2 py-0.5 rounded-md font-bold leading-none no-underline shadow-sm border border-slate-200" title="과거 기록">-</span>`;
+                }
+
+                const oppProfile = rankingsData.find(u => u.name === oppName);
+                const oppLink = oppProfile ? `onclick="openProfile('${oppProfile.id}')"` : '';
+                const oppCursor = oppProfile ? 'cursor-pointer hover:underline hover:text-blue-600' : '';
+
                 const div = document.createElement('div'); 
                 div.className = "flex items-center justify-between text-xs p-3 bg-slate-50 rounded-xl border border-slate-100"; 
-                // [Modified] Layout Change: Grouped Icon & Badge on the left
                 div.innerHTML = `
                     <div class="flex items-center gap-3 w-full">
                         <div class="flex items-center gap-1.5 shrink-0">
@@ -1278,7 +1148,10 @@
                         </div>
                         <div class="flex flex-col w-full overflow-hidden">
                             <div class="flex justify-between items-center w-full">
-                                <span class="font-bold text-slate-700 text-sm truncate ${oppCursor}" ${oppLink}>vs ${oppName}</span>
+                                <span class="font-bold text-slate-700 text-sm truncate flex items-center gap-1.5 ${oppCursor}" ${oppLink}>
+                                    vs ${oppName}
+                                    ${oppRankBadge}
+                                </span>
                                 <span class="text-slate-300 font-medium text-[10px] shrink-0">${m.date}</span>
                             </div>
                             <div class="flex items-center gap-2 mt-0.5">
