@@ -174,12 +174,15 @@
 
     <header class="bg-white sticky top-0 z-40 shadow-sm border-b border-slate-200">
         <div class="max-w-3xl mx-auto px-4 py-3 flex justify-between items-center">
-            <div>
-                <h1 class="text-xl font-black italic tracking-tighter text-slate-900 flex items-center gap-1">
+            <div class="inline-flex flex-col">
+                <h1 class="text-xl font-black italic tracking-tighter text-slate-900 leading-none">
                     <span class="text-blue-600">RFC</span> RANKING
-                    <span id="headerVersion" class="text-xs text-slate-400 font-normal not-italic ml-1 translate-y-0.5">v?.??</span>
                 </h1>
-                <p id="currentDate" class="text-xs text-slate-400 font-medium mt-0.5">Loading...</p>
+                <p class="text-xs text-slate-400 font-medium mt-1 flex gap-2">
+                    <span id="currentDate">Loading...</span>
+                    <span class="text-slate-300">|</span>
+                    <span id="headerVersion" class="text-slate-500 font-bold">v?.??</span>
+                </p>
             </div>
             <div class="flex gap-2 items-center">
                 <!-- Inspector Button Modified: 배경 제거, 반투명 적용 -->
@@ -614,7 +617,9 @@
 
         function updateUI() { 
             const now = new Date(); 
-            document.getElementById('currentDate').textContent = now.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' }); 
+            // 2번 스타일(YYYY.MM.DD)에 맞춰 날짜 포맷 변경
+            const dateStr = now.toLocaleDateString('en-CA').replace(/-/g, '.');
+            document.getElementById('currentDate').textContent = dateStr; 
             updateHeaderSeasonSelector(); renderRankings(); updateSeasonSelector(); updateHofSeasonSelector(); renderMatches(); renderHOF(); 
         }
         
