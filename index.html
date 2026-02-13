@@ -318,8 +318,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v4.31",
-            updateNote: "HoF 부문별 타이틀 크기 조절 (2위 이름 크기와 밸런스 맞춤)",
+            version: "v4.35",
+            updateNote: "Bout History 날짜 굵기 조정",
             title: "RFC 랭킹전"
         };
 
@@ -632,7 +632,7 @@
                         <div class="w-10 text-center mr-2"><span class="${rankNumClass}">${realRank}</span><div class="text-[10px]">${diffHtml}</div></div>
                         <div class="shrink-0 relative mr-3 -my-2 md:-my-4">
                             <img src="${item.imageUrl || 'https://placehold.co/150?text=No+Img'}" class="w-[60px] h-[60px] md:w-[90px] md:h-[90px] rounded-2xl bg-slate-100 object-cover border border-slate-100" onerror="this.src='https://placehold.co/150?text=No+Img'">
-                            ${realRank === 1 ? `<div class="absolute -top-1 -right-1 text-sm">👑</div>` : ''}
+                            ${realRank === 1 ? `<div class="absolute -top-1 -right-1 md:-top-2 md:-right-2 text-lg md:text-2xl filter drop-shadow-md z-10">👑</div>` : ''}
                             ${vetBadge} 
                         </div>
                         <div class="flex-grow min-w-0 flex flex-col justify-center py-1">
@@ -920,15 +920,15 @@
                     const prevName = pastSeasons[0];
                     const prevData = seasonArchives[prevName].rankings || [];
                     championList = prevData.filter(p => (p.wins + p.losses) >= 3)
-                                                                     .sort((a, b) => (b.elo || 1000) - (a.elo || 1000))
-                                                                     .slice(0, 3);
+                                                                             .sort((a, b) => (b.elo || 1000) - (a.elo || 1000))
+                                                                             .slice(0, 3);
                     champTitle = "전시즌 TOP 3";
                     champSub = `${prevName} 레전드`;
                 }
             } else {
                 championList = players.filter(p => (p.wins + p.losses) >= 3)
-                                                     .sort((a, b) => (b.elo || 1000) - (a.elo || 1000))
-                                                     .slice(0, 3);
+                                                                     .sort((a, b) => (b.elo || 1000) - (a.elo || 1000))
+                                                                     .slice(0, 3);
             }
 
             const ironWillList = [...players].sort((a, b) => {
@@ -1126,12 +1126,12 @@
                 const oppRankVal = isWin ? m.loserRankBefore : m.winnerRankBefore;
                 if (oppRankVal !== undefined) {
                     if (oppRankVal > 0) {
-                        oppRankBadge = `<span class="bg-slate-200 text-slate-500 text-[14px] px-2 py-0.5 rounded-md font-bold leading-none no-underline shadow-sm">${oppRankVal}위</span>`;
+                        oppRankBadge = `<span class="bg-slate-200 text-slate-500 text-[11px] px-2 py-0.5 rounded-md font-bold leading-none no-underline shadow-sm">${oppRankVal}위</span>`;
                     } else {
-                        oppRankBadge = `<span class="bg-slate-100 text-slate-400 text-[14px] px-2 py-0.5 rounded-md font-bold leading-none no-underline shadow-sm border border-slate-200">배치중</span>`;
+                        oppRankBadge = `<span class="bg-slate-100 text-slate-400 text-[11px] px-2 py-0.5 rounded-md font-bold leading-none no-underline shadow-sm border border-slate-200">배치중</span>`;
                     }
                 } else {
-                    oppRankBadge = `<span class="bg-slate-100 text-slate-400 text-[14px] px-2 py-0.5 rounded-md font-bold leading-none no-underline shadow-sm border border-slate-200" title="과거 기록">-</span>`;
+                    oppRankBadge = `<span class="bg-slate-100 text-slate-400 text-[11px] px-2 py-0.5 rounded-md font-bold leading-none no-underline shadow-sm border border-slate-200" title="과거 기록">-</span>`;
                 }
 
                 const oppProfile = rankingsData.find(u => u.name === oppName);
@@ -1152,10 +1152,10 @@
                                     vs ${oppName}
                                     ${oppRankBadge}
                                 </span>
-                                <span class="text-slate-300 font-medium text-[10px] shrink-0">${m.date}</span>
+                                <span class="text-slate-900 font-medium text-[11px] shrink-0">${m.date}</span>
                             </div>
                             <div class="flex items-center gap-2 mt-0.5">
-                                <span class="text-[10px] text-slate-400 font-medium bg-white px-1.5 py-0.5 rounded border border-slate-100">당시: ${oppRecordStr}</span>
+                                <span class="text-[11px] text-slate-400 font-medium bg-white px-1.5 py-0.5 rounded border border-slate-100">당시: ${oppRecordStr}</span>
                                 <div class="flex gap-0.5">${oppDots}</div>
                             </div>
                         </div>
