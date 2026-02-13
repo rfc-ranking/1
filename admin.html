@@ -15,14 +15,12 @@
         .rank-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; border-bottom: 1px solid #f1f5f9; }
         .rank-card:last-child { border-bottom: none; }
         
-        /* [User Sync] 순위 변동 색상 */
         .rank-up { color: #dc2626; font-weight: 800; }   /* Red-600 */
         .rank-down { color: #2563eb; font-weight: 800; } /* Blue-600 */
         .rank-keep { color: #9ca3af; }
         
         .tier-bronze, .tier-silver, .tier-gold, .tier-platinum { background: #ffffff; border-left: none; }
 
-        /* [User Sync] 1위 전용 글로우 효과 */
         .rank-1-glow {
             background: linear-gradient(90deg, #ffffff 30%, #fffbeb 100%) !important;
             box-shadow: 0 10px 25px -5px rgba(234, 179, 8, 0.3), 0 8px 10px -6px rgba(234, 179, 8, 0.2) !important;
@@ -30,8 +28,6 @@
             border-left: 5px solid #f59e0b !important;
             z-index: 20 !important;
         }
-        
-        /* 2nd Place */
         .rank-2-glow {
             background: linear-gradient(120deg, #ffffff 0%, #f8fafc 40%, #e2e8f0 100%) !important;
             box-shadow: 0 10px 25px -5px rgba(148, 163, 184, 0.3), 0 8px 10px -6px rgba(148, 163, 184, 0.1) !important;
@@ -39,8 +35,6 @@
             border-left: 5px solid #94a3b8 !important;
             z-index: 9 !important;
         }
-
-        /* 3rd Place */
         .rank-3-glow {
             background: linear-gradient(90deg, #ffffff 30%, #fff7ed 100%) !important;
             box-shadow: 0 10px 25px -5px rgba(173, 138, 86, 0.15), 0 8px 10px -6px rgba(173, 138, 86, 0.1) !important;
@@ -49,7 +43,6 @@
             z-index: 8 !important;
         }
 
-        /* [New] Veteran Badge Style (Luxury Gold) */
         .v-badge {
             display: inline-flex;
             align-items: center;
@@ -71,7 +64,6 @@
             border: 1px solid #f59e0b; 
         }
 
-        /* [User Sync] Bounty Style */
         .bounty-pill-dark {
             font-size: 13px;
             background-color: #1f2937;
@@ -87,7 +79,6 @@
             box-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
 
-        /* 순위 숫자 스타일 업데이트 */
         .rank-num-1 { color: #f59e0b; font-size: 1.5rem !important; font-weight: 900; font-style: italic; letter-spacing: -1px; text-shadow: 0 1px 2px rgba(245, 158, 11, 0.2); }
         .rank-num-2 { color: #64748b; font-size: 1.3rem !important; font-weight: 800; font-style: italic; letter-spacing: -1px; text-shadow: 0 1px 2px rgba(148, 163, 184, 0.2); }
         .rank-num-3 { color: #ad8a56; font-size: 1.2rem !important; font-weight: 800; font-style: italic; letter-spacing: -1px; }
@@ -128,9 +119,7 @@
             5% { transform: scale(1.01); background-color: #bfdbfe !important; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2); z-index: 50; border-color: #60a5fa; }
             100% { transform: scale(1); background-color: #ffffff !important; z-index: 1; border-color: #e2e8f0; }
         }
-        .highlight-slow {
-            animation: slowFade 60s cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
-        }
+        .highlight-slow { animation: slowFade 60s cubic-bezier(0.22, 1, 0.36, 1) forwards !important; }
 
         input[type="search"]::-webkit-search-cancel-button {
             -webkit-appearance: none;
@@ -141,89 +130,59 @@
             margin-left: 8px;
         }
 
-        .red-theme .ts-dropdown .active {
-            background-color: #fee2e2 !important; /* Red-100 */
-            color: #b91c1c !important;            /* Red-700 */
-        }
+        .red-theme .ts-dropdown .active { background-color: #fee2e2 !important; color: #b91c1c !important; }
 
-        /* [Added] Accordion Styles for Detail View */
-        .accordion-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
-            opacity: 0;
+        .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out, opacity 0.3s ease-out; opacity: 0; }
+        .accordion-content.open { max-height: 250px; opacity: 1; }
+
+        /* [INSPECTOR] Z-Index Fix */
+        #inspector-tooltip {
+            position: fixed; pointer-events: none; 
+            z-index: 2147483647 !important; 
+            background: rgba(15, 23, 42, 0.95); color: white;
+            padding: 8px 12px; border-radius: 8px;
+            font-size: 11px; font-family: monospace;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            border: 1px solid #334155;
+            transition: opacity 0.1s;
+            display: none;
         }
-        .accordion-content.open {
-            max-height: 250px;
-            opacity: 1;
-        }
+        .tooltip-row { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 2px; }
+        .tooltip-label { color: #94a3b8; }
+        .tooltip-value { color: #60a5fa; font-weight: bold; }
     </style>
 </head>
 <body class="text-slate-800 relative min-h-screen">
 
-    <!-- Modals & Login Overlay -->
+    <div id="inspector-tooltip">
+        <div class="tooltip-row"><span class="tooltip-label">Tag</span><span class="tooltip-value" id="tt-tag">DIV</span></div>
+        <div class="tooltip-row"><span class="tooltip-label">Font</span><span class="tooltip-value" id="tt-font">16px</span></div>
+        <div class="tooltip-row"><span class="tooltip-label">Color</span><span class="tooltip-value" id="tt-color">#000</span></div>
+        <div class="tooltip-row"><span class="tooltip-label">Class</span><span class="tooltip-value" id="tt-class" style="max-width:100px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">-</span></div>
+    </div>
+
     <div id="customAlertModal" class="fixed inset-0 bg-slate-900/80 z-[10001] hidden flex items-center justify-center backdrop-blur-sm" onclick="if(event.target === this) closeAlertModal()">
-        <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-sm w-full mx-4 transform transition-all scale-100">
-            <div class="text-center">
-                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-amber-100 mb-4">
-                    <svg class="h-6 w-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                    </svg>
-                </div>
-                <h3 class="text-lg font-bold text-slate-800 mb-2">알림</h3>
-                <p id="alertMessage" class="text-sm text-slate-600 mb-6 whitespace-pre-wrap leading-relaxed">내용</p>
-                <button onclick="closeAlertModal()" class="w-full bg-slate-800 hover:bg-slate-900 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg transition">확인</button>
-            </div>
-        </div>
+        <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-sm w-full mx-4 transform transition-all scale-100"><div class="text-center"><div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-amber-100 mb-4"><svg class="h-6 w-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg></div><h3 class="text-lg font-bold text-slate-800 mb-2">알림</h3><p id="alertMessage" class="text-sm text-slate-600 mb-6 whitespace-pre-wrap leading-relaxed">내용</p><button onclick="closeAlertModal()" class="w-full bg-slate-800 hover:bg-slate-900 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg transition">확인</button></div></div>
     </div>
 
     <div id="customConfirmModal" class="fixed inset-0 bg-slate-900/80 z-[10000] hidden flex items-center justify-center backdrop-blur-sm" onclick="if(event.target === this) closeConfirmModal()">
-        <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-sm w-full mx-4 transform transition-all scale-100">
-            <div class="text-center">
-                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
-                    <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                    </svg>
-                </div>
-                <h3 class="text-lg font-bold text-slate-800 mb-2">⚠️ 확인이 필요합니다</h3>
-                <p id="confirmMessage" class="text-sm text-slate-600 mb-6 whitespace-pre-wrap">정말 실행하시겠습니까?</p>
-                <div class="flex justify-center gap-3">
-                    <button onclick="closeConfirmModal()" class="bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 px-5 py-2.5 rounded-xl text-sm font-bold transition">취소</button>
-                    <button id="confirmOkBtn" class="bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-red-500/30 transition">확인 (실행)</button>
-                </div>
-            </div>
-        </div>
+        <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-sm w-full mx-4 transform transition-all scale-100"><div class="text-center"><div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4"><svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg></div><h3 class="text-lg font-bold text-slate-800 mb-2">⚠️ 확인이 필요합니다</h3><p id="confirmMessage" class="text-sm text-slate-600 mb-6 whitespace-pre-wrap">정말 실행하시겠습니까?</p><div class="flex justify-center gap-3"><button onclick="closeConfirmModal()" class="bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 px-5 py-2.5 rounded-xl text-sm font-bold transition">취소</button><button id="confirmOkBtn" class="bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-red-500/30 transition">확인 (실행)</button></div></div></div>
     </div>
 
-    <button id="undoBtn" onclick="executeUndo()" class="fixed bottom-6 right-6 z-50 bg-slate-800 text-white px-5 py-3 rounded-full shadow-xl font-bold flex items-center gap-2 transition transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed hidden">
-        <span class="text-lg">↩️</span> 실행 취소 (<span id="undoCount">0</span>)
-    </button>
+    <button id="undoBtn" onclick="executeUndo()" class="fixed bottom-6 right-6 z-50 bg-slate-800 text-white px-5 py-3 rounded-full shadow-xl font-bold flex items-center gap-2 transition transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed hidden"><span class="text-lg">↩️</span> 실행 취소 (<span id="undoCount">0</span>)</button>
 
     <div id="loginOverlay" class="fixed inset-0 bg-slate-900/95 z-50 flex items-center justify-center backdrop-blur-sm">
         <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm text-center border border-slate-200">
-            <div class="text-4xl mb-2">🥊</div>
-            <h2 class="text-2xl font-black text-slate-800 mb-6">RFC Admin Security</h2>
-            <div id="loginFormContainer">
-                <input type="email" id="adminEmail" placeholder="admin@rfc.com" class="w-full p-3 border border-slate-300 rounded-lg mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 transition">
-                <input type="password" id="adminPw" placeholder="Password" class="w-full p-3 border border-slate-300 rounded-lg mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 transition">
-                <button id="btnLogin" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-lg transition transform active:scale-95 shadow-lg shadow-blue-500/30">시스템 접속</button>
-            </div>
-            <div id="autoLoginMsg" class="hidden mt-4 text-emerald-600 font-bold text-sm animate-pulse">
-                ⚡ 개발자 자동 로그인 중...
-            </div>
+            <div class="text-4xl mb-2">🥊</div><h2 class="text-2xl font-black text-slate-800 mb-6">RFC Admin Security</h2>
+            <div id="loginFormContainer"><input type="email" id="adminEmail" placeholder="admin@rfc.com" class="w-full p-3 border border-slate-300 rounded-lg mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 transition"><input type="password" id="adminPw" placeholder="Password" class="w-full p-3 border border-slate-300 rounded-lg mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 transition"><button id="btnLogin" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-lg transition transform active:scale-95 shadow-lg shadow-blue-500/30">시스템 접속</button></div>
+            <div id="autoLoginMsg" class="hidden mt-4 text-emerald-600 font-bold text-sm animate-pulse">⚡ 개발자 자동 로그인 중...</div>
         </div>
     </div>
 
     <div id="mainContent" class="max-w-6xl mx-auto p-4 hidden min-h-screen flex flex-col">
         <header class="flex flex-col md:flex-row justify-between items-center mb-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-            <div class="flex items-center gap-3">
-                <h1 class="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">RFC 매니저</h1>
-                <span id="currentSeasonBadge" class="bg-slate-800 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">Loading...</span>
-                <span id="saveStatus" class="text-xs font-medium text-emerald-500 transition-opacity opacity-0">✅ 저장됨 (Secure)</span>
-            </div>
-            <div class="mt-2 md:mt-0 text-xs text-slate-400 font-medium">
-                <span id="adminVersionDisplay">v?.??</span>
-            </div>
+            <div class="flex items-center gap-3"><h1 class="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">RFC 매니저</h1><span id="currentSeasonBadge" class="bg-slate-800 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">Loading...</span><span id="saveStatus" class="text-xs font-medium text-emerald-500 transition-opacity opacity-0">✅ 저장됨 (Secure)</span></div>
+            <div class="mt-2 md:mt-0 text-xs text-slate-400 font-medium"><span id="adminVersionDisplay">v?.??</span></div>
         </header>
 
         <div class="bg-white rounded-t-2xl border-b border-slate-200 px-4 flex gap-6 mb-4 shadow-sm overflow-x-auto">
@@ -235,57 +194,26 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-grow">
-            <!-- Main Content Area -->
             <div class="lg:col-span-4 space-y-6">
                 <div id="mainSection" class="tab-content">
                     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 mb-6 relative z-30">
                         <div class="bg-slate-50 p-4 border-b border-slate-100 flex justify-between items-center rounded-t-2xl">
                             <h3 class="font-bold text-slate-700">⚔️ 경기 결과 입력</h3>
-                            <button onclick="resetMatchInputs()" class="text-xs bg-white border border-slate-200 text-slate-500 hover:text-blue-600 hover:border-blue-200 px-2.5 py-1.5 rounded-lg font-bold transition flex items-center gap-1 shadow-sm">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                                초기화
-                            </button>
+                            <button onclick="resetMatchInputs()" class="text-xs bg-white border border-slate-200 text-slate-500 hover:text-blue-600 hover:border-blue-200 px-2.5 py-1.5 rounded-lg font-bold transition flex items-center gap-1 shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg> 초기화</button>
                         </div>
                         <div class="p-5">
                             <div class="space-y-4">
                                 <div>
                                     <label class="block text-xs font-bold text-slate-500 mb-1 pl-1">📅 경기 날짜</label>
-                                    <div class="flex gap-2">
-                                        <input type="date" id="matchDateInput" class="flex-grow border border-slate-300 rounded-lg p-2 text-sm font-bold text-slate-700 outline-none focus:border-blue-500 bg-white">
-                                        <button onclick="setMatchDate('yesterday')" class="bg-white border border-slate-300 text-slate-600 hover:bg-slate-100 font-bold px-3 py-1.5 rounded-lg text-xs transition shadow-sm whitespace-nowrap">어제</button>
-                                        <button onclick="setMatchDate('today')" class="bg-white border border-slate-300 text-slate-600 hover:bg-slate-100 font-bold px-3 py-1.5 rounded-lg text-xs transition shadow-sm whitespace-nowrap">오늘</button>
-                                    </div>
+                                    <div class="flex gap-2"><input type="date" id="matchDateInput" class="flex-grow border border-slate-300 rounded-lg p-2 text-sm font-bold text-slate-700 outline-none focus:border-blue-500 bg-white"><button onclick="setMatchDate('yesterday')" class="bg-white border border-slate-300 text-slate-600 hover:bg-slate-100 font-bold px-3 py-1.5 rounded-lg text-xs transition shadow-sm whitespace-nowrap">어제</button><button onclick="setMatchDate('today')" class="bg-white border border-slate-300 text-slate-600 hover:bg-slate-100 font-bold px-3 py-1.5 rounded-lg text-xs transition shadow-sm whitespace-nowrap">오늘</button></div>
                                 </div>
-
                                 <div class="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <label class="block text-xs font-bold text-blue-600 mb-1 pl-1">🔵 Blue (검색가능)</label>
-                                        <div class="flex items-center gap-2">
-                                            <div class="flex-grow min-w-0">
-                                                <select id="p1Select" class="w-full text-sm outline-none" placeholder="선수 검색..."></select>
-                                            </div>
-                                            <div id="p1TrunkIndicator" class="w-3 h-6 rounded border border-slate-300 shadow-sm shrink-0 bg-slate-100" title="바지 색상"></div>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-red-600 mb-1 pl-1">🔴 Red (검색가능)</label>
-                                        <div class="flex items-center gap-2">
-                                            <div class="flex-grow min-w-0">
-                                                <select id="p2Select" class="w-full text-sm outline-none" placeholder="선수 검색..."></select>
-                                            </div>
-                                            <div id="p2TrunkIndicator" class="w-3 h-6 rounded border border-slate-300 shadow-sm shrink-0 bg-slate-100" title="바지 색상"></div>
-                                        </div>
-                                    </div>
+                                    <div><label class="block text-xs font-bold text-blue-600 mb-1 pl-1">🔵 Blue (검색가능)</label><div class="flex items-center gap-2"><div class="flex-grow min-w-0"><select id="p1Select" class="w-full text-sm outline-none" placeholder="선수 검색..."></select></div><div id="p1TrunkIndicator" class="w-3 h-6 rounded border border-slate-300 shadow-sm shrink-0 bg-slate-100" title="바지 색상"></div></div></div>
+                                    <div><label class="block text-xs font-bold text-red-600 mb-1 pl-1">🔴 Red (검색가능)</label><div class="flex items-center gap-2"><div class="flex-grow min-w-0"><select id="p2Select" class="w-full text-sm outline-none" placeholder="선수 검색..."></select></div><div id="p2TrunkIndicator" class="w-3 h-6 rounded border border-slate-300 shadow-sm shrink-0 bg-slate-100" title="바지 색상"></div></div></div>
                                 </div>
                                 <div class="grid grid-cols-2 gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-200">
-                                    <label class="cursor-pointer flex items-center justify-center gap-2 p-2.5 rounded-lg hover:bg-blue-50 transition border border-transparent has-[:checked]:bg-blue-100 has-[:checked]:border-blue-300 has-[:checked]:shadow-sm">
-                                        <input type="radio" name="winner" value="blue" class="w-4 h-4 accent-blue-600" onchange="updateMatchPreview()">
-                                        <span class="text-xs font-bold text-blue-700">Blue 승</span>
-                                    </label>
-                                    <label class="cursor-pointer flex items-center justify-center gap-2 p-2.5 rounded-lg hover:bg-red-50 transition border border-transparent has-[:checked]:bg-red-100 has-[:checked]:border-red-300 has-[:checked]:shadow-sm">
-                                        <input type="radio" name="winner" value="red" class="w-4 h-4 accent-red-600" onchange="updateMatchPreview()">
-                                        <span class="text-xs font-bold text-red-700">Red 승</span>
-                                    </label>
+                                    <label class="cursor-pointer flex items-center justify-center gap-2 p-2.5 rounded-lg hover:bg-blue-50 transition border border-transparent has-[:checked]:bg-blue-100 has-[:checked]:border-blue-300 has-[:checked]:shadow-sm"><input type="radio" name="winner" value="blue" class="w-4 h-4 accent-blue-600" onchange="updateMatchPreview()"><span class="text-xs font-bold text-blue-700">Blue 승</span></label>
+                                    <label class="cursor-pointer flex items-center justify-center gap-2 p-2.5 rounded-lg hover:bg-red-50 transition border border-transparent has-[:checked]:bg-red-100 has-[:checked]:border-red-300 has-[:checked]:shadow-sm"><input type="radio" name="winner" value="red" class="w-4 h-4 accent-red-600" onchange="updateMatchPreview()"><span class="text-xs font-bold text-red-700">Red 승</span></label>
                                 </div>
                                 <div id="matchPreview" class="bg-gray-50 rounded-lg p-3 text-xs text-gray-600 border border-gray-200 hidden"><div id="previewContent" class="space-y-1"></div></div>
                                 <button onclick="applyMatch()" class="w-full bg-gradient-to-r from-slate-800 to-slate-900 hover:from-black text-white font-bold py-3 rounded-xl shadow-lg transition transform active:scale-95">경기 확정</button>
@@ -293,76 +221,16 @@
                             </div>
                         </div>
                     </div>
-                    <!-- Other tools and sections -->
                     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden p-5">
-                        <h3 class="font-bold text-slate-700 mb-4 border-b pb-2">
-                            👤 선수 관리 도구 
-                            <span id="totalPlayerCount" class="font-normal ml-1">(0명)</span>
-                        </h3>
-                        <div class="flex gap-2 mb-3">
-                            <button onclick="openNewPlayerModal()" class="flex-1 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 font-bold py-3 rounded-xl border border-emerald-100 transition">+ 선수 등록</button>
-                            <button onclick="openDeletePlayersModal()" class="flex-1 bg-red-50 text-red-600 hover:bg-red-100 font-bold py-3 rounded-xl border border-red-100 transition flex items-center justify-center gap-1">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                선수 삭제
-                            </button>
-                        </div>
-                        
-                        <div class="bg-orange-50 border border-orange-200 rounded-xl p-3 mb-3">
-                            <div class="flex justify-between items-center mb-2"><h4 class="text-xs font-bold text-orange-700">💀 패널티 부여 (-30점)</h4></div>
-                            <div class="flex gap-2">
-                                <div class="flex-grow min-w-0">
-                                    <select id="penaltyTargetSelect" class="w-full text-xs outline-none" placeholder="대상 선택..."></select>
-                                </div>
-                                <button onclick="applyManualPenalty()" class="bg-white text-orange-700 font-bold px-3 py-2 rounded-lg text-xs border border-orange-200 transition hover:bg-orange-100 whitespace-nowrap">실행</button>
-                            </div>
-                        </div>
-
-                        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 mb-3">
-                            <h4 class="text-xs font-bold text-slate-700 mb-2 flex items-center gap-1">
-                                <span>💤</span> 장기 미참여자 관리
-                            </h4>
-                            <div class="flex gap-2 items-center mb-2">
-                                <div class="flex items-center gap-1">
-                                    <input type="number" id="inactiveDaysInput" value="30" class="w-14 border border-slate-300 p-1.5 rounded text-xs text-center font-bold outline-none focus:border-blue-500" min="1">
-                                    <span class="text-[11px] text-slate-500 font-bold">일</span>
-                                </div>
-                                <span class="text-slate-300">|</span>
-                                <div class="flex items-center gap-1">
-                                    <span class="text-red-500 font-bold text-xs">-</span>
-                                    <input type="number" id="penaltyScoreInput" value="30" class="w-14 border border-red-200 bg-white p-1.5 rounded text-xs text-center font-bold text-red-600 outline-none focus:border-red-500" min="1">
-                                    <span class="text-[11px] text-slate-500 font-bold">점</span>
-                                </div>
-                                <div class="flex-grow"></div>
-                                <button onclick="checkBatchInactiveUsers()" class="bg-white border border-slate-300 text-slate-600 hover:bg-slate-100 font-bold px-3 py-1.5 rounded-lg text-xs transition shadow-sm whitespace-nowrap">조회</button>
-                                <button onclick="resetBatchInactiveForm()" class="bg-white border border-slate-300 text-slate-500 hover:text-slate-700 hover:bg-slate-100 font-bold px-2 py-1.5 rounded-lg text-xs transition shadow-sm" title="초기화">🔄</button>
-                            </div>
-                            
-                            <div id="inactiveListArea" class="hidden mt-3 pt-3 border-t border-slate-200">
-                                <p class="text-[10px] text-slate-400 mb-2 font-bold">검색된 대상자 (<span id="inactiveCountDisplay">0</span>명)</p>
-                                <ul id="inactiveUserList" class="max-h-32 overflow-y-auto bg-white border border-slate-200 rounded-lg p-2 text-[11px] text-slate-600 space-y-1 mb-3 shadow-inner"></ul>
-                                <button id="btnApplyBatchPenalty" class="w-full bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 font-bold py-2.5 rounded-lg text-xs transition shadow-sm flex justify-center items-center gap-1">
-                                    <span>💀</span> 패널티 적용하기
-                                </button>
-                            </div>
-                        </div>
+                        <h3 class="font-bold text-slate-700 mb-4 border-b pb-2">👤 선수 관리 도구 <span id="totalPlayerCount" class="font-normal ml-1">(0명)</span></h3>
+                        <div class="flex gap-2 mb-3"><button onclick="openNewPlayerModal()" class="flex-1 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 font-bold py-3 rounded-xl border border-emerald-100 transition">+ 선수 등록</button><button onclick="openDeletePlayersModal()" class="flex-1 bg-red-50 text-red-600 hover:bg-red-100 font-bold py-3 rounded-xl border border-red-100 transition flex items-center justify-center gap-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg> 선수 삭제</button></div>
+                        <div class="bg-orange-50 border border-orange-200 rounded-xl p-3 mb-3"><div class="flex justify-between items-center mb-2"><h4 class="text-xs font-bold text-orange-700">💀 패널티 부여 (-30점)</h4></div><div class="flex gap-2"><div class="flex-grow min-w-0"><select id="penaltyTargetSelect" class="w-full text-xs outline-none" placeholder="대상 선택..."></select></div><button onclick="applyManualPenalty()" class="bg-white text-orange-700 font-bold px-3 py-2 rounded-lg text-xs border border-orange-200 transition hover:bg-orange-100 whitespace-nowrap">실행</button></div></div>
+                        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 mb-3"><h4 class="text-xs font-bold text-slate-700 mb-2 flex items-center gap-1"><span>💤</span> 장기 미참여자 관리</h4><div class="flex gap-2 items-center mb-2"><div class="flex items-center gap-1"><input type="number" id="inactiveDaysInput" value="30" class="w-14 border border-slate-300 p-1.5 rounded text-xs text-center font-bold outline-none focus:border-blue-500" min="1"><span class="text-[11px] text-slate-500 font-bold">일</span></div><span class="text-slate-300">|</span><div class="flex items-center gap-1"><span class="text-red-500 font-bold text-xs">-</span><input type="number" id="penaltyScoreInput" value="30" class="w-14 border border-red-200 bg-white p-1.5 rounded text-xs text-center font-bold text-red-600 outline-none focus:border-red-500" min="1"><span class="text-[11px] text-slate-500 font-bold">점</span></div><div class="flex-grow"></div><button onclick="checkBatchInactiveUsers()" class="bg-white border border-slate-300 text-slate-600 hover:bg-slate-100 font-bold px-3 py-1.5 rounded-lg text-xs transition shadow-sm whitespace-nowrap">조회</button><button onclick="resetBatchInactiveForm()" class="bg-white border border-slate-300 text-slate-500 hover:text-slate-700 hover:bg-slate-100 font-bold px-2 py-1.5 rounded-lg text-xs transition shadow-sm" title="초기화">🔄</button></div><div id="inactiveListArea" class="hidden mt-3 pt-3 border-t border-slate-200"><p class="text-[10px] text-slate-400 mb-2 font-bold">검색된 대상자 (<span id="inactiveCountDisplay">0</span>명)</p><ul id="inactiveUserList" class="max-h-32 overflow-y-auto bg-white border border-slate-200 rounded-lg p-2 text-[11px] text-slate-600 space-y-1 mb-3 shadow-inner"></ul><button id="btnApplyBatchPenalty" class="w-full bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 font-bold py-2.5 rounded-lg text-xs transition shadow-sm flex justify-center items-center gap-1"><span>💀</span> 패널티 적용하기</button></div></div>
                     </div>
                 </div>
 
                 <div id="historySection" class="tab-content hidden">
-                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col h-[calc(100vh-180px)]">
-                        <div class="bg-slate-50 p-4 border-b border-slate-100 flex justify-between items-center">
-                            <h3 class="font-bold text-slate-700">⚔️ 경기 기록 Log</h3>
-                            <button onclick="openMatchExportModal()" class="bg-white border border-slate-200 text-slate-600 hover:text-blue-600 text-xs font-bold px-3 py-1.5 rounded-lg transition shadow-sm flex items-center gap-1">
-                                <span>📤</span> 텍스트 내보내기
-                            </button>
-                        </div>
-                        <div class="p-3 border-b border-slate-100">
-                             <select id="adminHistorySeason" class="w-full text-sm font-bold text-slate-700 bg-white border border-slate-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500"></select>
-                        </div>
-                        <div id="adminMatchListContainer" class="flex-grow overflow-y-auto p-3 space-y-3 bg-slate-50/50">
-                            <div class="text-center text-xs text-slate-400 py-10">기록 불러오는 중...</div>
-                        </div>
-                    </div>
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col h-[calc(100vh-180px)]"><div class="bg-slate-50 p-4 border-b border-slate-100 flex justify-between items-center"><h3 class="font-bold text-slate-700">⚔️ 경기 기록 Log</h3><button onclick="openMatchExportModal()" class="bg-white border border-slate-200 text-slate-600 hover:text-blue-600 text-xs font-bold px-3 py-1.5 rounded-lg transition shadow-sm flex items-center gap-1"><span>📤</span> 텍스트 내보내기</button></div><div class="p-3 border-b border-slate-100"><select id="adminHistorySeason" class="w-full text-sm font-bold text-slate-700 bg-white border border-slate-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500"></select></div><div id="adminMatchListContainer" class="flex-grow overflow-y-auto p-3 space-y-3 bg-slate-50/50"><div class="text-center text-xs text-slate-400 py-10">기록 불러오는 중...</div></div></div>
                 </div>
 
                 <div id="seasonSection" class="tab-content hidden">
@@ -377,78 +245,31 @@
                     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden p-5 space-y-4">
                         <h3 class="font-bold text-slate-700">🛠️ 데이터 도구</h3>
                         <div class="grid grid-cols-2 gap-2"><input type="file" id="importFile" accept=".json" class="hidden"><button onclick="document.getElementById('importFile').click()" class="bg-slate-700 hover:bg-slate-800 text-white font-bold py-3 rounded-lg text-xs">📂 데이터 복원</button><button onclick="backupData()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3 rounded-lg text-xs">💾 데이터 백업</button></div>
-                        <div class="pt-4 border-t border-slate-100 space-y-2">
-                            <h4 class="text-xs font-bold text-indigo-600">🔧 데이터 보정</h4>
-                            <div class="bg-indigo-50 border border-indigo-100 rounded-lg p-3">
-                                <div class="flex justify-between items-center mb-1">
-                                    <span class="text-xs font-bold text-indigo-800">데이터 무결성 검사 및 수정</span>
-                                </div>
-                                <p class="text-[10px] text-indigo-600 mb-2 leading-snug">
-                                    1. 과도한 순위 변동폭(예: +34) 초기화<br>
-                                    2. 3전 선수들의 누락된 '진입 날짜' 복구<br>
-                                    <span class="text-emerald-600">3. 베테랑 달성 시 현상금 자동 부여 (10점)</span>
-                                </p>
-                                <button onclick="fixDataIntegrity()" class="w-full bg-white text-indigo-600 hover:bg-indigo-100 font-bold py-2 rounded-lg text-xs border border-indigo-200 shadow-sm transition">
-                                    ✨ 데이터 진단 및 복구 실행
-                                </button>
-                            </div>
-                        </div>
-                        <div class="pt-4 border-t border-slate-100 space-y-2">
-                            <h4 class="text-xs font-bold text-blue-600">👥 선수 명단 추출</h4>
-                            <div class="grid grid-cols-1 gap-2">
-                                <button onclick="copyRankerList()" class="bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold py-3 rounded-lg text-xs border border-blue-100">🏆 랭커 명단</button>
-                                <button onclick="copyAllPlayerList()" class="bg-slate-50 text-slate-600 hover:bg-slate-100 font-bold py-3 rounded-lg text-xs border border-slate-200">📋 전체 선수 명단</button>
-                            </div>
-                        </div>
-                        <div class="pt-4 border-t border-slate-100 space-y-2">
-                            <h4 class="text-xs font-bold text-red-500">초기화 (주의)</h4>
-                            <button onclick="resetAllStats()" class="w-full bg-gray-50 text-gray-500 hover:bg-gray-100 font-bold py-2 rounded-lg text-xs border border-gray-200">📊 현재 시즌 전적 초기화</button>
-                            <button onclick="resetAllElo()" class="w-full bg-gray-50 text-gray-500 hover:bg-gray-100 font-bold py-2 rounded-lg text-xs border border-gray-200">⚡ 현재 시즌 ELO 초기화</button>
-                            <button onclick="resetAllPasswords()" class="w-full bg-orange-50 text-orange-600 hover:bg-orange-100 font-bold py-3 rounded-lg text-xs border border-orange-200 mt-2">🔑 전체 비밀번호 재발급 (명단 복사)</button>
-                            <button onclick="resetEverything()" class="w-full bg-red-50 text-red-600 hover:bg-red-100 font-bold py-3 rounded-lg text-xs border border-red-200 mt-2">🧨 시스템 전체 리셋</button>
-                        </div>
+                        <div class="pt-4 border-t border-slate-100 space-y-2"><h4 class="text-xs font-bold text-indigo-600">🔧 데이터 보정</h4><div class="bg-indigo-50 border border-indigo-100 rounded-lg p-3"><div class="flex justify-between items-center mb-1"><span class="text-xs font-bold text-indigo-800">데이터 무결성 검사 및 수정</span></div><p class="text-[10px] text-indigo-600 mb-2 leading-snug">1. 과도한 순위 변동폭(예: +34) 초기화<br>2. 3전 선수들의 누락된 '진입 날짜' 복구<br><span class="text-emerald-600">3. 베테랑 달성 시 현상금 자동 부여 (10점)</span></p><button onclick="fixDataIntegrity()" class="w-full bg-white text-indigo-600 hover:bg-indigo-100 font-bold py-2 rounded-lg text-xs border border-indigo-200 shadow-sm transition">✨ 데이터 진단 및 복구 실행</button></div></div>
+                        <div class="pt-4 border-t border-slate-100 space-y-2"><h4 class="text-xs font-bold text-blue-600">👥 선수 명단 추출</h4><div class="grid grid-cols-1 gap-2"><button onclick="copyRankerList()" class="bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold py-3 rounded-lg text-xs border border-blue-100">🏆 랭커 명단</button><button onclick="copyAllPlayerList()" class="bg-slate-50 text-slate-600 hover:bg-slate-100 font-bold py-3 rounded-lg text-xs border border-slate-200">📋 전체 선수 명단</button></div></div>
+                        <div class="pt-4 border-t border-slate-100 space-y-2"><h4 class="text-xs font-bold text-red-500">초기화 (주의)</h4><button onclick="resetAllStats()" class="w-full bg-gray-50 text-gray-500 hover:bg-gray-100 font-bold py-2 rounded-lg text-xs border border-gray-200">📊 현재 시즌 전적 초기화</button><button onclick="resetAllElo()" class="w-full bg-gray-50 text-gray-500 hover:bg-gray-100 font-bold py-2 rounded-lg text-xs border border-gray-200">⚡ 현재 시즌 ELO 초기화</button><button onclick="resetAllPasswords()" class="w-full bg-orange-50 text-orange-600 hover:bg-orange-100 font-bold py-3 rounded-lg text-xs border border-orange-200 mt-2">🔑 전체 비밀번호 재발급 (명단 복사)</button><button onclick="resetEverything()" class="w-full bg-red-50 text-red-600 hover:bg-red-100 font-bold py-3 rounded-lg text-xs border border-red-200 mt-2">🧨 시스템 전체 리셋</button></div>
                     </div>
                 </div>
 
                 <div id="settingsSection" class="tab-content hidden">
                     <div class="space-y-6">
-                        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden p-5">
-                            <div class="flex justify-between items-center mb-3">
-                                <h3 class="font-bold text-slate-700">📢 사용자 공지사항 관리</h3>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" id="noticeActiveToggle" class="sr-only peer" onchange="saveNoticeSettings()">
-                                    <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
-                                    <span class="ml-2 text-xs font-bold text-slate-600">공지 활성화</span>
-                                </label>
-                            </div>
-                            <textarea id="noticeContentInput" class="w-full h-24 p-3 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 resize-none mb-3" placeholder="공지 내용을 입력하세요..."></textarea>
-                            <button onclick="saveNoticeSettings()" class="w-full bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-bold py-2 rounded-lg text-xs border border-indigo-100 transition">공지 저장하기</button>
+                        <!-- Inspector Toggle -->
+                        <div class="bg-slate-800 rounded-2xl shadow-sm border border-slate-700 overflow-hidden p-5 text-white">
+                            <div class="flex justify-between items-center"><h3 class="font-bold flex items-center gap-2">🛠️ 스타일 인스펙터 (개발자 모드)</h3><label class="relative inline-flex items-center cursor-pointer"><input type="checkbox" id="inspectorToggle" class="sr-only peer" onchange="toggleInspector()"><div class="w-9 h-5 bg-slate-600 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-500"></div></label></div>
+                            <p class="text-xs text-slate-400 mt-2">활성화 시 마우스 커서 위치에 해당 요소의 폰트, 색상, 크기 정보가 표시됩니다.</p>
                         </div>
-                        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden p-5">
-                            <h3 class="font-bold text-slate-700 mb-2">📜 규칙 HTML 편집</h3>
-                            <textarea id="ruleHtmlInput" class="w-full h-48 p-3 text-xs font-mono border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 resize-none mb-3" placeholder="HTML 코드를 입력하세요..."></textarea>
-                            <div class="flex gap-2">
-                                <button onclick="loadDefaultRuleHtml()" class="flex-1 bg-slate-100 text-slate-600 font-bold py-2.5 rounded-lg text-xs hover:bg-slate-200 transition">↺ 기본 디자인 불러오기</button>
-                                <button onclick="saveRules()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg text-xs transition">규칙 저장하기</button>
-                            </div>
-                        </div>
-                        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden p-5 flex flex-col h-[400px]">
-                            <h3 class="font-bold text-slate-700 mb-3 flex justify-between">📝 관리자 메모장</h3>
-                            <div id="memoListContainer" class="flex-grow overflow-y-auto space-y-2 mb-3 pr-1 bg-slate-50 rounded-lg p-2 border border-slate-100"><div class="text-center text-xs text-gray-400 py-4">작성된 메모가 없습니다.</div></div>
-                            <div class="flex gap-2"><input type="text" id="newMemoInput" class="flex-grow border border-slate-200 rounded-lg p-2.5 text-sm focus:outline-none focus:border-blue-500" placeholder="메세지 남기기..." onkeypress="if(event.key==='Enter') addMemo()"><button onclick="addMemo()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold px-4 rounded-lg text-xs transition whitespace-nowrap">등록</button></div>
-                        </div>
+                        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden p-5"><div class="flex justify-between items-center mb-3"><h3 class="font-bold text-slate-700">📢 사용자 공지사항 관리</h3><label class="relative inline-flex items-center cursor-pointer"><input type="checkbox" id="noticeActiveToggle" class="sr-only peer" onchange="saveNoticeSettings()"><div class="w-9 h-5 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div><span class="ml-2 text-xs font-bold text-slate-600">공지 활성화</span></label></div><textarea id="noticeContentInput" class="w-full h-24 p-3 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 resize-none mb-3" placeholder="공지 내용을 입력하세요..."></textarea><button onclick="saveNoticeSettings()" class="w-full bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-bold py-2 rounded-lg text-xs border border-indigo-100 transition">공지 저장하기</button></div>
+                        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden p-5"><h3 class="font-bold text-slate-700 mb-2">📜 규칙 HTML 편집</h3><textarea id="ruleHtmlInput" class="w-full h-48 p-3 text-xs font-mono border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 resize-none mb-3" placeholder="HTML 코드를 입력하세요..."></textarea><div class="flex gap-2"><button onclick="loadDefaultRuleHtml()" class="flex-1 bg-slate-100 text-slate-600 font-bold py-2.5 rounded-lg text-xs hover:bg-slate-200 transition">↺ 기본 디자인 불러오기</button><button onclick="saveRules()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg text-xs transition">규칙 저장하기</button></div></div>
+                        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden p-5 flex flex-col h-[400px]"><h3 class="font-bold text-slate-700 mb-3 flex justify-between">📝 관리자 메모장</h3><div id="memoListContainer" class="flex-grow overflow-y-auto space-y-2 mb-3 pr-1 bg-slate-50 rounded-lg p-2 border border-slate-100"><div class="text-center text-xs text-gray-400 py-4">작성된 메모가 없습니다.</div></div><div class="flex gap-2"><input type="text" id="newMemoInput" class="flex-grow border border-slate-200 rounded-lg p-2.5 text-sm focus:outline-none focus:border-blue-500" placeholder="메세지 남기기..." onkeypress="if(event.key==='Enter') addMemo()"><button onclick="addMemo()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold px-4 rounded-lg text-xs transition whitespace-nowrap">등록</button></div></div>
                     </div>
                 </div>
             </div>
-
+            
             <div class="lg:col-span-8 bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col h-[calc(100vh-140px)]">
                 <div class="bg-slate-50 p-4 border-b border-slate-100 flex justify-between items-center rounded-t-2xl">
                     <div><h3 class="font-bold text-slate-700">🔥 실시간 랭킹</h3><p class="text-[10px] text-slate-400 font-medium mt-0.5">현재 활성 시즌: <span class="currentSeasonName text-blue-600 font-bold"></span></p></div>
                     <div class="flex items-center gap-2">
-                        <div class="relative">
-                            <input type="search" id="searchInput" placeholder="선수/초성 검색" class="w-[155px] text-xs border border-slate-200 rounded-lg pl-9 pr-2 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
-                            <div class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs">🔍</div>
-                        </div>
+                        <div class="relative"><input type="search" id="searchInput" placeholder="선수/초성 검색" class="w-[155px] text-xs border border-slate-200 rounded-lg pl-9 pr-2 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"><div class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs">🔍</div></div>
                         <div class="flex gap-2"><button onclick="window.open('index.html')" class="bg-white border border-slate-200 text-slate-600 text-xs font-bold py-2 px-3 rounded-lg hover:bg-slate-50">🌐 사이트 보기</button><button onclick="saveRankings()" class="bg-indigo-600 text-white text-xs font-bold py-2 px-3 rounded-lg shadow hover:bg-indigo-700">💾 저장</button></div>
                     </div>
                 </div>
@@ -460,51 +281,16 @@
     <!-- Modals -->
     <div id="deletePlayersModal" class="fixed inset-0 bg-black/50 hidden z-[9999] flex items-center justify-center" onclick="if(event.target === this) closeDeletePlayersModal()">
         <div class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-md flex flex-col max-h-[90vh]">
-            <div class="flex justify-between items-center mb-4 border-b pb-2">
-                <div class="flex items-center gap-2">
-                    <h3 class="text-lg font-bold text-slate-800">🗑️ 선수 삭제</h3>
-                    <span id="deleteCountBadge" class="bg-red-100 text-red-600 text-xs px-2 py-1 rounded-full whitespace-nowrap">0명 선택됨</span>
-                </div>
-                <div class="relative">
-                    <input type="search" id="deleteSearchInput" placeholder="이름/초성 검색" class="w-[155px] border p-2 pl-9 rounded-lg text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-red-500 transition" oninput="renderDeleteList()">
-                    <div class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-sm">🔍</div>
-                </div>
-            </div>
-
-            <div class="flex items-center gap-2 mb-2 px-1">
-                <input type="checkbox" id="deleteAllCheckbox" class="w-4 h-4 text-red-600 rounded border-gray-300 focus:ring-red-500 cursor-pointer" onchange="toggleDeleteSelectAll()">
-                <label for="deleteAllCheckbox" class="text-xs text-slate-500 font-bold cursor-pointer select-none">전체 선택</label>
-            </div>
-
+            <div class="flex justify-between items-center mb-4 border-b pb-2"><div class="flex items-center gap-2"><h3 class="text-lg font-bold text-slate-800">🗑️ 선수 삭제</h3><span id="deleteCountBadge" class="bg-red-100 text-red-600 text-xs px-2 py-1 rounded-full whitespace-nowrap">0명 선택됨</span></div><div class="relative"><input type="search" id="deleteSearchInput" placeholder="이름/초성 검색" class="w-[155px] border p-2 pl-9 rounded-lg text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-red-500 transition" oninput="renderDeleteList()"><div class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-sm">🔍</div></div></div>
+            <div class="flex items-center gap-2 mb-2 px-1"><input type="checkbox" id="deleteAllCheckbox" class="w-4 h-4 text-red-600 rounded border-gray-300 focus:ring-red-500 cursor-pointer" onchange="toggleDeleteSelectAll()"><label for="deleteAllCheckbox" class="text-xs text-slate-500 font-bold cursor-pointer select-none">전체 선택</label></div>
             <div id="deletePlayerList" class="flex-grow overflow-y-auto border border-slate-200 rounded-lg p-2 space-y-1 bg-slate-50 min-h-[200px]"></div>
-
-            <div class="mt-3 bg-red-50 p-3 rounded-lg border border-red-100">
-                <label class="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" id="deleteHistoryCheckbox" class="w-4 h-4 text-red-600 rounded border-red-300 focus:ring-red-500">
-                    <div class="text-xs text-red-700 font-bold">
-                        <span>경기 기록도 함께 삭제</span>
-                        <p class="text-[10px] font-normal text-red-500 mt-0.5 leading-snug">선택 시, 해당 선수가 포함된 모든 과거 경기 로그가 영구 삭제됩니다. (상대방의 전적 횟수는 유지되지만 로그는 사라짐)</p>
-                    </div>
-                </label>
-            </div>
-
-            <div class="flex justify-end gap-2 mt-4 pt-2 border-t">
-                <button onclick="closeDeletePlayersModal()" class="bg-gray-100 text-gray-600 hover:bg-gray-200 px-4 py-2 rounded-lg text-sm font-bold transition">취소</button>
-                <button onclick="confirmDeletePlayers()" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg text-sm font-bold shadow transition">삭제하기</button>
-            </div>
+            <div class="mt-3 bg-red-50 p-3 rounded-lg border border-red-100"><label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="deleteHistoryCheckbox" class="w-4 h-4 text-red-600 rounded border-red-300 focus:ring-red-500"><div class="text-xs text-red-700 font-bold"><span>경기 기록도 함께 삭제</span><p class="text-[10px] font-normal text-red-500 mt-0.5 leading-snug">선택 시, 해당 선수가 포함된 모든 과거 경기 로그가 영구 삭제됩니다. (상대방의 전적 횟수는 유지되지만 로그는 사라짐)</p></div></label></div>
+            <div class="flex justify-end gap-2 mt-4 pt-2 border-t"><button onclick="closeDeletePlayersModal()" class="bg-gray-100 text-gray-600 hover:bg-gray-200 px-4 py-2 rounded-lg text-sm font-bold transition">취소</button><button onclick="confirmDeletePlayers()" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg text-sm font-bold shadow transition">삭제하기</button></div>
         </div>
     </div>
 
     <div id="newPlayerModal" class="fixed inset-0 bg-black/50 hidden z-[9999] flex items-center justify-center" onclick="if(event.target === this) document.getElementById('newPlayerModal').classList.add('hidden')">
-        <div class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-sm">
-            <h3 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">👤 새 선수 등록</h3>
-            <p class="text-xs text-gray-500 mb-3">등록할 선수의 이름을 입력해주세요.</p>
-            <input type="text" id="newPlayerNameInput" class="w-full border p-3 rounded-lg text-sm mb-4 focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="선수 이름" onkeypress="if(event.key==='Enter') confirmNewPlayer()">
-            <div class="flex justify-end gap-2">
-                <button onclick="document.getElementById('newPlayerModal').classList.add('hidden')" class="bg-gray-100 text-gray-600 hover:bg-gray-200 px-4 py-2 rounded-lg text-sm font-bold transition">취소</button>
-                <button onclick="confirmNewPlayer()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-lg text-sm font-bold shadow transition">등록하기</button>
-            </div>
-        </div>
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-sm"><h3 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">👤 새 선수 등록</h3><p class="text-xs text-gray-500 mb-3">등록할 선수의 이름을 입력해주세요.</p><input type="text" id="newPlayerNameInput" class="w-full border p-3 rounded-lg text-sm mb-4 focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="선수 이름" onkeypress="if(event.key==='Enter') confirmNewPlayer()"><div class="flex justify-end gap-2"><button onclick="document.getElementById('newPlayerModal').classList.add('hidden')" class="bg-gray-100 text-gray-600 hover:bg-gray-200 px-4 py-2 rounded-lg text-sm font-bold transition">취소</button><button onclick="confirmNewPlayer()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-lg text-sm font-bold shadow transition">등록하기</button></div></div>
     </div>
 
     <div id="editModal" class="fixed inset-0 bg-black/50 hidden z-[9999] flex items-center justify-center" onclick="if(event.target === this) document.getElementById('editModal').classList.add('hidden')">
@@ -512,81 +298,31 @@
             <h3 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">✏️ 선수 정보 수정</h3>
             <input type="hidden" id="editPlayerId"><input type="hidden" id="editOriginalName">
             <div class="flex gap-6 mb-6">
-                <div class="relative w-48 h-48 shrink-0 group">
-                    <img id="previewImage" src="" class="w-full h-full rounded-2xl object-cover border border-slate-200 bg-slate-50 shadow-sm" onerror="this.src='https://placehold.co/150?text=No+Img'">
-                    <button onclick="removeImage()" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1.5 shadow-md hover:bg-red-600 transition opacity-0 group-hover:opacity-100" title="이미지 삭제">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414-1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
-                    </button>
-                </div>
+                <div class="relative w-48 h-48 shrink-0 group"><img id="previewImage" src="" class="w-full h-full rounded-2xl object-cover border border-slate-200 bg-slate-50 shadow-sm" onerror="this.src='https://placehold.co/150?text=No+Img'"><button onclick="removeImage()" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1.5 shadow-md hover:bg-red-600 transition opacity-0 group-hover:opacity-100" title="이미지 삭제"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414-1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg></button></div>
                 <div class="flex-grow flex flex-col justify-between py-1">
-                    <div>
-                        <label class="text-xs font-bold text-slate-500 mb-1.5 block">프로필 이미지 URL</label>
-                        <input type="text" id="editImageUrlInput" placeholder="이미지 주소 붙여넣기..." class="w-full border border-slate-300 p-2.5 rounded-lg text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition" oninput="updatePreview(this.value)">
-                        <p class="text-[10px] text-gray-400 mt-1.5 leading-snug">* 디스코드/카톡 이미지 우클릭 → <strong>'주소 복사'</strong></p>
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold text-slate-500 mb-1.5 block">시즌 전적 & 점수 (수동 조절)</label>
-                        <div class="flex gap-2">
-                            <div class="flex-1"><div class="relative"><input type="number" id="editWins" class="w-full border border-emerald-200 bg-emerald-50 p-2.5 rounded-lg text-sm text-center font-bold text-emerald-700 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"><span class="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-emerald-400 font-medium select-none">승</span></div></div>
-                            <div class="flex-1"><div class="relative"><input type="number" id="editLosses" class="w-full border border-rose-200 bg-rose-50 p-2.5 rounded-lg text-sm text-center font-bold text-rose-700 focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500"><span class="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-rose-400 font-medium select-none">패</span></div></div>
-                            <div class="flex-1"><div class="relative"><input type="number" id="editElo" class="w-full border border-amber-200 bg-amber-50 p-2.5 rounded-lg text-sm text-center font-bold text-amber-700 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500"><span class="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-amber-400 font-medium select-none">점</span></div></div>
-                        </div>
-                    </div>
+                    <div><label class="text-xs font-bold text-slate-500 mb-1.5 block">프로필 이미지 URL</label><input type="text" id="editImageUrlInput" placeholder="이미지 주소 붙여넣기..." class="w-full border border-slate-300 p-2.5 rounded-lg text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition" oninput="updatePreview(this.value)"><p class="text-[10px] text-gray-400 mt-1.5 leading-snug">* 디스코드/카톡 이미지 우클릭 → <strong>'주소 복사'</strong></p></div>
+                    <div><label class="text-xs font-bold text-slate-500 mb-1.5 block">시즌 전적 & 점수 (수동 조절)</label><div class="flex gap-2"><div class="flex-1"><div class="relative"><input type="number" id="editWins" class="w-full border border-emerald-200 bg-emerald-50 p-2.5 rounded-lg text-sm text-center font-bold text-emerald-700 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"><span class="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-emerald-400 font-medium select-none">승</span></div></div><div class="flex-1"><div class="relative"><input type="number" id="editLosses" class="w-full border border-rose-200 bg-rose-50 p-2.5 rounded-lg text-sm text-center font-bold text-rose-700 focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500"><span class="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-rose-400 font-medium select-none">패</span></div></div><div class="flex-1"><div class="relative"><input type="number" id="editElo" class="w-full border border-amber-200 bg-amber-50 p-2.5 rounded-lg text-sm text-center font-bold text-amber-700 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500"><span class="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-amber-400 font-medium select-none">점</span></div></div></div></div>
                 </div>
             </div>
-            <div class="grid grid-cols-12 gap-3 mb-3">
-                <div class="col-span-4"><label class="text-xs text-gray-500 block mb-1">이름</label><input type="text" id="editName" class="w-full border p-2 rounded text-sm font-bold bg-white focus:outline-none focus:border-blue-500"></div>
-                <div class="col-span-4"><label class="text-xs text-gray-500 block mb-1">Game ID</label><input type="text" id="editGameId" class="w-full border p-2 rounded text-sm bg-white focus:outline-none focus:border-blue-500" placeholder="ID 입력"></div>
-                <div class="col-span-4"><label class="text-xs text-gray-500 block mb-1 font-bold text-blue-600">비밀번호</label><div class="flex gap-1"><input type="text" id="editPassword" class="w-full border p-2 rounded text-sm font-mono font-bold bg-blue-50 text-blue-700 focus:outline-none focus:border-blue-500" placeholder="변경 시 입력"><button onclick="resetIndividualPassword()" class="bg-slate-200 text-slate-700 px-2 rounded-lg text-xs hover:bg-slate-300 font-bold transition flex items-center justify-center shadow-sm" title="랜덤 초기화">🔄</button></div></div>
-            </div>
-            <div class="grid grid-cols-3 gap-3 mb-4">
-                <div><label class="text-xs text-gray-500 block mb-1">키 (cm)</label><input type="text" id="editHeight" class="w-full border p-2 rounded text-sm focus:outline-none focus:border-blue-500"></div>
-                <div><label class="text-xs text-gray-500 block mb-1">리치 (cm)</label><input type="text" id="editReach" class="w-full border p-2 rounded text-sm focus:outline-none focus:border-blue-500"></div>
-                <div><label class="text-xs text-gray-500 block mb-1">스탠스</label><select id="editStance" class="w-full border p-2 rounded text-sm bg-white focus:outline-none focus:border-blue-500"><option value="Orthodox">Orthodox</option><option value="Southpaw">Southpaw</option><option value="Switch">Switch</option></select></div>
-            </div>
+            <div class="grid grid-cols-12 gap-3 mb-3"><div class="col-span-4"><label class="text-xs text-gray-500 block mb-1">이름</label><input type="text" id="editName" class="w-full border p-2 rounded text-sm font-bold bg-white focus:outline-none focus:border-blue-500"></div><div class="col-span-4"><label class="text-xs text-gray-500 block mb-1">Game ID</label><input type="text" id="editGameId" class="w-full border p-2 rounded text-sm bg-white focus:outline-none focus:border-blue-500" placeholder="ID 입력"></div><div class="col-span-4"><label class="text-xs text-gray-500 block mb-1 font-bold text-blue-600">비밀번호</label><div class="flex gap-1"><input type="text" id="editPassword" class="w-full border p-2 rounded text-sm font-mono font-bold bg-blue-50 text-blue-700 focus:outline-none focus:border-blue-500" placeholder="변경 시 입력"><button onclick="resetIndividualPassword()" class="bg-slate-200 text-slate-700 px-2 rounded-lg text-xs hover:bg-slate-300 font-bold transition flex items-center justify-center shadow-sm" title="랜덤 초기화">🔄</button></div></div></div>
+            <div class="grid grid-cols-3 gap-3 mb-4"><div><label class="text-xs text-gray-500 block mb-1">키 (cm)</label><input type="text" id="editHeight" class="w-full border p-2 rounded text-sm focus:outline-none focus:border-blue-500"></div><div><label class="text-xs text-gray-500 block mb-1">리치 (cm)</label><input type="text" id="editReach" class="w-full border p-2 rounded text-sm focus:outline-none focus:border-blue-500"></div><div><label class="text-xs text-gray-500 block mb-1">스탠스</label><select id="editStance" class="w-full border p-2 rounded text-sm bg-white focus:outline-none focus:border-blue-500"><option value="Orthodox">Orthodox</option><option value="Southpaw">Southpaw</option><option value="Switch">Switch</option></select></div></div>
             <div class="mb-4"><label class="text-xs text-gray-500 block mb-2">바지 색상 (10가지 프리셋)</label><div id="trunkColorPresets" class="flex flex-wrap gap-2"></div><input type="hidden" id="editTrunkColor"></div>
             <div class="mb-6 p-3 bg-slate-50 rounded border border-slate-200"><label class="block text-xs font-bold text-slate-600 mb-2">🥊 스타일 태그</label><div id="styleTagsContainer" class="flex flex-wrap gap-2"></div></div>
-            <div class="flex justify-between items-center">
-                <button type="button" onclick="tryDeletePlayer()" class="bg-red-50 text-red-600 hover:bg-red-100 px-4 py-2 rounded-lg text-sm font-bold transition border border-red-200">🗑️ 선수 삭제</button>
-                <div class="flex gap-2">
-                    <button onclick="document.getElementById('editModal').classList.add('hidden')" class="bg-gray-100 text-gray-600 hover:bg-gray-200 px-4 py-2 rounded-lg text-sm font-bold transition">취소</button>
-                    <button onclick="savePlayerDetails()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg text-sm font-bold shadow transition">저장하기</button>
-                </div>
-            </div>
+            <div class="flex justify-between items-center"><button type="button" onclick="tryDeletePlayer()" class="bg-red-50 text-red-600 hover:bg-red-100 px-4 py-2 rounded-lg text-sm font-bold transition border border-red-200">🗑️ 선수 삭제</button><div class="flex gap-2"><button onclick="document.getElementById('editModal').classList.add('hidden')" class="bg-gray-100 text-gray-600 hover:bg-gray-200 px-4 py-2 rounded-lg text-sm font-bold transition">취소</button><button onclick="savePlayerDetails()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg text-sm font-bold shadow transition">저장하기</button></div></div>
         </div>
     </div>
 
     <div id="renameModal" class="fixed inset-0 bg-slate-900/80 z-[10002] hidden flex items-center justify-center backdrop-blur-sm" onclick="if(event.target === this) closeRenameModal()">
-        <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-sm w-full mx-4 transform transition-all scale-100">
-            <h3 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">✏️ 시즌 이름 변경</h3>
-            <input type="hidden" id="renameOldName">
-            <input type="text" id="renameInput" class="w-full border p-3 rounded-lg text-sm mb-6 focus:ring-2 focus:ring-blue-500 outline-none bg-slate-50" placeholder="새 시즌 이름" onkeypress="if(event.key==='Enter') confirmRenameSeason()">
-            <div class="flex justify-end gap-2">
-                <button onclick="closeRenameModal()" class="bg-gray-100 text-gray-600 hover:bg-gray-200 px-4 py-2 rounded-lg text-sm font-bold transition">취소</button>
-                <button onclick="confirmRenameSeason()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg text-sm font-bold shadow transition">변경</button>
-            </div>
-        </div>
+        <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-sm w-full mx-4 transform transition-all scale-100"><h3 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">✏️ 시즌 이름 변경</h3><input type="hidden" id="renameOldName"><input type="text" id="renameInput" class="w-full border p-3 rounded-lg text-sm mb-6 focus:ring-2 focus:ring-blue-500 outline-none bg-slate-50" placeholder="새 시즌 이름" onkeypress="if(event.key==='Enter') confirmRenameSeason()"><div class="flex justify-end gap-2"><button onclick="closeRenameModal()" class="bg-gray-100 text-gray-600 hover:bg-gray-200 px-4 py-2 rounded-lg text-sm font-bold transition">취소</button><button onclick="confirmRenameSeason()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg text-sm font-bold shadow transition">변경</button></div></div>
     </div>
 
     <div id="exportModal" class="fixed inset-0 bg-black/50 hidden z-[9999] flex items-center justify-center" onclick="if(event.target === this) document.getElementById('exportModal').classList.add('hidden')">
         <div class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-lg">
             <h3 id="exportModalTitle" class="text-lg font-bold text-slate-800 mb-2 border-b pb-2">📤 텍스트 내보내기 / 수정</h3>
-            <p class="text-[11px] text-slate-500 mb-3">
-                텍스트를 자유롭게 수정 후 복사하거나, <strong>[이름 ID]</strong> 형식으로 작성하여 일괄 업데이트할 수 있습니다.
-            </p>
+            <p class="text-[11px] text-slate-500 mb-3">텍스트를 자유롭게 수정 후 복사하거나, <strong>[이름 ID]</strong> 형식으로 작성하여 일괄 업데이트할 수 있습니다.</p>
             <div id="exportMatchOptions" class="flex gap-2 mb-3 hidden"></div>
             <textarea id="exportTextarea" class="w-full h-64 p-3 text-xs font-mono border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white resize-none mb-4" placeholder="상단 버튼을 눌러 기록을 생성하세요..."></textarea>
-            <div class="flex justify-between items-center gap-2">
-                <button onclick="document.getElementById('exportModal').classList.add('hidden')" class="bg-gray-100 text-gray-600 hover:bg-gray-200 px-4 py-2 rounded-lg text-sm font-bold transition">닫기</button>
-                <div class="flex gap-2">
-                    <button onclick="applyBatchIdUpdate()" class="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-200 px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-1">
-                        <span>💾</span> ID 일괄 적용
-                    </button>
-                    <button onclick="copyExportText()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-bold shadow transition flex items-center gap-1">
-                        <span>📋</span> 복사
-                    </button>
-                </div>
-            </div>
+            <div class="flex justify-between items-center gap-2"><button onclick="document.getElementById('exportModal').classList.add('hidden')" class="bg-gray-100 text-gray-600 hover:bg-gray-200 px-4 py-2 rounded-lg text-sm font-bold transition">닫기</button><div class="flex gap-2"><button onclick="applyBatchIdUpdate()" class="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-200 px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-1"><span>💾</span> ID 일괄 적용</button><button onclick="copyExportText()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-bold shadow transition flex items-center gap-1"><span>📋</span> 복사</button></div></div>
         </div>
     </div>
 
@@ -622,8 +358,8 @@
         const AUTO_LOGIN_PW = "";
         
         const ADMIN_CONFIG = {
-            version: "v4.69",
-            updateNote: "Bout History 가독성 개선",
+            version: "v4.72",
+            updateNote: "Inspector Z-Index & 가독성 개선",
             title: "RFC 매니저"
         };
 
@@ -655,6 +391,59 @@
         let lastCheckedIndex = null; 
         let batchPenaltyTargets = [];
 
+        // [New] Inspector State & Logic
+        let isInspectorActive = false;
+        const tooltipEl = document.getElementById('inspector-tooltip');
+
+        window.toggleInspector = () => {
+            isInspectorActive = document.getElementById('inspectorToggle').checked;
+            if (isInspectorActive) {
+                document.body.appendChild(tooltipEl);
+                tooltipEl.style.display = 'block'; 
+            } else {
+                tooltipEl.style.display = 'none';
+            }
+        };
+
+        function rgbToHex(rgb) {
+            if (!rgb) return '';
+            if (rgb.startsWith('#')) return rgb;
+            const rgbMatch = rgb.match(/\d+/g);
+            if (!rgbMatch) return rgb;
+            const r = parseInt(rgbMatch[0]);
+            const g = parseInt(rgbMatch[1]);
+            const b = parseInt(rgbMatch[2]);
+            return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+        }
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isInspectorActive) return;
+            const target = e.target;
+            if (target.closest('#inspector-tooltip') || target.closest('#inspectorToggle')) return;
+
+            const styles = window.getComputedStyle(target);
+            const tag = target.tagName.toLowerCase();
+            const fontSize = styles.fontSize;
+            const fontWeight = styles.fontWeight;
+            const color = styles.color;
+            const hexColor = rgbToHex(color);
+            const classes = target.className && typeof target.className === 'string' ? target.className.split(' ').slice(0, 2).join('.') : '';
+
+            tooltipEl.style.display = 'block';
+            tooltipEl.style.top = (e.clientY + 15) + 'px'; 
+            tooltipEl.style.left = (e.clientX + 15) + 'px';
+            
+            document.getElementById('tt-tag').textContent = tag;
+            document.getElementById('tt-font').textContent = `${fontSize} (${fontWeight})`;
+            document.getElementById('tt-color').textContent = hexColor;
+            document.getElementById('tt-color').style.color = hexColor;
+            document.getElementById('tt-class').textContent = classes ? '.' + classes : '-';
+        });
+
+        document.addEventListener('mouseout', () => {
+            if (isInspectorActive) tooltipEl.style.display = 'none';
+        });
+
         const Hangul = {
             CHO: ["ㄱ","ㄲ","ㄴ","ㄷ","ㄸ","ㄹ","ㅁ","ㅂ","ㅃ","ㅅ","ㅆ","ㅇ","ㅈ","ㅉ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"],
             JUNG: ["ㅏ","ㅐ","ㅑ","ㅒ","ㅓ","ㅔ","ㅕ","ㅖ","ㅗ","ㅘ","ㅙ","ㅚ","ㅛ","ㅜ","ㅝ","ㅞ","ㅟ","ㅠ","ㅡ","ㅢ","ㅣ"],
@@ -674,7 +463,7 @@
             const rankIn = new Date(dateStr);
             const diffTime = today - rankIn;
             const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-            return diffDays <= 2; // 0, 1, 2일차까지 True
+            return diffDays <= 2; 
         }
         
         function scrollToTarget(id) {
@@ -1909,4 +1698,3 @@
     </script>
 </body>
 </html>
-```
