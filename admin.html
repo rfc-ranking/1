@@ -1575,188 +1575,67 @@
             }); 
         };
 
-        function renderRankings() { 
-            const list = document.getElementById('rankingList'); list.innerHTML = ''; 
-            const globalRankedPlayers = rankingsData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
+        window.openRules = () => document.getElementById('rulesModal').classList.remove('hidden'); window.closeRules = () => document.getElementById('rulesModal').classList.add('hidden');
+        window.switchTab = (tab) => { ['ranking', 'matches', 'hof', 'tournament'].forEach(t => { document.getElementById(t + 'Section').classList.add('hidden'); const btn = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1)); btn.className = "tab-inactive flex-1 py-3 text-sm transition-colors text-center"; }); document.getElementById(tab + 'Section').classList.remove('hidden'); const activeBtn = document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)); activeBtn.className = "tab-active flex-1 py-3 text-sm transition-colors text-center"; };
 
-            const queryJamo = Hangul.disassemble(searchQuery.replace(/\s/g, ""));
-            const qClean = searchQuery.replace(/\s/g, "");
-            
-            const filteredData = rankingsData.filter(p => {
-                const name = p.name || "";
-                const nameClean = name.replace(/\s/g, "").toLowerCase();
-                if (nameClean.includes(qClean)) return true;
-                if (p.choseong && (p.choseong.includes(qClean) || p.choseong.includes(queryJamo))) return true;
-                if (p.jamo && p.jamo.includes(queryJamo)) return true;
-                return false;
+        let editTargetId = null;
+        window.requestEdit = () => { if (!currentProfileId) return; editTargetId = currentProfileId; document.getElementById('inputPin').value = ''; document.getElementById('pinModal').classList.remove('hidden'); document.getElementById('inputPin').focus(); };
+        window.closePinModal = () => document.getElementById('pinModal').classList.add('hidden');
+        window.checkPin = async () => { 
+            const input = document.getElementById('inputPin').value; 
+            const p = rankingsData.find(x => x.id === editTargetId); 
+            const userPin = p.password || "0000"; 
+            let isMatch = false;
+            if (userPin.length === 4) { if (input === userPin) isMatch = true; } 
+            else { const inputHash = await hashPin(input); if (inputHash === userPin) isMatch = true; }
+            if (isMatch) { closePinModal(); openUserEditModal(p); } 
+            else { alert("비밀번호가 일치하지 않습니다."); document.getElementById('inputPin').value = ''; } 
+        };
+
+        function openUserEditModal(p) {
+            document.getElementById('userEditHeight').value = p.height || ''; document.getElementById('userEditReach').value = p.reach || ''; document.getElementById('userEditStance').value = p.stance || 'Orthodox'; document.getElementById('userEditGameId').value = p.gameId || ''; document.getElementById('userEditPin').value = ''; 
+            document.getElementById('userImageUrlInput').value = p.imageUrl || ''; document.getElementById('userEditPreview').src = p.imageUrl || 'https://placehold.co/150?text=No+Img';
+            const tc = p.trunkColor || '#1f2937';
+            document.getElementById('userEditTrunkColor').value = tc;
+            document.querySelectorAll('#userEditModal .color-preset').forEach(el => {
+                const presetColor = el.dataset.color;
+                if((presetColor && presetColor.toLowerCase() === tc.toLowerCase()) || el.style.backgroundColor === tc || (tc.toUpperCase() === el.style.backgroundColor.toUpperCase())) { el.classList.add('active'); } 
+                else { el.classList.remove('active'); }
             });
-
-            const ranked = filteredData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
-            const placement = filteredData.filter(p => {
-                const total = Number(p.wins || 0) + Number(p.losses || 0);
-                return total > 0 && total < 3;
-            }).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
-            const unranked = filteredData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) === 0).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
-            
-            const now = Date.now();
-            const shouldHighlight = (id) => activeHighlight.ids.includes(id) && now < activeHighlight.endTime;
-
-            if (filteredData.length === 0) { list.innerHTML = `<div class="text-center text-xs text-slate-400 py-4">검색 결과가 없습니다.</div>`; return; }
-
-            ranked.forEach((item) => { 
-                const globalIndex = rankingsData.indexOf(item); 
-                const realRank = globalRankedPlayers.findIndex(p => p.id === item.id) + 1;
-                const tier = getTier(item.wins, item.losses);
-                const totalMatches = (item.wins || 0) + (item.losses || 0);
-                
-                // [삭제됨] const vet = isVeteran(item); 관련 변수 초기화 삭제
-                let vetBadge = '';
-                let cardClass = tier.class;
-                let rankNumClass = "rank-num-normal";
-                let vetNameBadge = ''; 
-                
-                // [대체됨] 챔피언/컨텐더 표시 로직
-                const isChamp = item.isChampion;
-                const isContender = item.elo >= 1300;
-
-                if (isChamp) {
-                    vetBadge = `<div class="absolute bottom-[-5px] -right-2 text-lg filter drop-shadow-md z-10">👑</div>`;
-                    vetNameBadge = '<span class="v-badge bg-black text-amber-400 border border-amber-400" title="Champion">C</span>';
-                    cardClass = 'rank-1-glow'; // 챔피언은 항상 1위 효과
-                } 
-                else if (isContender) {
-                    vetBadge = `<div class="absolute bottom-[-5px] -right-2 text-lg filter drop-shadow-md z-10">🔥</div>`;
-                    vetNameBadge = '<span class="v-badge bg-red-600 text-white" title="Contender">C</span>';
-                }
-
-                if (realRank === 1 && !isChamp) { rankNumClass = "rank-num-1 font-black"; cardClass = 'rank-1-glow'; } 
-                else if (realRank === 2) { rankNumClass = "rank-num-2 font-black"; cardClass = 'rank-2-glow'; } 
-                else if (realRank === 3) { rankNumClass = "rank-num-3 font-black"; cardClass = 'rank-3-glow'; } 
-                else { if (realRank <= 10) rankNumClass = "rank-num-top10"; }
-
-                // [수정됨] 현상금 표시 조건 (베테랑 -> 누구나 0보다 크면)
-                let bountyStatHtml = '';
-                if (item.bounty && item.bounty > 0) {
-                      bountyStatHtml = `<span class="bounty-pill-dark" title="현상금">💰+${item.bounty}</span>`;
-                }
-
-                const prevRank = item.previousRank || realRank; 
-                const diff = prevRank - realRank; 
-                let ch = "";
-                if (totalMatches === 3 && isRecentRankIn(item.rankInDate)) {
-                      ch = `<span class="text-indigo-600 font-black text-[10px] bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100 animate-pulse">New</span>`;
-                } else {
-                      ch = diff > 0 ? `<span class="rank-up">▲${diff}</span>` : (diff < 0 ? `<span class="rank-down">▼${Math.abs(diff)}</span>` : '<span class="rank-keep">-</span>');
-                }
-                
-                if (shouldHighlight(item.id)) cardClass += ' highlight-slow';
-
-                list.innerHTML += `
-                    <div id="rank-card-${item.id}" class="rank-card flex items-center p-3 border rounded-xl mb-2 bg-white hover:shadow-md ${cardClass}" onclick="openProfile('${item.id}')">
-                        <div class="w-10 text-center mr-2"><span class="${rankNumClass}">${realRank}</span><div class="text-[10px]">${ch}</div></div>
-                        <div class="shrink-0 relative mr-3">
-                            <img src="${item.imageUrl || 'https://placehold.co/150?text=No+Img'}" class="w-10 h-10 rounded-lg bg-slate-100 object-cover border border-slate-100" onerror="this.src='https://placehold.co/150?text=No+Img'">
-                            ${realRank === 1 ? `<div class="absolute -top-1 -right-1 text-sm">👑</div>` : ''}
-                            ${vetBadge}
-                        </div>
-                        <div class="flex-grow min-w-0">
-                            <div class="font-bold text-sm text-slate-800 flex items-center gap-2">
-                                <div class="w-1.5 h-4 rounded-sm shadow-sm ring-1 ring-inset ring-black/10" style="background: ${item.trunkColor || '#1f2937'};" title="트렁크 색상"></div>
-                                <span class="truncate">${item.name}</span>
-                                ${vetNameBadge}
-                                <span class="text-[9px] px-1.5 py-0.5 rounded-full ${tier.color} font-bold tracking-wide uppercase shadow-sm">${tier.name}</span>
-                            </div>
-                            <div class="flex items-center gap-1.5 mt-0.5">
-                                <span class="bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded border border-amber-200 font-bold">⚡${item.elo}</span>
-                                <span class="text-xs text-slate-400">| ${item.wins}승 ${item.losses}패</span>
-                                ${bountyStatHtml}
-                            </div>
-                        </div>
-                        <button onclick="event.stopPropagation(); openEditModal(${globalIndex})" class="p-2 text-slate-300 hover:text-blue-600 transition">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                        </button>
-                    </div>`; 
-            }); 
-
-            if (placement.length > 0) {
-                list.innerHTML += `<div class="relative py-4"><div class="absolute inset-0 flex items-center" aria-hidden="true"><div class="w-full border-t border-slate-200"></div></div><div class="relative flex justify-center"><span class="bg-[#f8fafc] px-3 text-xs font-bold text-slate-400">🐣 배치고사 진행중 (3경기)</span></div></div>`;
-                placement.forEach((item) => {
-                    const globalIndex = rankingsData.indexOf(item);
-                    const highlightClass = shouldHighlight(item.id) ? 'highlight-slow' : '';
-                    list.innerHTML += `<div id="rank-card-${item.id}" class="rank-card flex items-center p-3 border rounded-xl mb-2 bg-slate-50 opacity-90 hover:opacity-100 ${highlightClass}" onclick="openProfile('${item.id}')"><div class="w-10 text-center mr-2"><span class="text-lg">🐣</span></div><div class="shrink-0 relative mr-3"><img src="${item.imageUrl || 'https://placehold.co/150?text=No+Img'}" class="w-10 h-10 rounded-lg bg-slate-100 object-cover border border-slate-100" onerror="this.src='https://placehold.co/150?text=No+Img'"></div><div class="flex-grow min-w-0"><div class="font-bold text-sm text-slate-600 flex items-center gap-2"><div class="w-1.5 h-4 rounded-sm shadow-sm ring-1 ring-inset ring-black/10" style="background: ${item.trunkColor || '#1f2937'};" title="트렁크 색상"></div><span class="truncate">${item.name}</span><span class="text-[9px] px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500 border border-slate-200 font-bold tracking-wide uppercase shadow-sm">Placement</span></div><div class="flex items-center gap-1.5 mt-0.5"><span class="bg-amber-50 text-amber-600/70 text-[10px] px-1.5 py-0.5 rounded border border-amber-100 font-bold">⚡${item.elo} (가)</span><span class="text-xs text-slate-400">| ${item.wins}승 ${item.losses}패</span></div></div><button onclick="event.stopPropagation(); openEditModal(${globalIndex})" class="p-2 text-slate-300 hover:text-blue-600 transition"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg></button></div>`;
-                });
-            }
-
-            if(unranked.length > 0) {
-                list.innerHTML += `<div class="relative py-4"><div class="absolute inset-0 flex items-center" aria-hidden="true"><div class="w-full border-t border-slate-200"></div></div><div class="relative flex justify-center"><span class="bg-[#f8fafc] px-3 text-xs font-bold text-slate-300">- Unranked Players -</span></div></div>`;
-                unranked.forEach((item) => {
-                    const globalIndex = rankingsData.indexOf(item);
-                    const highlightClass = shouldHighlight(item.id) ? 'highlight-slow' : '';
-                    list.innerHTML += `<div id="rank-card-${item.id}" class="rank-card flex items-center p-3 border rounded-xl mb-2 bg-slate-50 opacity-80 hover:opacity-100 ${highlightClass}" onclick="openProfile('${item.id}')"><div class="w-10 text-center mr-2"><span class="rank-unranked">-</span></div><div class="shrink-0 relative mr-3"><img src="${item.imageUrl || 'https://placehold.co/150?text=No+Img'}" class="w-10 h-10 rounded-lg bg-slate-100 object-cover border border-slate-100 grayscale" onerror="this.src='https://placehold.co/150?text=No+Img'"></div><div class="flex-grow min-w-0"><div class="font-bold text-sm text-slate-500 flex items-center gap-2"><div class="w-1.5 h-4 rounded-sm shadow-sm ring-1 ring-inset ring-black/10" style="background: ${item.trunkColor || '#1f2937'};" title="트렁크 색상"></div><span class="truncate">${item.name}</span></div><div class="flex items-center gap-1.5 mt-0.5"><span class="bg-slate-100 text-slate-400 text-[10px] px-1.5 py-0.5 rounded border border-slate-200 font-bold">New</span><span class="text-xs text-slate-400">| 0승 0패</span></div></div><button onclick="event.stopPropagation(); openEditModal(${globalIndex})" class="p-2 text-slate-300 hover:text-blue-600 transition"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg></button></div>`;
-                });
-            }
-            populateMatchSelectors();
+            const container = document.getElementById('userStyleTags'); container.innerHTML = ''; 
+            STYLE_OPTIONS.forEach(s => { const safeId = `u-style-${s.replace(/\s+/g, '-')}`; const checked = (p.tags || []).includes(s); container.innerHTML += `<div><input type="checkbox" id="${safeId}" value="${s}" class="style-checkbox absolute opacity-0 w-0 h-0" ${checked ? 'checked' : ''}><label for="${safeId}" class="inline-block px-3 py-1 text-xs font-bold border border-slate-300 rounded-full cursor-pointer text-slate-500 hover:bg-slate-100 transition select-none">${s}</label></div>`; });
+            document.getElementById('userEditModal').classList.remove('hidden');
         }
 
-        window.populateMatchSelectors = () => { 
-            if (p1Tom) { p1Tom.destroy(); p1Tom = null; } 
-            if (p2Tom) { p2Tom.destroy(); p2Tom = null; } 
-            if (pPenTom) { pPenTom.destroy(); pPenTom = null; } 
-            const s1 = document.getElementById('p1Select'); 
-            const s2 = document.getElementById('p2Select'); 
-            const sPen = document.getElementById('penaltyTargetSelect'); 
-            if(!s1 || !s2) return; 
-            
-            const sortedRankedIndices = rankingsData.map((p, i) => ({ ...p, originalIndex: i })).filter(p => (p.wins + p.losses) >= 3).sort((a, b) => (b.elo || 1000) - (a.elo || 1000)).map(p => p.originalIndex); 
-            const playerOptions = rankingsData.map((p, index) => { 
-                const rankIndex = sortedRankedIndices.indexOf(index); 
-                const isRanked = rankIndex !== -1; 
-                const totalMatches = (p.wins || 0) + (p.losses || 0); 
-                let rankPrefix = ''; 
-                if (isRanked) rankPrefix = `${rankIndex + 1}. `; 
-                else if (totalMatches > 0) rankPrefix = `[배치] `; 
-                else rankPrefix = `[New] `; 
-                const displayName = `${rankPrefix}${p.name}`; 
-                return { value: index, text: `${displayName} (${p.elo})`, displayName: displayName, name: p.name, gameId: p.gameId || '-', choseong: p.choseong, jamo: p.jamo, elo: p.elo || 1000, isRanked: isRanked }; 
-            }); 
-            playerOptions.sort((a, b) => { 
-                const typeA = a.isRanked ? 2 : (a.text.includes('[배치]') ? 1 : 0); 
-                const typeB = b.isRanked ? 2 : (b.text.includes('[배치]') ? 1 : 0); 
-                if (typeA !== typeB) return typeB - typeA; 
-                if (b.elo !== a.elo) return b.elo - a.elo; 
-                return a.name.localeCompare(b.name); 
-            }); 
-            if (typeof TomSelect === 'undefined') { console.error("Tom Select library not loaded."); return; } 
-            const config = { 
-                options: playerOptions, valueField: 'value', labelField: 'text', searchField: ['text'], create: false, maxOptions: null, 
-                onInitialize: function() { this.control_input.setAttribute('type', 'search'); }, 
-                score: function(search) { 
-                    const term = search.toLowerCase().replace(/\s/g, ""); 
-                    const termJamo = Hangul.disassemble(term); 
-                    return function(item) { 
-                        if (item.name.toLowerCase().replace(/\s/g, "").includes(term)) return 100; 
-                        if (item.choseong && (item.choseong.includes(term) || item.choseong.includes(termJamo))) return 80; 
-                        if (item.jamo && item.jamo.includes(termJamo)) return 60; 
-                        return 0; 
-                    }; 
-                }, 
-                render: { 
-                    option: function(data, escape) { 
-                        const rankClass = data.isRanked ? "font-bold text-slate-700" : "text-slate-500"; 
-                        return `<div class="flex flex-col py-1 leading-tight"><div><span class="${rankClass}">${escape(data.displayName)}</span> <span class="text-xs text-slate-400">(${data.elo})</span></div><div class="text-[10px] text-slate-400">ID: ${escape(data.gameId)}</div></div>`; 
-                    }, 
-                    item: function(data, escape) { 
-                        return `<div class="flex flex-col w-full leading-tight py-0.5"><div class="truncate"><span class="font-bold text-slate-700">${escape(data.displayName)}</span> <span class="text-xs text-gray-400">(${data.elo})</span></div><div class="text-[10px] text-gray-400 truncate">${escape(data.gameId)}</div></div>`; 
-                    } 
-                } 
-            }; 
-            const previewConfig = { ...config, onChange: function(value) { updateMatchPreview(); } }; 
-            const redConfig = { ...config, onChange: function(value) { updateMatchPreview(); }, onInitialize: function() { this.control_input.setAttribute('type', 'search'); this.wrapper.classList.add('red-theme'); } }; 
-            try { 
-                p1Tom = new TomSelect('#p1Select', previewConfig); 
-                p2Tom = new TomSelect('#p2Select', redConfig); 
-                if(sPen) pPenTom = new TomSelect('#penaltyTargetSelect', config); 
-            } catch(e) { console.error("Tom Select initialization failed:", e); } 
+        window.closeUserEdit = () => document.getElementById('userEditModal').classList.add('hidden');
+        window.updateUserPreview = (url) => { document.getElementById('userEditPreview').src = url || 'https://placehold.co/150?text=No+Img'; };
+        window.saveUserProfile = async () => {
+            if (!editTargetId) return;
+            const newHeight = document.getElementById('userEditHeight').value.replace(/</g, "&lt;");
+            const newReach = document.getElementById('userEditReach').value.replace(/</g, "&lt;");
+            const newStance = document.getElementById('userEditStance').value;
+            const newGameId = document.getElementById('userEditGameId').value.replace(/</g, "&lt;");
+            const newImageUrl = document.getElementById('userImageUrlInput').value.trim().replace(/</g, "&lt;");
+            const newTrunkColor = document.getElementById('userEditTrunkColor').value;
+            const inputPin = document.getElementById('userEditPin').value;
+            const checkedTags = document.querySelectorAll('#userStyleTags .style-checkbox:checked'); 
+            const newTags = Array.from(checkedTags).map(cb => cb.value).slice(0, 3);
+            let newPassword = null;
+            if (inputPin && inputPin.length === 4) { newPassword = await hashPin(inputPin); }
+            try {
+                await runTransaction(db, async (transaction) => {
+                    const sfDoc = await transaction.get(docRef);
+                    if (!sfDoc.exists()) throw "Doc missing";
+                    const data = sfDoc.data();
+                    const rankings = data.rankings || [];
+                    const idx = rankings.findIndex(r => r.id === editTargetId);
+                    if (idx === -1) throw "User not found";
+                    rankings[idx].height = newHeight; rankings[idx].reach = newReach; rankings[idx].stance = newStance; rankings[idx].gameId = newGameId; rankings[idx].imageUrl = newImageUrl; rankings[idx].trunkColor = newTrunkColor; rankings[idx].tags = newTags;
+                    if (newPassword) rankings[idx].password = newPassword;
+                    transaction.update(docRef, { rankings: rankings });
+                });
+                alert("정보가 수정되었습니다."); closeUserEdit(); if (currentProfileId === editTargetId) openProfile(currentProfileId);
+            } catch (e) { console.error(e); alert("저장 중 오류가 발생했습니다. 다시 시도해주세요."); }
         };
     </script>
 </body>
