@@ -189,7 +189,7 @@
     <main class="max-w-3xl mx-auto p-3 flex-grow w-full">
         <div id="rankingSection" class="fade-in space-y-3">
             <div class="flex justify-between items-center px-1 pb-1 flex-wrap gap-2">
-                <span class="text-xs font-bold text-slate-400 hidden sm:block">Hybrid ELO System</span>
+                <span class="text-xs font-bold text-slate-400 hidden sm:block">RFC Season 2: Champions League</span>
                 <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
                     <div class="relative flex-grow sm:flex-grow-0">
                         <input type="search" id="playerSearchInput" placeholder="선수/초성 검색" 
@@ -335,8 +335,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v4.38",
-            updateNote: "시즌 2: 챔피언/컨텐더 시스템 적용",
+            version: "v4.39",
+            updateNote: "Fix: 프로필 클릭 버그 수정",
             title: "RFC 랭킹전"
         };
 
@@ -1168,6 +1168,77 @@
         };
         window.closeProfile = () => { document.getElementById('profileModal').classList.add('hidden'); }
         
+        window.updateProfileStats = (id, filter) => { 
+            const p = rankingsData.find(x => x.id === id); 
+            if (!p) return; 
+            let matches = enrichedMatchHistory.filter(m => (m.winner === p.name || m.loser === p.name) && m.type !== 'draw'); 
+            if (filter === 'current') matches = matches.filter(m => m.season === activeSeason); 
+            else if (filter !== 'all') matches = matches.filter(m => m.season === filter); 
+            matches.sort((a, b) => new Date(b.date) - new Date(a.date)); 
+            
+            let wins = 0, losses = 0; 
+            matches.forEach(m => { if (m.winner === p.name) wins++; else losses++; }); 
+            const total = wins + losses; 
+            const winRate = total > 0 ? Math.round((wins / total) * 100) : 0; 
+            
+            document.getElementById('pBigWins').textContent = wins; 
+            document.getElementById('pBigLosses').textContent = losses; 
+            document.getElementById('pModalWinRate').textContent = `${winRate}%`; 
+            document.getElementById('pModalElo').textContent = p.elo || 1000; 
+            document.getElementById('pModalHighElo').textContent = p.careerHighElo || p.elo || 1000; 
+            
+            const container = document.getElementById('pModalMatchList'); 
+            container.innerHTML = ''; 
+            
+            if (matches.length === 0) { 
+                container.innerHTML = `<div class="text-center text-xs text-slate-400 py-4">해당 기간 기록이 없습니다.</div>`; 
+                return; 
+            } 
+            
+            matches.forEach(m => { 
+                const isWin = m.winner === p.name; 
+                const resultText = isWin ? 'W' : 'L'; 
+                const resultColor = isWin ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'; 
+                const oppName = isWin ? m.loser : m.winner; 
+                const oppStats = m.snapshot[filter === 'all' ? 'all' : 'season'][oppName] || { w:0, l:0, h:[] }; 
+                const oppRecordStr = `${oppStats.w}승 ${oppStats.l}패`; 
+                
+                let oppDots = ''; 
+                (oppStats.h || []).forEach(res => { 
+                    if (res === 'W') oppDots += `<div class="w-1 h-1 rounded-full bg-emerald-400"></div>`; 
+                    else oppDots += `<div class="w-1 h-1 rounded-full bg-rose-400"></div>`; 
+                }); 
+                
+                let scoreBadge = ''; 
+                if (isWin && m.winnerChange !== undefined) { 
+                    scoreBadge = `<span class="text-[13px] font-black text-emerald-600 shrink-0">+${m.winnerChange}</span>`; 
+                } else if (!isWin && m.loserChange !== undefined) { 
+                    scoreBadge = `<span class="text-[13px] font-black text-rose-600 shrink-0">${m.loserChange}</span>`; 
+                } 
+
+                let oppRankBadge = '';
+                const oppRankVal = isWin ? m.loserRankBefore : m.winnerRankBefore;
+                if (oppRankVal !== undefined) {
+                    if (oppRankVal > 0) {
+                        oppRankBadge = `<span class="bg-slate-200 text-slate-500 text-[11px] px-2 py-0.5 rounded-md font-bold leading-none no-underline shadow-sm">${oppRankVal}위</span>`;
+                    } else {
+                        oppRankBadge = `<span class="bg-slate-100 text-slate-400 text-[11px] px-2 py-0.5 rounded-md font-bold leading-none no-underline shadow-sm border border-slate-200">배치중</span>`;
+                    }
+                } else {
+                    oppRankBadge = `<span class="bg-slate-100 text-slate-400 text-[11px] px-2 py-0.5 rounded-md font-bold leading-none no-underline shadow-sm border border-slate-200" title="과거 기록">-</span>`;
+                }
+
+                const oppProfile = rankingsData.find(u => u.name === oppName);
+                const oppLink = oppProfile ? `onclick="openProfile('${oppProfile.id}')"` : '';
+                const oppCursor = oppProfile ? 'cursor-pointer hover:underline hover:text-blue-600' : '';
+
+                const div = document.createElement('div'); 
+                div.className = "flex items-center justify-between text-xs p-3 bg-slate-50 rounded-xl border border-slate-100"; 
+                div.innerHTML = `<div class="flex items-center gap-3 w-full"><div class="flex items-center gap-1.5 shrink-0"><span class="font-bold ${resultColor} w-8 h-8 flex items-center justify-center rounded-lg text-sm shadow-sm">${resultText}</span>${scoreBadge}</div><div class="flex flex-col w-full overflow-hidden"><div class="flex justify-between items-center w-full"><span class="font-bold text-slate-700 text-sm truncate flex items-center gap-1.5 ${oppCursor}" ${oppLink}>vs ${oppName}${oppRankBadge}</span><span class="text-slate-900 font-medium text-[11px] shrink-0">${m.date}</span></div><div class="flex items-center gap-2 mt-0.5"><span class="text-[11px] text-slate-400 font-medium bg-white px-1.5 py-0.5 rounded border border-slate-100">당시: ${oppRecordStr}</span><div class="flex gap-0.5">${oppDots}</div></div></div></div>`; 
+                container.appendChild(div); 
+            }); 
+        };
+
         window.openRules = () => document.getElementById('rulesModal').classList.remove('hidden'); window.closeRules = () => document.getElementById('rulesModal').classList.add('hidden');
         window.switchTab = (tab) => { ['ranking', 'matches', 'hof', 'tournament'].forEach(t => { document.getElementById(t + 'Section').classList.add('hidden'); const btn = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1)); btn.className = "tab-inactive flex-1 py-3 text-sm transition-colors text-center"; }); document.getElementById(tab + 'Section').classList.remove('hidden'); const activeBtn = document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)); activeBtn.className = "tab-active flex-1 py-3 text-sm transition-colors text-center"; };
 
