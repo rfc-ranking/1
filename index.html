@@ -15,7 +15,7 @@
             background: #f8fafc; 
         }
         
-        /* [User Site] 1위 전용 글로우 효과 */
+        /* 1위 (챔피언) 전용 글로우 효과 */
         .rank-1-glow {
             background: linear-gradient(90deg, #ffffff 30%, #fffbeb 100%) !important;
             box-shadow: 0 10px 25px -5px rgba(234, 179, 8, 0.3), 0 8px 10px -6px rgba(234, 179, 8, 0.2) !important;
@@ -43,7 +43,7 @@
             z-index: 8 !important;
         }
 
-        /* [User Style] Veteran Badge (Luxury Gold) */
+        /* 뱃지 스타일 */
         .v-badge {
             display: inline-flex;
             align-items: center;
@@ -58,14 +58,8 @@
             line-height: 1;
             cursor: help;
         }
-        .v-gold { 
-            background: linear-gradient(135deg, #fbbf24, #d97706); 
-            color: white; 
-            text-shadow: 0 1px 1px rgba(0,0,0,0.1); 
-            border: 1px solid #f59e0b; 
-        }
 
-        /* [User Style] Bounty Style (Style B. Wanted Poster) */
+        /* 현상금 스타일 */
         .bounty-pill-dark {
             font-size: 13px;
             background-color: #1f2937;
@@ -87,18 +81,12 @@
         .rank-num-3 { color: #ad8a56; font-size: 1.0rem; }
         .rank-num-top10 { color: #047857; font-size: 1.0rem; font-weight: 900; text-shadow: 0 1px 2px rgba(4, 120, 87, 0.15); }
         .rank-num-normal { color: #94a3b8; font-size: 1.0rem; font-weight: 800; }
-        .rank-unranked { color: #cbd5e1; font-size: 1.0rem; font-weight: 800; }
+        .rank-num-unranked { color: #cbd5e1; font-size: 1.0rem; font-weight: 800; }
 
-        /* [User Style] Rank Change Colors */
+        /* Rank Change Colors */
         .rank-up { color: #dc2626; font-weight: 800; font-size: 0.75rem; }    /* Red-600 */
         .rank-down { color: #2563eb; font-weight: 800; font-size: 0.75rem; } /* Blue-600 */
         .rank-keep { color: #cbd5e1; font-size: 0.75rem; }
-
-        .rank-4-10-border {
-            box-shadow: 0 4px 6px -1px rgba(4, 120, 87, 0.05), 0 2px 4px -1px rgba(4, 120, 87, 0.03) !important;
-            z-index: 5;
-            position: relative;
-        }
 
         @media (min-width: 768px) {
             .rank-num-1 { font-size: 1.8rem; text-shadow: 0 2px 4px rgba(245, 158, 11, 0.2); }
@@ -158,13 +146,11 @@
         .tooltip-label { color: #94a3b8; }
         .tooltip-value { color: #60a5fa; font-weight: bold; }
         
-        /* 활성화 상태일 때는 배경색 표시 (선택 사항, 필요 없다면 제거 가능) */
         .active-inspector-btn { background-color: #3b82f6 !important; color: white !important; opacity: 1 !important; }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800 pb-10 flex flex-col min-h-screen">
 
-    <!-- Inspector Tooltip -->
     <div id="inspector-tooltip">
         <div class="tooltip-row"><span class="tooltip-label">Tag</span><span class="tooltip-value" id="tt-tag">DIV</span></div>
         <div class="tooltip-row"><span class="tooltip-label">Font</span><span class="tooltip-value" id="tt-font">16px</span></div>
@@ -185,7 +171,6 @@
                 </p>
             </div>
             <div class="flex gap-2 items-center">
-                <!-- Inspector Button Modified: 배경 제거, 반투명 적용 -->
                 <button onclick="toggleInspector()" id="btnInspector" class="opacity-30 hover:opacity-100 transition-all text-xs font-bold px-2 py-1.5 rounded-lg" title="스타일 인스펙터">🛠️</button>
                 <button onclick="openRules()" class="bg-slate-100 text-slate-600 text-xs font-bold px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-200 transition">📜 규칙</button>
                 <div class="relative group">
@@ -204,7 +189,7 @@
     <main class="max-w-3xl mx-auto p-3 flex-grow w-full">
         <div id="rankingSection" class="fade-in space-y-3">
             <div class="flex justify-between items-center px-1 pb-1 flex-wrap gap-2">
-                <span class="text-xs font-bold text-slate-400 hidden sm:block">Hybrid ELO 기준 정렬</span>
+                <span class="text-xs font-bold text-slate-400 hidden sm:block">Hybrid ELO System</span>
                 <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
                     <div class="relative flex-grow sm:flex-grow-0">
                         <input type="search" id="playerSearchInput" placeholder="선수/초성 검색" 
@@ -350,8 +335,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v4.37",
-            updateNote: "스타일 인스펙터 추가",
+            version: "v4.38",
+            updateNote: "시즌 2: 챔피언/컨텐더 시스템 적용",
             title: "RFC 랭킹전"
         };
 
@@ -383,7 +368,6 @@
             const btn = document.getElementById('btnInspector');
             
             if (isInspectorActive) {
-                // DOM 최하단으로 이동 (Z-index 문제 해결)
                 document.body.appendChild(tooltipEl);
                 tooltipEl.style.display = 'block'; 
                 if(btn) btn.classList.add('active-inspector-btn');
@@ -406,10 +390,7 @@
 
         document.addEventListener('mousemove', (e) => {
             if (!isInspectorActive) return;
-
             const target = e.target;
-            
-            // Ignore UI elements
             if (target.closest('#inspector-tooltip') || target.closest('#btnInspector')) return;
 
             const styles = window.getComputedStyle(target);
@@ -434,7 +415,6 @@
         document.addEventListener('mouseout', () => {
             if (isInspectorActive) tooltipEl.style.display = 'none';
         });
-
 
         const STYLE_OPTIONS = ["인파이터", "아웃복서", "슬러거", "하드 펀처", "바디 스내처", "볼륨 펀처", "스위치 히터", "브롤러", "카운터 펀처", "복서-펀처", "슬릭", "샤프슈터", "패스트 핸드"];
         
@@ -507,12 +487,6 @@
             }
         };
 
-        function isVeteran(p) {
-            const total = (p.wins || 0) + (p.losses || 0);
-            const score = p.elo || 1000;
-            return total >= 10 && score >= 1300;
-        }
-
         function getKSTDate() { return new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Seoul" }); }
 
         onSnapshot(docRef, (docSnapshot) => {
@@ -535,7 +509,6 @@
                     p.choseong = Hangul.getCho(p.name);
                     p.jamo = Hangul.disassemble(p.name);
                     if(p.bounty === undefined) p.bounty = 0;
-                    if(isVeteran(p) && p.bounty < 10) p.bounty = 10;
                 }); 
                 
                 renderRankings();
@@ -658,7 +631,13 @@
                 });
             }
 
-            const globalRankedPlayers = fullData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
+            // [New] 정렬 로직 수정: 챔피언 우선 -> 점수 순
+            const globalRankedPlayers = fullData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3).sort((a, b) => {
+                if (a.isChampion) return -1;
+                if (b.isChampion) return 1;
+                return (b.elo || 1000) - (a.elo || 1000);
+            });
+
             let filteredData = fullData;
             if (searchQuery) {
                 const queryJamo = Hangul.disassemble(searchQuery.replace(/\s/g, ""));
@@ -673,11 +652,18 @@
                 });
             }
 
-            const ranked = filteredData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
+            // [New] 필터링된 데이터도 정렬 규칙 적용 (챔피언 우선)
+            const ranked = filteredData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3).sort((a, b) => {
+                if (a.isChampion) return -1;
+                if (b.isChampion) return 1;
+                return (b.elo || 1000) - (a.elo || 1000);
+            });
+            
             const placement = filteredData.filter(p => {
                 const total = Number(p.wins || 0) + Number(p.losses || 0);
                 return total > 0 && total < 3;
             }).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
+            
             const unranked = filteredData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) === 0).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
             
             const now = Date.now();
@@ -694,21 +680,32 @@
                 const tier = getTier(item.wins, item.losses);
                 const totalMatches = (item.wins || 0) + (item.losses || 0);
                 
-                const vet = isVeteran(item);
+                // [New] 챔피언 & 컨텐더 배지 로직
+                const isChamp = item.isChampion;
+                const isContender = item.elo >= 1300;
+
                 let vetBadge = '';
                 let cardClass = tier.class;
                 let rankNumClass = "rank-num-normal";
                 let vetNameBadge = ''; 
                 
-                if (vet) vetBadge = `<div class="absolute bottom-[-5px] -right-2 text-lg filter drop-shadow-md z-10">🎖️</div>`;
-                if (realRank === 1) { rankNumClass = "rank-num-1 font-black"; cardClass = 'rank-1-glow'; } 
+                if (isChamp) {
+                    vetBadge = `<div class="absolute bottom-[-5px] -right-2 text-lg filter drop-shadow-md z-10">👑</div>`;
+                    vetNameBadge = '<span class="v-badge bg-black text-amber-400 border border-amber-400" title="Champion">C</span>';
+                    cardClass = 'rank-1-glow';
+                } 
+                else if (isContender) {
+                    vetBadge = `<div class="absolute bottom-[-5px] -right-2 text-lg filter drop-shadow-md z-10">🔥</div>`;
+                    vetNameBadge = '<span class="v-badge bg-red-600 text-white" title="Contender">C</span>';
+                }
+
+                if (realRank === 1 && !isChamp) { rankNumClass = "rank-num-1 font-black"; cardClass = 'rank-1-glow'; } 
                 else if (realRank === 2) { rankNumClass = "rank-num-2 font-black"; cardClass = 'rank-2-glow'; } 
                 else if (realRank === 3) { rankNumClass = "rank-num-3 font-black"; cardClass = 'rank-3-glow'; } 
                 else { if (realRank <= 10) rankNumClass = "rank-num-top10"; }
-                if (vet) vetNameBadge = '<span class="v-badge v-gold" title="Veteran">V</span>'; 
 
                 let bountyStatHtml = '';
-                if (vet && item.bounty && item.bounty > 0) {
+                if (item.bounty && item.bounty > 0) {
                       bountyStatHtml = `<span class="text-[13px] font-black text-amber-600 flex items-center gap-0.5 bg-amber-50 px-1.5 rounded border border-amber-100" title="현상금">💰+${item.bounty}</span>`;
                 }
 
@@ -1016,15 +1013,15 @@
                     const prevName = pastSeasons[0];
                     const prevData = seasonArchives[prevName].rankings || [];
                     championList = prevData.filter(p => (p.wins + p.losses) >= 3)
-                                                                             .sort((a, b) => (b.elo || 1000) - (a.elo || 1000))
-                                                                             .slice(0, 3);
+                                                                     .sort((a, b) => (b.elo || 1000) - (a.elo || 1000))
+                                                                     .slice(0, 3);
                     champTitle = "전시즌 TOP 3";
                     champSub = `${prevName} 레전드`;
                 }
             } else {
                 championList = players.filter(p => (p.wins + p.losses) >= 3)
-                                                                     .sort((a, b) => (b.elo || 1000) - (a.elo || 1000))
-                                                                     .slice(0, 3);
+                                                                 .sort((a, b) => (b.elo || 1000) - (a.elo || 1000))
+                                                                 .slice(0, 3);
             }
 
             const ironWillList = [...players].sort((a, b) => {
@@ -1073,7 +1070,6 @@
                     const badgeText = rank + "위";
                     const badgeSize = is1st ? "text-[10px] sm:text-xs" : "text-[10px] sm:text-[11px]";
                     
-                    // [Modified] 왕관(👑) 제거
                     const crown = '';
                     
                     const plateHeight = is1st ? "h-16 sm:h-20" : "h-14 sm:h-16";
@@ -1100,7 +1096,6 @@
                     `;
                 };
 
-                // [Modified] 타이틀 및 서브타이틀 반응형 적용 (모바일에서 축소)
                 return `
                     <div class="bg-white rounded-2xl p-3 sm:p-4 shadow-sm border border-slate-100 mb-6 relative overflow-hidden fade-in">
                         <div class="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6 border-b border-slate-100 pb-2 sm:pb-3">
@@ -1139,7 +1134,7 @@
             const p = rankingsData.find(x => x.id === id); 
             if (!p) return; 
             document.getElementById('pModalName').textContent = p.name; 
-            document.getElementById('pModalCrown').classList.toggle('hidden', rankingsData.indexOf(p) !== 0); 
+            document.getElementById('pModalCrown').classList.toggle('hidden', !p.isChampion); 
             document.getElementById('pModalGameId').textContent = `ID: ${p.gameId || '-'}`; 
             document.getElementById('pModalImg').src = p.imageUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23cbd5e1' stroke-width='2'%3E%3Ccircle cx='12' cy='8' r='5'/%3E%3Cpath d='M20 21a8 8 0 0 0-16 0'/%3E%3C/svg%3E"; 
             
@@ -1159,9 +1154,9 @@
             document.getElementById('pModalReach').textContent = p.reach ? p.reach + 'cm' : '-'; 
             document.getElementById('pModalStance').textContent = p.stance || '-'; 
             
-            const vet = isVeteran(p);
+            const vet = p.elo >= 1300; // 1300점 이상이면 베테랑 표시 (이름 옆)
             if(vet) {
-                document.getElementById('pModalName').innerHTML += ` <span class="text-lg">🎖️</span>`;
+                document.getElementById('pModalName').innerHTML += ` <span class="text-lg">🔥</span>`;
             }
 
             const tagsContainer = document.getElementById('pModalTags'); 
@@ -1173,77 +1168,6 @@
         };
         window.closeProfile = () => { document.getElementById('profileModal').classList.add('hidden'); }
         
-        window.updateProfileStats = (id, filter) => { 
-            const p = rankingsData.find(x => x.id === id); 
-            if (!p) return; 
-            let matches = enrichedMatchHistory.filter(m => (m.winner === p.name || m.loser === p.name) && m.type !== 'draw'); 
-            if (filter === 'current') matches = matches.filter(m => m.season === activeSeason); 
-            else if (filter !== 'all') matches = matches.filter(m => m.season === filter); 
-            matches.sort((a, b) => new Date(b.date) - new Date(a.date)); 
-            
-            let wins = 0, losses = 0; 
-            matches.forEach(m => { if (m.winner === p.name) wins++; else losses++; }); 
-            const total = wins + losses; 
-            const winRate = total > 0 ? Math.round((wins / total) * 100) : 0; 
-            
-            document.getElementById('pBigWins').textContent = wins; 
-            document.getElementById('pBigLosses').textContent = losses; 
-            document.getElementById('pModalWinRate').textContent = `${winRate}%`; 
-            document.getElementById('pModalElo').textContent = p.elo || 1000; 
-            document.getElementById('pModalHighElo').textContent = p.careerHighElo || p.elo || 1000; 
-            
-            const container = document.getElementById('pModalMatchList'); 
-            container.innerHTML = ''; 
-            
-            if (matches.length === 0) { 
-                container.innerHTML = `<div class="text-center text-xs text-slate-400 py-4">해당 기간 기록이 없습니다.</div>`; 
-                return; 
-            } 
-            
-            matches.forEach(m => { 
-                const isWin = m.winner === p.name; 
-                const resultText = isWin ? 'W' : 'L'; 
-                const resultColor = isWin ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'; 
-                const oppName = isWin ? m.loser : m.winner; 
-                const oppStats = m.snapshot[filter === 'all' ? 'all' : 'season'][oppName] || { w:0, l:0, h:[] }; 
-                const oppRecordStr = `${oppStats.w}승 ${oppStats.l}패`; 
-                
-                let oppDots = ''; 
-                (oppStats.h || []).forEach(res => { 
-                    if (res === 'W') oppDots += `<div class="w-1 h-1 rounded-full bg-emerald-400"></div>`; 
-                    else oppDots += `<div class="w-1 h-1 rounded-full bg-rose-400"></div>`; 
-                }); 
-                
-                let scoreBadge = ''; 
-                if (isWin && m.winnerChange !== undefined) { 
-                    scoreBadge = `<span class="text-[13px] font-black text-emerald-600 shrink-0">+${m.winnerChange}</span>`; 
-                } else if (!isWin && m.loserChange !== undefined) { 
-                    scoreBadge = `<span class="text-[13px] font-black text-rose-600 shrink-0">${m.loserChange}</span>`; 
-                } 
-
-                let oppRankBadge = '';
-                const oppRankVal = isWin ? m.loserRankBefore : m.winnerRankBefore;
-                if (oppRankVal !== undefined) {
-                    if (oppRankVal > 0) {
-                        oppRankBadge = `<span class="bg-slate-200 text-slate-500 text-[11px] px-2 py-0.5 rounded-md font-bold leading-none no-underline shadow-sm">${oppRankVal}위</span>`;
-                    } else {
-                        oppRankBadge = `<span class="bg-slate-100 text-slate-400 text-[11px] px-2 py-0.5 rounded-md font-bold leading-none no-underline shadow-sm border border-slate-200">배치중</span>`;
-                    }
-                } else {
-                    oppRankBadge = `<span class="bg-slate-100 text-slate-400 text-[11px] px-2 py-0.5 rounded-md font-bold leading-none no-underline shadow-sm border border-slate-200" title="과거 기록">-</span>`;
-                }
-
-                const oppProfile = rankingsData.find(u => u.name === oppName);
-                const oppLink = oppProfile ? `onclick="openProfile('${oppProfile.id}')"` : '';
-                const oppCursor = oppProfile ? 'cursor-pointer hover:underline hover:text-blue-600' : '';
-
-                const div = document.createElement('div'); 
-                div.className = "flex items-center justify-between text-xs p-3 bg-slate-50 rounded-xl border border-slate-100"; 
-                div.innerHTML = `<div class="flex items-center gap-3 w-full"><div class="flex items-center gap-1.5 shrink-0"><span class="font-bold ${resultColor} w-8 h-8 flex items-center justify-center rounded-lg text-sm shadow-sm">${resultText}</span>${scoreBadge}</div><div class="flex flex-col w-full overflow-hidden"><div class="flex justify-between items-center w-full"><span class="font-bold text-slate-700 text-sm truncate flex items-center gap-1.5 ${oppCursor}" ${oppLink}>vs ${oppName}${oppRankBadge}</span><span class="text-slate-900 font-medium text-[11px] shrink-0">${m.date}</span></div><div class="flex items-center gap-2 mt-0.5"><span class="text-[11px] text-slate-400 font-medium bg-white px-1.5 py-0.5 rounded border border-slate-100">당시: ${oppRecordStr}</span><div class="flex gap-0.5">${oppDots}</div></div></div></div>`; 
-                container.appendChild(div); 
-            }); 
-        };
-
         window.openRules = () => document.getElementById('rulesModal').classList.remove('hidden'); window.closeRules = () => document.getElementById('rulesModal').classList.add('hidden');
         window.switchTab = (tab) => { ['ranking', 'matches', 'hof', 'tournament'].forEach(t => { document.getElementById(t + 'Section').classList.add('hidden'); const btn = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1)); btn.className = "tab-inactive flex-1 py-3 text-sm transition-colors text-center"; }); document.getElementById(tab + 'Section').classList.remove('hidden'); const activeBtn = document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)); activeBtn.className = "tab-active flex-1 py-3 text-sm transition-colors text-center"; };
 
