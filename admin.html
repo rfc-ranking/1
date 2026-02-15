@@ -517,67 +517,105 @@
             else return { winMult: 1.2, lossMult: 0.8, base: 13, tier: '💎Platinum' };
         }
 
-        function calculateHybridEloChange(p1Elo, p2Elo, isWin, p1Stats, opponentBounty = 0) { 
-            const matchCount = (p1Stats.wins || 0) + (p1Stats.losses || 0); 
-            let K = 60;
-            let isPlacement = false;
-            
-            if (matchCount < 3) {
-                K = 90;
-                isPlacement = true;
-            }
+        // [교체] 1. 점수 계산 로직 (성장 모드 vs 하드코어 모드 자동 전환)
+function calculateHybridEloChange(p1Elo, p2Elo, isWin, p1Stats, opponentBounty = 0, selfBountyPenalty = 0) {
+    const matchCount = (p1Stats.wins || 0) + (p1Stats.losses || 0);
+    
+    // 1. K-Factor (변동폭 설정)
+    let K = 60; // 기본
+    if (matchCount < 3) K = 90; // 배치고사는 변동폭 큼
 
-            const expected = 1 / (1 + Math.pow(10, (p2Elo - p1Elo) / 400)); 
-            const expectedPct = Math.round(expected * 100);
-            const { winMult, lossMult, tier, base } = getTierBonus(matchCount); 
-            
-            let finalChange = 0; 
-            let details = []; 
-            const label = isPlacement ? '🐣배치' : tier;
+    // 2. 승률 예측
+    const expected = 1 / (1 + Math.pow(10, (p2Elo - p1Elo) / 400));
+    const expectedPct = Math.round(expected * 100);
 
-            let expectedText = `${expectedPct}%`;
-            if (isWin) {
-                expectedText += expectedPct < 50 ? " (열세 극복)" : " (우세)";
-            } else {
-                expectedText += expectedPct > 50 ? " (유리함 놓침)" : " (열세)";
-            }
-            details.push({ label: '예측 승률 (Elo 격차)', value: expectedText, colorClass: 'text-slate-500', valueClass: 'text-slate-400' });
+    // 3. 모드 결정 (성장 vs 하드코어)
+    // ★핵심: 현재 점수가 1300 이상이면 티어 보너스 강제 박탈
+    let isHardcore = p1Elo >= 1300; 
+    
+    let winMult = 1.0, lossMult = 1.0, base = 0, modeLabel = "";
 
-            if (isWin) { 
-                let baseGain = K * (1 - expected); 
-                details.push({ label: `기본 변동 점수 (K=${K})`, value: `+${baseGain.toFixed(1)}`, colorClass: 'text-slate-600', valueClass: '' });
-                
-                let winPoints = (baseGain * winMult) + base;
-                let tierBonusStr = `x${winMult} + ${base}`;
-                details.push({ 
-                    label: `티어 가중치 (${label}, ${tierBonusStr})`, 
-                    value: `+${winPoints.toFixed(1)}`, 
-                    colorClass: 'text-indigo-600 bg-indigo-50/50 -mx-1 px-1 rounded py-0.5', 
-                    valueClass: 'font-bold' 
-                });
-
-                if (opponentBounty > 0) {
-                    details.push({ label: '💰 현상금 사냥 보너스', value: `+${opponentBounty}`, colorClass: 'text-amber-600 font-bold', valueClass: '' });
-                }
-                
-                finalChange = winPoints + opponentBounty; 
-            } else { 
-                let baseLoss = K * (0 - expected); 
-                details.push({ label: `기본 변동 점수 (K=${K})`, value: `${baseLoss.toFixed(1)}`, colorClass: 'text-slate-600', valueClass: '' });
-                
-                let lossPoints = (baseLoss * lossMult) + base; 
-                let tierBonusStr = `x${lossMult} + ${base}`;
-                details.push({ 
-                    label: `티어 가중치 (${label}, ${tierBonusStr})`, 
-                    value: `${lossPoints.toFixed(1)}`, 
-                    colorClass: 'text-rose-600 bg-rose-50/50 -mx-1 px-1 rounded py-0.5', 
-                    valueClass: 'font-bold' 
-                });
-                
-                finalChange = lossPoints; 
-            } 
-            return { change: Math.round(finalChange), details: details }; 
+    if (isHardcore) {
+        // [하드코어 모드] 컨텐더 & 챔피언
+        winMult = 1.0; 
+        lossMult = 1.0; 
+        base = 5; 
+        modeLabel = isWin ? "🔥증명 (보너스X)" : "🩸실력 감점";
+        
+        // 챔피언은 패배 시 추가 패널티 (왕관의 무게)
+        if (p1Stats.isChampion && !isWin) {
+            lossMult = 1.2; // 20% 더 아프게 맞음
+            modeLabel = "👑왕관의 무게";
         }
+
+    } else {
+        // [성장 모드] 1300점 미만 (기존 티어 시스템)
+        if (matchCount < 3) { winMult = 1.0; lossMult = 1.0; base = 5; modeLabel = "🥉Bronze"; }
+        else if (matchCount < 7) { winMult = 1.1; lossMult = 0.9; base = 7; modeLabel = "🥈Silver"; }
+        else if (matchCount < 13) { winMult = 1.2; lossMult = 0.8; base = 9; modeLabel = "🥇Gold"; }
+        else { winMult = 1.2; lossMult = 0.8; base = 13; modeLabel = "💎Platinum"; }
+    }
+
+    let finalChange = 0;
+    let details = [];
+
+    // 승률 정보
+    let probText = isWin ? 
+        (expectedPct < 50 ? `열세 극복 (${expectedPct}%)` : `우세 승리 (${expectedPct}%)`) :
+        (expectedPct > 50 ? `이변 패배 (${expectedPct}%)` : `패배 (${expectedPct}%)`);
+    details.push({ label: '승률 예측', value: probText, colorClass: 'text-slate-500', valueClass: 'text-xs' });
+
+    if (isWin) {
+        // [승리 계산]
+        let basicGain = K * (1 - expected);
+        let bonusGain = (basicGain * winMult) + base;
+        
+        details.push({ label: `기본 획득`, value: `+${basicGain.toFixed(1)}`, colorClass: 'text-slate-400', valueClass: '' });
+        details.push({ label: `${modeLabel} (x${winMult} +${base})`, value: `+${bonusGain.toFixed(1)}`, colorClass: 'text-blue-600 font-bold', valueClass: 'font-black' });
+
+        // 자이언트 킬링 (100점 차이 극복)
+        if ((p2Elo - p1Elo) >= 100) {
+            bonusGain += 10;
+            details.push({ label: `⚔️ 자이언트 킬링`, value: `+10`, colorClass: 'text-purple-600 font-bold', valueClass: 'font-black' });
+        }
+
+        // 현상금 약탈
+        if (opponentBounty > 0) {
+            bonusGain += opponentBounty;
+            details.push({ label: `💰 현상금 약탈`, value: `+${opponentBounty}`, colorClass: 'text-amber-600 font-bold', valueClass: 'font-black' });
+        }
+        finalChange = Math.round(bonusGain);
+
+    } else {
+        // [패배 계산]
+        let basicLoss = K * expected;
+        let bonusLoss = (basicLoss * lossMult) - base; 
+        
+        if (isHardcore) {
+             // 하드코어는 base(5)를 감점 방어에 쓰지 않고 기본값처럼 처리
+             bonusLoss = (basicLoss * lossMult); 
+        }
+
+        if (bonusLoss < 1) bonusLoss = 1;
+
+        details.push({ label: `기본 감점`, value: `-${basicLoss.toFixed(1)}`, colorClass: 'text-slate-400', valueClass: '' });
+        
+        if (isHardcore) {
+            details.push({ label: `${modeLabel}`, value: `-${bonusLoss.toFixed(1)}`, colorClass: 'text-rose-600 font-bold', valueClass: '' });
+        } else {
+            details.push({ label: `${modeLabel} 방어`, value: `-${bonusLoss.toFixed(1)}`, colorClass: 'text-emerald-600 font-bold', valueClass: '' });
+        }
+
+        // 내 현상금 50% 추가 패널티
+        if (selfBountyPenalty > 0) {
+            bonusLoss += selfBountyPenalty;
+            details.push({ label: `💸 현상금 패널티`, value: `-${selfBountyPenalty}`, colorClass: 'text-red-600 font-black', valueClass: 'underline decoration-red-500' });
+        }
+        finalChange = -Math.round(bonusLoss);
+    }
+
+    return { change: finalChange, details: details };
+}
 
         async function hashPin(pin) { if (!pin) return ""; try { if (window.crypto && window.crypto.subtle) { const msgBuffer = new TextEncoder().encode(pin); const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer); const hashArray = Array.from(new Uint8Array(hashBuffer)); return hashArray.map(b => b.toString(16).padStart(2, '0')).join(''); } else { return pin; } } catch (e) { return pin; } }
         function generateUUID() { if (typeof crypto !== 'undefined' && crypto.randomUUID) { return crypto.randomUUID(); } return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) { var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8); return v.toString(16); }); }
@@ -847,87 +885,125 @@
         }
         window.updateMatchPreview = updateMatchPreview;
 
-        window.applyMatch = () => { 
-            let val1 = p1Tom ? p1Tom.getValue() : document.getElementById('p1Select').value;
-            let val2 = p2Tom ? p2Tom.getValue() : document.getElementById('p2Select').value;
+        // [교체] 2. 경기 확정 로직 (벨트 & 연승 현상금 적용)
+window.applyMatch = () => { 
+    let val1 = p1Tom ? p1Tom.getValue() : document.getElementById('p1Select').value;
+    let val2 = p2Tom ? p2Tom.getValue() : document.getElementById('p2Select').value;
 
-            if (val1 === "" || val1 === null) return alert("🔵 Blue 선수를 선택해주세요.");
-            if (val2 === "" || val2 === null) return alert("🔴 Red 선수를 선택해주세요.");
+    if (val1 === "" || val1 === null) return alert("🔵 Blue 선수를 선택해주세요.");
+    if (val2 === "" || val2 === null) return alert("🔴 Red 선수를 선택해주세요.");
+    if (val1 === val2) return alert("동일한 선수를 선택할 수 없습니다.");
 
-            const p1Idx = parseInt(val1); const p2Idx = parseInt(val2);
-            const winnerVal = document.querySelector('input[name="winner"]:checked')?.value; 
-            if (!winnerVal) return alert("승자를 선택해주세요 (Blue 승 / Red 승)."); 
-            if (p1Idx === p2Idx) return alert("동일한 선수를 선택할 수 없습니다."); 
-            
-            const p1 = rankingsData[p1Idx]; const p2 = rankingsData[p2Idx]; 
-            if (!p1 || !p2) return alert("선수 데이터 매칭 오류: 새로고침 후 다시 시도해주세요.");
+    const p1 = rankingsData[parseInt(val1)];
+    const p2 = rankingsData[parseInt(val2)];
+    const winnerVal = document.querySelector('input[name="winner"]:checked')?.value;
+    
+    if (!winnerVal) return alert("승자를 선택해주세요.");
 
-            const isBlueWin = winnerVal === 'blue'; 
-            const winner = isBlueWin ? p1 : p2; const loser = isBlueWin ? p2 : p1; 
-            const isWinnerVeteran = isVeteran(winner); const isLoserVeteran = isVeteran(loser);
-            captureState(); 
+    captureState(); 
 
-            const currentRankedListForHistory = [...rankingsData].filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
-            const getPlayerRankBefore = (player) => { const total = (player.wins || 0) + (player.losses || 0); if (total < 3) return 0; return currentRankedListForHistory.findIndex(p => p.id === player.id) + 1; };
-            const winnerRankBefore = getPlayerRankBefore(winner); const loserRankBefore = getPlayerRankBefore(loser);
+    const isBlueWin = winnerVal === 'blue';
+    const winner = isBlueWin ? p1 : p2;
+    const loser = isBlueWin ? p2 : p1;
 
-            let loserBountyVal = 0;
-            if (isLoserVeteran) loserBountyVal = parseInt(loser.bounty || 0, 10);
+    // [1] 현상금 계산 (패자 현상금의 50%는 증발(패널티), 100%는 승자가 복사해서 획득)
+    // *기획 의도에 따라: 승자는 패자 현상금 전액 획득, 패자는 자기 현상금 절반만큼 추가 감점
+    const loserBounty = loser.bounty || 0;
+    const bountyLoot = loserBounty; 
+    const bountyPenalty = Math.floor(loserBounty * 0.5); 
 
-            const winCalc = calculateHybridEloChange(winner.elo, loser.elo, true, winner, loserBountyVal); 
-            const loseCalc = calculateHybridEloChange(loser.elo, winner.elo, false, loser, 0); 
-            
-            if (isWinnerVeteran) {
-                let currentBounty = parseInt(winner.bounty || 0, 10);
-                if (isNaN(currentBounty)) currentBounty = 0;
-                if (currentBounty < 10) currentBounty = 20; 
-                else currentBounty += 10;
-                winner.bounty = currentBounty;
-            }
-            
-            if (isLoserVeteran) {
-                let currentBounty = parseInt(loser.bounty || 0, 10);
-                if (isNaN(currentBounty)) currentBounty = 0;
-                if (currentBounty > 0) {
-                    const penalty = Math.floor(currentBounty / 2);
-                    loseCalc.change -= penalty; 
-                    loser.bounty = 10; 
-                }
-            }
-            
-            winner.elo += winCalc.change; loser.elo += loseCalc.change; 
-            if (winner.elo > (winner.careerHighElo || 0)) winner.careerHighElo = winner.elo; 
-            if (loser.elo > (loser.careerHighElo || 0)) loser.careerHighElo = loser.elo; 
-            
-            let type = 'ranking'; winner.wins++; loser.wins = loser.wins || 0; loser.losses++; 
-            const dateInput = document.getElementById('matchDateInput').value;
-            const matchDate = dateInput || getKSTDate();
-            winner.lastMatchDate = matchDate; loser.lastMatchDate = matchDate; 
-            
-            rankingsData.sort((a, b) => b.elo - a.elo); 
-            const rankedPlayersForSync = rankingsData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3);
-            
-            [winner, loser].forEach(p => {
-                const total = (p.wins || 0) + (p.losses || 0);
-                if (total === 3) {
-                    const realRank = rankedPlayersForSync.findIndex(rp => rp.id === p.id) + 1;
-                    if (realRank > 0) { p.previousRank = realRank; p.rankInDate = matchDate; }
-                }
-            });
+    const winResult = calculateHybridEloChange(winner.elo, loser.elo, true, winner, bountyLoot, 0);
+    const loseResult = calculateHybridEloChange(loser.elo, winner.elo, false, loser, 0, bountyPenalty);
 
-            [winner, loser].forEach(p => {
-                if (isVeteran(p)) { if (!p.bounty || p.bounty < 10) { p.bounty = 10; } } 
-                else { p.bounty = 0; }
-            });
+    winner.elo += winResult.change;
+    loser.elo += loseResult.change;
+    
+    if (winner.elo > (winner.careerHighElo || 0)) winner.careerHighElo = winner.elo;
+    
+    winner.wins = (winner.wins || 0) + 1;
+    loser.losses = (loser.losses || 0) + 1;
+    
+    const dateInput = document.getElementById('matchDateInput').value;
+    const matchDate = dateInput || getKSTDate();
+    winner.lastMatchDate = matchDate;
+    loser.lastMatchDate = matchDate;
 
-            matchHistoryData.unshift({ 
-                date: matchDate, winner: isBlueWin ? p1.name : p2.name, loser: isBlueWin ? p2.name : p1.name, type, season: activeSeason, blue: p1.name, winnerChange: winCalc.change, loserChange: loseCalc.change, winnerRankBefore: winnerRankBefore, loserRankBefore: loserRankBefore
-            }); 
-            matchHistoryData.sort((a, b) => new Date(b.date) - new Date(a.date));
-            activeHighlight = { ids: [winner.id, loser.id], endTime: Date.now() + 60000 };
+    // [2] 연승 및 현상금 업데이트
+    winner.currentStreak = (winner.currentStreak || 0) + 1;
+    loser.currentStreak = 0;
+    loser.bounty = 0; // 패자 현상금 초기화
 
-            saveRankings(); renderRankings(); scrollToTarget(winner.id); resetMatchInputs(true);
-        };
+    // 3연승부터 10점, 이후 +10점씩 누적
+    if (winner.currentStreak >= 3) {
+        winner.bounty = (winner.bounty || 0) + 10;
+    }
+
+    // [3] 챔피언 벨트 시스템
+    const currentChamp = rankingsData.find(p => p.isChampion === true);
+    // 점수 업데이트 후 기준으로 컨텐더(1300) 체크
+    const isWinnerContender = winner.elo >= 1300;
+    const isLoserContender = loser.elo >= 1300;
+    
+    // A. 현재 챔피언이 없는 경우 (공석)
+    if (!currentChamp) {
+        // [초대 챔피언 결정전] or [공석 결정전]
+        // 조건: 둘 다 1300점 이상이면 승자가 챔피언
+        if (isWinnerContender && isLoserContender) {
+            winner.isChampion = true;
+            winner.defenseCount = 0;
+            alert(`🎉 [초대 챔피언 탄생] 🎉\n\n${winner.name} 선수가 챔피언에 등극했습니다!`);
+        }
+    } 
+    // B. 챔피언이 경기를 한 경우
+    else if (winner.id === currentChamp.id) {
+        // 챔피언 승리 (방어 성공)
+        winner.defenseCount = (winner.defenseCount || 0) + 1;
+    } 
+    else if (loser.id === currentChamp.id) {
+        // 챔피언 패배 (일단 타이틀 상실)
+        loser.isChampion = false;
+        loser.defenseCount = 0;
+
+        if (isWinnerContender) {
+            // 자격 있는 자가 이김 -> 왕위 계승
+            winner.isChampion = true;
+            winner.defenseCount = 0;
+            alert(`👑 [New Champion] 👑\n\n${winner.name} 선수가 새로운 챔피언이 되었습니다!`);
+        } else {
+            // 자격 없는 자가 이김 -> 벨트 공석
+            alert(`🔥 [Giant Killing] 🔥\n\n${winner.name} 선수가 챔피언을 꺾었습니다!\n하지만 컨텐더 자격 미달로 벨트는 [공석]이 됩니다.`);
+        }
+    }
+
+    // [4] 저장 및 갱신
+    matchHistoryData.unshift({ 
+        date: matchDate, 
+        winner: winner.name, 
+        loser: loser.name, 
+        season: activeSeason, 
+        winnerChange: winResult.change, 
+        loserChange: loseResult.change,
+        isTitleMatch: (currentChamp && (winner.isChampion || loser.isChampion)) 
+    });
+    
+    sortRankings(); // 챔피언 1위 정렬
+    saveRankings(); 
+    renderRankings(); 
+    scrollToTarget(winner.id); 
+    resetMatchInputs(true);
+};
+        // [신규] 3. 랭킹 정렬 헬퍼 (챔피언 절대 우대)
+function sortRankings() {
+    rankingsData.sort((a, b) => {
+        // 1. 챔피언은 무조건 1등
+        if (a.isChampion) return -1;
+        if (b.isChampion) return 1;
+
+        // 2. 나머지는 점수(ELO) 내림차순
+        return (b.elo || 1000) - (a.elo || 1000);
+    });
+}
+        
         window.applyBatchIdUpdate = async () => {
             console.log("applyBatchIdUpdate called");
             const textarea = document.getElementById('exportTextarea');
