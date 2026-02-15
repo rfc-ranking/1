@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RFC 매니저</title>
+    <title>RFC 매니저 (Admin)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
@@ -21,6 +21,7 @@
         
         .tier-bronze, .tier-silver, .tier-gold, .tier-platinum { background: #ffffff; border-left: none; }
 
+        /* 챔피언 전용 글로우 (1위) */
         .rank-1-glow {
             background: linear-gradient(90deg, #ffffff 30%, #fffbeb 100%) !important;
             box-shadow: 0 10px 25px -5px rgba(234, 179, 8, 0.3), 0 8px 10px -6px rgba(234, 179, 8, 0.2) !important;
@@ -41,6 +42,21 @@
             border: 1px solid #ffedd5 !important;
             border-left: 5px solid #ad8a56 !important;
             z-index: 8 !important;
+        }
+
+        .v-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 16px;
+            height: 16px;
+            font-size: 9px;
+            font-weight: 900;
+            border-radius: 4px;
+            margin-left: 4px;
+            vertical-align: middle;
+            line-height: 1;
+            cursor: help;
         }
 
         .bounty-pill-dark {
@@ -1441,7 +1457,7 @@
         window.resetBatchInactiveForm = () => { document.getElementById('inactiveDaysInput').value = 30; document.getElementById('penaltyScoreInput').value = 30; document.getElementById('inactiveListArea').classList.add('hidden'); document.getElementById('inactiveUserList').innerHTML = ''; batchPenaltyTargets = []; };
         window.checkBatchInactiveUsers = () => { const daysInput = document.getElementById('inactiveDaysInput'); const scoreInput = document.getElementById('penaltyScoreInput'); const days = parseInt(daysInput.value) || 30; const score = parseInt(scoreInput.value) || 30; const today = new Date(getKSTDate()); const rankedPlayers = rankingsData.filter(p => (p.wins + p.losses) > 0).sort((a, b) => (b.elo || 1000) - (a.elo || 1000)); batchPenaltyTargets = []; const listEl = document.getElementById('inactiveUserList'); listEl.innerHTML = ''; rankingsData.forEach(p => { const totalMatches = (p.wins || 0) + (p.losses || 0); if (totalMatches === 0) return; if(!p.lastMatchDate) return; const last = new Date(p.lastMatchDate); const diffTime = today - last; const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); if(diffDays >= days) { const rank = rankedPlayers.findIndex(rp => rp.id === p.id) + 1; batchPenaltyTargets.push({ ...p, diffDays, rank }); } }); batchPenaltyTargets.sort((a, b) => b.diffDays - a.diffDays); const area = document.getElementById('inactiveListArea'); if(batchPenaltyTargets.length > 0) { document.getElementById('inactiveCountDisplay').textContent = batchPenaltyTargets.length; batchPenaltyTargets.forEach(t => { const li = document.createElement('li'); li.className = "flex justify-between items-center border-b border-slate-50 last:border-0 pb-1 mb-1 last:pb-0 last:mb-0"; li.innerHTML = `<div class="flex items-center gap-1.5"><span class="text-[10px] font-black text-blue-600 min-w-[24px] text-right">#${t.rank}</span><span class="font-bold text-slate-700">${t.name}</span><span class="text-[10px] bg-slate-100 text-slate-500 px-1 rounded">${t.elo}점</span></div><span class="text-red-500 font-bold text-[10px]">${t.diffDays}일 전</span>`; listEl.appendChild(li); }); const btn = document.getElementById('btnApplyBatchPenalty'); btn.innerHTML = `<span>💀</span> 일괄 -${score}점 적용하기`; btn.onclick = () => confirmBatchPenalty(days, score); area.classList.remove('hidden'); area.classList.add('pop-in'); } else { area.classList.add('hidden'); showCustomAlert(`${days}일 이상 미참여자가 없습니다.\n(전적 0회 및 Unranked 제외)`); } };
         window.confirmBatchPenalty = (days, score) => { const count = batchPenaltyTargets.length; if(count === 0) return; const msg = `💀 장기 미참여자 일괄 패널티\n\n기준: ${days}일 이상 미참여\n대상: 총 ${count}명\n내용: 전원 ELO -${score}점 차감\n\n정말 실행하시겠습니까?`; showConfirmModal(msg, async () => { captureState(); const targetIds = new Set(batchPenaltyTargets.map(t => t.id)); rankingsData.forEach(p => { if(targetIds.has(p.id)) { p.elo -= score; } }); rankingsData.sort((a, b) => b.elo - a.elo); await saveRankings(); renderRankings(); document.getElementById('inactiveListArea').classList.add('hidden'); batchPenaltyTargets = []; showCustomAlert(`✅ ${count}명에게 -${score}점 패널티가 적용되었습니다.`); }); };
-        window.fixDataIntegrity = () => { const rankedPlayers = rankingsData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3).sort((a, b) => (b.elo || 1000) - (a.elo || 1000)); let fixedRankCount = 0; let fixedDateCount = 0; let fixedBountyCount = 0; const threshold = 15; rankingsData.forEach(p => { const total = (p.wins || 0) + (p.losses || 0); if (total >= 3) { const realRank = rankedPlayers.findIndex(rp => rp.id === p.id) + 1; const prev = p.previousRank || 999; if (Math.abs(prev - realRank) >= threshold || prev > rankedPlayers.length + 5) { p.previousRank = realRank; fixedRankCount++; } } if (total === 3 && !p.rankInDate && p.lastMatchDate) { p.rankInDate = p.lastMatchDate; fixedDateCount++; } if (isVeteran(p) && (!p.bounty || p.bounty < 10)) { p.bounty = 10; fixedBountyCount++; } if (!isVeteran(p) && p.bounty > 0) { p.bounty = 0; fixedBountyCount++; } }); if (fixedRankCount > 0 || fixedDateCount > 0 || fixedBountyCount > 0) { captureState(); saveRankings(); renderRankings(); showCustomAlert(`✅ 데이터 보정 완료\n\n- 순위 변동폭 정상화: ${fixedRankCount}명\n- New 뱃지(날짜) 복구: ${fixedDateCount}명\n- 베테랑 현상금 보정: ${fixedBountyCount}명`); } else { showCustomAlert("보정할 데이터가 없습니다.\n모든 데이터가 정상입니다."); } };
+        window.fixDataIntegrity = () => { const rankedPlayers = rankingsData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3).sort((a, b) => (b.elo || 1000) - (a.elo || 1000)); let fixedRankCount = 0; let fixedDateCount = 0; let fixedBountyCount = 0; const threshold = 15; rankingsData.forEach(p => { const total = (p.wins || 0) + (p.losses || 0); if (total >= 3) { const realRank = rankedPlayers.findIndex(rp => rp.id === p.id) + 1; const prev = p.previousRank || 999; if (Math.abs(prev - realRank) >= threshold || prev > rankedPlayers.length + 5) { p.previousRank = realRank; fixedRankCount++; } } if (total === 3 && !p.rankInDate && p.lastMatchDate) { p.rankInDate = p.lastMatchDate; fixedDateCount++; } }); if (fixedRankCount > 0 || fixedDateCount > 0 || fixedBountyCount > 0) { captureState(); saveRankings(); renderRankings(); showCustomAlert(`✅ 데이터 보정 완료\n\n- 순위 변동폭 정상화: ${fixedRankCount}명\n- New 뱃지(날짜) 복구: ${fixedDateCount}명`); } else { showCustomAlert("보정할 데이터가 없습니다.\n모든 데이터가 정상입니다."); } };
         window.resetAllStats = () => { if (!rankingsData || rankingsData.length === 0) return showCustomAlert("데이터가 로드되지 않았습니다."); const msg = `📊 [${activeSeason}] 전적 초기화 확인\n\n현재 시즌의 다음 데이터가 모두 삭제됩니다:\n1. 모든 선수의 승/패/무/방어전 횟수 (0으로 초기화)\n2. 현재 시즌의 경기 기록 로그 (전체 삭제)\n\n(주의: ELO 점수는 유지됩니다)\n\n정말 초기화하시겠습니까?`; showConfirmModal(msg, async () => { try { captureState(); rankingsData.forEach(p => { p.wins = 0; p.losses = 0; p.draws = 0; p.defenseCount = 0; }); matchHistoryData = matchHistoryData.filter(m => m.season !== activeSeason); await saveRankings(); renderRankings(); enrichMatchHistory(); updateAdminHistorySeasonSelector(); renderAdminMatches(); showCustomAlert("✅ 현재 시즌 전적이 초기화되었습니다."); } catch (e) { showCustomAlert("초기화 중 오류 발생: " + e.message); } }); };
         window.resetAllElo = () => { if (!rankingsData || rankingsData.length === 0) return showCustomAlert("데이터가 로드되지 않았습니다."); showConfirmModal(`⚡ [${activeSeason}] ELO 초기화 확인\n\n현재 시즌의 모든 선수 점수를\n[1000점]으로 리셋하시겠습니까?\n\n(주의: 전적 횟수는 유지됩니다)`, async () => { captureState(); rankingsData.forEach(p => { p.elo = 1000; p.careerHighElo = 1000; }); await saveRankings(); renderRankings(); showCustomAlert("모든 선수의 ELO가 1000점으로 초기화되었습니다."); }); };
         window.resetEverything = () => { showConfirmModal("🚨 시스템 전체를 리셋하시겠습니까?\n\n- 모든 시즌 기록 삭제\n- 모든 선수 스탯 초기화\n- 되돌릴 수 없습니다.", async () => { matchHistoryData = []; seasonArchives = {}; activeSeason = "시즌 1"; rankingsData.forEach(p => { p.wins=0; p.losses=0; p.defenseCount=0; p.elo=1000; p.careerHighElo=1000; }); await saveRankings(); location.reload(); }); };
