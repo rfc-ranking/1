@@ -207,6 +207,13 @@
                                     <label class="block text-xs font-bold text-slate-500 mb-1 pl-1">📅 경기 날짜</label>
                                     <div class="flex gap-2"><input type="date" id="matchDateInput" class="flex-grow border border-slate-300 rounded-lg p-2 text-sm font-bold text-slate-700 outline-none focus:border-blue-500 bg-white"><button onclick="setMatchDate('yesterday')" class="bg-white border border-slate-300 text-slate-600 hover:bg-slate-100 font-bold px-3 py-1.5 rounded-lg text-xs transition shadow-sm whitespace-nowrap">어제</button><button onclick="setMatchDate('today')" class="bg-white border border-slate-300 text-slate-600 hover:bg-slate-100 font-bold px-3 py-1.5 rounded-lg text-xs transition shadow-sm whitespace-nowrap">오늘</button></div>
                                 </div>
+                                <div class="flex items-center justify-end mb-2 px-1">
+    <label class="inline-flex items-center cursor-pointer relative group">
+        <input type="checkbox" id="isTitleMatch" class="sr-only peer">
+        <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-yellow-400 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-yellow-500"></div>
+        <span class="ml-2 text-xs font-bold text-slate-600 group-hover:text-yellow-600 transition">👑 타이틀 매치</span>
+    </label>
+</div>
                                 <div class="grid grid-cols-2 gap-3">
                                     <div><label class="block text-xs font-bold text-blue-600 mb-1 pl-1">🔵 Blue (검색가능)</label><div class="flex items-center gap-2"><div class="flex-grow min-w-0"><select id="p1Select" class="w-full text-sm outline-none" placeholder="선수 검색..."></select></div><div id="p1TrunkIndicator" class="w-3 h-6 rounded border border-slate-300 shadow-sm shrink-0 bg-slate-100" title="바지 색상"></div></div></div>
                                     <div><label class="block text-xs font-bold text-red-600 mb-1 pl-1">🔴 Red (검색가능)</label><div class="flex items-center gap-2"><div class="flex-grow min-w-0"><select id="p2Select" class="w-full text-sm outline-none" placeholder="선수 검색..."></select></div><div id="p2TrunkIndicator" class="w-3 h-6 rounded border border-slate-300 shadow-sm shrink-0 bg-slate-100" title="바지 색상"></div></div></div>
@@ -904,6 +911,65 @@
     
     captureState(); 
 
+            // [로직 추가] 타이틀 매치 처리
+    const isTitleMatch = document.getElementById('isTitleMatch').checked;
+    
+    if (isTitleMatch) {
+        // 챌린저 기준: 1300점 이상
+        const winnerIsChallenger = (winner.elo || 1000) >= 1300;
+        const loserIsChallenger = (loser.elo || 1000) >= 1300;
+        
+        // 기존 챔피언 여부 확인
+        const winnerWasChamp = winner.isChampion === true;
+        const loserWasChamp = loser.isChampion === true;
+        
+        let newChampionId = null; // null이면 공석, ID가 있으면 그 사람이 챔피언
+        
+        // Case 1: 챌린저 vs 챌린저 (둘 다 챌린저)
+        if (winnerIsChallenger && loserIsChallenger) {
+            newChampionId = winner.id; // 승자가 챔피언 등극
+        }
+        // Case 2: 챔피언 vs 챌린저
+        else if (winnerWasChamp && loserIsChallenger) {
+            newChampionId = winner.id; // 챔피언 방어 성공
+        }
+        else if (loserWasChamp && winnerIsChallenger) {
+            newChampionId = winner.id; // 타이틀 뺏김 (승자가 새 챔피언)
+        }
+        // Case 3: 챔피언 vs 비챌린저
+        else if (winnerWasChamp && !loserIsChallenger) {
+            newChampionId = winner.id; // 챔피언 방어 성공 (타이틀 유지)
+        }
+        else if (loserWasChamp && !winnerIsChallenger) {
+            newChampionId = null; // 챔피언 패배했으나 승자가 자격 미달 -> 공석(Vacant)
+        }
+        // 그 외 (비챌린저끼리 타이틀매치? - 보통 불가능하지만 승자가 챔피언 되는 걸 막음)
+        else {
+            newChampionId = null; 
+        }
+
+        // 전체 선수단 챔피언 상태 초기화 및 재설정
+        rankingsData.forEach(p => {
+            if (p.id === newChampionId) {
+                p.isChampion = true;
+                // 방어전 횟수 증가 (기존 챔피언이었고 유지했다면)
+                if (winnerWasChamp && winner.id === newChampionId) {
+                    p.defenseCount = (p.defenseCount || 0) + 1;
+                } else {
+                    p.defenseCount = 0; // 새로 챔피언이 되면 방어전 0부터
+                }
+            } else {
+                p.isChampion = false;
+            }
+        });
+
+        if (newChampionId === null && loserWasChamp) {
+            alert("🚨 챔피언이 패배했지만 승자가 '챌린저' 자격이 없어 타이틀이 [공석] 처리되었습니다.");
+        } else if (newChampionId === winner.id && !winnerWasChamp) {
+            alert(`👑 새로운 챔피언 탄생! [${winner.name}]`);
+        }
+    }
+            // --- 기존 로직 계속 ---
     const currentRankedListForHistory = [...rankingsData].filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
     const getPlayerRankBefore = (player) => { const total = (player.wins || 0) + (player.losses || 0); if (total < 3) return 0; return currentRankedListForHistory.findIndex(p => p.id === player.id) + 1; };
     const winnerRankBefore = getPlayerRankBefore(winner); const loserRankBefore = getPlayerRankBefore(loser);
@@ -1655,6 +1721,9 @@ window.fixDataIntegrity = () => {
         const totalMatches = (item.wins || 0) + (item.losses || 0);
         
         let cardClass = tier.class;
+        if (item.isChampion) {
+    cardClass = 'bg-yellow-50 border-yellow-400 ring-2 ring-yellow-300 shadow-yellow-200';
+}
         let rankNumClass = "rank-num-normal";
         
         // [삭제됨] 베테랑 관련 변수 삭제
@@ -1692,7 +1761,7 @@ window.fixDataIntegrity = () => {
                 <div class="w-10 text-center mr-2"><span class="${rankNumClass}">${realRank}</span><div class="text-[10px]">${ch}</div></div>
                 <div class="shrink-0 relative mr-3">
                     <img src="${item.imageUrl || 'https://placehold.co/150?text=No+Img'}" class="w-10 h-10 rounded-lg bg-slate-100 object-cover border border-slate-100" onerror="this.src='https://placehold.co/150?text=No+Img'">
-                    ${realRank === 1 ? `<div class="absolute -top-1 -right-1 text-sm">👑</div>` : ''}
+                    ${item.isChampion ? `<div class="absolute -top-2 -right-2 text-xl filter drop-shadow-md animate-bounce-slow" title="Current Champion">👑</div>` : ''}
                 </div>
                 <div class="flex-grow min-w-0">
                     <div class="font-bold text-sm text-slate-800 flex items-center gap-2">
