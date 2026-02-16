@@ -502,18 +502,38 @@
         }
         window.setMatchDate = setMatchDate; 
 
-        function getTier(wins, losses) {
+        function getTier(wins, losses, elo = 0) { // elo 파라미터 추가됨
+            // 1. 챌린저 체크 (1300점 이상)
+            if (elo >= 1300) {
+                return { 
+                    name: '🦅CHALLENGER', 
+                    class: 'tier-challenger', 
+                    color: 'bg-slate-900 border border-amber-400 text-amber-400 shadow-md ring-1 ring-amber-400/30' 
+                };
+            }
+
+            // 2. 기존 티어 시스템 (판수 기준)
             const matches = (wins || 0) + (losses || 0);
             if (matches < 3) return { name: 'BRONZE', class: 'tier-bronze', color: 'bg-white border border-amber-600 text-amber-700' };
             if (matches < 7) return { name: 'SILVER', class: 'tier-silver', color: 'bg-white border border-slate-400 text-slate-500' };
             if (matches < 13) return { name: 'GOLD', class: 'tier-gold', color: 'bg-white border border-yellow-500 text-yellow-600' };
+            
+            // 1300점 미만인데 판수가 많은 경우 플래티넘
             return { name: 'PLATINUM', class: 'tier-platinum', color: 'bg-white border border-cyan-500 text-cyan-600' };
         }
+        
+        function getTierBonus(matchCount, currentElo) { 
+            // 1. 챌린저 전용 룰 (1300점 이상)
+            // - 승패 배율 1:1 (보정 없음)
+            // - 기본 점수(Base) 5점 (기존 플래티넘 13점보다 낮아져서 점수 올리기 더 힘들게 설정)
+            if (currentElo >= 1300) {
+                return { winMult: 1.0, lossMult: 1.0, base: 5, tier: '🦅Challenger' };
+            }
 
-        function getTierBonus(matchCount) { 
-            if (matchCount < 3) return { winMult: 1.0, lossMult: 1.0, base: 5, tier: '🥉Bronze' }; 
-            else if (matchCount < 7) return { winMult: 1.1, lossMult: 0.9, base: 7, tier: '🥈Silver' }; 
-            else if (matchCount < 13) return { winMult: 1.2, lossMult: 0.8, base: 9, tier: '🥇Gold' }; 
+            // 2. 기존 티어 시스템 (1300점 미만)
+            if (matchCount < 3) return { winMult: 1.0, lossMult: 1.0, base: 5, tier: '🥉Bronze' };
+            else if (matchCount < 7) return { winMult: 1.1, lossMult: 0.9, base: 7, tier: '🥈Silver' };
+            else if (matchCount < 13) return { winMult: 1.2, lossMult: 0.8, base: 9, tier: '🥇Gold' };
             else return { winMult: 1.2, lossMult: 0.8, base: 13, tier: '💎Platinum' };
         }
 
@@ -529,10 +549,13 @@
 
             const expected = 1 / (1 + Math.pow(10, (p2Elo - p1Elo) / 400)); 
             const expectedPct = Math.round(expected * 100);
-            const { winMult, lossMult, tier, base } = getTierBonus(matchCount); 
+            
+            // [중요 변경] p1Elo(현재 점수)를 넘겨서 챌린저 여부를 확인합니다.
+            const { winMult, lossMult, tier, base } = getTierBonus(matchCount, p1Elo); 
             
             let finalChange = 0; 
             let details = []; 
+            // 배치고사 중이면 '배치' 표시, 아니면 티어 이름 표시
             const label = isPlacement ? '🐣배치' : tier;
 
             let expectedText = `${expectedPct}%`;
@@ -549,10 +572,14 @@
                 
                 let winPoints = (baseGain * winMult) + base;
                 let tierBonusStr = `x${winMult} + ${base}`;
+                
+                // 챌린저일 경우 텍스트 색상을 다르게 표시 (Amber)
+                const rankColor = p1Elo >= 1300 ? 'text-amber-600 bg-amber-50/50' : 'text-indigo-600 bg-indigo-50/50';
+
                 details.push({ 
                     label: `티어 가중치 (${label}, ${tierBonusStr})`, 
                     value: `+${winPoints.toFixed(1)}`, 
-                    colorClass: 'text-indigo-600 bg-indigo-50/50 -mx-1 px-1 rounded py-0.5', 
+                    colorClass: `${rankColor} -mx-1 px-1 rounded py-0.5`, 
                     valueClass: 'font-bold' 
                 });
 
@@ -567,10 +594,13 @@
                 
                 let lossPoints = (baseLoss * lossMult) + base; 
                 let tierBonusStr = `x${lossMult} + ${base}`;
+                
+                const rankColor = p1Elo >= 1300 ? 'text-amber-700 bg-amber-50/50' : 'text-rose-600 bg-rose-50/50';
+
                 details.push({ 
                     label: `티어 가중치 (${label}, ${tierBonusStr})`, 
                     value: `${lossPoints.toFixed(1)}`, 
-                    colorClass: 'text-rose-600 bg-rose-50/50 -mx-1 px-1 rounded py-0.5', 
+                    colorClass: `${rankColor} -mx-1 px-1 rounded py-0.5`, 
                     valueClass: 'font-bold' 
                 });
                 
@@ -1621,7 +1651,7 @@ window.fixDataIntegrity = () => {
     ranked.forEach((item) => { 
         const globalIndex = rankingsData.indexOf(item); 
         const realRank = globalRankedPlayers.findIndex(p => p.id === item.id) + 1;
-        const tier = getTier(item.wins, item.losses);
+        const tier = getTier(item.wins, item.losses, item.elo);
         const totalMatches = (item.wins || 0) + (item.losses || 0);
         
         let cardClass = tier.class;
