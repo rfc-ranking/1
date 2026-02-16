@@ -604,25 +604,33 @@
         }
         window.setMatchDate = setMatchDate; 
 
-        function getTier(wins, losses, elo = 0) { // elo 파라미터 추가됨
-            // 1. 챌린저 체크 (1300점 이상)
-            if (elo >= 1300) {
-                return { 
-                    name: '🦅CHALLENGER', 
-                    class: 'tier-challenger', 
-                    color: 'bg-slate-900 border border-amber-400 text-amber-400 shadow-md ring-1 ring-amber-400/30' 
-                };
-            }
+        // [수정] 챔피언 > 챌린저 > 일반 등급 순으로 판별
+function getTier(wins, losses, elo = 0, isChampion = false) { 
+    // 1순위: 챔피언 (점수/전적 무관)
+    if (isChampion) {
+        return { 
+            name: '👑CHAMPION', 
+            class: 'tier-champion', 
+            color: 'bg-gradient-to-r from-yellow-400 to-amber-500 text-white border border-yellow-600 shadow-md' 
+        };
+    }
 
-            // 2. 기존 티어 시스템 (판수 기준)
-            const matches = (wins || 0) + (losses || 0);
-            if (matches < 3) return { name: 'BRONZE', class: 'tier-bronze', color: 'bg-white border border-amber-600 text-amber-700' };
-            if (matches < 7) return { name: 'SILVER', class: 'tier-silver', color: 'bg-white border border-slate-400 text-slate-500' };
-            if (matches < 13) return { name: 'GOLD', class: 'tier-gold', color: 'bg-white border border-yellow-500 text-yellow-600' };
-            
-            // 1300점 미만인데 판수가 많은 경우 플래티넘
-            return { name: 'PLATINUM', class: 'tier-platinum', color: 'bg-white border border-cyan-500 text-cyan-600' };
-        }
+    // 2순위: 챌린저 (1300점 이상)
+    if (elo >= 1300) {
+        return { 
+            name: '🦅CHALLENGER', 
+            class: 'tier-challenger', 
+            color: 'bg-slate-900 border border-amber-400 text-amber-400 shadow-md ring-1 ring-amber-400/30' 
+        };
+    }
+
+    // 3순위: 일반 등급 (판수 기준)
+    const matches = (wins || 0) + (losses || 0);
+    if (matches < 3) return { name: 'BRONZE', class: 'tier-bronze', color: 'bg-white border border-amber-600 text-amber-700' };
+    if (matches < 7) return { name: 'SILVER', class: 'tier-silver', color: 'bg-white border border-slate-400 text-slate-500' };
+    if (matches < 13) return { name: 'GOLD', class: 'tier-gold', color: 'bg-white border border-yellow-500 text-yellow-600' };
+    return { name: 'PLATINUM', class: 'tier-platinum', color: 'bg-white border border-cyan-500 text-cyan-600' };
+}
         
         function getTierBonus(matchCount, currentElo) { 
             // 1. 챌린저 전용 룰 (1300점 이상)
@@ -1907,7 +1915,7 @@ function renderRankings() {
     ranked.forEach((item) => { 
         const globalIndex = rankingsData.indexOf(item); 
         const realRank = globalRankedPlayers.findIndex(p => p.id === item.id) + 1;
-        const tier = getTier(item.wins, item.losses, item.elo);
+        const tier = getTier(item.wins, item.losses, item.elo, item.isChampion);
         const totalMatches = (item.wins || 0) + (item.losses || 0);
         
         let cardClass = tier.class;
