@@ -1685,25 +1685,41 @@ window.fixDataIntegrity = () => {
                 container.appendChild(div); 
             }); 
         };
+function renderRankings() { 
+        const list = document.getElementById('rankingList'); list.innerHTML = ''; 
 
-        function renderRankings() { 
-    const list = document.getElementById('rankingList'); list.innerHTML = ''; 
-    const globalRankedPlayers = rankingsData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
+        // [수정 1] 전체 랭킹 계산 (챔피언 1순위 -> ELO 2순위)
+        const globalRankedPlayers = rankingsData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3)
+            .sort((a, b) => {
+                if (a.isChampion) return -1; // 챔피언 앞으로
+                if (b.isChampion) return 1;  // 챔피언 앞으로
+                return (b.elo || 1000) - (a.elo || 1000); // 점수 내림차순
+            });
 
-    const queryJamo = Hangul.disassemble(searchQuery.replace(/\s/g, ""));
-    const qClean = searchQuery.replace(/\s/g, "");
-    
-    const filteredData = rankingsData.filter(p => {
-        const name = p.name || "";
-        const nameClean = name.replace(/\s/g, "").toLowerCase();
-        if (nameClean.includes(qClean)) return true;
-        if (p.choseong && (p.choseong.includes(qClean) || p.choseong.includes(queryJamo))) return true;
-        if (p.jamo && p.jamo.includes(queryJamo)) return true;
-        return false;
-    });
+        // 검색어 처리
+        const query = searchQuery ? searchQuery.replace(/\s/g, "") : "";
+        const queryJamo = Hangul.disassemble(query);
+        
+        // 검색 필터링
+        const filteredData = rankingsData.filter(p => {
+            const name = p.name || "";
+            const nameClean = name.replace(/\s/g, "").toLowerCase();
+            if (nameClean.includes(query)) return true;
+            if (p.choseong && (p.choseong.includes(query) || p.choseong.includes(queryJamo))) return true;
+            if (p.jamo && p.jamo.includes(queryJamo)) return true;
+            return false;
+        });
 
-    const ranked = filteredData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
-    const placement = filteredData.filter(p => {
+        // [수정 2] 화면 표시용 리스트 정렬 (챔피언 1순위 -> ELO 2순위)
+        const ranked = filteredData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3)
+            .sort((a, b) => {
+                if (a.isChampion) return -1;
+                if (b.isChampion) return 1;
+                return (b.elo || 1000) - (a.elo || 1000);
+            });
+
+        // ▼▼▼ 이 아랫줄부터는 기존 코드(const placement...) 그대로 두시면 됩니다 ▼▼▼
+        const placement = filteredData.filter(p => {
         const total = Number(p.wins || 0) + Number(p.losses || 0);
         return total > 0 && total < 3;
     }).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
