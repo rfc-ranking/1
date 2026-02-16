@@ -1643,27 +1643,33 @@ window.fixDataIntegrity = () => {
     const index = rankingsData.findIndex(r => r.id === id); if (index === -1) return showCustomAlert("선수를 찾을 수 없습니다. (삭제되었거나 데이터 불일치)"); 
     const p = rankingsData[index]; 
     const newName = document.getElementById('editName').value.trim(); if (!newName) return showCustomAlert("이름은 필수입니다."); 
+    
     captureState(); 
+    
     if (newName !== p.name) { 
         if (rankingsData.some((other, i) => i !== index && other.name === newName)) { return showCustomAlert("이미 존재하는 이름입니다."); } 
         const oldName = p.name; 
         matchHistoryData.forEach(m => { if (m.winner === oldName) m.winner = newName; if (m.loser === oldName) m.loser = newName; if (m.blue === oldName) m.blue = newName; }); 
         p.name = newName; 
     } 
+    
     p.gameId = document.getElementById('editGameId').value.trim(); 
+    
+    // [수정] 스탯 저장 로직
     p.elo = parseInt(document.getElementById('editElo').value) || 1000; 
     p.wins = parseInt(document.getElementById('editWins').value) || 0; 
     p.losses = parseInt(document.getElementById('editLosses').value) || 0; 
+    p.bounty = parseInt(document.getElementById('editBounty').value) || 0; // 현상금 저장
+    
     p.imageUrl = document.getElementById('editImageUrlInput').value.trim(); 
     p.height = document.getElementById('editHeight').value.trim(); 
     p.reach = document.getElementById('editReach').value.trim(); 
     p.stance = document.getElementById('editStance').value; 
     p.trunkColor = document.getElementById('editTrunkColor').value; 
+    
     const newPw = document.getElementById('editPassword').value.trim(); if (newPw) { p.password = await hashPin(newPw); } 
     const selectedStyles = []; document.querySelectorAll('.style-checkbox:checked').forEach(cb => { selectedStyles.push(cb.value); }); p.tags = selectedStyles; 
     
-    // [삭제] 베테랑 현상금 강제 로직 제거됨
-
     await saveRankings(); renderRankings(); document.getElementById('editModal').classList.add('hidden'); showCustomAlert("✅ 선수 정보가 수정되었습니다."); 
 };
         window.tryDeletePlayer = () => { const id = document.getElementById('editPlayerId').value; if(!id) return; const index = rankingsData.findIndex(r => r.id === id); if(index === -1) return showCustomAlert("선수를 찾을 수 없습니다."); const p = rankingsData[index]; showConfirmModal(`⚠️ 정말 [${p.name}] 선수를 삭제하시겠습니까?\n이 작업은 복구할 수 없습니다.`, async () => { captureState(); rankingsData.splice(index, 1); await saveRankings(); document.getElementById('editModal').classList.add('hidden'); renderRankings(); setTimeout(() => alert("선수가 삭제되었습니다."), 100); }); };
