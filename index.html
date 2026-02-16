@@ -15,6 +15,18 @@
             background: #f8fafc; 
         }
         
+        /* [NEW] 챌린저 티어 스타일 (1300점 이상) */
+        .tier-challenger {
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%) !important;
+            border: 1px solid #fbbf24 !important;
+            border-left: none !important;
+            color: white !important;
+        }
+        .tier-challenger .rank-num-normal, 
+        .tier-challenger .font-bold {
+            color: #fbbf24 !important; /* 텍스트 금색 처리 */
+        }
+
         /* 1위 (챔피언) 전용 글로우 효과 */
         .rank-1-glow {
             background: linear-gradient(90deg, #ffffff 30%, #fffbeb 100%) !important;
@@ -335,8 +347,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v4.39",
-            updateNote: "Fix: 프로필 클릭 버그 수정",
+            version: "v4.80",
+            updateNote: "챔피언/챌린저 시스템 적용",
             title: "RFC 랭킹전"
         };
 
@@ -596,7 +608,15 @@
             updateHeaderSeasonSelector(); renderRankings(); updateSeasonSelector(); updateHofSeasonSelector(); renderMatches(); renderHOF(); 
         }
         
-        function getTier(wins, losses) { 
+        // [수정] 티어 시스템: ELO 1300 이상이면 챌린저
+        function getTier(wins, losses, elo = 0) { 
+            if (elo >= 1300) {
+                return { 
+                    name: '🦅CHALLENGER', 
+                    class: 'tier-challenger', 
+                    color: 'bg-slate-900 border border-amber-400 text-amber-400 shadow-md ring-1 ring-amber-400/30' 
+                };
+            }
             const matches = (wins || 0) + (losses || 0); 
             if (matches < 3) return { name: 'BRONZE', class: 'tier-bronze', color: 'bg-white border border-amber-600 text-amber-700' }; 
             if (matches < 7) return { name: 'SILVER', class: 'tier-silver', color: 'bg-white border border-slate-400 text-slate-500' }; 
@@ -631,12 +651,13 @@
                 });
             }
 
-            // [New] 정렬 로직 수정: 챔피언 우선 -> 점수 순
-            const globalRankedPlayers = fullData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3).sort((a, b) => {
-                if (a.isChampion) return -1;
-                if (b.isChampion) return 1;
-                return (b.elo || 1000) - (a.elo || 1000);
-            });
+            // [수정] 챔피언 우선 정렬
+            const globalRankedPlayers = fullData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3)
+                .sort((a, b) => {
+                    if (a.isChampion) return -1; // 챔피언 앞으로
+                    if (b.isChampion) return 1;
+                    return (b.elo || 1000) - (a.elo || 1000);
+                });
 
             let filteredData = fullData;
             if (searchQuery) {
@@ -652,12 +673,13 @@
                 });
             }
 
-            // [New] 필터링된 데이터도 정렬 규칙 적용 (챔피언 우선)
-            const ranked = filteredData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3).sort((a, b) => {
-                if (a.isChampion) return -1;
-                if (b.isChampion) return 1;
-                return (b.elo || 1000) - (a.elo || 1000);
-            });
+            // [수정] 필터링 후에도 챔피언 우선 정렬 유지
+            const ranked = filteredData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) >= 3)
+                .sort((a, b) => {
+                    if (a.isChampion) return -1;
+                    if (b.isChampion) return 1;
+                    return (b.elo || 1000) - (a.elo || 1000);
+                });
             
             const placement = filteredData.filter(p => {
                 const total = Number(p.wins || 0) + Number(p.losses || 0);
@@ -677,32 +699,37 @@
             ranked.forEach((item, idx) => { 
                 const globalIndex = rankingsData.indexOf(item); 
                 const realRank = globalRankedPlayers.findIndex(p => p.id === item.id) + 1;
-                const tier = getTier(item.wins, item.losses);
+                
+                // [수정] getTier 호출 시 ELO 전달
+                const tier = getTier(item.wins, item.losses, item.elo);
                 const totalMatches = (item.wins || 0) + (item.losses || 0);
                 
-                // [New] 챔피언 & 컨텐더 배지 로직
-                const isChamp = item.isChampion;
-                const isContender = item.elo >= 1300;
+                // [New] 챔피언 여부 확인
+                const isChamp = item.isChampion === true;
 
                 let vetBadge = '';
                 let cardClass = tier.class;
                 let rankNumClass = "rank-num-normal";
                 let vetNameBadge = ''; 
                 
+                // 챔피언 스타일 적용
                 if (isChamp) {
-                    vetBadge = `<div class="absolute bottom-[-5px] -right-2 text-lg filter drop-shadow-md z-10">👑</div>`;
-                    vetNameBadge = '<span class="v-badge bg-black text-amber-400 border border-amber-400" title="Champion">C</span>';
-                    cardClass = 'rank-1-glow';
+                    vetBadge = `<div class="absolute bottom-[-5px] -right-2 text-lg filter drop-shadow-md z-10 animate-bounce-slow">👑</div>`;
+                    vetNameBadge = '<span class="v-badge bg-black text-amber-400 border border-amber-400 shadow-sm" title="Champion">C</span>';
+                    cardClass = 'rank-1-glow'; // 챔피언 전용 글로우
                 } 
-                else if (isContender) {
-                    vetBadge = `<div class="absolute bottom-[-5px] -right-2 text-lg filter drop-shadow-md z-10">🔥</div>`;
-                    vetNameBadge = '<span class="v-badge bg-red-600 text-white" title="Contender">C</span>';
-                }
-
-                if (realRank === 1 && !isChamp) { rankNumClass = "rank-num-1 font-black"; cardClass = 'rank-1-glow'; } 
-                else if (realRank === 2) { rankNumClass = "rank-num-2 font-black"; cardClass = 'rank-2-glow'; } 
-                else if (realRank === 3) { rankNumClass = "rank-num-3 font-black"; cardClass = 'rank-3-glow'; } 
+                
+                // 순위별 스타일 (챔피언이 아니어도 순위에 따라)
+                if (realRank === 1 && !isChamp) { rankNumClass = "rank-num-1 font-black"; if(!cardClass.includes('challenger')) cardClass = 'rank-1-glow'; } 
+                else if (realRank === 2) { rankNumClass = "rank-num-2 font-black"; if(!cardClass.includes('challenger')) cardClass = 'rank-2-glow'; } 
+                else if (realRank === 3) { rankNumClass = "rank-num-3 font-black"; if(!cardClass.includes('challenger')) cardClass = 'rank-3-glow'; } 
                 else { if (realRank <= 10) rankNumClass = "rank-num-top10"; }
+
+                // 3연승 이상 불꽃
+                let streakHtml = '';
+                if (item.currentStreak >= 3) {
+                    streakHtml = `<span class="ml-1 text-[10px] text-orange-600 font-bold">🔥${item.currentStreak}연승</span>`;
+                }
 
                 let bountyStatHtml = '';
                 if (item.bounty && item.bounty > 0) {
@@ -725,7 +752,7 @@
                         <div class="w-10 text-center mr-2"><span class="${rankNumClass}">${realRank}</span><div class="text-[10px]">${diffHtml}</div></div>
                         <div class="shrink-0 relative mr-3 -my-2 md:-my-4">
                             <img src="${item.imageUrl || 'https://placehold.co/150?text=No+Img'}" class="w-[60px] h-[60px] md:w-[90px] md:h-[90px] rounded-2xl bg-slate-100 object-cover border border-slate-100" onerror="this.src='https://placehold.co/150?text=No+Img'">
-                            ${realRank === 1 ? `<div class="absolute -top-1 -right-1 md:-top-2 md:-right-2 text-lg md:text-2xl filter drop-shadow-md z-10">👑</div>` : ''}
+                            ${isChamp ? `<div class="absolute -top-1 -right-1 md:-top-2 md:-right-2 text-lg md:text-2xl filter drop-shadow-md z-10">👑</div>` : ''}
                             ${vetBadge} 
                         </div>
                         <div class="flex-grow min-w-0 flex flex-col justify-center py-1">
@@ -734,6 +761,7 @@
                                 <span class="font-bold text-slate-800 truncate text-sm md:text-lg">${item.name}</span>
                                 <span class="text-[9px] px-1.5 py-0.5 rounded-full ${tier.color} font-bold tracking-wide uppercase shadow-sm">${tier.name}</span>
                                 ${vetNameBadge} 
+                                ${streakHtml}
                             </div>
                             <div class="flex items-center gap-1.5 mt-0.5">
                                 <span class="bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded border border-amber-200 font-bold">⚡${item.elo}</span>
@@ -1013,8 +1041,8 @@
                     const prevName = pastSeasons[0];
                     const prevData = seasonArchives[prevName].rankings || [];
                     championList = prevData.filter(p => (p.wins + p.losses) >= 3)
-                                                                     .sort((a, b) => (b.elo || 1000) - (a.elo || 1000))
-                                                                     .slice(0, 3);
+                                                                    .sort((a, b) => (b.elo || 1000) - (a.elo || 1000))
+                                                                    .slice(0, 3);
                     champTitle = "전시즌 TOP 3";
                     champSub = `${prevName} 레전드`;
                 }
@@ -1145,7 +1173,7 @@
             filterEl.value = 'all'; 
             filterEl.onchange = (e) => updateProfileStats(id, e.target.value); 
             
-            const tier = getTier(p.wins, p.losses); 
+            const tier = getTier(p.wins, p.losses, p.elo); 
             const tierEl = document.getElementById('pModalTierBadge'); 
             tierEl.textContent = tier.name; 
             tierEl.className = `text-[10px] font-bold px-2 py-0.5 rounded shadow-sm ${tier.color}`; 
@@ -1154,7 +1182,7 @@
             document.getElementById('pModalReach').textContent = p.reach ? p.reach + 'cm' : '-'; 
             document.getElementById('pModalStance').textContent = p.stance || '-'; 
             
-            const vet = p.elo >= 1300; // 1300점 이상이면 베테랑 표시 (이름 옆)
+            const vet = p.elo >= 1300; 
             if(vet) {
                 document.getElementById('pModalName').innerHTML += ` <span class="text-lg">🔥</span>`;
             }
@@ -1304,4 +1332,3 @@
     </script>
 </body>
 </html>
-
