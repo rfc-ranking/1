@@ -1635,12 +1635,75 @@ window.fixDataIntegrity = () => {
         window.showConfirmModal = (message, callback) => { document.getElementById('confirmMessage').innerText = message; document.getElementById('customConfirmModal').classList.remove('hidden'); confirmCallback = callback; };
         window.closeConfirmModal = () => { document.getElementById('customConfirmModal').classList.add('hidden'); confirmCallback = null; };
         document.getElementById('confirmOkBtn').addEventListener('click', () => { if (confirmCallback) confirmCallback(); closeConfirmModal(); });
-        window.openEditModal = (index) => { const p = rankingsData[index]; if (!p) return; document.getElementById('editPlayerId').value = p.id; document.getElementById('editOriginalName').value = p.name; document.getElementById('editName').value = p.name || ""; document.getElementById('editGameId').value = p.gameId || ""; document.getElementById('editElo').value = p.elo || 1000; document.getElementById('editWins').value = p.wins || 0; document.getElementById('editLosses').value = p.losses || 0; const imgUrl = p.imageUrl || ""; document.getElementById('editImageUrlInput').value = imgUrl; window.updatePreview(imgUrl); document.getElementById('editHeight').value = p.height || ""; document.getElementById('editReach').value = p.reach || ""; document.getElementById('editStance').value = p.stance || "Orthodox"; const tColor = p.trunkColor || '#1f2937'; document.getElementById('editTrunkColor').value = tColor; const allPresets = document.querySelectorAll('.color-preset'); let matched = false; allPresets.forEach(el => { const presetColor = el.dataset.color; el.classList.remove('active'); if (presetColor && presetColor.toLowerCase() === tColor.toLowerCase()) { el.classList.add('active'); matched = true; } }); if (!matched) { const firstCustom = document.querySelector('.custom-picker-slot'); if (firstCustom) { firstCustom.style.backgroundColor = tColor; firstCustom.dataset.color = tColor; const icon = firstCustom.querySelector('.icon-placeholder'); if(icon) icon.style.display = 'none'; firstCustom.classList.add('active'); const input = firstCustom.querySelector('input[type="color"]'); if(input) input.value = tColor; } } document.getElementById('editPassword').value = ""; const container = document.getElementById('styleTagsContainer'); container.innerHTML = ''; const currentStyles = p.tags || []; STYLE_OPTIONS.forEach(style => { const checked = currentStyles.includes(style) ? 'checked' : ''; const id = `style_${style}`; container.innerHTML += `<div><input type="checkbox" id="${id}" value="${style}" class="hidden style-checkbox" ${checked}><label for="${id}" class="cursor-pointer inline-block bg-white border border-slate-200 text-slate-500 px-3 py-1.5 rounded-full text-xs font-bold transition select-none hover:bg-slate-50">${style}</label></div>`; }); document.getElementById('editModal').classList.remove('hidden'); };
+window.openEditModal = (index) => { 
+    const p = rankingsData[index]; 
+    if (!p) return; 
+    
+    // 기본 정보 불러오기
+    document.getElementById('editPlayerId').value = p.id; 
+    document.getElementById('editOriginalName').value = p.name; 
+    document.getElementById('editName').value = p.name || ""; 
+    document.getElementById('editGameId').value = p.gameId || ""; 
+    
+    // [중요] 스탯 및 현상금 불러오기 (이 부분이 없으면 이전 값이 남습니다)
+    document.getElementById('editElo').value = p.elo || 1000; 
+    document.getElementById('editWins').value = p.wins || 0; 
+    document.getElementById('editLosses').value = p.losses || 0; 
+    
+    // ▼▼▼ 여기가 핵심 수정 부분입니다 ▼▼▼
+    // 선수의 현상금(bounty)이 있으면 가져오고, 없으면 0으로 초기화
+    document.getElementById('editBounty').value = (p.bounty !== undefined) ? p.bounty : 0;
+    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
+    const imgUrl = p.imageUrl || ""; 
+    document.getElementById('editImageUrlInput').value = imgUrl; 
+    window.updatePreview(imgUrl); 
+    document.getElementById('editHeight').value = p.height || ""; 
+    document.getElementById('editReach').value = p.reach || ""; 
+    document.getElementById('editStance').value = p.stance || "Orthodox"; 
+    
+    // 색상 선택 로직
+    const tColor = p.trunkColor || '#1f2937'; 
+    document.getElementById('editTrunkColor').value = tColor; 
+    const allPresets = document.querySelectorAll('.color-preset'); 
+    let matched = false; 
+    allPresets.forEach(el => { 
+        const presetColor = el.dataset.color; 
+        el.classList.remove('active'); 
+        if (presetColor && presetColor.toLowerCase() === tColor.toLowerCase()) { 
+            el.classList.add('active'); matched = true; 
+        } 
+    }); 
+    if (!matched) { 
+        const firstCustom = document.querySelector('.custom-picker-slot'); 
+        if (firstCustom) { 
+            firstCustom.style.backgroundColor = tColor; 
+            firstCustom.dataset.color = tColor; 
+            firstCustom.classList.add('active'); 
+            const input = firstCustom.querySelector('input[type="color"]'); 
+            if(input) input.value = tColor; 
+        } 
+    } 
+    
+    document.getElementById('editPassword').value = ""; 
+    
+    // 스타일 태그 로직
+    const container = document.getElementById('styleTagsContainer'); 
+    container.innerHTML = ''; 
+    const currentStyles = p.tags || []; 
+    STYLE_OPTIONS.forEach(style => { 
+        const checked = currentStyles.includes(style) ? 'checked' : ''; 
+        const id = `style_${style}`; 
+        container.innerHTML += `<div><input type="checkbox" id="${id}" value="${style}" class="hidden style-checkbox" ${checked}><label for="${id}" class="cursor-pointer inline-block bg-white border border-slate-200 text-slate-500 px-3 py-1.5 rounded-full text-xs font-bold transition select-none hover:bg-slate-50">${style}</label></div>`; 
+    }); 
+    
+    document.getElementById('editModal').classList.remove('hidden'); 
+};        
         window.updatePreview = (url) => { const img = document.getElementById('previewImage'); if (!url) { img.src = "https://placehold.co/150?text=No+Img"; } else { img.src = url; } };
         window.removeImage = () => { document.getElementById('editImageUrlInput').value = ""; window.updatePreview(""); };
         window.savePlayerDetails = async () => { 
     const id = document.getElementById('editPlayerId').value; if (!id) return; 
-    const index = rankingsData.findIndex(r => r.id === id); if (index === -1) return showCustomAlert("선수를 찾을 수 없습니다. (삭제되었거나 데이터 불일치)"); 
+    const index = rankingsData.findIndex(r => r.id === id); if (index === -1) return showCustomAlert("선수를 찾을 수 없습니다."); 
     const p = rankingsData[index]; 
     const newName = document.getElementById('editName').value.trim(); if (!newName) return showCustomAlert("이름은 필수입니다."); 
     
@@ -1655,11 +1718,14 @@ window.fixDataIntegrity = () => {
     
     p.gameId = document.getElementById('editGameId').value.trim(); 
     
-    // [수정] 스탯 저장 로직
+    // [중요] 스탯 저장 로직 (현상금 포함)
     p.elo = parseInt(document.getElementById('editElo').value) || 1000; 
     p.wins = parseInt(document.getElementById('editWins').value) || 0; 
     p.losses = parseInt(document.getElementById('editLosses').value) || 0; 
-    p.bounty = parseInt(document.getElementById('editBounty').value) || 0; // 현상금 저장
+    
+    // ▼▼▼ 여기가 핵심 수정 부분입니다 ▼▼▼
+    p.bounty = parseInt(document.getElementById('editBounty').value) || 0;
+    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
     
     p.imageUrl = document.getElementById('editImageUrlInput').value.trim(); 
     p.height = document.getElementById('editHeight').value.trim(); 
@@ -1667,10 +1733,17 @@ window.fixDataIntegrity = () => {
     p.stance = document.getElementById('editStance').value; 
     p.trunkColor = document.getElementById('editTrunkColor').value; 
     
-    const newPw = document.getElementById('editPassword').value.trim(); if (newPw) { p.password = await hashPin(newPw); } 
-    const selectedStyles = []; document.querySelectorAll('.style-checkbox:checked').forEach(cb => { selectedStyles.push(cb.value); }); p.tags = selectedStyles; 
+    const newPw = document.getElementById('editPassword').value.trim(); 
+    if (newPw) { p.password = await hashPin(newPw); } 
     
-    await saveRankings(); renderRankings(); document.getElementById('editModal').classList.add('hidden'); showCustomAlert("✅ 선수 정보가 수정되었습니다."); 
+    const selectedStyles = []; 
+    document.querySelectorAll('.style-checkbox:checked').forEach(cb => { selectedStyles.push(cb.value); }); 
+    p.tags = selectedStyles; 
+    
+    await saveRankings(); 
+    renderRankings(); 
+    document.getElementById('editModal').classList.add('hidden'); 
+    showCustomAlert("✅ 선수 정보가 수정되었습니다."); 
 };
         window.tryDeletePlayer = () => { const id = document.getElementById('editPlayerId').value; if(!id) return; const index = rankingsData.findIndex(r => r.id === id); if(index === -1) return showCustomAlert("선수를 찾을 수 없습니다."); const p = rankingsData[index]; showConfirmModal(`⚠️ 정말 [${p.name}] 선수를 삭제하시겠습니까?\n이 작업은 복구할 수 없습니다.`, async () => { captureState(); rankingsData.splice(index, 1); await saveRankings(); document.getElementById('editModal').classList.add('hidden'); renderRankings(); setTimeout(() => alert("선수가 삭제되었습니다."), 100); }); };
         window.deletePlayer = window.tryDeletePlayer;
