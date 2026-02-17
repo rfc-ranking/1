@@ -682,37 +682,50 @@
             return diffDays <= 2; 
         }
 
-        // [수정] 최근 경기 전적 표시 (박스 -> 점 형태 변경)
-        function getRecentFormHTML(name) {
-            const targetSeason = viewRankingSeason || activeSeason;
-            
-            // 해당 선수의 경기 기록 가져오기 (무승부 제외)
-            const history = enrichedMatchHistory.filter(m => 
-                (m.winner === name || m.loser === name) && 
-                m.type !== 'draw' &&
-                m.season === targetSeason
-            );
-            
-            // 최근 6경기 추출 후 과거->최신 순으로 정렬
-            const recent = history.slice(0, 6).reverse(); 
-            
-            if (recent.length === 0) return '';
+        // [수정] 랭킹 리스트용 최근 전적 HTML 생성 함수
+function getRecentFormHTML(name) {
+    const targetSeason = viewRankingSeason || activeSeason;
+    
+    // 1. 해당 시즌 경기 기록 가져오기 (최신순 정렬 상태라고 가정)
+    const history = enrichedMatchHistory.filter(m => 
+        (m.winner === name || m.loser === name) && 
+        m.type !== 'draw' &&
+        m.season === targetSeason
+    );
+    
+    // 2. 최근 6경기 추출 (데이터가 최신순이면 slice(0,6) 후 reverse하여 [과거 -> 최신] 순서로 만듦)
+    // *주의: 데이터 정렬 방식에 따라 다를 수 있으나, 보통 [최신, 과거...]라면 아래가 맞습니다.
+    const recent = history.slice(0, 6).reverse(); 
+    
+    if (recent.length === 0) return '';
 
-            // 점 형태 컨테이너 (gap-1로 간격 조정)
-            let html = '<div class="flex items-center gap-1">'; 
-            
-            recent.forEach((m) => {
-                const isWin = m.winner === name;
-                // 승리: 에메랄드, 패배: 로즈 (프로필 카드 내부와 동일 색상)
-                // 크기는 w-1.5 h-1.5 (6px)로 설정하여 리스트에서도 잘 보이게 함
-                const colorClass = isWin ? 'bg-emerald-400' : 'bg-rose-400';
-                
-                html += `<div class="w-1.5 h-1.5 rounded-full ${colorClass}"></div>`;
-            });
-            
-            html += '</div>';
-            return html;
-        }
+    let html = '<div class="flex items-center gap-0.5">';
+    
+    recent.forEach((m, i) => {
+        const isWin = m.winner === name;
+        const text = isWin ? 'W' : 'L';
+        const colorClass = isWin ? 'bg-emerald-500' : 'bg-rose-500';
+        
+        // [핵심] 투명도 계산: 인덱스가 커질수록(오른쪽일수록) 불투명해짐 (0.3 ~ 1.0)
+        const opacity = 0.3 + (0.7 * (i / (recent.length - 1 || 1)));
+        
+        // [핵심] 가장 최신(마지막) 경기는 테두리 강조 + 크기 살짝 확대
+        const isLatest = i === recent.length - 1;
+        const latestStyle = isLatest 
+            ? 'ring-1 ring-offset-1 ring-slate-400 z-10 font-black shadow-sm transform scale-110' 
+            : '';
+
+        html += `<div class="w-3.5 h-3.5 flex items-center justify-center text-[8px] text-white rounded-sm ${colorClass} ${latestStyle}" 
+                      style="opacity: ${opacity};" 
+                      title="${isLatest ? 'Latest Match' : m.date}">
+                    ${text}
+                 </div>`;
+    });
+    
+    html += '</div>';
+    return html;
+}
+
 
         function renderRankings() { 
             const container = document.getElementById('rankingList'); container.innerHTML = ''; 
@@ -1500,6 +1513,7 @@ let oppDots = '';
     </script>
 </body>
 </html>
+
 
 
 
