@@ -638,14 +638,14 @@
         function getTier(wins, losses, elo = 0, isChampion = false) { 
             if (isChampion) {
                 return { 
-                    name: '👑CHAMPION', 
+                    name: 'CHAMPION', 
                     class: 'tier-champion', 
                     color: 'bg-gradient-to-r from-yellow-400 to-amber-500 text-white border border-yellow-600 shadow-md' 
                 };
             }
             if (elo >= 1300) {
                 return { 
-                    name: '🦅CHALLENGER', 
+                    name: 'CHALLENGER', 
                     class: 'tier-challenger', 
                     color: 'bg-slate-900 border border-amber-400 text-amber-400 shadow-md ring-1 ring-amber-400/30' 
                 };
@@ -795,7 +795,7 @@
                     <div class="flex-grow min-w-0 flex flex-col justify-center py-1 relative z-10">
                         <!-- 뱃지 복원 위치: 닉네임 상단 -->
                         <div class="flex items-center gap-2 mb-1">
-                             <div class="champ-badge">👑 CHAMPION</div>
+                             <div class="champ-badge">CHAMPION</div>
                         </div>
 
                         <div class="flex items-center gap-1.5 md:gap-2 mb-0.5 md:mb-1.5">
@@ -1489,3 +1489,4 @@
     </script>
 </body>
 </html>
+
