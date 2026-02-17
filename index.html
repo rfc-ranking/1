@@ -1075,8 +1075,23 @@
                 const loseClick = loseProfile ? `onclick="openProfile('${loseProfile.id}')"` : '';
                 const cursorStyle = (profile) => profile ? "cursor-pointer hover:underline hover:text-blue-700" : "";
                 
-                let winDots = ''; (winStats.h || []).forEach(r => winDots += `<div class="w-1.5 h-1.5 rounded-full ${r==='W'?'bg-emerald-400':'bg-rose-400'}"></div>`);
-                let loseDots = ''; (loseStats.h || []).forEach(r => loseDots += `<div class="w-1.5 h-1.5 rounded-full ${r==='W'?'bg-emerald-400':'bg-rose-400'}"></div>`);
+                // [수정] 승자 Dots 생성 (투명도 적용)
+let winDots = ''; 
+(winStats.h || []).forEach((r, i, arr) => {
+    const opacity = 0.3 + (0.7 * (i / (arr.length - 1 || 1)));
+    const isLatest = i === arr.length - 1;
+    const border = isLatest ? 'ring-1 ring-offset-1 ring-slate-300 scale-110' : '';
+    winDots += `<div class="w-1.5 h-1.5 rounded-full ${r==='W'?'bg-emerald-400':'bg-rose-400'} ${border}" style="opacity: ${opacity};"></div>`;
+});
+
+// [수정] 패자 Dots 생성 (투명도 적용)
+let loseDots = ''; 
+(loseStats.h || []).forEach((r, i, arr) => {
+    const opacity = 0.3 + (0.7 * (i / (arr.length - 1 || 1)));
+    const isLatest = i === arr.length - 1;
+    const border = isLatest ? 'ring-1 ring-offset-1 ring-slate-300 scale-110' : '';
+    loseDots += `<div class="w-1.5 h-1.5 rounded-full ${r==='W'?'bg-emerald-400':'bg-rose-400'} ${border}" style="opacity: ${opacity};"></div>`;
+});
                 
                 if (m.date !== lastDate) {
                     const count = dateCounts[m.date];
@@ -1476,6 +1491,7 @@
     </script>
 </body>
 </html>
+
 
 
 
