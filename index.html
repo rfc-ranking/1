@@ -744,8 +744,9 @@ function getRecentFormHTML(name) {
             fullData.sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
 
             const champion = fullData.find(p => p.isChampion);
-            const globalChallengers = fullData.filter(p => !p.isChampion);
-
+// 챔피언이 아니면서 + '3경기 이상(배치 완료)' 치른 사람만 랭킹 산정 모집단에 포함
+const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||0)+Number(p.losses||0)) >= 3);
+            
             let displayList = fullData;
             if (searchQuery) {
                 const queryJamo = Hangul.disassemble(searchQuery.replace(/\s/g, ""));
@@ -1514,6 +1515,7 @@ let oppDots = '';
     </script>
 </body>
 </html>
+
 
 
 
