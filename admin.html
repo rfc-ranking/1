@@ -46,16 +46,23 @@
             color: #1e293b !important; /* 텍스트 색상 강제 */
         }
 
-        /* 챔피언 스타일 */
-        .hero-shine {
-            position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
-            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0) 100%);
-            transform: skewX(-25deg);
-            animation: heroShine 6s infinite;
+        /* 챔피언 스타일 (인페르노 리스트 카드) */
+        .inferno-card {
+            background: linear-gradient(90deg, #1a0505 0%, #2b0b0b 40%, #450a0a 100%);
+            border: 1px solid #ef4444;
+            /* border-left 제거됨 */
+            box-shadow: 0 10px 25px -5px rgba(220, 38, 38, 0.4);
+            color: white !important;
         }
-        @keyframes heroShine {
-            0% { left: -100%; } 20% { left: 200%; } 100% { left: 200%; }
+
+        /* 미니 불씨 애니메이션 */
+        @keyframes ember-mini {
+            0% { opacity: 0; transform: translateY(0); }
+            50% { opacity: 0.8; }
+            100% { opacity: 0; transform: translateY(-20px); }
         }
+        .ember-mini { position: absolute; width: 2px; height: 2px; background: #fbbf24; border-radius: 50%; animation: ember-mini 3s infinite; bottom: 5px; }
+
         .champ-badge {
             background: linear-gradient(135deg, #fbbf24, #d97706); 
             color: white; 
@@ -281,7 +288,7 @@
                     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden p-5 space-y-4">
                         <h3 class="font-bold text-slate-700">🛠️ 데이터 도구</h3>
                         <div class="grid grid-cols-2 gap-2"><input type="file" id="importFile" accept=".json" class="hidden"><button onclick="document.getElementById('importFile').click()" class="bg-slate-700 hover:bg-slate-800 text-white font-bold py-3 rounded-lg text-xs">📂 데이터 복원</button><button onclick="backupData()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3 rounded-lg text-xs">💾 데이터 백업</button></div>
-                        <div class="pt-4 border-t border-slate-100 space-y-2"><h4 class="text-xs font-bold text-indigo-600">🔧 데이터 보정</h4><div class="bg-indigo-50 border border-indigo-100 rounded-lg p-3"><div class="flex justify-between items-center mb-1"><span class="text-xs font-bold text-indigo-800">데이터 무결성 검사 및 수정</span></div><p class="text-[10px] text-indigo-600 mb-2 leading-snug">1. 과도한 순위 변동폭(예: +34) 초기화<br>2. 3전 선수들의 누락된 '진입 날짜' 복구<br><span class="text-emerald-600">3. 베테랑 달성 시 현상금 자동 부여 (10점)</span></p><button onclick="fixDataIntegrity()" class="w-full bg-white text-indigo-600 hover:bg-indigo-100 font-bold py-2 rounded-lg text-xs border border-indigo-200 shadow-sm transition">✨ 데이터 진단 및 복구 실행</button></div></div>
+                        <div class="pt-4 border-t border-slate-100 space-y-2"><h4 class="text-xs font-bold text-indigo-600">🔧 데이터 보정</h4><div class="bg-indigo-50 border border-indigo-100 rounded-lg p-3"><div class="flex justify-between items-center mb-1"><span class="text-xs font-bold text-indigo-800">데이터 무결성 검사 및 수정</span></div><p class="text-[10px] text-indigo-600 mb-2 leading-snug">1. 과도한 순위 변동폭(예: +34) 초기화<br>2. 3전 선수들의 누락된 '진입 날짜' 복구<br><span class="text-emerald-600">3. 베테랑 달성 시 현상금 자동 부여 (10점)<br>4. 11위 이하 현상금 제거</span></p><button onclick="fixDataIntegrity()" class="w-full bg-white text-indigo-600 hover:bg-indigo-100 font-bold py-2 rounded-lg text-xs border border-indigo-200 shadow-sm transition">✨ 데이터 진단 및 복구 실행</button></div></div>
                         <div class="pt-4 border-t border-slate-100 space-y-2"><h4 class="text-xs font-bold text-blue-600">👥 선수 명단 추출</h4><div class="grid grid-cols-1 gap-2"><button onclick="copyRankerList()" class="bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold py-3 rounded-lg text-xs border border-blue-100">🏆 랭커 명단</button><button onclick="copyAllPlayerList()" class="bg-slate-50 text-slate-600 hover:bg-slate-100 font-bold py-3 rounded-lg text-xs border border-slate-200">📋 전체 선수 명단</button></div></div>
                         <div class="pt-4 border-t border-slate-100 space-y-2"><h4 class="text-xs font-bold text-red-500">초기화 (주의)</h4><button onclick="resetAllStats()" class="w-full bg-gray-50 text-gray-500 hover:bg-gray-100 font-bold py-2 rounded-lg text-xs border border-gray-200">📊 현재 시즌 전적 초기화</button><button onclick="resetAllElo()" class="w-full bg-gray-50 text-gray-500 hover:bg-gray-100 font-bold py-2 rounded-lg text-xs border border-gray-200">⚡ 현재 시즌 ELO 초기화</button><button onclick="resetAllPasswords()" class="w-full bg-orange-50 text-orange-600 hover:bg-orange-100 font-bold py-3 rounded-lg text-xs border border-orange-200 mt-2">🔑 전체 비밀번호 재발급 (명단 복사)</button><button onclick="resetEverything()" class="w-full bg-red-50 text-red-600 hover:bg-red-100 font-bold py-3 rounded-lg text-xs border border-red-200 mt-2">🧨 시스템 전체 리셋</button></div>
                     </div>
@@ -421,8 +428,8 @@
         const AUTO_LOGIN_PW = "";
         
         const ADMIN_CONFIG = {
-            version: "v4.80",
-            updateNote: "최근 경기 표시 오류 수정 (Array Slice Logic)",
+            version: "v4.94",
+            updateNote: "챔피언 카드 디자인 통합 (인페르노 + 왕관 뱃지)",
             title: "RFC 매니저"
         };
 
@@ -1012,25 +1019,24 @@
         
         let newChampionId = null; // null이면 공석, ID가 있으면 그 사람이 챔피언
         
-        // Case 1: 챌린저 vs 챌린저 (둘 다 챌린저)
+        // 1. [공석/방어전] 챌린저(1300↑) vs 챌린저(1300↑) 경기
         if (winnerIsChallenger && loserIsChallenger) {
             newChampionId = winner.id; // 승자가 챔피언 등극
         }
-        // Case 2: 챔피언 vs 챌린저
-        else if (winnerWasChamp && loserIsChallenger) {
-            newChampionId = winner.id; // 챔피언 방어 성공
+        // 2. [방어전] 챔피언이 승리한 경우 (방어 성공)
+        else if (winnerWasChamp) {
+            newChampionId = winner.id; // 타이틀 유지 (상대 점수 무관)
         }
+        // 3. [방어전] 챔피언이 패배했지만, 승자가 챌린저인 경우
         else if (loserWasChamp && winnerIsChallenger) {
-            newChampionId = winner.id; // 타이틀 뺏김 (승자가 새 챔피언)
+            newChampionId = winner.id; // 승자가 새 챔피언 등극
         }
-        // Case 3: 챔피언 vs 비챌린저
-        else if (winnerWasChamp && !loserIsChallenger) {
-            newChampionId = winner.id; // 챔피언 방어 성공 (타이틀 유지)
-        }
+        // 4. [방어전] 챔피언이 패배했고, 승자가 비챌린저인 경우
         else if (loserWasChamp && !winnerIsChallenger) {
-            newChampionId = null; // 챔피언 패배했으나 승자가 자격 미달 -> 공석(Vacant)
+            newChampionId = null; // 타이틀 공석 처리 (자격 미달)
+            alert(`🚨 챔피언 [${loser.name}] 선수가 패배했지만,\n승자 [${winner.name}] 선수가 '챌린저(1300점)' 자격이 없어\n타이틀이 [공석] 처리되었습니다.`);
         }
-        // 그 외 (비챌린저끼리 타이틀매치? - 보통 불가능하지만 승자가 챔피언 되는 걸 막음)
+        // 5. 그 외 (비챌린저 vs 비챌린저 등)
         else {
             newChampionId = null; 
         }
@@ -1051,7 +1057,7 @@
         });
 
         if (newChampionId === null && loserWasChamp) {
-            alert("🚨 챔피언이 패배했지만 승자가 '챌린저' 자격이 없어 타이틀이 [공석] 처리되었습니다.");
+             // alert 이미 위에서 처리함
         } else if (newChampionId === winner.id && !winnerWasChamp) {
             alert(`👑 새로운 챔피언 탄생! [${winner.name}]`);
         }
@@ -1116,6 +1122,23 @@
                 const realRank = rankedPlayersForSync.findIndex(rp => rp.id === p.id) + 1;
                 if (realRank > 0) { p.previousRank = realRank; p.rankInDate = matchDate; }
             }
+        }
+    });
+
+    // [NEW] 현상금 로직 재계산 (Top 10 진입 시, 연승에 비례하여 강제 설정)
+    // 11위 이하로 떨어지면 현상금 데이터 삭제 (1위~10위만 유지)
+    rankedPlayersForSync.forEach((p, index) => {
+        const rank = index + 1;
+        if (rank <= 10) {
+            // 1위~10위: 3연승 이상이면 공식에 따라 현상금 재설정
+            if ((p.currentStreak || 0) >= 3) {
+                p.bounty = (p.currentStreak - 2) * 10;
+            } else {
+                p.bounty = 0;
+            }
+        } else {
+            // 11위 이하: 현상금 삭제
+            p.bounty = 0;
         }
     });
 
@@ -1699,6 +1722,10 @@ window.fixDataIntegrity = () => {
                 p.bounty = calculatedBounty;
                 fixedBountyCount++;
             }
+        } else if (!top10Ids.has(p.id) && (p.bounty || 0) > 0) {
+            // D. [NEW] Top 10 밖인데 현상금이 있으면 삭제 (무결성 보장)
+            p.bounty = 0;
+            fixedBountyCount++;
         }
     }); 
     
@@ -1706,7 +1733,7 @@ window.fixDataIntegrity = () => {
         captureState(); 
         saveRankings(); 
         renderRankings(); 
-        showCustomAlert(`✅ 데이터 보정 완료\n\n- 🔥 연승 횟수 오류 수정: ${fixedStreakCount}명\n- 💰 현상금 재계산: ${fixedBountyCount}명\n- 순위/날짜 데이터 정상화: ${fixedRankCount + fixedDateCount}명`); 
+        showCustomAlert(`✅ 데이터 보정 완료\n\n- 🔥 연승 횟수 오류 수정: ${fixedStreakCount}명\n- 💰 현상금 재계산/삭제: ${fixedBountyCount}명\n- 순위/날짜 데이터 정상화: ${fixedRankCount + fixedDateCount}명`); 
     } else { 
         showCustomAlert("보정할 데이터가 없습니다.\n모든 데이터가 정상입니다."); 
     } 
@@ -1985,45 +2012,65 @@ function renderRankings() {
 
         if (filteredData.length === 0) { list.innerHTML = `<div class="text-center text-xs text-slate-400 py-4">검색 결과가 없습니다.</div>`; return; }
 
-        // --- [Hero Section] 챔피언 렌더링 ---
+        // --- [Hero Section] 챔피언 렌더링 - 인페르노 스타일 적용 ---
         if (champion) {
             const p = champion;
             const globalIndex = rankingsData.indexOf(p);
             const defCount = p.defenseCount || 0;
             const formHtml = getRecentFormHTML(p.name);
+
+            // 연승 HTML
+            let streakHtml = '';
+            if ((p.currentStreak || 0) >= 3) {
+                streakHtml = `<span class="ml-1 text-[10px] text-orange-400 font-bold">🔥${p.currentStreak}연승</span>`;
+            }
             
             list.innerHTML += `
-            <div class="rounded-2xl overflow-hidden border border-slate-200 shadow-lg mb-6 bg-slate-900 text-white relative cursor-pointer group transition-transform active:scale-[0.99]" onclick="openProfile('${p.id}')">
-                <div class="absolute left-0 top-0 w-full h-full bg-gradient-to-br from-slate-800 to-slate-950"></div>
-                <div class="hero-shine"></div>
-                <div class="absolute -right-6 -top-6 text-[8rem] opacity-5 rotate-12 select-none pointer-events-none">👑</div>
-                
-                <div class="relative z-10 p-4 flex items-center justify-between">
-                    <div class="flex items-center gap-4">
-                        <div class="relative">
-                            <img src="${p.imageUrl || 'https://placehold.co/150/f59e0b/white?text=C'}" 
-                                 class="w-16 h-16 rounded-2xl border-[3px] border-amber-400 shadow-[0_0_20px_rgba(251,191,36,0.3)] object-cover bg-slate-800"
-                                 onerror="this.src='https://placehold.co/150/f59e0b/white?text=C'">
-                        </div>
-                        <div>
-                            <div class="flex items-center gap-2 mb-1">
-                                <div class="text-xl font-black text-white leading-none tracking-tight">${p.name}</div>
-                                <div class="champ-badge">👑 CHAMPION</div>
-                            </div>
-                            <div class="flex items-center gap-2 mt-2">
-                                <span class="text-amber-300 text-xs font-black font-mono bg-slate-800/80 px-2 py-0.5 rounded border border-slate-700">⚡ ${p.elo}</span>
-                                <span class="text-slate-400 text-[11px] font-medium border-l border-slate-700 pl-2">${p.wins}승 ${p.losses}패</span>
-                                <span class="text-white text-[11px] font-bold bg-amber-600/20 text-amber-400 px-2 py-0.5 rounded border border-amber-600/30 ml-1">🛡️ ${defCount}차 방어</span>
-                            </div>
-                        </div>
+            <div class="rank-card flex items-center p-3 rounded-xl mb-2 inferno-card relative overflow-hidden group cursor-pointer" onclick="openProfile('${p.id}')">
+                <!-- 배경 불씨 효과 -->
+                <div class="absolute inset-0 overflow-hidden rounded-xl">
+                     <div class="ember-mini" style="left: 20%; animation-delay: 0s;"></div>
+                     <div class="ember-mini" style="left: 80%; animation-delay: 1.5s;"></div>
+                </div>
+
+                <!-- Rank Section (Crown Badge) -->
+                <div class="w-10 text-center mr-2 flex flex-col items-center justify-center shrink-0 relative z-10">
+                    <div class="text-2xl drop-shadow-md">👑</div>
+                    <span class="text-[8px] font-bold text-orange-200 uppercase tracking-wide bg-orange-900/50 px-1 rounded border border-orange-500/30 -mt-1">CHAMP</span>
+                </div>
+
+                <!-- Image Section -->
+                <div class="shrink-0 relative mr-3 -my-2 relative z-10">
+                    <img src="${p.imageUrl || 'https://placehold.co/150/f59e0b/white?text=C'}" 
+                         class="w-10 h-10 rounded-lg bg-slate-900 object-cover border-2 border-orange-300/30 shadow-lg"
+                         onerror="this.src='https://placehold.co/150/f59e0b/white?text=C'">
+                </div>
+
+                <!-- Info Section -->
+                <div class="flex-grow min-w-0 flex flex-col justify-center py-1 relative z-10">
+                     <!-- 뱃지 복원 위치: 닉네임 상단 -->
+                    <div class="flex items-center gap-2 mb-1">
+                         <div class="champ-badge">👑 CHAMPION</div>
                     </div>
-                    <div class="flex flex-col items-end gap-1">
-                        ${formHtml}
-                        <!-- 관리자 전용 수정 버튼 (Hero Section) -->
-                        <button onclick="event.stopPropagation(); openEditModal(${globalIndex})" class="bg-white/10 hover:bg-white/20 p-2 rounded-lg text-white backdrop-blur-sm transition border border-white/10 shadow-sm mt-1" title="챔피언 정보 수정">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                        </button>
+
+                    <div class="font-bold text-sm text-white flex items-center gap-2">
+                        <span class="truncate">${p.name}</span>
+                        ${streakHtml}
                     </div>
+                    <div class="flex items-center gap-1.5 mt-0.5">
+                        <span class="bg-black/40 text-orange-300 text-[10px] px-1.5 py-0.5 rounded border border-orange-500/30 font-bold">⚡${p.elo}</span>
+                        <span class="text-xs text-slate-300">| ${p.wins}승 ${p.losses}패</span>
+                        <span class="bg-orange-950/50 text-orange-300 border border-orange-500/30 text-[10px] px-1.5 py-0.5 rounded font-bold ml-1">🛡️ ${defCount}차 방어</span>
+                    </div>
+                </div>
+
+                <!-- Right Side (Form + Edit Button) -->
+                <div class="flex flex-col items-end gap-1 relative z-10">
+                    ${formHtml}
+                    <!-- 관리자 전용 수정 버튼 (Hero Section) -->
+                    <button onclick="event.stopPropagation(); openEditModal(${globalIndex})" class="p-2 text-orange-200 hover:text-white transition" title="수정">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                    </button>
                 </div>
             </div>`;
         } else {
@@ -2091,7 +2138,8 @@ function renderRankings() {
             }
 
             let bountyStatHtml = '';
-            if (item.bounty && item.bounty > 0) {
+            // [수정] 1~10위 까지만 현상금 뱃지 표시 (사용자 사이트와 동기화)
+            if (item.bounty && item.bounty > 0 && realRank <= 10) {
                   bountyStatHtml = `<span class="bounty-pill-dark" title="현상금">💰+${item.bounty}</span>`;
             }
 
