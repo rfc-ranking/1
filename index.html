@@ -1376,11 +1376,20 @@ let loseDots = '';
                 const oppStats = m.snapshot[filter === 'all' ? 'all' : 'season'][oppName] || { w:0, l:0, h:[] }; 
                 const oppRecordStr = `${oppStats.w}승 ${oppStats.l}패`; 
                 
-                let oppDots = ''; 
-                (oppStats.h || []).forEach(res => { 
-                    if (res === 'W') oppDots += `<div class="w-1 h-1 rounded-full bg-emerald-400"></div>`; 
-                    else oppDots += `<div class="w-1 h-1 rounded-full bg-rose-400"></div>`; 
-                }); 
+                // [수정] 상대방 최근 전적 Dots 생성 (투명도 적용)
+let oppDots = ''; 
+(oppStats.h || []).forEach((res, i, arr) => { 
+    const isWin = res === 'W';
+    const color = isWin ? 'bg-emerald-400' : 'bg-rose-400';
+    // 투명도 계산 (0.3 ~ 1.0)
+    const opacity = 0.3 + (0.7 * (i / (arr.length - 1 || 1)));
+    // 최신 경기 강조
+    const isLatest = i === arr.length - 1;
+    const styleClass = isLatest ? 'ring-1 ring-offset-1 ring-slate-300 scale-110' : '';
+
+    oppDots += `<div class="w-1.5 h-1.5 rounded-full ${color} ${styleClass}" style="opacity: ${opacity};"></div>`; 
+}); 
+
                 
                 let scoreBadge = ''; 
                 if (isWin && m.winnerChange !== undefined) { 
@@ -1491,6 +1500,7 @@ let loseDots = '';
     </script>
 </body>
 </html>
+
 
 
 
