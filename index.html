@@ -150,8 +150,22 @@
         .tooltip-value { color: #60a5fa; font-weight: bold; }
         
         .active-inspector-btn { background-color: #3b82f6 !important; color: white !important; opacity: 1 !important; }
-        .bounty-pill-dark { font-size: 11px; background-color: #1f2937; color: #fbbf24; padding: 1px 5px; border-radius: 4px; margin-left: 3px; font-weight: 800; vertical-align: middle; display: inline-flex; align-items: center; gap: 2px; }
-
+/* [수정] 현상금 뱃지 스타일 - 더 작고 심플하게 변경 */
+.bounty-pill-dark { 
+    font-size: 9px; /* 11px -> 9px */
+    background-color: #1f2937; 
+    color: #fbbf24; 
+    padding: 1px 4px; /* 패딩 축소 */
+    border-radius: 4px; 
+    margin-left: 2px; 
+    font-weight: 700; 
+    vertical-align: middle; 
+    display: inline-flex; 
+    align-items: center; 
+    gap: 1px;
+    line-height: 1.2;
+    white-space: nowrap; /* 줄바꿈 방지 */
+}
     
         
         /* 챔피언 뱃지 스타일 */
@@ -1481,5 +1495,6 @@
     </script>
 </body>
 </html>
+
 
 
