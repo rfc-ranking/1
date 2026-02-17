@@ -683,36 +683,23 @@
         }
 
         // [수정] 최근 경기 전적 표시 (박스 -> 점 형태 변경)
-        function getRecentFormHTML(name) {
-            const targetSeason = viewRankingSeason || activeSeason;
-            
-            // 해당 선수의 경기 기록 가져오기 (무승부 제외)
-            const history = enrichedMatchHistory.filter(m => 
-                (m.winner === name || m.loser === name) && 
-                m.type !== 'draw' &&
-                m.season === targetSeason
-            );
-            
-            // 최근 6경기 추출 후 과거->최신 순으로 정렬
-            const recent = history.slice(0, 6).reverse(); 
-            
-            if (recent.length === 0) return '';
+        // [수정] 승자 Dots 생성 (투명도 적용)
+let winDots = ''; 
+(winStats.h || []).forEach((r, i, arr) => {
+    const opacity = 0.3 + (0.7 * (i / (arr.length - 1 || 1)));
+    const isLatest = i === arr.length - 1;
+    const border = isLatest ? 'ring-1 ring-offset-1 ring-slate-300 scale-110' : '';
+    winDots += `<div class="w-1.5 h-1.5 rounded-full ${r==='W'?'bg-emerald-400':'bg-rose-400'} ${border}" style="opacity: ${opacity};"></div>`;
+});
 
-            // 점 형태 컨테이너 (gap-1로 간격 조정)
-            let html = '<div class="flex items-center gap-1">'; 
-            
-            recent.forEach((m) => {
-                const isWin = m.winner === name;
-                // 승리: 에메랄드, 패배: 로즈 (프로필 카드 내부와 동일 색상)
-                // 크기는 w-1.5 h-1.5 (6px)로 설정하여 리스트에서도 잘 보이게 함
-                const colorClass = isWin ? 'bg-emerald-400' : 'bg-rose-400';
-                
-                html += `<div class="w-1.5 h-1.5 rounded-full ${colorClass}"></div>`;
-            });
-            
-            html += '</div>';
-            return html;
-        }
+// [수정] 패자 Dots 생성 (투명도 적용)
+let loseDots = ''; 
+(loseStats.h || []).forEach((r, i, arr) => {
+    const opacity = 0.3 + (0.7 * (i / (arr.length - 1 || 1)));
+    const isLatest = i === arr.length - 1;
+    const border = isLatest ? 'ring-1 ring-offset-1 ring-slate-300 scale-110' : '';
+    loseDots += `<div class="w-1.5 h-1.5 rounded-full ${r==='W'?'bg-emerald-400':'bg-rose-400'} ${border}" style="opacity: ${opacity};"></div>`;
+});
 
         function renderRankings() { 
             const container = document.getElementById('rankingList'); container.innerHTML = ''; 
@@ -1376,11 +1363,20 @@ let loseDots = '';
                 const oppStats = m.snapshot[filter === 'all' ? 'all' : 'season'][oppName] || { w:0, l:0, h:[] }; 
                 const oppRecordStr = `${oppStats.w}승 ${oppStats.l}패`; 
                 
-                let oppDots = ''; 
-                (oppStats.h || []).forEach(res => { 
-                    if (res === 'W') oppDots += `<div class="w-1 h-1 rounded-full bg-emerald-400"></div>`; 
-                    else oppDots += `<div class="w-1 h-1 rounded-full bg-rose-400"></div>`; 
-                }); 
+                // [수정] 상대방 최근 전적 Dots 생성 (투명도 적용)
+let oppDots = ''; 
+(oppStats.h || []).forEach((res, i, arr) => { 
+    const isWin = res === 'W';
+    const color = isWin ? 'bg-emerald-400' : 'bg-rose-400';
+    // 투명도 계산 (0.3 ~ 1.0)
+    const opacity = 0.3 + (0.7 * (i / (arr.length - 1 || 1)));
+    // 최신 경기 강조
+    const isLatest = i === arr.length - 1;
+    const styleClass = isLatest ? 'ring-1 ring-offset-1 ring-slate-300 scale-110' : '';
+
+    oppDots += `<div class="w-1.5 h-1.5 rounded-full ${color} ${styleClass}" style="opacity: ${opacity};"></div>`; 
+}); 
+ 
                 
                 let scoreBadge = ''; 
                 if (isWin && m.winnerChange !== undefined) { 
@@ -1491,6 +1487,7 @@ let loseDots = '';
     </script>
 </body>
 </html>
+
 
 
 
