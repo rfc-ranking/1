@@ -152,10 +152,7 @@
         .active-inspector-btn { background-color: #3b82f6 !important; color: white !important; opacity: 1 !important; }
         .bounty-pill-dark { font-size: 11px; background-color: #1f2937; color: #fbbf24; padding: 1px 5px; border-radius: 4px; margin-left: 3px; font-weight: 800; vertical-align: middle; display: inline-flex; align-items: center; gap: 2px; }
 
-        /* [Recent Form Style: Tooltip Style 9 Modified] */
-        .letter-box { width: 14px; height: 14px; display: inline-flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 900; border-radius: 3px; color: white; line-height: 1; position: relative; margin-left: 1px; }
-        .letter-w { background-color: #059669; }
-        .letter-l { background-color: #dc2626; }
+    
         
         /* 챔피언 뱃지 스타일 */
         .champ-badge {
@@ -671,37 +668,32 @@
             return diffDays <= 2; 
         }
 
-        // [New] 최근 경기 폼 HTML 생성 함수 (Tooltip Style 9 Modified + Array Slice Fix + Season Filter)
+        // [수정] 최근 경기 전적 표시 (박스 -> 점 형태 변경)
         function getRecentFormHTML(name) {
             const targetSeason = viewRankingSeason || activeSeason;
             
+            // 해당 선수의 경기 기록 가져오기 (무승부 제외)
             const history = enrichedMatchHistory.filter(m => 
                 (m.winner === name || m.loser === name) && 
                 m.type !== 'draw' &&
                 m.season === targetSeason
             );
             
+            // 최근 6경기 추출 후 과거->최신 순으로 정렬
             const recent = history.slice(0, 6).reverse(); 
             
             if (recent.length === 0) return '';
 
-            let html = '<div class="flex gap-0.5 pt-1 pr-1">'; 
+            // 점 형태 컨테이너 (gap-1로 간격 조정)
+            let html = '<div class="flex items-center gap-1">'; 
             
-            recent.forEach((m, index) => {
+            recent.forEach((m) => {
                 const isWin = m.winner === name;
-                const resultClass = isWin ? 'letter-w' : 'letter-l';
-                const text = isWin ? 'W' : 'L';
-                const isLatest = index === recent.length - 1; 
+                // 승리: 에메랄드, 패배: 로즈 (프로필 카드 내부와 동일 색상)
+                // 크기는 w-1.5 h-1.5 (6px)로 설정하여 리스트에서도 잘 보이게 함
+                const colorClass = isWin ? 'bg-emerald-400' : 'bg-rose-400';
                 
-                let extraClass = '';
-                let tooltip = '';
-                
-                if (isLatest) {
-                    extraClass = 'latest-badge';
-                    tooltip = '<div class="tooltip-bubble">Latest</div>'; // [복원] 툴팁 다시 활성화
-                }
-                
-                html += `<div class="letter-box ${resultClass} ${extraClass}">${text}${tooltip}</div>`;
+                html += `<div class="w-1.5 h-1.5 rounded-full ${colorClass}"></div>`;
             });
             
             html += '</div>';
@@ -1489,4 +1481,5 @@
     </script>
 </body>
 </html>
+
 
