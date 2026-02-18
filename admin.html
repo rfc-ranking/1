@@ -428,8 +428,8 @@
         const AUTO_LOGIN_PW = "";
         
         const ADMIN_CONFIG = {
-            version: "v4.94",
-            updateNote: "챔피언 카드 디자인 통합 (인페르노 + 왕관 뱃지)",
+            version: "v4.95",
+            updateNote: "선수 명단 전체 상세 추출(이름+ID+URL) 기능 추가",
             title: "RFC 매니저"
         };
 
@@ -936,7 +936,7 @@
             <div class="${bgClass} rounded-lg p-3 mt-2 border">
                 <div class="space-y-1.5 font-mono text-[11px] sm:text-xs">
                     ${rows}
-                    <div class="border-t-2 border-dashed ${dividerColor} my-2 pt-2"></div>
+                    <div class="border-t-2 border-dashed ${dividerColor} my-2 pt-2">
                     <div class="flex justify-between items-center text-[13px] font-black ${finalColor}">
                         <span>최종 획득 점수</span> <span>${sign}${totalChange}</span>
                     </div>
@@ -1445,9 +1445,11 @@
                 }).join('\n'); 
             } else if (type === 'id') { 
                 text = allPlayers.map(p => `${p.name} ${p.gameId || '-'}`).join('\n'); 
-            } else { 
+            } else if (type === 'color') { 
                 text = allPlayers.map(p => `${p.name} ${p.trunkColor || '#1f2937'}`).join('\n'); 
-            } 
+            } else if (type === 'full') { // [NEW] 1번 옵션 적용
+                text = allPlayers.map(p => `${p.name} ${p.gameId || '-'} ${p.imageUrl || '-'}`).join('\n');
+            }
             const textarea = document.getElementById('exportTextarea'); 
             if(textarea) textarea.value = text; 
         };
@@ -1483,7 +1485,14 @@
                 const options = document.getElementById('exportMatchOptions'); 
                 if (options) { 
                     options.classList.remove('hidden'); 
-                    options.innerHTML = `<div class="grid grid-cols-2 gap-2 w-full"><button onclick="updateAllPlayerExport('name')" class="bg-slate-50 text-slate-600 hover:bg-slate-100 font-bold py-2 rounded-lg text-xs transition border border-slate-200">📋 기본 (이름만)</button><button onclick="updateAllPlayerExport('status')" class="bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold py-2 rounded-lg text-xs transition border border-blue-100">📊 현황 (이름+구분)</button><button onclick="updateAllPlayerExport('id')" class="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 font-bold py-2 rounded-lg text-xs transition border border-emerald-100">🆔 ID (이름+ID)</button><button onclick="updateAllPlayerExport('color')" class="bg-purple-50 text-purple-600 hover:bg-purple-100 font-bold py-2 rounded-lg text-xs transition border border-purple-100">🎨 색상 (이름+색상)</button></div>`; 
+                    options.innerHTML = `
+                    <div class="grid grid-cols-2 gap-2 w-full">
+                        <button onclick="updateAllPlayerExport('name')" class="bg-slate-50 text-slate-600 hover:bg-slate-100 font-bold py-2 rounded-lg text-xs transition border border-slate-200">📋 기본 (이름만)</button>
+                        <button onclick="updateAllPlayerExport('status')" class="bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold py-2 rounded-lg text-xs transition border border-blue-100">📊 현황 (이름+구분)</button>
+                        <button onclick="updateAllPlayerExport('id')" class="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 font-bold py-2 rounded-lg text-xs transition border border-emerald-100">🆔 ID (이름+ID)</button>
+                        <button onclick="updateAllPlayerExport('color')" class="bg-purple-50 text-purple-600 hover:bg-purple-100 font-bold py-2 rounded-lg text-xs transition border border-purple-100">🎨 색상 (이름+색상)</button>
+                        <button onclick="updateAllPlayerExport('full')" class="col-span-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-bold py-2 rounded-lg text-xs transition border border-indigo-100">📋 전체 상세 (이름+ID+URL)</button>
+                    </div>`; 
                 } 
                 updateAllPlayerExport('name'); 
             } catch (e) { 
@@ -2266,6 +2275,56 @@ function renderRankings() {
                 p2Tom = new TomSelect('#p2Select', redConfig); 
                 if(sPen) pPenTom = new TomSelect('#penaltyTargetSelect', config); 
             } catch(e) { console.error("Tom Select initialization failed:", e); } 
+        };
+        
+        // updateAllPlayerExport 함수 (NEW: full 옵션 추가)
+        window.updateAllPlayerExport = (type) => {
+            const allPlayers = [...rankingsData].sort((a, b) => a.name.localeCompare(b.name));
+            const realRankList = rankingsData.filter(p => !p.isChampion && ((p.wins || 0) + (p.losses || 0)) >= 3).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
+            let text = "";
+            if (type === 'name') {
+                text = allPlayers.map(p => p.name).join('\n');
+            } else if (type === 'status') {
+                text = allPlayers.map(p => {
+                    if (p.isChampion) return `${p.name}(Champ)`;
+                    return getPlayerStatusLabel(p, realRankList);
+                }).join('\n');
+            } else if (type === 'id') {
+                text = allPlayers.map(p => `${p.name} ${p.gameId || '-'}`).join('\n');
+            } else if (type === 'color') {
+                text = allPlayers.map(p => `${p.name} ${p.trunkColor || '#1f2937'}`).join('\n');
+            } else if (type === 'full') { // [NEW] 1번 옵션 적용
+                text = allPlayers.map(p => `${p.name} ${p.gameId || '-'} ${p.imageUrl || '-'}`).join('\n');
+            }
+            const textarea = document.getElementById('exportTextarea');
+            if(textarea) textarea.value = text;
+        };
+
+        // copyAllPlayerList 함수 (NEW: 버튼 추가)
+        window.copyAllPlayerList = () => {
+            try {
+                if (!rankingsData || rankingsData.length === 0) return showCustomAlert("데이터를 불러오는 중이거나 선수가 없습니다.");
+                if (rankingsData.length === 0) return showCustomAlert("등록된 선수가 없습니다.");
+                const modal = document.getElementById('exportModal');
+                if (modal) modal.classList.remove('hidden');
+                const title = document.getElementById('exportModalTitle');
+                if (title) title.textContent = "📋 전체 선수 명단 추출";
+                const options = document.getElementById('exportMatchOptions');
+                if (options) {
+                    options.classList.remove('hidden');
+                    options.innerHTML = `
+                    <div class="grid grid-cols-2 gap-2 w-full">
+                        <button onclick="updateAllPlayerExport('name')" class="bg-slate-50 text-slate-600 hover:bg-slate-100 font-bold py-2 rounded-lg text-xs transition border border-slate-200">📋 기본 (이름만)</button>
+                        <button onclick="updateAllPlayerExport('status')" class="bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold py-2 rounded-lg text-xs transition border border-blue-100">📊 현황 (이름+구분)</button>
+                        <button onclick="updateAllPlayerExport('id')" class="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 font-bold py-2 rounded-lg text-xs transition border border-emerald-100">🆔 ID (이름+ID)</button>
+                        <button onclick="updateAllPlayerExport('color')" class="bg-purple-50 text-purple-600 hover:bg-purple-100 font-bold py-2 rounded-lg text-xs transition border border-purple-100">🎨 색상 (이름+색상)</button>
+                        <button onclick="updateAllPlayerExport('full')" class="col-span-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-bold py-2 rounded-lg text-xs transition border border-indigo-100">📋 전체 상세 (이름+ID+URL)</button>
+                    </div>`;
+                }
+                updateAllPlayerExport('name');
+            } catch (e) {
+                showCustomAlert("명단 생성 중 오류가 발생했습니다.");
+            }
         };
     </script>
 </body>
