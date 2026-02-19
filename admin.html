@@ -428,8 +428,8 @@
         const AUTO_LOGIN_PW = "";
         
         const ADMIN_CONFIG = {
-            version: "v4.95",
-            updateNote: "선수 명단 전체 상세 추출(이름+ID+URL) 기능 추가",
+            version: "v4.96",
+            updateNote: "타이틀 매치 자동 감지 기능 추가",
             title: "RFC 매니저"
         };
 
@@ -818,8 +818,58 @@
 }
 
         function updateSeasonUI() { document.getElementById('currentSeasonBadge').textContent = activeSeason; document.querySelectorAll('.currentSeasonName').forEach(el => el.textContent = activeSeason); const num = parseInt(activeSeason.replace(/[^0-9]/g, '')) || 0; document.getElementById('newSeasonNameInput').value = `시즌 ${num + 1}`; }
-        function resetMatchInputs(keepDate = false) { if(p1Tom) p1Tom.clear(); if(p2Tom) p2Tom.clear(); const radios = document.querySelectorAll('input[name="winner"]'); radios.forEach(r => r.checked = false); const p1Ind = document.getElementById('p1TrunkIndicator'); const p2Ind = document.getElementById('p2TrunkIndicator'); if(p1Ind) p1Ind.style.backgroundColor = '#f1f5f9'; if(p2Ind) p2Ind.style.backgroundColor = '#f1f5f9'; updateMatchPreview(); if (!keepDate) setMatchDate('today'); }
+        function resetMatchInputs(keepDate = false) { 
+            if(p1Tom) p1Tom.clear(); 
+            if(p2Tom) p2Tom.clear(); 
+            const radios = document.querySelectorAll('input[name="winner"]'); 
+            radios.forEach(r => r.checked = false); 
+            document.getElementById('isTitleMatch').checked = false; 
+            const p1Ind = document.getElementById('p1TrunkIndicator'); 
+            const p2Ind = document.getElementById('p2TrunkIndicator'); 
+            if(p1Ind) p1Ind.style.backgroundColor = '#f1f5f9'; 
+            if(p2Ind) p2Ind.style.backgroundColor = '#f1f5f9'; 
+            updateMatchPreview(); 
+            if (!keepDate) setMatchDate('today'); 
+        }
         window.resetMatchInputs = resetMatchInputs;
+
+        // [New] 자동 타이틀 매치 감지 함수
+        window.checkAutoTitleMatch = () => {
+            let p1Idx = ""; if (p1Tom) p1Idx = p1Tom.getValue(); else { const el = document.getElementById('p1Select'); if(el) p1Idx = el.value; }
+            let p2Idx = ""; if (p2Tom) p2Idx = p2Tom.getValue(); else { const el = document.getElementById('p2Select'); if(el) p2Idx = el.value; }
+
+            if (p1Idx === "" || p2Idx === "") return;
+
+            const p1 = rankingsData[p1Idx];
+            const p2 = rankingsData[p2Idx];
+            if (!p1 || !p2) return;
+
+            const checkbox = document.getElementById('isTitleMatch');
+            
+            // 1. 챔피언 포함 여부
+            const hasChampion = p1.isChampion || p2.isChampion;
+            
+            // 2. 공석 상태에서 챌린저 대결 여부
+            const isVacant = !rankingsData.some(p => p.isChampion);
+            const isChallengerMatch = (p1.elo >= 1300) && (p2.elo >= 1300);
+            
+            if (hasChampion || (isVacant && isChallengerMatch)) {
+                if (!checkbox.checked) {
+                    checkbox.checked = true;
+                    // 시각적 알림 (반짝임 효과)
+                    const toggleBg = checkbox.nextElementSibling;
+                    if(toggleBg) {
+                        toggleBg.classList.add('ring-2', 'ring-yellow-400', 'ring-offset-2');
+                        setTimeout(() => toggleBg.classList.remove('ring-2', 'ring-yellow-400', 'ring-offset-2'), 800);
+                    }
+                }
+            } else {
+                // 조건 불만족 시 자동 해제 (사용자가 실수로 켜둔 것 방지)
+                if (checkbox.checked) {
+                    checkbox.checked = false;
+                }
+            }
+        };
 
         function updateMatchPreview() { 
     let p1Idx = ""; if (p1Tom) p1Idx = p1Tom.getValue(); else { const el = document.getElementById('p1Select'); if(el) p1Idx = el.value; } 
@@ -903,6 +953,34 @@
         simP2.elo += p2Change; simP2.wins++; 
         simP1.elo += p1Change; simP1.losses++; 
     } 
+    
+    // [타이틀 매치 시뮬레이션 로직 추가]
+    const isTitleMatch = document.getElementById('isTitleMatch').checked;
+    if (isTitleMatch) {
+        // applyMatch 로직과 동일한 기준 적용 (원본 p1, p2 데이터 기준 판단)
+        const winnerObj = winnerVal === 'blue' ? p1 : p2; 
+        const loserObj = winnerVal === 'blue' ? p2 : p1;
+        
+        const winnerIsChallenger = (winnerObj.elo || 1000) >= 1300;
+        const loserIsChallenger = (loserObj.elo || 1000) >= 1300;
+        
+        const winnerWasChamp = winnerObj.isChampion === true;
+        const loserWasChamp = loserObj.isChampion === true;
+        
+        let newChampionId = null;
+
+        if (winnerIsChallenger && loserIsChallenger) newChampionId = winnerObj.id; // 챌린저 vs 챌린저
+        else if (winnerWasChamp) newChampionId = winnerObj.id; // 챔피언 방어 성공
+        else if (loserWasChamp && winnerIsChallenger) newChampionId = winnerObj.id; // 챔피언 패배 (상대가 챌린저)
+        else if (loserWasChamp && !winnerIsChallenger) newChampionId = null; // 챔피언 패배 (자격미달) -> 공석
+        else newChampionId = null;
+
+        // 시뮬레이션 데이터(simRankings)에 챔피언 상태 반영
+        simRankings.forEach(p => {
+            if (p.id === newChampionId) p.isChampion = true;
+            else p.isChampion = false;
+        });
+    }
     
     // [랭킹 계산 변경] 시뮬레이션에서도 챔피언 제외
     const simRankedList = simRankings.filter(p => !p.isChampion && (Number(p.wins || 0) + Number(p.losses || 0)) >= 3).sort((a, b) => (b.elo || 1000) - (a.elo || 1000)); 
@@ -1452,26 +1530,6 @@
             }
             const textarea = document.getElementById('exportTextarea'); 
             if(textarea) textarea.value = text; 
-        };
-
-        window.copyRankerList = () => { 
-            try { 
-                if (!rankingsData || rankingsData.length === 0) return showCustomAlert("데이터를 불러오는 중이거나 선수가 없습니다."); 
-                const rankers = rankingsData.filter(p => (p.wins + p.losses) > 0); 
-                if (rankers.length === 0) return showCustomAlert("랭킹에 등록된 선수가 없습니다."); 
-                const modal = document.getElementById('exportModal'); 
-                if (modal) modal.classList.remove('hidden'); 
-                const title = document.getElementById('exportModalTitle'); 
-                if (title) title.textContent = "🏆 랭커 명단 추출"; 
-                const options = document.getElementById('exportMatchOptions'); 
-                if (options) { 
-                    options.classList.remove('hidden'); 
-                    options.innerHTML = `<button onclick="updateRankerExport('rank')" class="flex-1 bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold py-2 rounded-lg text-xs transition border border-blue-100">🔢 순위 (이름+순위/배치)</button><button onclick="updateRankerExport('id')" class="flex-1 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 font-bold py-2 rounded-lg text-xs transition border border-emerald-100">🆔 ID (이름+ID)</button><button onclick="updateRankerExport('color')" class="flex-1 bg-purple-50 text-purple-600 hover:bg-purple-100 font-bold py-2 rounded-lg text-xs transition border border-purple-100">🎨 색상 (이름+색상)</button>`; 
-                } 
-                updateRankerExport('rank'); 
-            } catch (e) { 
-                showCustomAlert("명단 생성 중 오류가 발생했습니다."); 
-            } 
         };
 
         window.copyAllPlayerList = () => { 
@@ -2268,8 +2326,8 @@ function renderRankings() {
                     } 
                 } 
             }; 
-            const previewConfig = { ...config, onChange: function(value) { updateMatchPreview(); } }; 
-            const redConfig = { ...config, onChange: function(value) { updateMatchPreview(); }, onInitialize: function() { this.control_input.setAttribute('type', 'search'); this.wrapper.classList.add('red-theme'); } }; 
+            const previewConfig = { ...config, onChange: function(value) { updateMatchPreview(); checkAutoTitleMatch(); } }; 
+            const redConfig = { ...config, onChange: function(value) { updateMatchPreview(); checkAutoTitleMatch(); }, onInitialize: function() { this.control_input.setAttribute('type', 'search'); this.wrapper.classList.add('red-theme'); } }; 
             try { 
                 p1Tom = new TomSelect('#p1Select', previewConfig); 
                 p2Tom = new TomSelect('#p2Select', redConfig); 
