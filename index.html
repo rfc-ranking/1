@@ -200,6 +200,8 @@
             0%, 100% { transform: translateX(-50%) translateY(0); }
             50% { transform: translateX(-50%) translateY(-2px); }
         }
+
+        /* [삭제] 글래스모피즘 스타일 제거 (더 이상 사용하지 않음) */
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800 pb-10 flex flex-col min-h-screen">
@@ -316,10 +318,19 @@
                     <button onclick="closeProfile()" class="text-slate-400 hover:text-slate-600 p-2 text-2xl font-bold">✕</button>
                 </div>
                 <div class="flex flex-col items-center">
-                    <div class="text-center mb-4"><h2 class="text-3xl font-black text-slate-800 flex items-center justify-center gap-2 tracking-tight"><span id="pModalCrown" class="text-2xl hidden">👑</span><span id="pModalName">Name</span></h2><div class="flex items-center justify-center gap-2 mt-1"><span id="pModalGameId" class="text-xs text-slate-500 font-bold bg-slate-100 px-2 py-0.5 rounded">ID: -</span><span id="pModalTierBadge" class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-400">Tier</span></div></div>
-                    <div class="mb-5 relative"><img id="pModalImg" src="" class="w-48 h-48 rounded-2xl object-cover border-4 border-white shadow-xl bg-slate-50" onerror="this.src='https://placehold.co/150?text=No+Img'"></div>
+                    <div class="text-center mb-4"><h2 class="text-3xl font-black text-slate-800 flex items-center justify-center gap-2 tracking-tight"><span id="pModalRank" class="text-2xl text-blue-600 font-black hidden"></span><span id="pModalCrown" class="text-2xl hidden">👑</span><span id="pModalName">Name</span></h2><div class="flex items-center justify-center gap-2 mt-1"><span id="pModalGameId" class="text-xs text-slate-500 font-bold bg-slate-100 px-2 py-0.5 rounded">ID: -</span><span id="pModalTierBadge" class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-400">Tier</span></div></div>
+                    
+                    <!-- [수정] 이미지 컨테이너: 오버레이 영역 삭제, 순수 이미지 컨테이너로 복귀 -->
+                    <div class="mb-5 relative w-48 h-48 mx-auto group">
+                        <img id="pModalImg" src="" class="w-full h-full rounded-2xl object-cover border-4 border-white shadow-xl bg-slate-50" onerror="this.src='https://placehold.co/150?text=No+Img'">
+                    </div>
+
                     <div class="w-full max-w-sm mb-6">
-                        <div class="flex justify-end mb-2"><select id="pModalSeason" class="text-xs font-bold text-slate-600 bg-slate-100 border border-slate-200 rounded px-2 py-1 outline-none focus:border-blue-500"><option value="all">전체 기록 (All Time)</option><option value="current">현재 시즌 (Current)</option></select></div>
+                        <!-- [수정] 뱃지 및 시즌 선택 영역 (좌측: 뱃지, 우측: 시즌 선택) -->
+                        <div class="flex justify-between items-end mb-2 h-8">
+                            <div id="pModalBadges" class="flex gap-1.5"></div> <!-- 뱃지 컨테이너 -->
+                            <select id="pModalSeason" class="text-xs font-bold text-slate-600 bg-slate-100 border border-slate-200 rounded px-2 py-1 outline-none focus:border-blue-500 h-7"><option value="all">전체 기록 (All Time)</option><option value="current">현재 시즌 (Current)</option></select>
+                        </div>
                         <div class="flex w-full rounded-lg overflow-hidden shadow-md"><div class="flex-1 boxrec-win text-white p-1.5 text-center border-r border-white/20"><div class="text-3xl font-black leading-none" id="pBigWins">0</div><div class="text-[10px] font-bold opacity-80 uppercase tracking-widest mt-1">Wins</div></div><div class="flex-1 boxrec-loss text-white p-1.5 text-center"><div class="text-3xl font-black leading-none" id="pBigLosses">0</div><div class="text-[10px] font-bold opacity-80 uppercase tracking-widest mt-1">Losses</div></div></div>
                         <div class="flex bg-slate-50 border border-slate-200 border-t-0 rounded-b-lg divide-x divide-slate-200 text-center py-2 shadow-sm"><div class="flex-1"><div class="text-[10px] text-slate-400 font-bold uppercase">Win Rate</div><div class="text-sm font-black text-slate-700" id="pModalWinRate">0%</div></div><div class="flex-1"><div class="text-[10px] text-slate-400 font-bold uppercase">Elo Rating</div><div class="text-sm font-black text-amber-600" id="pModalElo">1000</div></div><div class="flex-1"><div class="text-[10px] text-slate-400 font-bold uppercase">Career High</div><div class="text-sm font-black text-slate-700" id="pModalHighElo">1000</div></div></div>
                     </div>
@@ -388,8 +399,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v4.97",
-            updateNote: "챌린저 카드 배경 순정 스타일 적용",
+            version: "v4.98",
+            updateNote: "프로필 카드 UI 수정",
             title: "RFC 랭킹전"
         };
 
@@ -1332,9 +1343,53 @@ const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||
             if (!p) return; 
             document.getElementById('pModalName').textContent = p.name; 
             document.getElementById('pModalCrown').classList.toggle('hidden', !p.isChampion); 
+            
+            // [NEW] 순위 표시 로직
+            const rankEl = document.getElementById('pModalRank');
+            if (p.isChampion) {
+                rankEl.classList.add('hidden'); 
+            } else {
+                const totalMatches = (p.wins || 0) + (p.losses || 0);
+                if (totalMatches >= 3) {
+                    const challengers = rankingsData.filter(r => !r.isChampion && (Number(r.wins||0) + Number(r.losses||0)) >= 3)
+                                                    .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
+                    const myRank = challengers.findIndex(r => r.id === id) + 1;
+                    if (myRank > 0) {
+                        rankEl.textContent = `#${myRank}`;
+                        rankEl.classList.remove('hidden');
+                    } else {
+                        rankEl.classList.add('hidden');
+                    }
+                } else {
+                    rankEl.classList.add('hidden'); 
+                }
+            }
+
             document.getElementById('pModalGameId').textContent = `ID: ${p.gameId || '-'}`; 
             document.getElementById('pModalImg').src = p.imageUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23cbd5e1' stroke-width='2'%3E%3Ccircle cx='12' cy='8' r='5'/%3E%3Cpath d='M20 21a8 8 0 0 0-16 0'/%3E%3C/svg%3E"; 
             
+            // [수정] 뱃지 렌더링 위치 변경 (셀렉트 박스 좌측)
+            const badgeContainer = document.getElementById('pModalBadges');
+            badgeContainer.innerHTML = '';
+            
+            // 3연승 이상일 때만 표시 (PC: 12px, 모바일: 10px)
+            if ((p.currentStreak || 0) >= 3) {
+                badgeContainer.innerHTML += `
+                    <div class="flex items-center gap-1 bg-orange-50 text-orange-600 border border-orange-100 px-2 py-0.5 rounded-md shadow-sm">
+                        <span class="text-[10px] md:text-[12px]">🔥</span>
+                        <span class="text-[10px] md:text-[12px] font-bold tracking-tight">${p.currentStreak}연승</span>
+                    </div>`;
+            }
+            
+            // 현상금이 있을 때만 표시 (PC: 12px, 모바일: 10px)
+            if ((p.bounty || 0) > 0) {
+                badgeContainer.innerHTML += `
+                    <div class="flex items-center gap-1 bg-slate-800 text-amber-400 border border-slate-700 px-2 py-0.5 rounded-md shadow-sm">
+                        <span class="text-[10px] md:text-[12px]">💰</span>
+                        <span class="text-[10px] md:text-[12px] font-bold tracking-tight">+${p.bounty}</span>
+                    </div>`;
+            }
+
             const filterEl = document.getElementById('pModalSeason'); 
             filterEl.innerHTML = '<option value="all">전체 기록 (All Time)</option><option value="current">현재 시즌 (Current)</option>'; 
             Object.keys(seasonArchives).sort().reverse().forEach(s => { filterEl.innerHTML += `<option value="${s}">${s}</option>`; }); 
