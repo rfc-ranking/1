@@ -441,7 +441,7 @@
         const AUTO_LOGIN_PW = "";
         
         const ADMIN_CONFIG = {
-            version: "v4.99",
+            version: "v5.00",
             updateNote: "패배시 최소 점수 -5점 적용",
             title: "RFC 매니저"
         };
@@ -1372,11 +1372,43 @@
                 
                 // [FIXED] Use nested snapshot structure safely
                 const seasonStats = m.snapshot && m.snapshot.season ? m.snapshot.season : {};
-                const winStats = seasonStats[m.winner] || { w:0, l:0, h:[] }; 
-                const loseStats = seasonStats[m.loser] || { w:0, l:0, h:[] }; 
                 
-                let winDots = ''; (winStats.h || []).forEach(r => winDots += `<div class="w-1.5 h-1.5 rounded-full ${r==='W'?'bg-emerald-400':'bg-rose-400'}"></div>`); 
-                let loseDots = ''; (loseStats.h || []).forEach(r => loseDots += `<div class="w-1.5 h-1.5 rounded-full ${r==='W'?'bg-emerald-400':'bg-rose-400'}"></div>`); 
+                // [NEW] 블루코너/레드코너 기준 정렬 로직
+                let leftName, rightName;
+                let leftResult, rightResult; // 'WIN' or 'LOSE'
+                
+                if (m.blue) {
+                    // 블루코너 정보가 있는 경우: 왼쪽=블루, 오른쪽=레드
+                    leftName = m.blue;
+                    if (m.winner === m.blue) {
+                        leftResult = 'WIN';
+                        rightName = m.loser;
+                        rightResult = 'LOSE';
+                    } else {
+                        leftResult = 'LOSE';
+                        rightName = m.winner;
+                        rightResult = 'WIN';
+                    }
+                } else {
+                    // 구버전 데이터(블루 정보 없음): 왼쪽=승자, 오른쪽=패자
+                    leftName = m.winner;
+                    leftResult = 'WIN';
+                    rightName = m.loser;
+                    rightResult = 'LOSE';
+                }
+
+                const leftStats = seasonStats[leftName] || { w:0, l:0, h:[] }; 
+                const rightStats = seasonStats[rightName] || { w:0, l:0, h:[] }; 
+                
+                let leftDots = ''; (leftStats.h || []).forEach(r => leftDots += `<div class="w-1.5 h-1.5 rounded-full ${r==='W'?'bg-emerald-400':'bg-rose-400'}"></div>`); 
+                let rightDots = ''; (rightStats.h || []).forEach(r => rightDots += `<div class="w-1.5 h-1.5 rounded-full ${r==='W'?'bg-emerald-400':'bg-rose-400'}"></div>`); 
+                
+                // 스타일 정의
+                const leftBadgeClass = leftResult === 'WIN' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600';
+                const rightBadgeClass = rightResult === 'WIN' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600';
+                const leftNameClass = leftResult === 'WIN' ? 'text-slate-800 font-black' : 'text-slate-500 font-medium';
+                const rightNameClass = rightResult === 'WIN' ? 'text-slate-800 font-black' : 'text-slate-500 font-medium';
+
                 if (m.date !== lastDate) {
                     const count = dateCounts[m.date];
                     const dateHeader = document.createElement('div');
@@ -1388,7 +1420,37 @@
                 }
                 const div = document.createElement('div'); 
                 div.className = "bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-2 relative group hover:border-blue-300 transition-colors"; 
-                div.innerHTML = `<button onclick="deleteMatchLog(${rawIndex})" class="absolute top-2 right-2 text-slate-300 hover:text-red-500 transition opacity-0 group-hover:opacity-100 p-1" title="기록 삭제"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button><div class="flex items-center justify-between text-xs mt-1"><div class="flex flex-col items-start w-[45%]"><div class="flex items-center gap-1.5"><span class="text-xs font-black text-slate-800 truncate">${m.winner}</span><span class="bg-emerald-100 text-emerald-600 text-[9px] px-1 py-0.5 rounded font-bold">WIN</span></div><div class="flex items-center gap-2 mt-1"><span class="text-[9px] text-slate-400 font-medium bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">${winStats.w}승 ${winStats.l}패</span><div class="flex gap-0.5">${winDots}</div></div></div><div class="text-[10px] font-bold text-slate-300">VS</div><div class="flex flex-col items-end w-[45%]"><div class="flex items-center gap-1.5"><span class="bg-rose-100 text-rose-600 text-[9px] px-1 py-0.5 rounded font-bold">LOSE</span><span class="text-xs font-medium text-slate-500 truncate">${m.loser}</span></div><div class="flex items-center gap-2 mt-1"><div class="flex gap-0.5">${loseDots}</div><span class="text-[9px] text-slate-400 font-medium bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">${loseStats.w}승 ${loseStats.l}패</span></div></div></div>`; 
+                div.innerHTML = `
+                    <button onclick="deleteMatchLog(${rawIndex})" class="absolute top-2 right-2 text-slate-300 hover:text-red-500 transition opacity-0 group-hover:opacity-100 p-1" title="기록 삭제"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
+                    <div class="flex items-center justify-between text-xs mt-1">
+                        <!-- Left Side (Blue Corner) -->
+                        <div class="flex flex-col items-start w-[45%]">
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-[10px] text-blue-500 font-bold mr-0.5">B</span>
+                                <span class="text-xs ${leftNameClass} truncate">${leftName}</span>
+                                <span class="${leftBadgeClass} text-[9px] px-1 py-0.5 rounded font-bold">${leftResult}</span>
+                            </div>
+                            <div class="flex items-center gap-2 mt-1">
+                                <span class="text-[9px] text-slate-400 font-medium bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">${leftStats.w}승 ${leftStats.l}패</span>
+                                <div class="flex gap-0.5">${leftDots}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-[10px] font-bold text-slate-300">VS</div>
+                        
+                        <!-- Right Side (Red Corner) -->
+                        <div class="flex flex-col items-end w-[45%]">
+                            <div class="flex items-center gap-1.5">
+                                <span class="${rightBadgeClass} text-[9px] px-1 py-0.5 rounded font-bold">${rightResult}</span>
+                                <span class="text-xs ${rightNameClass} truncate">${rightName}</span>
+                                <span class="text-[10px] text-red-500 font-bold ml-0.5">R</span>
+                            </div>
+                            <div class="flex items-center gap-2 mt-1">
+                                <div class="flex gap-0.5">${rightDots}</div>
+                                <span class="text-[9px] text-slate-400 font-medium bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">${rightStats.w}승 ${rightStats.l}패</span>
+                            </div>
+                        </div>
+                    </div>`; 
                 container.appendChild(div); 
             }); 
         }
@@ -1509,13 +1571,36 @@
                     // 2. 과거 기록이 없으면 현재 기준 (Fallback)
                     const p = rankingsData.find(x => x.name === name);
                     if (!p) return `${name}(?)`;
-                    if (p.isChampion) return `${name}(C)`; // [수정] (Champ) -> (C)
+                    if (p.isChampion) return `${name}(C)`; 
                     
                     const idx = realRankList.findIndex(r => r.id === p.id);
                     return idx !== -1 ? `${name}(${idx + 1}위)` : `${name}(UR)`;
                 };
                 
-                result += `${getLabel(m.winner, m.winnerRankBefore)} VS ${getLabel(m.loser, m.loserRankBefore)}\n`; 
+                // [수정] 블루코너(왼쪽) vs 레드코너(오른쪽) 정렬 로직 적용 (B, R 텍스트 미포함)
+                let leftName, leftRank, rightName, rightRank;
+                
+                if (m.blue) {
+                    leftName = m.blue;
+                    // 승자가 블루면 -> 왼쪽 랭크 = winnerRank
+                    if (m.winner === m.blue) {
+                        leftRank = m.winnerRankBefore;
+                        rightName = m.loser;
+                        rightRank = m.loserRankBefore;
+                    } else {
+                        leftRank = m.loserRankBefore;
+                        rightName = m.winner;
+                        rightRank = m.winnerRankBefore;
+                    }
+                } else {
+                    // 정보 없으면 승자 vs 패자 (기존 방식 유지)
+                    leftName = m.winner;
+                    leftRank = m.winnerRankBefore;
+                    rightName = m.loser;
+                    rightRank = m.loserRankBefore;
+                }
+
+                result += `${getLabel(leftName, leftRank)} VS ${getLabel(rightName, rightRank)}\n`; 
             }); 
             
             textarea.value = result; 
