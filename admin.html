@@ -428,8 +428,8 @@
         const AUTO_LOGIN_PW = "";
         
         const ADMIN_CONFIG = {
-            version: "v4.96",
-            updateNote: "타이틀 매치 자동 감지 기능 추가",
+            version: "v4.98",
+            updateNote: "패배시 최소 점수 -5점 적용",
             title: "RFC 매니저"
         };
 
@@ -695,6 +695,18 @@
                     colorClass: `${rankColor} -mx-1 px-1 rounded py-0.5`, 
                     valueClass: 'font-bold' 
                 });
+                
+                // [수정] 1안: 최소 패널티 강제 적용 (-5점)
+                // 패배 시 점수가 오르거나(예: +1), 감소폭이 너무 적은 경우(예: -2) 강제로 -5점으로 보정
+                if (lossPoints > -5) {
+                    lossPoints = -5;
+                    details.push({ 
+                        label: '📉 최소 패널티 보정', 
+                        value: '-5 (강제)', 
+                        colorClass: 'text-blue-600 font-bold bg-blue-50/50 -mx-1 px-1 rounded py-0.5', 
+                        valueClass: '' 
+                    });
+                }
                 
                 finalChange = lossPoints; 
             } 
@@ -1141,11 +1153,11 @@
         }
     }
             // --- 기존 로직 계속 ---
-    // [변경] 순위 추적 시 챔피언 제외하고 계산
-    const currentRankedListForHistory = [...rankingsData].filter(p => !p.isChampion && (Number(p.wins || 0) + Number(p.losses || 0)) >= 3).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
+    // [랭킹 계산 변경] 순위 추적 시 챔피언 제외하고 계산
+    const currentRankedListForHistory = [...rankingsData].filter(p => !p.isChampion && (Number(p.wins || 0) + Number(p.losses || 0)) >= 3).sort((a, b) => (b.elo || 1000) - (a.elo || 1000)); 
     
     const getPlayerRankBefore = (player) => { 
-        if (player.isChampion) return 0; // 챔피언은 순위 집계 제외 (0 처리)
+        if (player.isChampion) return 'C'; // [수정] 챔피언은 'C'로 저장 (기존 0 -> 'C')
         const total = (player.wins || 0) + (player.losses || 0); 
         if (total < 3) return 0; 
         return currentRankedListForHistory.findIndex(p => p.id === player.id) + 1; 
@@ -1418,16 +1430,21 @@
         window.generateExportText = (count) => { 
             if (count) window.lastExportCount = count; 
             else count = window.lastExportCount || 15; 
+            
             const hideRank = document.getElementById('hideRankToggle')?.checked || false; 
             const targetSeason = viewHistorySeason || activeSeason; 
+            
             const filtered = matchHistoryData.filter(m => (m.season || "시즌 1") === targetSeason && m.type !== 'draw'); 
             const targets = filtered.slice(0, count); 
+            
             const textarea = document.getElementById('exportTextarea'); 
             if (!textarea) return; 
+            
             if (targets.length === 0) { 
                 textarea.value = `[${targetSeason}] 기록된 경기가 없습니다.`; 
                 return; 
             } 
+            
             const processedTargets = targets.map(m => { 
                 let dateStr = m.date; 
                 try { 
@@ -1440,30 +1457,54 @@
                 } catch(e) {} 
                 return { ...m, dateLabel: dateStr }; 
             }); 
+            
             const dateCounts = processedTargets.reduce((acc, m) => { 
                 acc[m.dateLabel] = (acc[m.dateLabel] || 0) + 1; 
                 return acc; 
             }, {}); 
-            // [변경] 내보내기 시에도 랭킹은 챔피언 제외하고 계산
+            
+            // 현재 기준 랭킹 (Fallback용)
             const realRankList = rankingsData.filter(p => !p.isChampion && ((p.wins || 0) + (p.losses || 0)) >= 3).sort((a, b) => (b.elo || 1000) - (a.elo || 1000)); 
+            
             let result = ""; 
             let currentDate = ""; 
+            
             processedTargets.forEach(m => { 
                 if (m.dateLabel !== currentDate) { 
                     if (result !== "") result += "\n"; 
                     result += `📅 ${m.dateLabel} (총 ${dateCounts[m.dateLabel]}경기)\n`; 
                     currentDate = m.dateLabel; 
                 } 
-                const getPlayerLabel = (name) => { 
-                    if (hideRank) return name; 
-                    const p = rankingsData.find(x => x.name === name); 
-                    if (!p) return `${name}(?)`; 
-                    // 챔피언 텍스트 처리
-                    if (p.isChampion) return `${p.name}(Champ)`;
-                    return getPlayerStatusLabel(p, realRankList); 
-                }; 
-                result += `${getPlayerLabel(m.winner)} VS ${getPlayerLabel(m.loser)}\n`; 
+                
+                const getLabel = (name, historicalRank) => {
+                    if (hideRank) return name;
+                    
+                    // 1. 과거 기록이 있는 경우 우선 사용
+                    if (historicalRank !== undefined && historicalRank !== null) {
+                        if (historicalRank === 'C') return `${name}(C)`; // [NEW] 챔피언 문자열 처리
+                        if (historicalRank > 0) return `${name}(${historicalRank}위)`;
+                        
+                        // [보정] 0인 경우 (기존 데이터): 현재 챔피언이면 (C)로 표시
+                        if (historicalRank === 0) {
+                             const p = rankingsData.find(x => x.name === name);
+                             if (p && p.isChampion) return `${name}(C)`;
+                             return `${name}(UR)`;
+                        }
+                        return `${name}(UR)`; // 0인 경우 (배치중 등)
+                    }
+                    
+                    // 2. 과거 기록이 없으면 현재 기준 (Fallback)
+                    const p = rankingsData.find(x => x.name === name);
+                    if (!p) return `${name}(?)`;
+                    if (p.isChampion) return `${name}(C)`; // [수정] (Champ) -> (C)
+                    
+                    const idx = realRankList.findIndex(r => r.id === p.id);
+                    return idx !== -1 ? `${name}(${idx + 1}위)` : `${name}(UR)`;
+                };
+                
+                result += `${getLabel(m.winner, m.winnerRankBefore)} VS ${getLabel(m.loser, m.loserRankBefore)}\n`; 
             }); 
+            
             textarea.value = result; 
         };
 
@@ -1498,7 +1539,27 @@
             let text = ""; 
             if (type === 'rank') { 
                 text = rankers.map(p => {
-                    if (p.isChampion) return `${p.name}(Champ)`;
+                    if (p.isChampion) return `${p.name}(C)`; // [수정] (Champ) -> (C)
+                    return getPlayerStatusLabel(p, realRankList);
+                }).join('\n'); 
+            } else if (type === 'id') { 
+                text = rankers.map(p => `${p.name} ${p.gameId || '-'}`).join('\n'); 
+            } else { 
+                text = rankers.map(p => `${p.name} ${p.trunkColor || '#1f2937'}`).join('\n'); 
+            } 
+            const textarea = document.getElementById('exportTextarea'); 
+            if(textarea) textarea.value = text; 
+        };
+
+        window.updateAllPlayerExport = (type) => { 
+            const allPlayers = [...rankingsData].sort((a, b) => a.name.localeCompare(b.name)); 
+            const realRankList = rankingsData.filter(p => !p.isChampion && ((p.wins || 0) + (p.losses || 0)) >= 3).sort((a, b) => (b.elo || 1000) - (a.elo || 1000)); 
+            let text = ""; 
+            if (type === 'name') { 
+                text = allPlayers.map(p => p.name).join('\n'); 
+            } else if (type === 'status') { 
+                text = allPlayers.map(p => {
+                    if (p.isChampion) return `${p.name}(C)`; // [수정] (Champ) -> (C)
                     return getPlayerStatusLabel(p, realRankList);
                 }).join('\n'); 
             } else if (type === 'id') { 
