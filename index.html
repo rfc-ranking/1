@@ -399,7 +399,7 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v4.98",
+            version: "v4.99",
             updateNote: "프로필 카드 UI 수정",
             title: "RFC 랭킹전"
         };
@@ -719,17 +719,17 @@
             
             recent.forEach((m, i) => {
                 const isWin = m.winner === name;
-                // W/L 텍스트 제거하고 색상만 적용
-                const colorClass = isWin ? 'bg-emerald-400' : 'bg-rose-400';
+                // [색상 변경] 범례와 동일한 500번대 컬러 적용 (기존 400 -> 500)
+                const colorClass = isWin ? 'bg-emerald-500' : 'bg-rose-500';
                 
                 // [시인성 개선] 투명도 상향 (0.6 ~ 1.0)
                 // 기존 0.3은 너무 흐려서 잘 안보이므로 0.6부터 시작하도록 조정
                 const opacity = 0.6 + (0.4 * (i / (recent.length - 1 || 1)));
                 
-                // [최신 강조] 가장 오른쪽 점은 링 테두리 + 약간 확대
+                // [최신 강조] 테두리(Ring) 삭제, 확대만 유지
                 const isLatest = i === recent.length - 1;
                 const latestStyle = isLatest 
-                    ? 'ring-1 ring-offset-1 ring-slate-400 scale-110 z-10' 
+                    ? 'scale-110 z-10' // ring 클래스 제거
                     : '';
 
                 // [Option 2 적용] 크기: 모바일 8px (w-2), PC 10px (w-2.5)
@@ -1096,33 +1096,65 @@ const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||
             let lastDate = "";
             
             filtered.forEach(m => { 
-                const winStats = m.snapshot.season ? m.snapshot.season[m.winner] : (m.snapshot[m.winner] || { w:0, l:0, h:[] });
-                const loseStats = m.snapshot.season ? m.snapshot.season[m.loser] : (m.snapshot[m.loser] || { w:0, l:0, h:[] });
+                // [NEW] 블루/레드 코너 정렬 로직 (오류 수정 및 적용)
+                let leftName, rightName;
+                let leftResult, rightResult; // 'WIN' or 'LOSE'
                 
-                const winProfile = rankingsData.find(p => p.name === m.winner);
-                const loseProfile = rankingsData.find(p => p.name === m.loser);
-                const winClick = winProfile ? `onclick="openProfile('${winProfile.id}')"` : '';
-                const loseClick = loseProfile ? `onclick="openProfile('${loseProfile.id}')"` : '';
+                if (m.blue) {
+                    leftName = m.blue;
+                    if (m.winner === m.blue) {
+                        leftResult = 'WIN';
+                        rightName = m.loser;
+                        rightResult = 'LOSE';
+                    } else {
+                        leftResult = 'LOSE';
+                        rightName = m.winner;
+                        rightResult = 'WIN';
+                    }
+                } else {
+                    // 구버전 데이터 호환 (블루 정보 없으면 승자가 왼쪽)
+                    leftName = m.winner;
+                    leftResult = 'WIN';
+                    rightName = m.loser;
+                    rightResult = 'LOSE';
+                }
+
+                // Stats 가져오기
+                const seasonStats = m.snapshot.season ? m.snapshot.season : (m.snapshot || {});
+                const leftStats = seasonStats[leftName] || { w:0, l:0, h:[] }; 
+                const rightStats = seasonStats[rightName] || { w:0, l:0, h:[] }; 
+                
+                // Profile 연결
+                const leftProfile = rankingsData.find(p => p.name === leftName);
+                const rightProfile = rankingsData.find(p => p.name === rightName);
+                const leftClick = leftProfile ? `onclick="openProfile('${leftProfile.id}')"` : '';
+                const rightClick = rightProfile ? `onclick="openProfile('${rightProfile.id}')"` : '';
                 const cursorStyle = (profile) => profile ? "cursor-pointer hover:underline hover:text-blue-700" : "";
                 
-                // [수정] 승자 Dots 생성 (투명도 상향 0.6 ~ 1.0)
-                let winDots = ''; 
-                (winStats.h || []).forEach((r, i, arr) => {
-                    const opacity = 0.6 + (0.4 * (i / (arr.length - 1 || 1)));
-                    const isLatest = i === arr.length - 1;
-                    const border = isLatest ? 'ring-1 ring-offset-1 ring-slate-300 scale-110' : '';
-                    winDots += `<div class="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full ${r==='W'?'bg-emerald-400':'bg-rose-400'} ${border}" style="opacity: ${opacity};"></div>`;
-                });
+                // Dots 생성 함수
+                const generateDots = (stats) => {
+                    let dotsHtml = '';
+                    (stats.h || []).forEach((r, i, arr) => {
+                        const isWin = r === 'W';
+                        const color = isWin ? 'bg-emerald-500' : 'bg-rose-500';
+                        const opacity = 0.6 + (0.4 * (i / (arr.length - 1 || 1)));
+                        const isLatest = i === arr.length - 1;
+                        // [최신 강조] 테두리(Ring) 삭제, 확대만 유지
+                        const border = isLatest ? 'scale-110' : '';
+                        dotsHtml += `<div class="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full ${color} ${border}" style="opacity: ${opacity};"></div>`;
+                    });
+                    return dotsHtml;
+                };
 
-                // [수정] 패자 Dots 생성 (투명도 상향 0.6 ~ 1.0)
-                let loseDots = ''; 
-                (loseStats.h || []).forEach((r, i, arr) => {
-                    const opacity = 0.6 + (0.4 * (i / (arr.length - 1 || 1)));
-                    const isLatest = i === arr.length - 1;
-                    const border = isLatest ? 'ring-1 ring-offset-1 ring-slate-300 scale-110' : '';
-                    loseDots += `<div class="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full ${r==='W'?'bg-emerald-400':'bg-rose-400'} ${border}" style="opacity: ${opacity};"></div>`;
-                });
+                const leftDots = generateDots(leftStats);
+                const rightDots = generateDots(rightStats);
                 
+                // 스타일 정의
+                const leftBadgeClass = leftResult === 'WIN' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600';
+                const rightBadgeClass = rightResult === 'WIN' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600';
+                const leftNameClass = leftResult === 'WIN' ? 'font-black text-slate-800' : 'font-medium text-slate-500';
+                const rightNameClass = rightResult === 'WIN' ? 'font-black text-slate-800' : 'font-medium text-slate-500';
+
                 if (m.date !== lastDate) {
                     const count = dateCounts[m.date];
                     const dateHeader = document.createElement('div');
@@ -1136,25 +1168,31 @@ const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||
                 div.className = "bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-3"; 
                 div.innerHTML = `
                     <div class="flex items-center justify-between text-sm">
-                        <div class="flex flex-col items-start w-[45%] ${cursorStyle(winProfile)}" ${winClick}>
+                        <!-- Left (Blue) -->
+                        <div class="flex flex-col items-start w-[45%] ${cursorStyle(leftProfile)}" ${leftClick}>
                             <div class="flex items-center gap-1.5">
-                                <span class="text-sm font-black text-slate-800 truncate">${m.winner}</span>
-                                <span class="bg-emerald-100 text-emerald-600 text-[9px] px-1 py-0.5 rounded font-bold">WIN</span>
+                                <span class="text-[10px] text-blue-500 font-bold mr-0.5">B</span>
+                                <span class="text-sm ${leftNameClass} truncate">${leftName}</span>
+                                <span class="${leftBadgeClass} text-[9px] px-1 py-0.5 rounded font-bold">${leftResult}</span>
                             </div>
                             <div class="flex items-center gap-2 mt-1">
-                                <span class="text-[9px] text-slate-400 font-medium bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">${winStats.w}승 ${winStats.l}패</span>
-                                <div class="flex gap-0.5 md:gap-1">${winDots}</div>
+                                <span class="text-[9px] text-slate-400 font-medium bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">${leftStats.w}승 ${leftStats.l}패</span>
+                                <div class="flex gap-0.5 md:gap-1">${leftDots}</div>
                             </div>
                         </div>
+                        
                         <div class="text-xs font-bold text-slate-300">VS</div>
-                        <div class="flex flex-col items-end w-[45%] ${cursorStyle(loseProfile)}" ${loseClick}>
+                        
+                        <!-- Right (Red) -->
+                        <div class="flex flex-col items-end w-[45%] ${cursorStyle(rightProfile)}" ${rightClick}>
                             <div class="flex items-center gap-1.5">
-                                <span class="bg-rose-100 text-rose-600 text-[9px] px-1 py-0.5 rounded font-bold">LOSE</span>
-                                <span class="text-sm font-medium text-slate-500 truncate">${m.loser}</span>
+                                <span class="${rightBadgeClass} text-[9px] px-1 py-0.5 rounded font-bold">${rightResult}</span>
+                                <span class="text-sm ${rightNameClass} truncate">${rightName}</span>
+                                <span class="text-[10px] text-red-500 font-bold ml-0.5">R</span>
                             </div>
                              <div class="flex items-center gap-2 mt-1">
-                                <div class="flex gap-0.5 md:gap-1">${loseDots}</div>
-                                <span class="text-[9px] text-slate-400 font-medium bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">${loseStats.w}승 ${loseStats.l}패</span>
+                                <div class="flex gap-0.5 md:gap-1">${rightDots}</div>
+                                <span class="text-[9px] text-slate-400 font-medium bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">${rightStats.w}승 ${rightStats.l}패</span>
                             </div>
                         </div>
                     </div>`; 
@@ -1450,16 +1488,17 @@ const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||
                 const oppStats = m.snapshot[filter === 'all' ? 'all' : 'season'][oppName] || { w:0, l:0, h:[] }; 
                 const oppRecordStr = `${oppStats.w}승 ${oppStats.l}패`; 
                 
-                // [수정] 상대방 최근 전적 Dots 생성 (투명도 상향 0.6 ~ 1.0)
+                // [수정] 상대방 최근 전적 Dots 생성 (테두리 삭제)
                 let oppDots = ''; 
                 (oppStats.h || []).forEach((res, i, arr) => { 
                     const isWin = res === 'W';
-                    const color = isWin ? 'bg-emerald-400' : 'bg-rose-400';
+                    const color = isWin ? 'bg-emerald-500' : 'bg-rose-500';
                     // 투명도 계산 (0.6 ~ 1.0)
                     const opacity = 0.6 + (0.4 * (i / (arr.length - 1 || 1)));
                     // 최신 경기 강조
                     const isLatest = i === arr.length - 1;
-                    const styleClass = isLatest ? 'ring-1 ring-offset-1 ring-slate-300 scale-110' : '';
+                    // [최신 강조] 테두리(Ring) 삭제, 확대만 유지
+                    const styleClass = isLatest ? 'scale-110' : '';
 
                     oppDots += `<div class="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full ${color} ${styleClass}" style="opacity: ${opacity};"></div>`; 
                 }); 
