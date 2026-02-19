@@ -325,7 +325,20 @@
     <div id="deletePlayersModal" class="fixed inset-0 bg-black/50 hidden z-[9999] flex items-center justify-center" onclick="if(event.target === this) closeDeletePlayersModal()">
         <div class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-md flex flex-col max-h-[90vh]">
             <div class="flex justify-between items-center mb-4 border-b pb-2"><div class="flex items-center gap-2"><h3 class="text-lg font-bold text-slate-800">🗑️ 선수 삭제</h3><span id="deleteCountBadge" class="bg-red-100 text-red-600 text-xs px-2 py-1 rounded-full whitespace-nowrap">0명 선택됨</span></div><div class="relative"><input type="search" id="deleteSearchInput" placeholder="이름/초성 검색" class="w-[155px] border p-2 pl-9 rounded-lg text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-red-500 transition" oninput="renderDeleteList()"><div class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-sm">🔍</div></div></div>
-            <div class="flex items-center gap-2 mb-2 px-1"><input type="checkbox" id="deleteAllCheckbox" class="w-4 h-4 text-red-600 rounded border-gray-300 focus:ring-red-500 cursor-pointer" onchange="toggleDeleteSelectAll()"><label for="deleteAllCheckbox" class="text-xs text-slate-500 font-bold cursor-pointer select-none">전체 선택</label></div>
+            
+            <!-- [수정] 정렬 옵션 추가 (이름순/점수순) -->
+            <div class="flex justify-between items-center mb-2 px-1">
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" id="deleteAllCheckbox" class="w-4 h-4 text-red-600 rounded border-gray-300 focus:ring-red-500 cursor-pointer" onchange="toggleDeleteSelectAll()">
+                    <label for="deleteAllCheckbox" class="text-xs text-slate-500 font-bold cursor-pointer select-none">전체 선택</label>
+                </div>
+                <select id="deleteSortSelect" class="text-[11px] font-bold text-slate-500 border border-slate-200 rounded px-2 py-1 bg-white outline-none focus:border-blue-500" onchange="renderDeleteList()">
+                    <option value="name">가나다순</option>
+                    <option value="rank_high">점수 높은순 (▼)</option>
+                    <option value="rank_low">점수 낮은순 (▲)</option>
+                </select>
+            </div>
+
             <div id="deletePlayerList" class="flex-grow overflow-y-auto border border-slate-200 rounded-lg p-2 space-y-1 bg-slate-50 min-h-[200px]"></div>
             <div class="mt-3 bg-red-50 p-3 rounded-lg border border-red-100"><label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="deleteHistoryCheckbox" class="w-4 h-4 text-red-600 rounded border-red-300 focus:ring-red-500"><div class="text-xs text-red-700 font-bold"><span>경기 기록도 함께 삭제</span><p class="text-[10px] font-normal text-red-500 mt-0.5 leading-snug">선택 시, 해당 선수가 포함된 모든 과거 경기 로그가 영구 삭제됩니다. (상대방의 전적 횟수는 유지되지만 로그는 사라짐)</p></div></label></div>
             <div class="flex justify-end gap-2 mt-4 pt-2 border-t"><button onclick="closeDeletePlayersModal()" class="bg-gray-100 text-gray-600 hover:bg-gray-200 px-4 py-2 rounded-lg text-sm font-bold transition">취소</button><button onclick="confirmDeletePlayers()" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg text-sm font-bold shadow transition">삭제하기</button></div>
@@ -428,7 +441,7 @@
         const AUTO_LOGIN_PW = "";
         
         const ADMIN_CONFIG = {
-            version: "v4.98",
+            version: "v4.99",
             updateNote: "패배시 최소 점수 -5점 적용",
             title: "RFC 매니저"
         };
@@ -1643,6 +1656,10 @@
             document.getElementById('deleteSearchInput').value = '';
             document.getElementById('deleteAllCheckbox').checked = false;
             document.getElementById('deleteHistoryCheckbox').checked = false;
+            // [NEW] 정렬 옵션 초기화
+            const sortSelect = document.getElementById('deleteSortSelect');
+            if(sortSelect) sortSelect.value = 'name';
+            
             document.getElementById('deletePlayersModal').classList.remove('hidden');
             window.renderDeleteList();
         };
@@ -1656,6 +1673,7 @@
             const badge = document.getElementById('deleteCountBadge');
             const query = document.getElementById('deleteSearchInput').value.toLowerCase().replace(/\s/g, "");
             const queryJamo = Hangul.disassemble(query);
+            const sortType = document.getElementById('deleteSortSelect')?.value || 'name'; // [NEW] 정렬 타입 가져오기
             
             listContainer.innerHTML = '';
             
@@ -1665,7 +1683,21 @@
                 if (p.choseong && (p.choseong.includes(query) || p.choseong.includes(queryJamo))) return true;
                 if (p.jamo && p.jamo.includes(queryJamo)) return true;
                 return false;
-            }).sort((a, b) => a.name.localeCompare(b.name));
+            });
+
+            // [NEW] 정렬 로직 적용
+            filteredPlayers.sort((a, b) => {
+                if (sortType === 'rank_high') {
+                    // 점수 높은순 (내림차순) -> 동점이면 이름순
+                    return (b.elo || 1000) - (a.elo || 1000) || a.name.localeCompare(b.name);
+                } else if (sortType === 'rank_low') {
+                    // 점수 낮은순 (오름차순) -> 동점이면 이름순
+                    return (a.elo || 1000) - (b.elo || 1000) || a.name.localeCompare(b.name);
+                } else {
+                    // 기본: 이름순
+                    return a.name.localeCompare(b.name);
+                }
+            });
 
             if (filteredPlayers.length === 0) {
                 listContainer.innerHTML = `<div class="text-center text-xs text-slate-400 py-6">검색 결과가 없습니다.</div>`;
@@ -1691,7 +1723,7 @@
                                 <img src="${p.imageUrl || 'https://placehold.co/150?text=No+Img'}" class="w-8 h-8 rounded bg-slate-100 object-cover border border-slate-200" onerror="this.src='https://placehold.co/150?text=No+Img'">
                                 <div>
                                     <div class="font-bold text-sm text-slate-700">${p.name}</div>
-                                    <div class="text-[10px] text-slate-400">${totalMatches}전 | ${p.elo}점</div>
+                                    <div class="text-[10px] text-slate-400">${totalMatches}전 | <span class="text-slate-600 font-bold">${p.elo}점</span></div>
                                 </div>
                             </div>
                         </div>
@@ -1720,6 +1752,7 @@
             const isChecked = document.getElementById('deleteAllCheckbox').checked;
             const query = document.getElementById('deleteSearchInput').value.toLowerCase().replace(/\s/g, "");
             const queryJamo = Hangul.disassemble(query);
+            const sortType = document.getElementById('deleteSortSelect')?.value || 'name'; // [NEW] 전체 선택 시에도 정렬 상태 반영
             
             const filteredPlayers = rankingsData.filter(p => {
                 const nameClean = p.name.replace(/\s/g, "").toLowerCase();
@@ -1728,6 +1761,8 @@
                 if (p.jamo && p.jamo.includes(queryJamo)) return true;
                 return false;
             });
+            
+            // 정렬은 화면 표시에만 영향 주므로 전체 선택 로직에는 필터링된 대상만 중요함
 
             filteredPlayers.forEach(p => {
                 if (isChecked) deleteSelectedIds.add(p.id);
