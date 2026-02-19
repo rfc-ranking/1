@@ -46,16 +46,20 @@
             background: #f8fafc; 
         }
         
-        /* [NEW] 챌린저 티어 스타일 (1300점 이상) */
+        /* [NEW] 챌린저 티어 스타일 (1300점 이상) - Option 2: 순정 모드 적용 */
         .tier-challenger {
-            background: linear-gradient(135deg, #1f2937 0%, #111827 100%) !important;
-            border: 1px solid #fbbf24 !important;
+            /* 배경 및 테두리를 기본(흰색/회색)으로 초기화 */
+            background: #ffffff !important;
             border-left: none !important;
-            color: white !important;
+            color: inherit !important;
+            box-shadow: none !important;
         }
+        /* 텍스트 색상 강제화 제거 (기본 검정으로 복귀) 
+           단, 뱃지(rounded-full)는 제외하여 텍스트 색상이 묻히지 않도록 함 
+        */
         .tier-challenger .rank-num-normal, 
-        .tier-challenger .font-bold {
-            color: #fbbf24 !important; /* 텍스트 금색 처리 */
+        .tier-challenger .font-bold:not(.rounded-full) {
+            color: inherit !important; 
         }
 
         /* 1위 (챔피언 & 1등) 전용 글로우 효과 */
@@ -150,22 +154,23 @@
         .tooltip-value { color: #60a5fa; font-weight: bold; }
         
         .active-inspector-btn { background-color: #3b82f6 !important; color: white !important; opacity: 1 !important; }
-/* [수정] 현상금 뱃지 스타일 - 더 작고 심플하게 변경 */
-.bounty-pill-dark { 
-    font-size: 9px; /* 11px -> 9px */
-    background-color: #1f2937; 
-    color: #fbbf24; 
-    padding: 1px 4px; /* 패딩 축소 */
-    border-radius: 4px; 
-    margin-left: 2px; 
-    font-weight: 700; 
-    vertical-align: middle; 
-    display: inline-flex; 
-    align-items: center; 
-    gap: 1px;
-    line-height: 1.2;
-    white-space: nowrap; /* 줄바꿈 방지 */
-}
+        /* [수정] 현상금 뱃지 스타일 - 전적 텍스트(text-xs)와 크기 동기화 */
+        .bounty-pill-dark { 
+            font-size: 0.75rem; /* 9px -> 0.75rem (12px, text-xs와 동일) */
+            background-color: #1f2937; 
+            color: #fbbf24; 
+            padding: 1px 6px; /* 크기에 맞춰 패딩 조정 */
+            border-radius: 4px; 
+            margin-left: 4px; /* 간격 확보 */
+            font-weight: 700; 
+            vertical-align: middle; 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 2px;
+            line-height: 1.2;
+            white-space: nowrap; /* 줄바꿈 방지 */
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
     
         
         /* 챔피언 뱃지 스타일 */
@@ -383,8 +388,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v4.94",
-            updateNote: "챔피언 카드 왼쪽 테두리 제거",
+            version: "v4.95",
+            updateNote: "챌린저 카드 배경 순정 스타일 적용",
             title: "RFC 랭킹전"
         };
 
@@ -763,13 +768,13 @@ const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||
 
             const showChampion = champion && displayList.find(p => p.id === champion.id);
             const ranked = displayList.filter(p => !p.isChampion && (Number(p.wins||0)+Number(p.losses||0)) >= 3)
-                                      .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
+                                    .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
             
             const placement = displayList.filter(p => !p.isChampion && ((Number(p.wins||0)+Number(p.losses||0)) > 0 && (Number(p.wins||0)+Number(p.losses||0)) < 3))
                                          .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
                                          
             const unranked = displayList.filter(p => !p.isChampion && (Number(p.wins||0)+Number(p.losses||0)) === 0)
-                                        .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
+                                    .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
 
             const now = Date.now();
             const shouldHighlight = (id) => activeHighlight.ids.includes(id) && now < activeHighlight.endTime;
@@ -1206,8 +1211,8 @@ let loseDots = '';
                     const prevName = pastSeasons[0];
                     const prevData = seasonArchives[prevName].rankings || [];
                     championList = prevData.filter(p => (p.wins + p.losses) >= 3)
-                                                                    .sort((a, b) => (b.elo || 1000) - (a.elo || 1000))
-                                                                    .slice(0, 3);
+                                                                        .sort((a, b) => (b.elo || 1000) - (a.elo || 1000))
+                                                                        .slice(0, 3);
                     champTitle = "전시즌 TOP 3";
                     champSub = `${prevName} 레전드`;
                 }
@@ -1515,14 +1520,3 @@ let oppDots = '';
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
