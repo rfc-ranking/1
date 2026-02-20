@@ -107,12 +107,22 @@
             border: 1px solid #f59e0b; 
         }
 
-        .bounty-pill-dark {
-            font-size: 13px; background-color: #1f2937; color: #fbbf24;
-            padding: 1px 5px; border-radius: 4px; margin-left: 3px;
-            font-weight: 800; vertical-align: middle;
-            display: inline-flex; align-items: center; gap: 2px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        /* 현상금 뱃지 스타일 - 배경 제거, 텍스트 강조 */
+        .bounty-pill-dark { 
+            font-size: 0.75rem; 
+            background-color: transparent; 
+            color: #d97706; 
+            padding: 0; 
+            border-radius: 0; 
+            margin-left: 4px; 
+            font-weight: 800; 
+            vertical-align: middle; 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 1px;
+            line-height: 1.2;
+            white-space: nowrap; 
+            box-shadow: none; 
         }
 
         .rank-num-1 { color: #f59e0b; font-size: 1.5rem !important; font-weight: 900; font-style: italic; letter-spacing: -1px; text-shadow: 0 1px 2px rgba(245, 158, 11, 0.2); }
@@ -326,7 +336,7 @@
         <div class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-md flex flex-col max-h-[90vh]">
             <div class="flex justify-between items-center mb-4 border-b pb-2"><div class="flex items-center gap-2"><h3 class="text-lg font-bold text-slate-800">🗑️ 선수 삭제</h3><span id="deleteCountBadge" class="bg-red-100 text-red-600 text-xs px-2 py-1 rounded-full whitespace-nowrap">0명 선택됨</span></div><div class="relative"><input type="search" id="deleteSearchInput" placeholder="이름/초성 검색" class="w-[155px] border p-2 pl-9 rounded-lg text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-red-500 transition" oninput="renderDeleteList()"><div class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-sm">🔍</div></div></div>
             
-            <!-- [수정] 정렬 옵션 추가 (이름순/점수순) -->
+            <!-- 정렬 옵션 추가 (이름순/점수순) -->
             <div class="flex justify-between items-center mb-2 px-1">
                 <div class="flex items-center gap-2">
                     <input type="checkbox" id="deleteAllCheckbox" class="w-4 h-4 text-red-600 rounded border-gray-300 focus:ring-red-500 cursor-pointer" onchange="toggleDeleteSelectAll()">
@@ -441,8 +451,8 @@
         const AUTO_LOGIN_PW = "";
         
         const ADMIN_CONFIG = {
-            version: "v5.00",
-            updateNote: "패배시 최소 점수 -5점 적용",
+            version: "v5.01",
+            updateNote: "챔피언 로직 수정",
             title: "RFC 매니저"
         };
 
@@ -941,9 +951,9 @@
     let p1Change, p2Change;
     let p1Details = [], p2Details = [];
     
-    // [변경] 베테랑 여부 상관없이 현상금 값만 가져옴
-    let p1Bounty = parseInt(simP1.bounty || 0, 10);
-    let p2Bounty = parseInt(simP2.bounty || 0, 10);
+    // [변경] 1번 방식(실시간 동적 계산): 챔피언이라면 DB 값 무시하고 [방어횟수 × 20]을 진짜 잭팟 현상금으로 계산
+    let p1Bounty = simP1.isChampion ? (simP1.defenseCount || 0) * 20 : parseInt(simP1.bounty || 0, 10);
+    let p2Bounty = simP2.isChampion ? (simP2.defenseCount || 0) * 20 : parseInt(simP2.bounty || 0, 10);
 
     if (winnerVal === 'blue') { 
         const w = calculateHybridEloChange(simP1.elo, simP2.elo, true, simP1, p2Bounty); 
@@ -1108,6 +1118,9 @@
     
     captureState(); 
 
+    // [NEW] 1번 방식(실시간 동적 계산): 타이틀 매치 로직으로 권한이 변경되기 '전'에 패자의 실제 잭팟 현상금을 미리 확보
+    const loserBountyVal = loser.isChampion ? (loser.defenseCount || 0) * 20 : parseInt(loser.bounty || 0, 10);
+
             // [로직 추가] 타이틀 매치 처리
     const isTitleMatch = document.getElementById('isTitleMatch').checked;
     
@@ -1151,8 +1164,11 @@
                 // 방어전 횟수 증가 (기존 챔피언이었고 유지했다면)
                 if (winnerWasChamp && winner.id === newChampionId) {
                     p.defenseCount = (p.defenseCount || 0) + 1;
+                    // [왕의 목] 방어 성공 시 현상금 20점 누적
+                    p.bounty = p.defenseCount * 20; 
                 } else {
                     p.defenseCount = 0; // 새로 챔피언이 되면 방어전 0부터
+                    p.bounty = 0; // [왕의 목] 새로운 챔피언은 현상금 0부터 시작
                 }
             } else {
                 p.isChampion = false;
@@ -1166,11 +1182,11 @@
         }
     }
             // --- 기존 로직 계속 ---
-    // [랭킹 계산 변경] 순위 추적 시 챔피언 제외하고 계산
+    // [변경] 순위 추적 시 챔피언 제외하고 계산
     const currentRankedListForHistory = [...rankingsData].filter(p => !p.isChampion && (Number(p.wins || 0) + Number(p.losses || 0)) >= 3).sort((a, b) => (b.elo || 1000) - (a.elo || 1000)); 
     
     const getPlayerRankBefore = (player) => { 
-        if (player.isChampion) return 'C'; // [수정] 챔피언은 'C'로 저장 (기존 0 -> 'C')
+        if (player.isChampion) return 'C'; // [수정] 챔피언은 'C'로 저장
         const total = (player.wins || 0) + (player.losses || 0); 
         if (total < 3) return 0; 
         return currentRankedListForHistory.findIndex(p => p.id === player.id) + 1; 
@@ -1178,20 +1194,16 @@
     
     const winnerRankBefore = getPlayerRankBefore(winner); const loserRankBefore = getPlayerRankBefore(loser);
 
-    // [변경] 베테랑 상관없이 패자의 현상금 조회
-    let loserBountyVal = parseInt(loser.bounty || 0, 10);
-
-    // ELO 계산
+    // ELO 계산 (위에서 미리 계산해둔 동적 loserBountyVal 사용)
     const winCalc = calculateHybridEloChange(winner.elo, loser.elo, true, winner, loserBountyVal); 
     const loseCalc = calculateHybridEloChange(loser.elo, winner.elo, false, loser, 0); 
     
-    // [변경] 승자: 3연승 & Top 10 진입 상태일 때만 현상금 누적 (옵션 1 적용)
+    // [변경] 승자: 3연승 & Top 10 진입 상태일 때만 현상금 누적
     winner.currentStreak = (winner.currentStreak || 0) + 1;
     
-    // 조건: 3연승 이상 AND (경기 전) 랭킹 10위 이내 (배치고사 제외)
-    // 챔피언은 랭킹 집계 제외이므로, winnerRankBefore가 0이면(챔피언이면) 현상금 로직 패스
-    if (winner.currentStreak >= 3 && winnerRankBefore > 0 && winnerRankBefore <= 10) {
-        winner.bounty = (winner.bounty || 0) + 10;
+    // 조건: 챔피언이 아니면서, 3연승 이상 AND (경기 전) 랭킹 10위 이내
+    if (!winner.isChampion && winner.currentStreak >= 3 && winnerRankBefore > 0 && winnerRankBefore <= 10) {
+        winner.bounty = (winner.currentStreak - 2) * 10;
     }
 
     // [변경] 패자: 연승 및 현상금 초기화
@@ -1963,15 +1975,23 @@ window.fixDataIntegrity = () => {
             p.rankInDate = p.lastMatchDate; fixedDateCount++; 
         } 
 
-        // C. Top 10 연승자 현상금 소급 적용 (재계산된 연승 기준)
-        if (top10Ids.has(p.id) && (p.currentStreak || 0) >= 3) {
+        // C. 연승자 현상금 소급 적용 및 무결성 보장
+        if (p.isChampion) {
+            // [왕의 목] 챔피언 현상금 무결성 보장 (방어 횟수 * 20)
+            const calcBounty = (p.defenseCount || 0) * 20;
+            if ((p.bounty || 0) !== calcBounty) {
+                p.bounty = calcBounty;
+                fixedBountyCount++;
+            }
+        } else if (top10Ids.has(p.id) && (p.currentStreak || 0) >= 3) {
+            // 일반 도전자 (Top 10) 현상금 무결성
             const calculatedBounty = (p.currentStreak - 2) * 10; 
             if ((p.bounty || 0) !== calculatedBounty) {
                 p.bounty = calculatedBounty;
                 fixedBountyCount++;
             }
         } else if (!top10Ids.has(p.id) && (p.bounty || 0) > 0) {
-            // D. [NEW] Top 10 밖인데 현상금이 있으면 삭제 (무결성 보장)
+            // D. Top 10 밖이거나 챔피언이 아닌데 현상금이 있으면 삭제
             p.bounty = 0;
             fixedBountyCount++;
         }
@@ -2273,6 +2293,14 @@ function renderRankings() {
                 streakHtml = `<span class="ml-1 text-[10px] text-orange-400 font-bold">🔥${p.currentStreak}연승</span>`;
             }
             
+            // [NEW] 챔피언 현상금 HTML (Option 1: 심플 텍스트)
+            // [수정] 왕의 목(잭팟) 시스템: 방어전 횟수 × 20점 강제 적용
+            const champBounty = defCount * 20;
+            let bountyHtml = '';
+            if (champBounty > 0) {
+                bountyHtml = `<span class="text-amber-400 font-black text-[12px] ml-1 drop-shadow-md tracking-wider">💰 +${champBounty}</span>`;
+            }
+            
             list.innerHTML += `
             <div class="rank-card flex items-center p-3 rounded-xl mb-2 inferno-card relative overflow-hidden group cursor-pointer" onclick="openProfile('${p.id}')">
                 <!-- 배경 불씨 효과 -->
@@ -2296,9 +2324,10 @@ function renderRankings() {
 
                 <!-- Info Section -->
                 <div class="flex-grow min-w-0 flex flex-col justify-center py-1 relative z-10">
-                     <!-- 뱃지 복원 위치: 닉네임 상단 -->
+                     <!-- 1. 방어 뱃지를 상단으로 이동 -->
                     <div class="flex items-center gap-2 mb-1">
                          <div class="champ-badge">👑 CHAMPION</div>
+                         <span class="bg-orange-950/50 text-orange-300 border border-orange-500/30 text-[9px] px-1.5 py-0.5 rounded font-bold">🛡️ ${defCount}차 방어</span>
                     </div>
 
                     <div class="font-bold text-sm text-white flex items-center gap-2">
@@ -2308,7 +2337,8 @@ function renderRankings() {
                     <div class="flex items-center gap-1.5 mt-0.5">
                         <span class="bg-black/40 text-orange-300 text-[10px] px-1.5 py-0.5 rounded border border-orange-500/30 font-bold">⚡${p.elo}</span>
                         <span class="text-xs text-slate-300">| ${p.wins}승 ${p.losses}패</span>
-                        <span class="bg-orange-950/50 text-orange-300 border border-orange-500/30 text-[10px] px-1.5 py-0.5 rounded font-bold ml-1">🛡️ ${defCount}차 방어</span>
+                        <!-- 2. 현상금 위치 (텍스트 온리) -->
+                        ${bountyHtml}
                     </div>
                 </div>
 
@@ -2537,6 +2567,30 @@ function renderRankings() {
             }
             const textarea = document.getElementById('exportTextarea');
             if(textarea) textarea.value = text;
+        };
+
+        // [NEW] 랭커 명단 추출 버튼 오류 수정 (함수 추가)
+        window.copyRankerList = () => {
+            try {
+                if (!rankingsData || rankingsData.length === 0) return showCustomAlert("데이터를 불러오는 중이거나 선수가 없습니다.");
+                const modal = document.getElementById('exportModal');
+                if (modal) modal.classList.remove('hidden');
+                const title = document.getElementById('exportModalTitle');
+                if (title) title.textContent = "🏆 랭커 명단 추출";
+                const options = document.getElementById('exportMatchOptions');
+                if (options) {
+                    options.classList.remove('hidden');
+                    options.innerHTML = `
+                    <div class="grid grid-cols-3 gap-2 w-full">
+                        <button onclick="updateRankerExport('rank')" class="bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold py-2 rounded-lg text-xs transition border border-blue-100">🏆 순위순</button>
+                        <button onclick="updateRankerExport('id')" class="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 font-bold py-2 rounded-lg text-xs transition border border-emerald-100">🆔 ID (이름+ID)</button>
+                        <button onclick="updateRankerExport('color')" class="bg-purple-50 text-purple-600 hover:bg-purple-100 font-bold py-2 rounded-lg text-xs transition border border-purple-100">🎨 색상 (이름+색상)</button>
+                    </div>`;
+                }
+                updateRankerExport('rank');
+            } catch (e) {
+                showCustomAlert("명단 생성 중 오류가 발생했습니다.");
+            }
         };
 
         // copyAllPlayerList 함수 (NEW: 버튼 추가)
