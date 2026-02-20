@@ -399,8 +399,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v4.99",
-            updateNote: "프로필 카드 UI 수정",
+            version: "v5.00",
+            updateNote: "챔피언 카드 UI 수정",
             title: "RFC 랭킹전"
         };
 
@@ -800,7 +800,13 @@ const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||
                 const defCount = p.defenseCount || 0;
                 const formHtml = getRecentFormHTML(p.name);
                 
-                // [삭제됨] 연승 표시 로직 제거
+                // [NEW] 챔피언 현상금 HTML (Option 1: 심플 텍스트) - 연승 표시 제외
+                // [수정] 왕의 목(잭팟) 시스템: 방어전 횟수 × 20점 강제 적용
+                const champBounty = defCount * 20;
+                let bountyHtml = '';
+                if (champBounty > 0) {
+                    bountyHtml = `<span class="text-amber-400 font-black text-[12px] ml-1 drop-shadow-md tracking-wider">💰 +${champBounty}</span>`;
+                }
 
                 container.innerHTML += `
                 <div class="rank-card flex items-center p-3 md:p-4 rounded-xl mb-2 inferno-card relative group cursor-pointer" onclick="openProfile('${p.id}')">
@@ -821,8 +827,10 @@ const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||
                     </div>
 
                     <div class="flex-grow min-w-0 flex flex-col justify-center py-1 relative z-10">
+                        <!-- 1. 방어 뱃지를 상단으로 이동 -->
                         <div class="flex items-center gap-2 mb-1">
                              <div class="champ-badge">CHAMPION</div>
+                             <span class="bg-orange-950/50 text-orange-300 border border-orange-500/30 text-[10px] px-1.5 py-0.5 rounded font-bold">🛡️ ${defCount}차 방어</span>
                         </div>
 
                         <div class="flex items-center gap-1.5 md:gap-2 mb-0.5 md:mb-1.5">
@@ -832,7 +840,8 @@ const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||
                         <div class="flex items-center gap-1.5 mt-0.5">
                             <span class="bg-black/40 text-orange-300 text-[10px] px-1.5 py-0.5 rounded border border-orange-500/30 font-bold">⚡${p.elo}</span>
                             <span class="text-xs text-slate-300">| ${p.wins}승 ${p.losses}패</span>
-                            <span class="bg-orange-950/50 text-orange-300 border border-orange-500/30 text-[10px] px-1.5 py-0.5 rounded font-bold ml-1">🛡️ ${defCount}차 방어</span>
+                            <!-- 2. 현상금 잭팟 위치 (텍스트 온리) -->
+                            ${bountyHtml}
                         </div>
                     </div>
 
@@ -1410,7 +1419,10 @@ const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||
             const badgeContainer = document.getElementById('pModalBadges');
             badgeContainer.innerHTML = '';
             
-            // 3연승 이상일 때만 표시 (PC: 12px, 모바일: 10px)
+            const isChamp = p.isChampion === true;
+            const displayBounty = isChamp ? (p.defenseCount || 0) * 20 : (p.bounty || 0);
+            
+            // 3연승 이상일 때만 표시 (PC: 12px, 모바일: 10px) - 챔피언도 연승 뱃지 표시
             if ((p.currentStreak || 0) >= 3) {
                 badgeContainer.innerHTML += `
                     <div class="flex items-center gap-1 bg-orange-50 text-orange-600 border border-orange-100 px-2 py-0.5 rounded-md shadow-sm">
@@ -1419,12 +1431,12 @@ const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||
                     </div>`;
             }
             
-            // 현상금이 있을 때만 표시 (PC: 12px, 모바일: 10px)
-            if ((p.bounty || 0) > 0) {
+            // 현상금이 있을 때만 표시 (PC: 12px, 모바일: 10px) - 챔피언 잭팟 반영
+            if (displayBounty > 0) {
                 badgeContainer.innerHTML += `
-                    <div class="flex items-center gap-1 bg-slate-800 text-amber-400 border border-slate-700 px-2 py-0.5 rounded-md shadow-sm">
+                    <div class="flex items-center gap-1 bg-amber-50 text-amber-600 border border-amber-200 px-2 py-0.5 rounded-md shadow-sm">
                         <span class="text-[10px] md:text-[12px]">💰</span>
-                        <span class="text-[10px] md:text-[12px] font-bold tracking-tight">+${p.bounty}</span>
+                        <span class="text-[10px] md:text-[12px] font-bold tracking-tight">+${displayBounty}</span>
                     </div>`;
             }
 
@@ -1600,8 +1612,8 @@ const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||
                     
                     const myRank = challengers.findIndex(p => p.id === editTargetId) + 1;
                     
-                    // 11위 이하(Rank > 10)이고 현상금이 있다면 삭제
-                    if (myRank > 10 && (rankings[idx].bounty || 0) > 0) {
+                    // 11위 이하(Rank > 10)이고 현상금이 있다면 삭제 (챔피언 제외)
+                    if (!rankings[idx].isChampion && myRank > 10 && (rankings[idx].bounty || 0) > 0) {
                         rankings[idx].bounty = 0;
                     }
 
