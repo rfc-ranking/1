@@ -254,8 +254,8 @@
                 <!-- 검색창 & 범례 -->
                 <div class="flex items-center gap-1.5 sm:gap-3 shrink-0">
                     <div class="relative w-[105px] sm:w-[150px]">
-                        <!-- [수정] autocomplete="off" spellcheck="false" 추가하여 자동완성 및 비밀번호 팝업 방지 -->
-                        <input type="search" id="playerSearchInput" autocomplete="off" spellcheck="false" placeholder="선수 검색" class="w-full bg-slate-50 border border-slate-200 rounded-lg pl-6 sm:pl-8 pr-1 sm:pr-2 py-1 sm:py-1.5 text-[11px] sm:text-xs outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors" oninput="handleSearch(this.value)">
+                        <!-- [수정] autocomplete="nope" 및 name 추가로 브라우저 이메일 자동완성 강제 차단 -->
+                        <input type="search" id="playerSearchInput" name="q_search_dummy" autocomplete="nope" spellcheck="false" placeholder="선수 검색" class="w-full bg-slate-50 border border-slate-200 rounded-lg pl-6 sm:pl-8 pr-1 sm:pr-2 py-1 sm:py-1.5 text-[11px] sm:text-xs outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors" oninput="handleSearch(this.value)">
                         <span class="absolute left-1.5 sm:left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] sm:text-xs pointer-events-none">🔍</span>
                     </div>
                     
@@ -362,7 +362,8 @@
         <div class="bg-white p-6 rounded-2xl shadow-xl w-80 text-center">
             <h3 class="text-lg font-bold text-slate-800 mb-2">🔒 본인 인증</h3>
             <p class="text-xs text-slate-500 mb-4">프로필 수정을 위해 4자리 비밀번호를 입력하세요.<br><span class="text-blue-500 font-bold mt-1 inline-block">(초기 비번은 관리자에게 문의)</span></p>
-            <input type="password" id="inputPin" maxlength="4" class="w-full text-center text-2xl font-bold tracking-[0.5em] border-b-2 border-slate-300 focus:border-blue-500 outline-none pb-2 mb-6" placeholder="••••">
+            <!-- [수정] autocomplete="new-password" 추가하여 이메일 자동완성 유발 방지 -->
+            <input type="password" id="inputPin" autocomplete="new-password" maxlength="4" class="w-full text-center text-2xl font-bold tracking-[0.5em] border-b-2 border-slate-300 focus:border-blue-500 outline-none pb-2 mb-6" placeholder="••••">
             <div class="flex gap-2">
                 <button onclick="closePinModal()" class="flex-1 bg-slate-100 text-slate-600 font-bold py-3 rounded-xl text-sm">취소</button>
                 <button onclick="checkPin()" class="flex-1 bg-blue-600 text-white font-bold py-3 rounded-xl text-sm">확인</button>
@@ -396,7 +397,8 @@
                 <div class="grid grid-cols-2 gap-3"><div><label class="text-xs font-bold text-slate-500 mb-1 block">키 (cm)</label><input type="text" id="userEditHeight" class="w-full border p-3 rounded-xl text-sm font-bold bg-slate-50"></div><div><label class="text-xs font-bold text-slate-500 mb-1 block">리치 (cm)</label><input type="text" id="userEditReach" class="w-full border p-3 rounded-xl text-sm font-bold bg-slate-50"></div></div>
                 <div><label class="text-xs font-bold text-slate-500 mb-1 block">스탠스</label><select id="userEditStance" class="w-full border p-3 rounded-xl text-sm font-bold bg-slate-50"><option value="Orthodox">Orthodox (오른손)</option><option value="Southpaw">Southpaw (왼손)</option><option value="Switch">Switch (양손)</option></select></div>
                 <div><label class="text-xs font-bold text-slate-500 mb-1 block">Game ID</label><input type="text" id="userEditGameId" class="w-full border p-3 rounded-xl text-sm font-bold bg-slate-50"></div>
-                <div><label class="text-xs font-bold text-slate-500 mb-1 block">비밀번호 변경 (선택)</label><input type="text" id="userEditPin" maxlength="4" class="w-full border p-3 rounded-xl text-sm font-bold bg-slate-50" placeholder="변경할 경우에만 입력 (4자리)"></div>
+                <!-- [수정] type="password"로 변경 및 autocomplete="new-password" 추가 -->
+                <div><label class="text-xs font-bold text-slate-500 mb-1 block">비밀번호 변경 (선택)</label><input type="password" id="userEditPin" autocomplete="new-password" maxlength="4" class="w-full border p-3 rounded-xl text-sm font-bold bg-slate-50" placeholder="변경할 경우에만 입력 (4자리)"></div>
                 <div class="p-4 bg-slate-50 rounded-xl border border-slate-100"><label class="text-xs font-bold text-slate-500 mb-2 block">파이팅 스타일 (최대 3개)</label><div id="userStyleTags" class="flex flex-wrap gap-2"></div></div>
             </div>
             <div class="flex gap-3 mt-8"><button onclick="closeUserEdit()" class="flex-1 bg-slate-100 text-slate-600 font-bold py-3.5 rounded-xl text-sm">취소</button><button onclick="saveUserProfile()" class="flex-1 bg-blue-600 text-white font-bold py-3.5 rounded-xl text-sm shadow-lg shadow-blue-500/30">저장하기</button></div>
