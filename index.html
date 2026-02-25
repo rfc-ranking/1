@@ -244,7 +244,12 @@
     <main class="max-w-3xl mx-auto p-3 flex-grow w-full">
         <div id="rankingSection" class="fade-in space-y-3">
             <div class="flex justify-between items-center px-1 pb-1 flex-wrap gap-2">
-                <span class="text-xs font-bold text-slate-400 hidden sm:block">RFC Season 1: Champions League</span>
+                <!-- [NEW] 시즌 타이틀 및 시작일 동적 렌더링 영역 -->
+                <div class="flex flex-col hidden sm:flex">
+                    <span id="rankingSeasonTitle" class="text-xs font-bold text-slate-700"></span>
+                    <span id="rankingSeasonStartDate" class="text-[10px] text-slate-400 mt-0.5"></span>
+                </div>
+                
                 <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
                     <div class="relative flex-grow sm:flex-grow-0">
                         <input type="search" id="playerSearchInput" placeholder="선수/초성 검색" 
@@ -399,8 +404,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v5.00",
-            updateNote: "챔피언 카드 UI 수정",
+            version: "v5.01",
+            updateNote: "시즌 시작일 UI 수정",
             title: "RFC 랭킹전"
         };
 
@@ -698,6 +703,28 @@
             return diffDays <= 2; 
         }
 
+        // [NEW] 해당 시즌의 첫 번째 경기 날짜를 찾아 시작일로 반환하는 함수
+        function getSeasonStartDate(seasonName) {
+            const seasonMatches = matchHistoryData.filter(m => (m.season || "시즌 1") === seasonName);
+            if (seasonMatches.length === 0) return null;
+            
+            const dates = seasonMatches.map(m => {
+                const d = new Date(m.date);
+                return isNaN(d.getTime()) ? 0 : d.getTime();
+            }).filter(t => t > 0);
+
+            if (dates.length === 0) return null;
+
+            const oldestTime = Math.min(...dates);
+            const oldestDate = new Date(oldestTime);
+            
+            const yyyy = oldestDate.getFullYear();
+            const mm = String(oldestDate.getMonth() + 1).padStart(2, '0');
+            const dd = String(oldestDate.getDate()).padStart(2, '0');
+            
+            return `${yyyy}. ${mm}. ${dd}`;
+        }
+
         // [수정] 랭킹 리스트용 최근 전적 HTML 생성 함수 (점 스타일로 변경)
         function getRecentFormHTML(name) {
             const targetSeason = viewRankingSeason || activeSeason;
@@ -745,6 +772,23 @@
 
         function renderRankings() { 
             const container = document.getElementById('rankingList'); container.innerHTML = ''; 
+            
+            // [NEW] 랭킹 리스트 상단 타이틀 및 시즌 시작일 업데이트
+            const titleEl = document.getElementById('rankingSeasonTitle');
+            const dateEl = document.getElementById('rankingSeasonStartDate');
+            const targetSeason = viewRankingSeason || activeSeason;
+            
+            if (titleEl) titleEl.textContent = targetSeason;
+            if (dateEl) {
+                const startDate = getSeasonStartDate(targetSeason);
+                if (startDate) {
+                    dateEl.textContent = `Started: ${startDate} ~`;
+                    dateEl.classList.remove('hidden');
+                } else {
+                    dateEl.classList.add('hidden'); // 경기가 없으면 숨김
+                }
+            }
+
             let fullData = [];
             if (viewRankingSeason === activeSeason) {
                 fullData = [...rankingsData];
