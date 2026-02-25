@@ -253,21 +253,16 @@
                 
                 <!-- 검색창 & 범례 -->
                 <div class="flex items-center gap-1.5 sm:gap-3 shrink-0">
-                    <div class="relative w-[115px] sm:w-[150px]">
-                        <input type="search" id="playerSearchInput" placeholder="선수 검색" class="w-full bg-slate-50 border border-slate-200 rounded-lg pl-7 sm:pl-8 pr-2 py-1 sm:py-1.5 text-[11px] sm:text-xs outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors" oninput="handleSearch(this.value)">
-                        <span class="absolute left-2 sm:left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] sm:text-xs pointer-events-none">🔍</span>
+                    <div class="relative w-[105px] sm:w-[150px]">
+                        <!-- [수정] autocomplete="off" spellcheck="false" 추가하여 자동완성 및 비밀번호 팝업 방지 -->
+                        <input type="search" id="playerSearchInput" autocomplete="off" spellcheck="false" placeholder="선수 검색" class="w-full bg-slate-50 border border-slate-200 rounded-lg pl-6 sm:pl-8 pr-1 sm:pr-2 py-1 sm:py-1.5 text-[11px] sm:text-xs outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors" oninput="handleSearch(this.value)">
+                        <span class="absolute left-1.5 sm:left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] sm:text-xs pointer-events-none">🔍</span>
                     </div>
                     
-                    <!-- PC용 범례 -->
-                    <div class="hidden sm:flex gap-1.5 items-center bg-slate-50 px-2 py-1 rounded border border-slate-200 shadow-inner">
-                        <span class="text-[10px] text-slate-500 font-bold flex items-center gap-0.5"><div class="w-2 h-2 rounded-full bg-emerald-400 shadow-sm border border-emerald-500"></div>승</span>
-                        <span class="text-[10px] text-slate-500 font-bold flex items-center gap-0.5"><div class="w-2 h-2 rounded-full bg-rose-400 shadow-sm border border-rose-500"></div>패</span>
-                    </div>
-                    
-                    <!-- 모바일용 압축 범례 (세로형 미니) -->
-                    <div class="flex sm:hidden flex-col gap-0.5 justify-center">
-                        <span class="text-[8px] text-slate-400 font-bold leading-none"><span class="text-emerald-500 mr-0.5">●</span>승</span>
-                        <span class="text-[8px] text-slate-400 font-bold leading-none"><span class="text-rose-500 mr-0.5">●</span>패</span>
+                    <!-- 가로형 통합 범례 (모바일/PC 공통 적용) -->
+                    <div class="flex gap-1 sm:gap-1.5 items-center bg-slate-50 px-1.5 sm:px-2 py-1 rounded border border-slate-200 shadow-inner shrink-0">
+                        <span class="text-[9px] sm:text-[10px] text-slate-500 font-bold flex items-center gap-0.5"><div class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 shadow-sm border border-emerald-500"></div>승</span>
+                        <span class="text-[9px] sm:text-[10px] text-slate-500 font-bold flex items-center gap-0.5"><div class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-rose-400 shadow-sm border border-rose-500"></div>패</span>
                     </div>
                 </div>
             </div>
@@ -278,17 +273,23 @@
 
         <!-- [복구됨] 경기 기록 탭 영역 -->
         <div id="matchesSection" class="hidden fade-in">
-            <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between mb-4">
-                <span class="text-sm font-bold text-slate-600">시즌 선택</span>
-                <select id="seasonSelector" class="text-sm font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded-lg p-2 outline-none focus:ring-2 focus:ring-blue-500"></select>
+            <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between mb-4 gap-2">
+                <div class="flex flex-col min-w-0 shrink">
+                    <span id="matchesSeasonTitle" class="text-[13px] font-black text-slate-700 truncate tracking-tight"></span>
+                    <span id="matchesSeasonStartDate" class="text-[10px] text-slate-400 mt-0.5 truncate"></span>
+                </div>
+                <select id="seasonSelector" class="text-xs font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded-lg p-2 outline-none focus:ring-2 focus:ring-blue-500 shrink-0"></select>
             </div>
             <div id="matchList" class="space-y-3 pb-6"></div>
         </div>
 
         <div id="hofSection" class="hidden fade-in">
-            <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between mb-4">
-                <span class="text-sm font-bold text-slate-600">시즌 선택</span>
-                <select id="hofSeasonSelector" class="text-sm font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded-lg p-2 outline-none focus:ring-2 focus:ring-blue-500"></select>
+            <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between mb-4 gap-2">
+                <div class="flex flex-col min-w-0 shrink">
+                    <span id="hofSeasonTitle" class="text-[13px] font-black text-slate-700 truncate tracking-tight"></span>
+                    <span id="hofSeasonStartDate" class="text-[10px] text-slate-400 mt-0.5 truncate"></span>
+                </div>
+                <select id="hofSeasonSelector" class="text-xs font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded-lg p-2 outline-none focus:ring-2 focus:ring-blue-500 shrink-0"></select>
             </div>
             <div id="hofContent" class="space-y-6"></div>
         </div>
@@ -416,8 +417,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v5.02",
-            updateNote: "시즌 시작일 UI 수정",
+            version: "v5.03",
+            updateNote: "시즌 종료일 표시",
             title: "RFC 랭킹전"
         };
 
@@ -715,8 +716,8 @@
             return diffDays <= 2; 
         }
 
-        // [수정] 해당 시즌의 첫 경기 날짜를 찾아 반환 (모바일 공간 확보를 위해 연도 축약: 26. 01. 29)
-        function getSeasonStartDate(seasonName) {
+        // [수정] 해당 시즌의 첫 경기와 마지막 경기 날짜를 찾아 반환 (과거 시즌은 종료일 포함)
+        function getSeasonDateRange(seasonName) {
             const seasonMatches = matchHistoryData.filter(m => (m.season || "시즌 1") === seasonName);
             if (seasonMatches.length === 0) return null;
             
@@ -728,13 +729,38 @@
             if (dates.length === 0) return null;
 
             const oldestTime = Math.min(...dates);
-            const oldestDate = new Date(oldestTime);
+            const newestTime = Math.max(...dates);
             
-            const yy = String(oldestDate.getFullYear()).slice(-2);
-            const mm = String(oldestDate.getMonth() + 1).padStart(2, '0');
-            const dd = String(oldestDate.getDate()).padStart(2, '0');
+            const formatDate = (time) => {
+                const d = new Date(time);
+                const yy = String(d.getFullYear()).slice(-2);
+                const mm = String(d.getMonth() + 1).padStart(2, '0');
+                const dd = String(d.getDate()).padStart(2, '0');
+                return `${yy}. ${mm}. ${dd}`;
+            };
+
+            const startDate = formatDate(oldestTime);
             
-            return `${yy}. ${mm}. ${dd}`;
+            // 현재 진행중인 시즌이면 시작일만 표시
+            if (seasonName === activeSeason) {
+                return `${startDate} ~`;
+            } else {
+                // 과거 시즌이면 종료일도 함께 표시
+                const endDate = formatDate(newestTime);
+                return `${startDate} ~ ${endDate}`;
+            }
+        }
+
+        // [NEW] 공통 시즌 타이틀 포맷팅 함수
+        function formatSeasonTitle(seasonName) {
+            if (!seasonName) return "";
+            let displayTitle = seasonName;
+            if (displayTitle.includes('시즌')) {
+                displayTitle = displayTitle.replace(/시즌\s*/, 'RFC Season ');
+            } else if (!displayTitle.toUpperCase().includes('RFC')) {
+                displayTitle = 'RFC ' + displayTitle;
+            }
+            return displayTitle;
         }
 
         // 랭킹 리스트용 최근 전적 HTML 생성 함수 (점 스타일로 변경)
@@ -791,19 +817,12 @@
             const targetSeason = viewRankingSeason || activeSeason;
             
             if (titleEl) {
-                // [수정] "시즌 1" 형식을 "RFC Season 1" 형식으로 변환하여 표시
-                let displayTitle = targetSeason;
-                if (displayTitle.includes('시즌')) {
-                    displayTitle = displayTitle.replace(/시즌\s*/, 'RFC Season ');
-                } else if (!displayTitle.toUpperCase().includes('RFC')) {
-                    displayTitle = 'RFC ' + displayTitle;
-                }
-                titleEl.textContent = displayTitle;
+                titleEl.textContent = formatSeasonTitle(targetSeason);
             }
             if (dateEl) {
-                const startDate = getSeasonStartDate(targetSeason);
-                if (startDate) {
-                    dateEl.textContent = `Started: ${startDate} ~`;
+                const dateRange = getSeasonDateRange(targetSeason);
+                if (dateRange) {
+                    dateEl.textContent = dateRange;
                     dateEl.classList.remove('hidden');
                 } else {
                     dateEl.classList.add('hidden'); // 경기가 없으면 숨김
@@ -1155,6 +1174,21 @@ const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||
         function renderMatches() { 
             const container = document.getElementById('matchList'); 
             container.innerHTML = ''; 
+
+            // [NEW] 기록 탭 상단 타이틀 및 시작/종료일 업데이트
+            const mTitleEl = document.getElementById('matchesSeasonTitle');
+            const mDateEl = document.getElementById('matchesSeasonStartDate');
+            if (mTitleEl) mTitleEl.textContent = formatSeasonTitle(viewSeason);
+            if (mDateEl) {
+                const dateRange = getSeasonDateRange(viewSeason);
+                if (dateRange) {
+                    mDateEl.textContent = dateRange;
+                    mDateEl.classList.remove('hidden');
+                } else {
+                    mDateEl.classList.add('hidden');
+                }
+            }
+
             const filtered = enrichedMatchHistory.filter(m => (m.season || "시즌 1") === viewSeason && m.type !== 'draw'); 
             
             if (filtered.length === 0) { 
@@ -1276,6 +1310,21 @@ const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||
 
         function renderHOF() { 
             const container = document.getElementById('hofContent'); 
+
+            // [NEW] 명예의 전당 탭 상단 타이틀 및 시작/종료일 업데이트
+            const hTitleEl = document.getElementById('hofSeasonTitle');
+            const hDateEl = document.getElementById('hofSeasonStartDate');
+            if (hTitleEl) hTitleEl.textContent = formatSeasonTitle(viewHofSeason);
+            if (hDateEl) {
+                const dateRange = getSeasonDateRange(viewHofSeason);
+                if (dateRange) {
+                    hDateEl.textContent = dateRange;
+                    hDateEl.classList.remove('hidden');
+                } else {
+                    hDateEl.classList.add('hidden');
+                }
+            }
+
             let players = [];
             let seasonName = "";
             let targetHistory = [];
