@@ -227,7 +227,18 @@
 
     <div id="mainContent" class="max-w-6xl mx-auto p-4 hidden min-h-screen flex flex-col">
         <header class="flex flex-col md:flex-row justify-between items-center mb-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-            <div class="flex items-center gap-3"><h1 class="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">RFC 매니저</h1><span id="currentSeasonBadge" class="bg-slate-800 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">Loading...</span><span id="saveStatus" class="text-xs font-medium text-emerald-500 transition-opacity opacity-0">✅ 저장됨 (Secure)</span></div>
+            <div class="flex items-center gap-3">
+                <h1 class="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">RFC 매니저</h1>
+                
+                <div class="flex items-center rounded-lg overflow-hidden border border-slate-200 shadow-sm">
+                    <span id="currentSeasonBadge" class="bg-slate-700 text-white text-[11px] font-bold px-2.5 py-1">Loading...</span>
+                    <span id="currentSeasonDateRange" class="bg-slate-50 text-slate-600 text-[11px] font-medium px-2.5 py-1">
+                        ...
+                    </span>
+                </div>
+                
+                <span id="saveStatus" class="text-xs font-medium text-emerald-500 transition-opacity opacity-0">✅ 저장됨 (Secure)</span>
+            </div>
             <div class="mt-2 md:mt-0 text-xs text-slate-400 font-medium"><span id="adminVersionDisplay">v?.??</span></div>
         </header>
 
@@ -477,8 +488,8 @@
         const AUTO_LOGIN_PW = "";
         
         const ADMIN_CONFIG = {
-            version: "v5.03",
-            updateNote: "모달 확인 버튼 누락 수정",
+            version: "v5.04",
+            updateNote: "상단 헤더 수정",
             title: "RFC 매니저"
         };
 
@@ -555,6 +566,38 @@
         };
     
         function getKSTDate() { return new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Seoul" }); }
+
+        function getSeasonDateRange(seasonName) {
+            const seasonMatches = matchHistoryData.filter(m => (m.season || "시즌 1") === seasonName);
+            if (seasonMatches.length === 0) return "경기 기록 없음";
+            
+            const dates = seasonMatches.map(m => {
+                const d = new Date(m.date);
+                return isNaN(d.getTime()) ? 0 : d.getTime();
+            }).filter(t => t > 0);
+
+            if (dates.length === 0) return "경기 기록 없음";
+
+            const oldestTime = Math.min(...dates);
+            const newestTime = Math.max(...dates);
+            
+            const formatDate = (time) => {
+                const d = new Date(time);
+                const yy = String(d.getFullYear()).slice(-2);
+                const mm = String(d.getMonth() + 1).padStart(2, '0');
+                const dd = String(d.getDate()).padStart(2, '0');
+                return `${yy}.${mm}.${dd}`;
+            };
+
+            const startDate = formatDate(oldestTime);
+            
+            if (seasonName === activeSeason) {
+                return `${startDate} ~ 진행중`;
+            } else {
+                const endDate = formatDate(newestTime);
+                return `${startDate} ~ ${endDate}`;
+            }
+        }
         
         function isRecentRankIn(dateStr) {
             if (!dateStr) return false;
@@ -707,7 +750,17 @@
             }); 
         }
 
-        function updateSeasonUI() { document.getElementById('currentSeasonBadge').textContent = activeSeason; document.querySelectorAll('.currentSeasonName').forEach(el => el.textContent = activeSeason); const num = parseInt(activeSeason.replace(/[^0-9]/g, '')) || 0; document.getElementById('newSeasonNameInput').value = `시즌 ${num + 1}`; }
+        function updateSeasonUI() { 
+            const badgeEl = document.getElementById('currentSeasonBadge');
+            if (badgeEl) badgeEl.textContent = activeSeason; 
+            
+            const dateRangeEl = document.getElementById('currentSeasonDateRange');
+            if (dateRangeEl) dateRangeEl.textContent = getSeasonDateRange(activeSeason);
+            
+            document.querySelectorAll('.currentSeasonName').forEach(el => el.textContent = activeSeason); 
+            const num = parseInt(activeSeason.replace(/[^0-9]/g, '')) || 0; 
+            document.getElementById('newSeasonNameInput').value = `시즌 ${num + 1}`; 
+        }
         window.resetMatchInputs = (keepDate = false) => { if(p1Tom) p1Tom.clear(); if(p2Tom) p2Tom.clear(); document.querySelectorAll('input[name="winner"]').forEach(r => r.checked = false); document.getElementById('isTitleMatch').checked = false; const p1Ind = document.getElementById('p1TrunkIndicator'); const p2Ind = document.getElementById('p2TrunkIndicator'); if(p1Ind) p1Ind.style.backgroundColor = '#f1f5f9'; if(p2Ind) p2Ind.style.backgroundColor = '#f1f5f9'; window.updateMatchPreview(); if (!keepDate) setMatchDate('today'); };
         
         window.checkAutoTitleMatch = () => {
@@ -930,37 +983,109 @@
         function updateAdminHistorySeasonSelector() { const selector = document.getElementById('adminHistorySeason'); selector.innerHTML = ''; const opts = [activeSeason, ...Object.keys(seasonArchives).sort().reverse().filter(s => s !== activeSeason)]; opts.forEach(s => { const opt = document.createElement('option'); opt.value = s; opt.textContent = s + (s === activeSeason ? " 🟢" : ""); selector.appendChild(opt); }); selector.value = viewHistorySeason; selector.onchange = (e) => { viewHistorySeason = e.target.value; renderAdminMatches(); }; }
         window.deleteMatchLog = (idx) => { if (idx === -1) return; if(!confirm("⚠️ 경고: 기록 삭제?")) return; captureState(); matchHistoryData.splice(idx, 1); saveRankings(); renderAdminMatches(); alert("기록 삭제됨."); };
 
-        window.openMatchExportModal = () => { const modal = document.getElementById('exportModal'); if (modal) modal.classList.remove('hidden'); const title = document.getElementById('exportModalTitle'); if (title) title.textContent = "📤 텍스트 내보내기 / 수정"; const options = document.getElementById('exportMatchOptions'); if (options) { options.classList.remove('hidden'); options.innerHTML = `<div class="flex gap-2 w-full mb-2"><button onclick="generateExportText(15)" class="flex-1 bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold py-2 rounded-lg text-xs transition border border-blue-100">최근 15경기</button><button onclick="generateExportText(30)" class="flex-1 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-bold py-2 rounded-lg text-xs transition border border-indigo-100">최근 30경기</button></div><div class="flex justify-end px-1"><label class="inline-flex items-center cursor-pointer hover:bg-slate-50 p-1 rounded transition"><input type="checkbox" id="hideRankToggle" onchange="generateExportText()" class="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500 cursor-pointer"><span class="ml-2 text-xs text-slate-500 font-bold select-none">순위 숨기기</span></label></div>`; } const textarea = document.getElementById('exportTextarea'); if (textarea) textarea.value = ""; window.lastExportCount = 15; generateExportText(15); };
+        window.openMatchExportModal = () => { 
+            const modal = document.getElementById('exportModal'); if (modal) modal.classList.remove('hidden'); 
+            const title = document.getElementById('exportModalTitle'); if (title) title.textContent = "📤 텍스트 내보내기 / 수정"; 
+            const options = document.getElementById('exportMatchOptions'); 
+            if (options) { 
+                options.classList.remove('hidden'); 
+                options.className = "flex flex-col gap-2 w-full mb-3"; // 스타일 변경
+                options.innerHTML = `
+                    <div class="flex gap-2 w-full">
+                        <button onclick="generateExportText(15)" class="flex-1 bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold py-2 rounded-lg text-xs transition border border-blue-100">최근 15경기</button>
+                        <button onclick="generateExportText(30)" class="flex-1 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-bold py-2 rounded-lg text-xs transition border border-indigo-100">최근 30경기</button>
+                    </div>
+                    <div class="flex justify-between items-center px-1 w-full mt-1">
+                        <label class="inline-flex items-center cursor-pointer hover:bg-slate-50 p-1 rounded transition">
+                            <input type="checkbox" id="hideRankToggle" onchange="generateExportText()" class="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500 cursor-pointer">
+                            <span class="ml-2 text-xs text-slate-500 font-bold select-none">순위 숨기기</span>
+                        </label>
+                        
+                        <!-- 세그먼트 컨트롤 영역 -->
+                        <div class="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 cursor-pointer">
+                            <button id="sortLatestBtn" onclick="setExportSort('latest')" class="px-3 py-1.5 text-[10px] font-bold rounded-md bg-white text-blue-600 shadow-sm border border-slate-200 transition">최신순 ▼</button>
+                            <button id="sortOldestBtn" onclick="setExportSort('oldest')" class="px-3 py-1.5 text-[10px] font-bold rounded-md text-slate-400 hover:text-slate-600 transition">과거순 ▲</button>
+                        </div>
+                    </div>`; 
+            } 
+            const textarea = document.getElementById('exportTextarea'); if (textarea) textarea.value = ""; 
+            window.lastExportCount = 15; 
+            window.exportSortOrder = 'latest'; // 기본 정렬(최신순) 설정
+            generateExportText(15); 
+        };
         
+        // [NEW] 정렬 방식 변경 함수
+        window.setExportSort = (order) => {
+            window.exportSortOrder = order;
+            const btnLatest = document.getElementById('sortLatestBtn');
+            const btnOldest = document.getElementById('sortOldestBtn');
+            
+            if(order === 'latest') {
+                if(btnLatest) btnLatest.className = "px-3 py-1.5 text-[10px] font-bold rounded-md bg-white text-blue-600 shadow-sm border border-slate-200 transition";
+                if(btnOldest) btnOldest.className = "px-3 py-1.5 text-[10px] font-bold rounded-md text-slate-400 hover:text-slate-600 transition";
+            } else {
+                if(btnOldest) btnOldest.className = "px-3 py-1.5 text-[10px] font-bold rounded-md bg-white text-blue-600 shadow-sm border border-slate-200 transition";
+                if(btnLatest) btnLatest.className = "px-3 py-1.5 text-[10px] font-bold rounded-md text-slate-400 hover:text-slate-600 transition";
+            }
+            generateExportText(); // 데이터 재출력
+        };
+
         function getPlayerStatusLabel(p, realRankList) { const total = (p.wins || 0) + (p.losses || 0); if (total < 3) return `${p.name}(UR)`; const rank = realRankList.findIndex(r => r.id === p.id) + 1; return `${p.name}(${rank}위)`; }
 
         window.generateExportText = (count) => { 
             if (count) window.lastExportCount = count; else count = window.lastExportCount || 15; 
             const hideRank = document.getElementById('hideRankToggle')?.checked || false; const targetSeason = viewHistorySeason || activeSeason; 
-            const filtered = matchHistoryData.filter(m => (m.season || "시즌 1") === targetSeason && m.type !== 'draw'); const targets = filtered.slice(0, count); 
+            const filtered = matchHistoryData.filter(m => (m.season || "시즌 1") === targetSeason && m.type !== 'draw'); 
+            let targets = filtered.slice(0, count); 
+            
             const textarea = document.getElementById('exportTextarea'); if (!textarea) return; 
             if (targets.length === 0) { textarea.value = `[${targetSeason}] 기록된 경기가 없습니다.`; return; } 
+            
             const processedTargets = targets.map(m => { let dateStr = m.date; try { const parts = dateStr.split('-'); if (parts.length === 3) dateStr = `${parseInt(parts[1])}월 ${parseInt(parts[2])}일`; } catch(e) {} return { ...m, dateLabel: dateStr }; }); 
-            const dateCounts = processedTargets.reduce((acc, m) => { acc[m.dateLabel] = (acc[m.dateLabel] || 0) + 1; return acc; }, {}); 
+            
+            // [NEW] 날짜별로 그룹화하여 날짜 순서는 유지하되, 내부 경기 순서만 뒤집을 수 있게 처리
+            const groups = {};
+            const dateOrder = [];
+            processedTargets.forEach(m => {
+                if(!groups[m.dateLabel]) {
+                    groups[m.dateLabel] = [];
+                    dateOrder.push(m.dateLabel); // 날짜의 묶음 순서 기록 (최신 날짜 우선)
+                }
+                groups[m.dateLabel].push(m);
+            });
+
             const realRankList = rankingsData.filter(p => !p.isChampion && ((p.wins || 0) + (p.losses || 0)) >= 3).sort((a, b) => (b.elo || 1000) - (a.elo || 1000)); 
-            let result = ""; let currentDate = ""; 
-            processedTargets.forEach(m => { 
-                if (m.dateLabel !== currentDate) { if (result !== "") result += "\n"; result += `📅 ${m.dateLabel} (총 ${dateCounts[m.dateLabel]}경기)\n`; currentDate = m.dateLabel; } 
-                const getLabel = (name, historicalRank) => {
-                    if (hideRank) return name;
-                    if (historicalRank !== undefined && historicalRank !== null) {
-                        if (historicalRank === 'C') return `${name}(C)`; 
-                        if (historicalRank > 0) return `${name}(${historicalRank}위)`;
-                        if (historicalRank === 0) { const p = rankingsData.find(x => x.name === name); if (p && p.isChampion) return `${name}(C)`; return `${name}(UR)`; }
-                        return `${name}(UR)`; 
-                    }
-                    const p = rankingsData.find(x => x.name === name); if (!p) return `${name}(?)`; if (p.isChampion) return `${name}(C)`; 
-                    const idx = realRankList.findIndex(r => r.id === p.id); return idx !== -1 ? `${name}(${idx + 1}위)` : `${name}(UR)`;
-                };
-                let leftName, leftRank, rightName, rightRank;
-                if (m.blue) { leftName = m.blue; if (m.winner === m.blue) { leftRank = m.winnerRankBefore; rightName = m.loser; rightRank = m.loserRankBefore; } else { leftRank = m.loserRankBefore; rightName = m.winner; rightRank = m.winnerRankBefore; } } else { leftName = m.winner; leftRank = m.winnerRankBefore; rightName = m.loser; rightRank = m.loserRankBefore; }
-                result += `${getLabel(leftName, leftRank)} VS ${getLabel(rightName, rightRank)}\n`; 
+            let result = ""; 
+            
+            dateOrder.forEach(dateLabel => {
+                let matchesInDate = groups[dateLabel];
+                
+                // [핵심] '과거순'이 선택된 경우, 전체가 아닌 "해당 날짜 안의 경기들만" 뒤집기 (위에서 아래로 시간 흐름)
+                if (window.exportSortOrder === 'oldest') {
+                    matchesInDate.reverse();
+                }
+
+                if (result !== "") result += "\n"; 
+                result += `📅 ${dateLabel} (총 ${matchesInDate.length}경기)\n`; 
+                
+                matchesInDate.forEach(m => {
+                    const getLabel = (name, historicalRank) => {
+                        if (hideRank) return name;
+                        if (historicalRank !== undefined && historicalRank !== null) {
+                            if (historicalRank === 'C') return `${name}(C)`; 
+                            if (historicalRank > 0) return `${name}(${historicalRank}위)`;
+                            if (historicalRank === 0) { const p = rankingsData.find(x => x.name === name); if (p && p.isChampion) return `${name}(C)`; return `${name}(UR)`; }
+                            return `${name}(UR)`; 
+                        }
+                        const p = rankingsData.find(x => x.name === name); if (!p) return `${name}(?)`; if (p.isChampion) return `${name}(C)`; 
+                        const idx = realRankList.findIndex(r => r.id === p.id); return idx !== -1 ? `${name}(${idx + 1}위)` : `${name}(UR)`;
+                    };
+                    let leftName, leftRank, rightName, rightRank;
+                    if (m.blue) { leftName = m.blue; if (m.winner === m.blue) { leftRank = m.winnerRankBefore; rightName = m.loser; rightRank = m.loserRankBefore; } else { leftRank = m.loserRankBefore; rightName = m.winner; rightRank = m.winnerRankBefore; } } else { leftName = m.winner; leftRank = m.winnerRankBefore; rightName = m.loser; rightRank = m.loserRankBefore; }
+                    result += `${getLabel(leftName, leftRank)} VS ${getLabel(rightName, rightRank)}\n`; 
+                });
             }); 
+            
             textarea.value = result; 
         };
 
@@ -1061,7 +1186,7 @@
         window.applyManualPenalty = () => { let idx = pPenTom ? pPenTom.getValue() : document.getElementById('penaltyTargetSelect')?.value; if (idx === "" || idx == null) return; const p = rankingsData[parseInt(idx)]; if (!p) return; showConfirmModal(`[${p.name}] -30점?`, async () => { captureState(); p.elo -= 30; rankingsData.sort((a, b) => b.elo - a.elo); await saveRankings(); renderRankings(); showCustomAlert("차감 완료."); }); };
 
         window.resetBatchInactiveForm = () => { document.getElementById('inactiveDaysInput').value = 30; document.getElementById('penaltyScoreInput').value = 30; document.getElementById('inactiveListArea').classList.add('hidden'); document.getElementById('inactiveUserList').innerHTML = ''; batchPenaltyTargets = []; };
-        window.checkBatchInactiveUsers = () => { const days = parseInt(document.getElementById('inactiveDaysInput').value) || 30; const score = parseInt(document.getElementById('penaltyScoreInput').value) || 30; const today = new Date(getKSTDate()); const rankedPlayers = rankingsData.filter(p => !p.isChampion && (p.wins + p.losses) > 0).sort((a, b) => (b.elo || 1000) - (a.elo || 1000)); batchPenaltyTargets = []; const listEl = document.getElementById('inactiveUserList'); listEl.innerHTML = ''; rankingsData.forEach(p => { const totalMatches = (p.wins || 0) + (p.losses || 0); if (totalMatches === 0 || !p.lastMatchDate) return; const diffDays = Math.ceil((today - new Date(p.lastMatchDate)) / (1000 * 60 * 60 * 24)); if(diffDays >= days) { const rank = rankedPlayers.findIndex(rp => rp.id === p.id) + 1; batchPenaltyTargets.push({ ...p, diffDays, rank }); } }); batchPenaltyTargets.sort((a, b) => b.diffDays - a.diffDays); const area = document.getElementById('inactiveListArea'); if(batchPenaltyTargets.length > 0) { document.getElementById('inactiveCountDisplay').textContent = batchPenaltyTargets.length; batchPenaltyTargets.forEach(t => { const li = document.createElement('li'); li.className = "flex justify-between items-center border-b border-slate-50 last:border-0 pb-1 mb-1 last:pb-0 last:mb-0"; li.innerHTML = `<div class="flex items-center gap-1.5"><span class="text-[10px] font-black text-blue-600 min-w-[24px] text-right">#${t.rank}</span><span class="font-bold text-slate-700">${t.name}</span><span class="text-[10px] bg-slate-100 text-slate-500 px-1 rounded">${t.elo}점</span></div><span class="text-red-500 font-bold text-[10px]">${t.diffDays}일 전</span>`; listEl.appendChild(li); }); const btn = document.getElementById('btnApplyBatchPenalty'); btn.innerHTML = `<span>💀</span> 일괄 -${score}점 적용하기`; btn.onclick = () => confirmBatchPenalty(days, score); area.classList.remove('hidden'); area.classList.add('pop-in'); } else { area.classList.add('hidden'); showCustomAlert("대상자 없음."); } };
+        window.checkBatchInactiveUsers = () => { const days = parseInt(document.getElementById('inactiveDaysInput').value) || 30; const score = parseInt(document.getElementById('penaltyScoreInput').value) || 30; const today = new Date(getKSTDate()); const rankedPlayers = rankingsData.filter(p => !p.isChampion && (Number(p.wins || 0) + Number(p.losses || 0)) >= 3).sort((a, b) => (b.elo || 1000) - (a.elo || 1000)); batchPenaltyTargets = []; const listEl = document.getElementById('inactiveUserList'); listEl.innerHTML = ''; rankingsData.forEach(p => { const totalMatches = (p.wins || 0) + (p.losses || 0); if (totalMatches < 3 || !p.lastMatchDate) return; const diffDays = Math.ceil((today - new Date(p.lastMatchDate)) / (1000 * 60 * 60 * 24)); if(diffDays >= days) { const rank = rankedPlayers.findIndex(rp => rp.id === p.id) + 1; batchPenaltyTargets.push({ ...p, diffDays, rank }); } }); batchPenaltyTargets.sort((a, b) => b.diffDays - a.diffDays); const area = document.getElementById('inactiveListArea'); if(batchPenaltyTargets.length > 0) { document.getElementById('inactiveCountDisplay').textContent = batchPenaltyTargets.length; batchPenaltyTargets.forEach(t => { const li = document.createElement('li'); li.className = "flex justify-between items-center border-b border-slate-50 last:border-0 pb-1 mb-1 last:pb-0 last:mb-0"; li.innerHTML = `<div class="flex items-center gap-1.5"><span class="text-[10px] font-black text-blue-600 min-w-[24px] text-right">#${t.rank}</span><span class="font-bold text-slate-700">${t.name}</span><span class="text-[10px] bg-slate-100 text-slate-500 px-1 rounded">${t.elo}점</span></div><span class="text-red-500 font-bold text-[10px]">${t.diffDays}일 전</span>`; listEl.appendChild(li); }); const btn = document.getElementById('btnApplyBatchPenalty'); btn.innerHTML = `<span>💀</span> 일괄 -${score}점 적용하기`; btn.onclick = () => confirmBatchPenalty(days, score); area.classList.remove('hidden'); area.classList.add('pop-in'); } else { area.classList.add('hidden'); showCustomAlert("대상자 없음."); } };
         window.confirmBatchPenalty = (days, score) => { if(batchPenaltyTargets.length === 0) return; showConfirmModal(`패널티 실행?`, async () => { captureState(); const targetIds = new Set(batchPenaltyTargets.map(t => t.id)); rankingsData.forEach(p => { if(targetIds.has(p.id)) p.elo -= score; }); rankingsData.sort((a, b) => b.elo - a.elo); await saveRankings(); renderRankings(); document.getElementById('inactiveListArea').classList.add('hidden'); batchPenaltyTargets = []; showCustomAlert("적용됨."); }); };
         
         window.fixDataIntegrity = () => { 
