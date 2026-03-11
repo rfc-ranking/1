@@ -419,8 +419,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v5.03",
-            updateNote: "시즌 종료일 표시",
+            version: "v5.05",
+            updateNote: "프로필 UI 업데이트",
             title: "RFC 랭킹전"
         };
 
@@ -1500,6 +1500,10 @@ const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||
             `; 
         }
         
+        window.openRules = () => document.getElementById('rulesModal').classList.remove('hidden'); window.closeRules = () => document.getElementById('rulesModal').classList.add('hidden');
+        window.switchTab = (tab) => { ['ranking', 'matches', 'hof', 'tournament'].forEach(t => { document.getElementById(t + 'Section').classList.add('hidden'); const btn = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1)); btn.className = "tab-inactive flex-1 py-3 text-sm transition-colors text-center"; }); document.getElementById(tab + 'Section').classList.remove('hidden'); const activeBtn = document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)); activeBtn.className = "tab-active flex-1 py-3 text-sm transition-colors text-center"; };
+
+        // [복구됨] 누락되었던 openProfile 및 updateProfileStats 함수 다시 추가
         window.openProfile = (id) => { 
             currentProfileId = id; 
             const p = rankingsData.find(x => x.id === id); 
@@ -1507,7 +1511,6 @@ const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||
             document.getElementById('pModalName').textContent = p.name; 
             document.getElementById('pModalCrown').classList.toggle('hidden', !p.isChampion); 
             
-            // [NEW] 순위 표시 로직
             const rankEl = document.getElementById('pModalRank');
             if (p.isChampion) {
                 rankEl.classList.add('hidden'); 
@@ -1529,16 +1532,14 @@ const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||
             }
 
             document.getElementById('pModalGameId').textContent = `ID: ${p.gameId || '-'}`; 
-            document.getElementById('pModalImg').src = p.imageUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23cbd5e1' stroke-width='2'%3E%3Ccircle cx='12' cy='8' r='5'/%3E%3Cpath d='M20 21a8 8 0 0 0-16 0'/%3E%3C/svg%3E"; 
+            document.getElementById('pModalImg').src = p.imageUrl || "https://placehold.co/150?text=No+Img"; 
             
-            // [수정] 뱃지 렌더링 위치 변경 (셀렉트 박스 좌측)
             const badgeContainer = document.getElementById('pModalBadges');
             badgeContainer.innerHTML = '';
             
             const isChamp = p.isChampion === true;
             const displayBounty = isChamp ? (p.defenseCount || 0) * 20 : (p.bounty || 0);
             
-            // 3연승 이상일 때만 표시 (PC: 12px, 모바일: 10px) - 챔피언도 연승 뱃지 표시
             if ((p.currentStreak || 0) >= 3) {
                 badgeContainer.innerHTML += `
                     <div class="flex items-center gap-1 bg-orange-50 text-orange-600 border border-orange-100 px-2 py-0.5 rounded-md shadow-sm">
@@ -1547,7 +1548,6 @@ const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||
                     </div>`;
             }
             
-            // 현상금이 있을 때만 표시 (PC: 12px, 모바일: 10px) - 챔피언 잭팟 반영
             if (displayBounty > 0) {
                 badgeContainer.innerHTML += `
                     <div class="flex items-center gap-1 bg-amber-50 text-amber-600 border border-amber-200 px-2 py-0.5 rounded-md shadow-sm">
@@ -1579,6 +1579,7 @@ const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||
             updateProfileStats(id, 'all'); 
             document.getElementById('profileModal').classList.remove('hidden'); 
         };
+
         window.closeProfile = () => { document.getElementById('profileModal').classList.add('hidden'); }
         
         window.updateProfileStats = (id, filter) => { 
@@ -1616,22 +1617,16 @@ const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||
                 const oppStats = m.snapshot[filter === 'all' ? 'all' : 'season'][oppName] || { w:0, l:0, h:[] }; 
                 const oppRecordStr = `${oppStats.w}승 ${oppStats.l}패`; 
                 
-                // [수정] 상대방 최근 전적 Dots 생성 (테두리 삭제)
                 let oppDots = ''; 
                 (oppStats.h || []).forEach((res, i, arr) => { 
                     const isWin = res === 'W';
                     const color = isWin ? 'bg-emerald-500' : 'bg-rose-500';
-                    // 투명도 계산 (0.6 ~ 1.0)
                     const opacity = 0.6 + (0.4 * (i / (arr.length - 1 || 1)));
-                    // 최신 경기 강조
                     const isLatest = i === arr.length - 1;
-                    // [최신 강조] 테두리(Ring) 삭제, 확대만 유지
                     const styleClass = isLatest ? 'scale-110' : '';
-
                     oppDots += `<div class="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full ${color} ${styleClass}" style="opacity: ${opacity};"></div>`; 
                 }); 
 
-                
                 let scoreBadge = ''; 
                 if (isWin && m.winnerChange !== undefined) { 
                     scoreBadge = `<span class="text-[13px] font-black text-emerald-600 shrink-0">+${m.winnerChange}</span>`; 
@@ -1655,15 +1650,21 @@ const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||
                 const oppLink = oppProfile ? `onclick="openProfile('${oppProfile.id}')"` : '';
                 const oppCursor = oppProfile ? 'cursor-pointer hover:underline hover:text-blue-600' : '';
 
+                // [NEW] 시즌 캡슐 뱃지 적용 (Type 3-A)
+                let seasonBadgeHtml = '';
+                if (filter === 'all') {
+                    const matchSeason = m.season || "시즌 1";
+                    const isCurrent = matchSeason === activeSeason;
+                    const badgeBg = isCurrent ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-200 text-slate-600';
+                    seasonBadgeHtml = `<span class="${badgeBg} text-[9px] px-1.5 py-[2px] rounded-md font-bold tracking-tight">${matchSeason}</span>`;
+                }
+
                 const div = document.createElement('div'); 
                 div.className = "flex items-center justify-between text-xs p-3 bg-slate-50 rounded-xl border border-slate-100"; 
-                div.innerHTML = `<div class="flex items-center gap-3 w-full"><div class="flex items-center gap-1.5 shrink-0"><span class="font-bold ${resultColor} w-8 h-8 flex items-center justify-center rounded-lg text-sm shadow-sm">${resultText}</span>${scoreBadge}</div><div class="flex flex-col w-full overflow-hidden"><div class="flex justify-between items-center w-full"><span class="font-bold text-slate-700 text-sm truncate flex items-center gap-1.5 ${oppCursor}" ${oppLink}>vs ${oppName}${oppRankBadge}</span><span class="text-slate-900 font-medium text-[11px] shrink-0">${m.date}</span></div><div class="flex items-center gap-2 mt-0.5"><span class="text-[11px] text-slate-400 font-medium bg-white px-1.5 py-0.5 rounded border border-slate-100">당시: ${oppRecordStr}</span><div class="flex gap-0.5 md:gap-1">${oppDots}</div></div></div></div>`; 
+                div.innerHTML = `<div class="flex items-center gap-3 w-full"><div class="flex items-center gap-1.5 shrink-0"><span class="font-bold ${resultColor} w-8 h-8 flex items-center justify-center rounded-lg text-sm shadow-sm">${resultText}</span>${scoreBadge}</div><div class="flex flex-col w-full overflow-hidden"><div class="flex justify-between items-center w-full"><span class="font-bold text-slate-700 text-sm truncate flex items-center gap-1.5 ${oppCursor}" ${oppLink}>vs ${oppName}${oppRankBadge}</span><span class="flex items-center gap-1.5 shrink-0">${seasonBadgeHtml}<span class="text-slate-500 font-medium text-[11px]">${m.date}</span></span></div><div class="flex items-center gap-2 mt-0.5"><span class="text-[11px] text-slate-400 font-medium bg-white px-1.5 py-0.5 rounded border border-slate-100">당시: ${oppRecordStr}</span><div class="flex gap-0.5 md:gap-1">${oppDots}</div></div></div></div>`; 
                 container.appendChild(div); 
             }); 
         };
-
-        window.openRules = () => document.getElementById('rulesModal').classList.remove('hidden'); window.closeRules = () => document.getElementById('rulesModal').classList.add('hidden');
-        window.switchTab = (tab) => { ['ranking', 'matches', 'hof', 'tournament'].forEach(t => { document.getElementById(t + 'Section').classList.add('hidden'); const btn = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1)); btn.className = "tab-inactive flex-1 py-3 text-sm transition-colors text-center"; }); document.getElementById(tab + 'Section').classList.remove('hidden'); const activeBtn = document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)); activeBtn.className = "tab-active flex-1 py-3 text-sm transition-colors text-center"; };
 
         let editTargetId = null;
         window.requestEdit = () => { if (!currentProfileId) return; editTargetId = currentProfileId; document.getElementById('inputPin').value = ''; document.getElementById('pinModal').classList.remove('hidden'); document.getElementById('inputPin').focus(); };
