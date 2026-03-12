@@ -241,23 +241,18 @@
 
     <main class="max-w-3xl mx-auto p-3 flex-grow w-full">
         <div id="rankingSection" class="fade-in space-y-3">
-            <!-- [NEW] 모바일 1번(한 줄 압축형) + PC 반응형 상단 배치 -->
             <div class="flex justify-between items-center px-1 pb-2 gap-2">
-                <!-- 타이틀 & 날짜 (모바일에서는 영역을 줄이고 말줄임표 처리) -->
                 <div class="flex flex-col min-w-0 shrink">
                     <span id="rankingSeasonTitle" class="text-[11px] sm:text-xs font-bold text-slate-700 truncate"></span>
                     <span id="rankingSeasonStartDate" class="text-[9px] sm:text-[10px] text-slate-400 mt-0.5 truncate"></span>
                 </div>
                 
-                <!-- 검색창 & 범례 -->
                 <div class="flex items-center gap-1.5 sm:gap-3 shrink-0">
                     <div class="relative w-[105px] sm:w-[150px]">
-                        <!-- [수정] autocomplete="nope" 및 name 추가로 브라우저 이메일 자동완성 강제 차단 -->
                         <input type="search" id="playerSearchInput" name="q_search_dummy" autocomplete="nope" spellcheck="false" placeholder="선수 검색" class="w-full bg-slate-50 border border-slate-200 rounded-lg pl-6 sm:pl-8 pr-1 sm:pr-2 py-1 sm:py-1.5 text-[11px] sm:text-xs outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors" oninput="handleSearch(this.value)">
                         <span class="absolute left-1.5 sm:left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] sm:text-xs pointer-events-none">🔍</span>
                     </div>
                     
-                    <!-- [수정] 가로형 통합 범례에 무승부(회색) 추가 -->
                     <div class="flex gap-1 sm:gap-1.5 items-center bg-slate-50 px-1.5 sm:px-2 py-1 rounded border border-slate-200 shadow-inner shrink-0">
                         <span class="text-[9px] sm:text-[10px] text-slate-500 font-bold flex items-center gap-0.5"><div class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 shadow-sm border border-emerald-500"></div>승</span>
                         <span class="text-[9px] sm:text-[10px] text-slate-500 font-bold flex items-center gap-0.5"><div class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-rose-400 shadow-sm border border-rose-500"></div>패</span>
@@ -266,11 +261,9 @@
                 </div>
             </div>
 
-            <!-- [복구됨] 랭킹 리스트가 실제로 그려지는 영역 -->
             <div id="rankingList"></div>
         </div>
 
-        <!-- [복구됨] 경기 기록 탭 영역 -->
         <div id="matchesSection" class="hidden fade-in">
             <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between mb-4 gap-2">
                 <div class="flex flex-col min-w-0 shrink">
@@ -337,19 +330,16 @@
                 <div class="flex flex-col items-center">
                     <div class="text-center mb-4"><h2 class="text-3xl font-black text-slate-800 flex items-center justify-center gap-2 tracking-tight"><span id="pModalRank" class="text-2xl text-blue-600 font-black hidden"></span><span id="pModalCrown" class="text-2xl hidden">👑</span><span id="pModalName">Name</span></h2><div class="flex items-center justify-center gap-2 mt-1"><span id="pModalGameId" class="text-xs text-slate-500 font-bold bg-slate-100 px-2 py-0.5 rounded">ID: -</span><span id="pModalTierBadge" class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-400">Tier</span></div></div>
                     
-                    <!-- [수정] 이미지 컨테이너: 오버레이 영역 삭제, 순수 이미지 컨테이너로 복귀 -->
                     <div class="mb-5 relative w-48 h-48 mx-auto group">
                         <img id="pModalImg" src="" class="w-full h-full rounded-2xl object-cover border-4 border-white shadow-xl bg-slate-50" onerror="this.src='https://placehold.co/150?text=No+Img'">
                     </div>
 
                     <div class="w-full max-w-sm mb-6">
-                        <!-- [수정] 뱃지 및 시즌 선택 영역 (좌측: 뱃지, 우측: 시즌 선택) -->
                         <div class="flex justify-between items-end mb-2 h-8">
                             <div id="pModalBadges" class="flex gap-1.5"></div> <!-- 뱃지 컨테이너 -->
                             <select id="pModalSeason" class="text-xs font-bold text-slate-600 bg-slate-100 border border-slate-200 rounded px-2 py-1 outline-none focus:border-blue-500 h-7"><option value="all">전체 기록 (All Time)</option><option value="current">현재 시즌 (Current)</option></select>
                         </div>
                         
-                        <!-- [수정] 승/패/무 3단 레이아웃 순서 변경 (Wins -> Losses -> Draws) -->
                         <div class="flex w-full rounded-lg overflow-hidden shadow-md">
                             <div class="flex-1 boxrec-win text-white p-1.5 text-center border-r border-white/20">
                                 <div class="text-3xl font-black leading-none" id="pBigWins">0</div>
@@ -377,7 +367,6 @@
         <div class="bg-white p-6 rounded-2xl shadow-xl w-80 text-center">
             <h3 class="text-lg font-bold text-slate-800 mb-2">🔒 본인 인증</h3>
             <p class="text-xs text-slate-500 mb-4">프로필 수정을 위해 4자리 비밀번호를 입력하세요.<br><span class="text-blue-500 font-bold mt-1 inline-block">(초기 비번은 관리자에게 문의)</span></p>
-            <!-- [수정] autocomplete="new-password" 추가하여 이메일 자동완성 유발 방지 -->
             <input type="password" id="inputPin" autocomplete="new-password" maxlength="4" class="w-full text-center text-2xl font-bold tracking-[0.5em] border-b-2 border-slate-300 focus:border-blue-500 outline-none pb-2 mb-6" placeholder="••••">
             <div class="flex gap-2">
                 <button onclick="closePinModal()" class="flex-1 bg-slate-100 text-slate-600 font-bold py-3 rounded-xl text-sm">취소</button>
@@ -412,7 +401,6 @@
                 <div class="grid grid-cols-2 gap-3"><div><label class="text-xs font-bold text-slate-500 mb-1 block">키 (cm)</label><input type="text" id="userEditHeight" class="w-full border p-3 rounded-xl text-sm font-bold bg-slate-50"></div><div><label class="text-xs font-bold text-slate-500 mb-1 block">리치 (cm)</label><input type="text" id="userEditReach" class="w-full border p-3 rounded-xl text-sm font-bold bg-slate-50"></div></div>
                 <div><label class="text-xs font-bold text-slate-500 mb-1 block">스탠스</label><select id="userEditStance" class="w-full border p-3 rounded-xl text-sm font-bold bg-slate-50"><option value="Orthodox">Orthodox (오른손)</option><option value="Southpaw">Southpaw (왼손)</option><option value="Switch">Switch (양손)</option></select></div>
                 <div><label class="text-xs font-bold text-slate-500 mb-1 block">Game ID</label><input type="text" id="userEditGameId" class="w-full border p-3 rounded-xl text-sm font-bold bg-slate-50"></div>
-                <!-- [수정] type="password"로 변경 및 autocomplete="new-password" 추가 -->
                 <div><label class="text-xs font-bold text-slate-500 mb-1 block">비밀번호 변경 (선택)</label><input type="password" id="userEditPin" autocomplete="new-password" maxlength="4" class="w-full border p-3 rounded-xl text-sm font-bold bg-slate-50" placeholder="변경할 경우에만 입력 (4자리)"></div>
                 <div class="p-4 bg-slate-50 rounded-xl border border-slate-100"><label class="text-xs font-bold text-slate-500 mb-2 block">파이팅 스타일 (최대 3개)</label><div id="userStyleTags" class="flex flex-wrap gap-2"></div></div>
             </div>
@@ -434,8 +422,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v5.06",
-            updateNote: "무승부 시스템 적용",
+            version: "v5.07",
+            updateNote: "티어 계산 무승부 버그 수정",
             title: "RFC 랭킹전"
         };
 
@@ -702,7 +690,8 @@
             updateHeaderSeasonSelector(); renderRankings(); updateSeasonSelector(); updateHofSeasonSelector(); renderMatches(); renderHOF(); 
         }
         
-        function getTier(wins, losses, elo = 0, isChampion = false) { 
+        // [FIX] getTier 함수에 draws 파라미터 추가
+        function getTier(wins, losses, draws = 0, elo = 0, isChampion = false) { 
             if (isChampion) {
                 return { 
                     name: 'CHAMPION', 
@@ -717,7 +706,8 @@
                     color: 'bg-slate-900 border border-amber-400 text-amber-400 shadow-md ring-1 ring-amber-400/30' 
                 };
             }
-            const matches = (wins || 0) + (losses || 0); 
+            // [FIX] 승+패+무 를 모두 합산하여 등급 계산
+            const matches = (wins || 0) + (losses || 0) + (draws || 0); 
             if (matches < 3) return { name: 'BRONZE', class: 'tier-bronze', color: 'bg-white border border-amber-600 text-amber-700' }; 
             if (matches < 7) return { name: 'SILVER', class: 'tier-silver', color: 'bg-white border border-slate-400 text-slate-500' }; 
             if (matches < 13) return { name: 'GOLD', class: 'tier-gold', color: 'bg-white border border-yellow-500 text-yellow-600' }; 
@@ -738,7 +728,6 @@
             return diffDays <= 2; 
         }
 
-        // [수정] 해당 시즌의 첫 경기와 마지막 경기 날짜를 찾아 반환 (과거 시즌은 종료일 포함)
         function getSeasonDateRange(seasonName) {
             const seasonMatches = matchHistoryData.filter(m => (m.season || "시즌 1") === seasonName);
             if (seasonMatches.length === 0) return null;
@@ -763,17 +752,14 @@
 
             const startDate = formatDate(oldestTime);
             
-            // 현재 진행중인 시즌이면 시작일만 표시
             if (seasonName === activeSeason) {
                 return `${startDate} ~`;
             } else {
-                // 과거 시즌이면 종료일도 함께 표시
                 const endDate = formatDate(newestTime);
                 return `${startDate} ~ ${endDate}`;
             }
         }
 
-        // [NEW] 공통 시즌 타이틀 포맷팅 함수
         function formatSeasonTitle(seasonName) {
             if (!seasonName) return "";
             let displayTitle = seasonName;
@@ -785,42 +771,32 @@
             return displayTitle;
         }
 
-        // 랭킹 리스트용 최근 전적 HTML 생성 함수 (점 스타일로 변경)
         function getRecentFormHTML(name) {
             const targetSeason = viewRankingSeason || activeSeason;
             
-            // 1. 해당 시즌 경기 기록 가져오기
             const history = enrichedMatchHistory.filter(m => 
                 (m.winner === name || m.loser === name) && 
                 m.season === targetSeason
             );
             
-            // 2. 최근 6경기 추출 (최신순 데이터 -> 뒤집어서 [과거 -> 최신] 순서로 배치)
             const recent = history.slice(0, 6).reverse(); 
             
             if (recent.length === 0) return '';
 
-            // [Option 2 적용] 점 간격: 모바일 gap-0.5, PC gap-1
             let html = '<div class="flex items-center gap-0.5 md:gap-1">';
             
             recent.forEach((m, i) => {
                 const isDraw = m.isDraw || m.type === 'draw';
                 const isWin = !isDraw && m.winner === name;
                 
-                // [색상 변경] 범례와 동일한 500번대 컬러 적용 (기존 400 -> 500), 무승부는 slate-400
                 const colorClass = isDraw ? 'bg-slate-400' : (isWin ? 'bg-emerald-500' : 'bg-rose-500');
-                
-                // [시인성 개선] 투명도 상향 (0.6 ~ 1.0)
-                // 기존 0.3은 너무 흐려서 잘 안보이므로 0.6부터 시작하도록 조정
                 const opacity = 0.6 + (0.4 * (i / (recent.length - 1 || 1)));
                 
-                // [최신 강조] 테두리(Ring) 삭제, 확대만 유지
                 const isLatest = i === recent.length - 1;
                 const latestStyle = isLatest 
-                    ? 'scale-110 z-10' // ring 클래스 제거
+                    ? 'scale-110 z-10' 
                     : '';
 
-                // [Option 2 적용] 크기: 모바일 8px (w-2), PC 10px (w-2.5)
                 html += `<div class="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full ${colorClass} ${latestStyle}" 
                               style="opacity: ${opacity};" 
                               title="${isLatest ? 'Latest: ' + (isDraw?'Draw':(isWin?'Win':'Loss')) : m.date}">
@@ -834,7 +810,6 @@
         function renderRankings() { 
             const container = document.getElementById('rankingList'); container.innerHTML = ''; 
             
-            // [NEW] 랭킹 리스트 상단 타이틀 및 시즌 시작일 업데이트
             const titleEl = document.getElementById('rankingSeasonTitle');
             const dateEl = document.getElementById('rankingSeasonStartDate');
             const targetSeason = viewRankingSeason || activeSeason;
@@ -848,7 +823,7 @@
                     dateEl.textContent = dateRange;
                     dateEl.classList.remove('hidden');
                 } else {
-                    dateEl.classList.add('hidden'); // 경기가 없으면 숨김
+                    dateEl.classList.add('hidden');
                 }
             }
 
@@ -866,7 +841,8 @@
             fullData.sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
 
             const champion = fullData.find(p => p.isChampion);
-            // 챔피언이 아니면서 + '3경기 이상(배치 완료)' 치른 사람만 랭킹 산정 모집단에 포함
+            
+            // [FIX] 모집단 계산 시 무승부 횟수 포함
             const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||0)+Number(p.losses||0)+Number(p.draws||0)) >= 3);
             
             let displayList = fullData;
@@ -884,6 +860,7 @@
             }
 
             const showChampion = champion && displayList.find(p => p.id === champion.id);
+            // [FIX] 무승부 횟수 포함
             const ranked = displayList.filter(p => !p.isChampion && (Number(p.wins||0)+Number(p.losses||0)+Number(p.draws||0)) >= 3)
                                     .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
             
@@ -907,8 +884,6 @@
                 const defCount = p.defenseCount || 0;
                 const formHtml = getRecentFormHTML(p.name);
                 
-                // [NEW] 챔피언 현상금 HTML (Option 1: 심플 텍스트) - 연승 표시 제외
-                // [수정] 왕의 목(잭팟) 시스템: 방어전 횟수 × 20점 강제 적용
                 const champBounty = defCount * 20;
                 let bountyHtml = '';
                 if (champBounty > 0) {
@@ -962,7 +937,6 @@
                     </div>
                 </div>`;
             } else {
-                // 챔피언 공석 시 표시 (실루엣 모드 - 리스트형)
                 container.innerHTML += `
                 <div class="rank-card flex items-center p-3 md:p-4 rounded-xl mb-2 bg-slate-900/90 border border-slate-700 relative overflow-hidden opacity-90">
                     <div class="w-8 text-center mr-2 flex flex-col items-center justify-center shrink-0 opacity-50">
@@ -993,7 +967,8 @@
             ranked.forEach((item) => { 
                 const globalIndex = rankingsData.indexOf(item); 
                 const realRank = globalChallengers.findIndex(gp => gp.id === item.id) + 1;
-                const tier = getTier(item.wins, item.losses, item.elo, false); 
+                // [FIX] getTier에 draws 전달
+                const tier = getTier(item.wins, item.losses, item.draws, item.elo, false); 
                 const totalMatches = (item.wins || 0) + (item.losses || 0) + (item.draws || 0);
                 const formHtml = getRecentFormHTML(item.name);
                 
@@ -1015,8 +990,6 @@
                 else { 
                     if (realRank <= 10) rankNumClass = "rank-num-top10"; 
                 }
-
-                // [삭제됨] 연승 표시 로직 제거
 
                 let bountyStatHtml = '';
                 if (item.bounty && item.bounty > 0 && realRank <= 10) {
@@ -1207,7 +1180,6 @@
             const container = document.getElementById('matchList'); 
             container.innerHTML = ''; 
 
-            // [NEW] 기록 탭 상단 타이틀 및 시작/종료일 업데이트
             const mTitleEl = document.getElementById('matchesSeasonTitle');
             const mDateEl = document.getElementById('matchesSeasonStartDate');
             if (mTitleEl) mTitleEl.textContent = formatSeasonTitle(viewSeason);
@@ -1262,19 +1234,16 @@
                     leftNameClass = 'text-slate-700 font-bold'; rightNameClass = 'text-slate-700 font-bold';
                 }
 
-                // Stats 가져오기
                 const seasonStats = m.snapshot.season ? m.snapshot.season : (m.snapshot || {});
                 const leftStats = seasonStats[leftName] || { w:0, l:0, d:0, h:[] }; 
                 const rightStats = seasonStats[rightName] || { w:0, l:0, d:0, h:[] }; 
                 
-                // Profile 연결
                 const leftProfile = rankingsData.find(p => p.name === leftName);
                 const rightProfile = rankingsData.find(p => p.name === rightName);
                 const leftClick = leftProfile ? `onclick="openProfile('${leftProfile.id}')"` : '';
                 const rightClick = rightProfile ? `onclick="openProfile('${rightProfile.id}')"` : '';
                 const cursorStyle = (profile) => profile ? "cursor-pointer hover:underline hover:text-blue-700" : "";
                 
-                // Dots 생성 함수
                 const generateDots = (stats) => {
                     let dotsHtml = '';
                     (stats.h || []).forEach((r, i, arr) => {
@@ -1338,7 +1307,6 @@
         function renderHOF() { 
             const container = document.getElementById('hofContent'); 
 
-            // [NEW] 명예의 전당 탭 상단 타이틀 및 시작/종료일 업데이트
             const hTitleEl = document.getElementById('hofSeasonTitle');
             const hDateEl = document.getElementById('hofSeasonStartDate');
             if (hTitleEl) hTitleEl.textContent = formatSeasonTitle(viewHofSeason);
@@ -1360,12 +1328,14 @@
             if (viewHofSeason === activeSeason) { 
                 isCurrentSeason = true;
                 seasonName = activeSeason + " (진행중)";
+                // [FIX] 무승부 포함
                 players = rankingsData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0) + Number(p.draws || 0)) > 0);
                 targetHistory = matchHistoryData.filter(m => m.season === activeSeason);
             } else { 
                 const arc = seasonArchives[viewHofSeason]; 
                 if (arc) { 
                     seasonName = viewHofSeason;
+                    // [FIX] 무승부 포함
                     players = (arc.rankings || []).filter(p => (Number(p.wins || 0) + Number(p.losses || 0) + Number(p.draws || 0)) > 0);
                     targetHistory = matchHistoryData.filter(m => m.season === viewHofSeason);
                 } 
@@ -1414,6 +1384,7 @@
                 if (pastSeasons.length > 0) {
                     const prevName = pastSeasons[0];
                     const prevData = seasonArchives[prevName].rankings || [];
+                    // [FIX] 무승부 포함
                     championList = prevData.filter(p => (p.wins + p.losses + (p.draws||0)) >= 3)
                                                                         .sort((a, b) => (b.elo || 1000) - (a.elo || 1000))
                                                                         .slice(0, 3);
@@ -1421,12 +1392,14 @@
                     champSub = `${prevName} 레전드`;
                 }
             } else {
+                // [FIX] 무승부 포함
                 championList = players.filter(p => (p.wins + p.losses + (p.draws||0)) >= 3)
                                                                  .sort((a, b) => (b.elo || 1000) - (a.elo || 1000))
                                                                  .slice(0, 3);
             }
 
             const ironWillList = [...players].sort((a, b) => {
+                // [FIX] 무승부 포함
                 const totalA = (a.wins||0) + (a.losses||0) + (a.draws||0);
                 const totalB = (b.wins||0) + (b.losses||0) + (b.draws||0);
                 if (totalA !== totalB) return totalB - totalA;
@@ -1452,6 +1425,7 @@
 
                 const getValue = (p) => {
                     if (type === 'elo') return `⚡${p.elo}`;
+                    // [FIX] 무승부 포함
                     if (type === 'match') return `${(p.wins||0)+(p.losses||0)+(p.draws||0)}전`;
                     if (type === 'win') return `${p.wins}승`;
                     if (type === 'streak') return `${p.maxStreak}연승`;
@@ -1544,6 +1518,7 @@
             if (p.isChampion) {
                 rankEl.classList.add('hidden'); 
             } else {
+                // [FIX] 무승부 포함
                 const totalMatches = (p.wins || 0) + (p.losses || 0) + (p.draws || 0);
                 if (totalMatches >= 3) {
                     const challengers = rankingsData.filter(r => !r.isChampion && (Number(r.wins||0) + Number(r.losses||0) + Number(r.draws||0)) >= 3)
@@ -1592,7 +1567,8 @@
             filterEl.value = 'all'; 
             filterEl.onchange = (e) => updateProfileStats(id, e.target.value); 
             
-            const tier = getTier(p.wins, p.losses, p.elo, p.isChampion);            
+            // [FIX] getTier에 draws 전달
+            const tier = getTier(p.wins, p.losses, p.draws, p.elo, p.isChampion);            
             const tierEl = document.getElementById('pModalTierBadge'); 
             tierEl.textContent = tier.name; 
             tierEl.className = `text-[10px] font-bold px-2 py-0.5 rounded shadow-sm ${tier.color}`; 
@@ -1625,12 +1601,13 @@
                 else if (m.winner === p.name) wins++; 
                 else losses++; 
             }); 
+            // [FIX] 총 경기수에 무승부 포함
             const total = wins + losses + draws; 
             const winRate = total > 0 ? Math.round((wins / total) * 100) : 0; 
             
             document.getElementById('pBigWins').textContent = wins; 
+            document.getElementById('pBigDraws').textContent = draws; 
             document.getElementById('pBigLosses').textContent = losses; 
-            document.getElementById('pBigDraws').textContent = draws;
             document.getElementById('pModalWinRate').textContent = `${winRate}%`; 
             document.getElementById('pModalElo').textContent = p.elo || 1000; 
             document.getElementById('pModalHighElo').textContent = p.careerHighElo || p.elo || 1000; 
@@ -1651,7 +1628,7 @@
                 
                 const oppName = isWin ? m.loser : m.winner; 
                 const oppStats = m.snapshot[filter === 'all' ? 'all' : 'season'][oppName] || { w:0, l:0, d:0, h:[] }; 
-                const oppRecordStrFull = `${oppStats.w}승 ${oppStats.l}패` + (oppStats.d > 0 ? ` ${oppStats.d}무` : '');
+                const oppRecordStrFull = `${oppStats.w}승 ${oppStats.l}패` + ((oppStats.d || 0) > 0 ? ` ${oppStats.d}무` : '');
                 
                 let oppDots = ''; 
                 (oppStats.h || []).forEach((res, i, arr) => { 
@@ -1692,7 +1669,6 @@
                 const oppLink = oppProfile ? `onclick="openProfile('${oppProfile.id}')"` : '';
                 const oppCursor = oppProfile ? 'cursor-pointer hover:underline hover:text-blue-600' : '';
 
-                // [NEW] 시즌 캡슐 뱃지 적용 (Type 3-A)
                 let seasonBadgeHtml = '';
                 if (filter === 'all') {
                     const matchSeason = m.season || "시즌 1";
@@ -1761,17 +1737,15 @@
                     const idx = rankings.findIndex(r => r.id === editTargetId);
                     if (idx === -1) throw "User not found";
                     
-                    // 기본 정보 업데이트
                     rankings[idx].height = newHeight; rankings[idx].reach = newReach; rankings[idx].stance = newStance; rankings[idx].gameId = newGameId; rankings[idx].imageUrl = newImageUrl; rankings[idx].trunkColor = newTrunkColor; rankings[idx].tags = newTags;
                     if (newPassword) rankings[idx].password = newPassword;
 
-                    // [Data Integrity] 11위 이하 현상금 삭제 로직 (사용자 데이터 보정)
+                    // [FIX] 사용자 보정 로직에도 무승부 횟수 포함
                     const challengers = rankings.filter(p => !p.isChampion && (Number(p.wins||0) + Number(p.losses||0) + Number(p.draws||0)) >= 3)
                                                 .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
                     
                     const myRank = challengers.findIndex(p => p.id === editTargetId) + 1;
                     
-                    // 11위 이하(Rank > 10)이고 현상금이 있다면 삭제 (챔피언 제외)
                     if (!rankings[idx].isChampion && myRank > 10 && (rankings[idx].bounty || 0) > 0) {
                         rankings[idx].bounty = 0;
                     }
