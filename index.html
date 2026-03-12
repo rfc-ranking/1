@@ -200,8 +200,6 @@
             0%, 100% { transform: translateX(-50%) translateY(0); }
             50% { transform: translateX(-50%) translateY(-2px); }
         }
-
-        /* [삭제] 글래스모피즘 스타일 제거 (더 이상 사용하지 않음) */
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800 pb-10 flex flex-col min-h-screen">
@@ -259,10 +257,11 @@
                         <span class="absolute left-1.5 sm:left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] sm:text-xs pointer-events-none">🔍</span>
                     </div>
                     
-                    <!-- 가로형 통합 범례 (모바일/PC 공통 적용) -->
+                    <!-- [수정] 가로형 통합 범례에 무승부(회색) 추가 -->
                     <div class="flex gap-1 sm:gap-1.5 items-center bg-slate-50 px-1.5 sm:px-2 py-1 rounded border border-slate-200 shadow-inner shrink-0">
                         <span class="text-[9px] sm:text-[10px] text-slate-500 font-bold flex items-center gap-0.5"><div class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 shadow-sm border border-emerald-500"></div>승</span>
                         <span class="text-[9px] sm:text-[10px] text-slate-500 font-bold flex items-center gap-0.5"><div class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-rose-400 shadow-sm border border-rose-500"></div>패</span>
+                        <span class="text-[9px] sm:text-[10px] text-slate-500 font-bold flex items-center gap-0.5"><div class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-slate-400 shadow-sm border border-slate-500"></div>무</span>
                     </div>
                 </div>
             </div>
@@ -349,7 +348,23 @@
                             <div id="pModalBadges" class="flex gap-1.5"></div> <!-- 뱃지 컨테이너 -->
                             <select id="pModalSeason" class="text-xs font-bold text-slate-600 bg-slate-100 border border-slate-200 rounded px-2 py-1 outline-none focus:border-blue-500 h-7"><option value="all">전체 기록 (All Time)</option><option value="current">현재 시즌 (Current)</option></select>
                         </div>
-                        <div class="flex w-full rounded-lg overflow-hidden shadow-md"><div class="flex-1 boxrec-win text-white p-1.5 text-center border-r border-white/20"><div class="text-3xl font-black leading-none" id="pBigWins">0</div><div class="text-[10px] font-bold opacity-80 uppercase tracking-widest mt-1">Wins</div></div><div class="flex-1 boxrec-loss text-white p-1.5 text-center"><div class="text-3xl font-black leading-none" id="pBigLosses">0</div><div class="text-[10px] font-bold opacity-80 uppercase tracking-widest mt-1">Losses</div></div></div>
+                        
+                        <!-- [수정] 승/패/무 3단 레이아웃 순서 변경 (Wins -> Losses -> Draws) -->
+                        <div class="flex w-full rounded-lg overflow-hidden shadow-md">
+                            <div class="flex-1 boxrec-win text-white p-1.5 text-center border-r border-white/20">
+                                <div class="text-3xl font-black leading-none" id="pBigWins">0</div>
+                                <div class="text-[10px] font-bold opacity-80 uppercase tracking-widest mt-1">Wins</div>
+                            </div>
+                            <div class="flex-1 boxrec-loss text-white p-1.5 text-center border-r border-white/20">
+                                <div class="text-3xl font-black leading-none" id="pBigLosses">0</div>
+                                <div class="text-[10px] font-bold opacity-80 uppercase tracking-widest mt-1">Losses</div>
+                            </div>
+                            <div class="flex-1 bg-slate-400 text-white p-1.5 text-center">
+                                <div class="text-3xl font-black leading-none" id="pBigDraws">0</div>
+                                <div class="text-[10px] font-bold opacity-80 uppercase tracking-widest mt-1">Draws</div>
+                            </div>
+                        </div>
+                        
                         <div class="flex bg-slate-50 border border-slate-200 border-t-0 rounded-b-lg divide-x divide-slate-200 text-center py-2 shadow-sm"><div class="flex-1"><div class="text-[10px] text-slate-400 font-bold uppercase">Win Rate</div><div class="text-sm font-black text-slate-700" id="pModalWinRate">0%</div></div><div class="flex-1"><div class="text-[10px] text-slate-400 font-bold uppercase">Elo Rating</div><div class="text-sm font-black text-amber-600" id="pModalElo">1000</div></div><div class="flex-1"><div class="text-[10px] text-slate-400 font-bold uppercase">Career High</div><div class="text-sm font-black text-slate-700" id="pModalHighElo">1000</div></div></div>
                     </div>
                     <div class="w-full space-y-6"><div class="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm"><div class="grid grid-cols-3 gap-4 text-center"><div><div class="text-[10px] text-slate-400 font-bold uppercase mb-1">Height</div><div id="pModalHeight" class="font-bold text-slate-700 text-sm">-</div></div><div class="border-x border-slate-100"><div class="text-[10px] text-slate-400 font-bold uppercase mb-1">Reach</div><div id="pModalReach" class="font-bold text-slate-700 text-sm">-</div></div><div><div class="text-[10px] text-slate-400 font-bold uppercase mb-1">Stance</div><div id="pModalStance" class="font-bold text-slate-700 text-sm">-</div></div></div><div id="pModalTags" class="flex flex-wrap gap-1.5 justify-center mt-3"></div></div><div><h3 class="text-xs font-bold text-slate-400 uppercase mb-2 pl-1">Bout History</h3><div id="pModalMatchList" class="space-y-2 pb-10"></div></div></div>
@@ -419,8 +434,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v5.05",
-            updateNote: "프로필 UI 업데이트",
+            version: "v5.06",
+            updateNote: "무승부 시스템 적용",
             title: "RFC 랭킹전"
         };
 
@@ -443,7 +458,6 @@
         let searchQuery = ""; 
         let activeHighlight = { ids: [], endTime: 0 };
 
-        // [New] Inspector State
         let isInspectorActive = false;
         const tooltipEl = document.getElementById('inspector-tooltip');
 
@@ -597,6 +611,7 @@
                     p.choseong = Hangul.getCho(p.name);
                     p.jamo = Hangul.disassemble(p.name);
                     if(p.bounty === undefined) p.bounty = 0;
+                    if(p.draws === undefined) p.draws = 0; // 무승부 초기화
                 }); 
                 
                 enrichMatchHistory(); 
@@ -652,19 +667,24 @@
                 const loser = match.loser; 
                 const season = match.season || "시즌 1";
 
-                if (!allTimeTracker[winner]) allTimeTracker[winner] = { w: 0, l: 0, h: [] };
-                if (!allTimeTracker[loser]) allTimeTracker[loser] = { w: 0, l: 0, h: [] };
+                if (!allTimeTracker[winner]) allTimeTracker[winner] = { w: 0, l: 0, d: 0, h: [] };
+                if (!allTimeTracker[loser]) allTimeTracker[loser] = { w: 0, l: 0, d: 0, h: [] };
                 
                 if (!seasonTracker[season]) seasonTracker[season] = {};
-                if (!seasonTracker[season][winner]) seasonTracker[season][winner] = { w: 0, l: 0, h: [] };
-                if (!seasonTracker[season][loser]) seasonTracker[season][loser] = { w: 0, l: 0, h: [] };
+                if (!seasonTracker[season][winner]) seasonTracker[season][winner] = { w: 0, l: 0, d: 0, h: [] };
+                if (!seasonTracker[season][loser]) seasonTracker[season][loser] = { w: 0, l: 0, d: 0, h: [] };
 
                 const snapshot = { 
                     all: { [winner]: { ...allTimeTracker[winner] }, [loser]: { ...allTimeTracker[loser] } },
                     season: { [winner]: { ...seasonTracker[season][winner] }, [loser]: { ...seasonTracker[season][loser] } }
                 };
                 
-                if (match.type !== 'draw') { 
+                if (match.isDraw || match.type === 'draw') {
+                    allTimeTracker[winner].d++; allTimeTracker[winner].h = [...allTimeTracker[winner].h, 'D'].slice(-6); 
+                    allTimeTracker[loser].d++; allTimeTracker[loser].h = [...allTimeTracker[loser].h, 'D'].slice(-6); 
+                    seasonTracker[season][winner].d++; seasonTracker[season][winner].h = [...seasonTracker[season][winner].h, 'D'].slice(-6); 
+                    seasonTracker[season][loser].d++; seasonTracker[season][loser].h = [...seasonTracker[season][loser].h, 'D'].slice(-6);
+                } else { 
                     allTimeTracker[winner].w++; allTimeTracker[winner].h = [...allTimeTracker[winner].h, 'W'].slice(-6); 
                     allTimeTracker[loser].l++; allTimeTracker[loser].h = [...allTimeTracker[loser].h, 'L'].slice(-6); 
                     seasonTracker[season][winner].w++; seasonTracker[season][winner].h = [...seasonTracker[season][winner].h, 'W'].slice(-6);
@@ -772,7 +792,6 @@
             // 1. 해당 시즌 경기 기록 가져오기
             const history = enrichedMatchHistory.filter(m => 
                 (m.winner === name || m.loser === name) && 
-                m.type !== 'draw' &&
                 m.season === targetSeason
             );
             
@@ -785,9 +804,11 @@
             let html = '<div class="flex items-center gap-0.5 md:gap-1">';
             
             recent.forEach((m, i) => {
-                const isWin = m.winner === name;
-                // [색상 변경] 범례와 동일한 500번대 컬러 적용 (기존 400 -> 500)
-                const colorClass = isWin ? 'bg-emerald-500' : 'bg-rose-500';
+                const isDraw = m.isDraw || m.type === 'draw';
+                const isWin = !isDraw && m.winner === name;
+                
+                // [색상 변경] 범례와 동일한 500번대 컬러 적용 (기존 400 -> 500), 무승부는 slate-400
+                const colorClass = isDraw ? 'bg-slate-400' : (isWin ? 'bg-emerald-500' : 'bg-rose-500');
                 
                 // [시인성 개선] 투명도 상향 (0.6 ~ 1.0)
                 // 기존 0.3은 너무 흐려서 잘 안보이므로 0.6부터 시작하도록 조정
@@ -802,7 +823,7 @@
                 // [Option 2 적용] 크기: 모바일 8px (w-2), PC 10px (w-2.5)
                 html += `<div class="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full ${colorClass} ${latestStyle}" 
                               style="opacity: ${opacity};" 
-                              title="${isLatest ? 'Latest: ' + (isWin?'Win':'Loss') : m.date}">
+                              title="${isLatest ? 'Latest: ' + (isDraw?'Draw':(isWin?'Win':'Loss')) : m.date}">
                          </div>`;
             });
             
@@ -845,8 +866,8 @@
             fullData.sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
 
             const champion = fullData.find(p => p.isChampion);
-// 챔피언이 아니면서 + '3경기 이상(배치 완료)' 치른 사람만 랭킹 산정 모집단에 포함
-const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||0)+Number(p.losses||0)) >= 3);
+            // 챔피언이 아니면서 + '3경기 이상(배치 완료)' 치른 사람만 랭킹 산정 모집단에 포함
+            const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||0)+Number(p.losses||0)+Number(p.draws||0)) >= 3);
             
             let displayList = fullData;
             if (searchQuery) {
@@ -863,13 +884,13 @@ const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||
             }
 
             const showChampion = champion && displayList.find(p => p.id === champion.id);
-            const ranked = displayList.filter(p => !p.isChampion && (Number(p.wins||0)+Number(p.losses||0)) >= 3)
+            const ranked = displayList.filter(p => !p.isChampion && (Number(p.wins||0)+Number(p.losses||0)+Number(p.draws||0)) >= 3)
                                     .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
             
-            const placement = displayList.filter(p => !p.isChampion && ((Number(p.wins||0)+Number(p.losses||0)) > 0 && (Number(p.wins||0)+Number(p.losses||0)) < 3))
+            const placement = displayList.filter(p => !p.isChampion && ((Number(p.wins||0)+Number(p.losses||0)+Number(p.draws||0)) > 0 && (Number(p.wins||0)+Number(p.losses||0)+Number(p.draws||0)) < 3))
                                          .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
                                          
-            const unranked = displayList.filter(p => !p.isChampion && (Number(p.wins||0)+Number(p.losses||0)) === 0)
+            const unranked = displayList.filter(p => !p.isChampion && (Number(p.wins||0)+Number(p.losses||0)+Number(p.draws||0)) === 0)
                                     .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
 
             const now = Date.now();
@@ -893,6 +914,9 @@ const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||
                 if (champBounty > 0) {
                     bountyHtml = `<span class="text-amber-400 font-black text-[12px] ml-1 drop-shadow-md tracking-wider">💰 +${champBounty}</span>`;
                 }
+                
+                let recordStr = `${p.wins}승 ${p.losses}패`;
+                if ((p.draws || 0) > 0) recordStr += ` ${p.draws}무`;
 
                 container.innerHTML += `
                 <div class="rank-card flex items-center p-3 md:p-4 rounded-xl mb-2 inferno-card relative group cursor-pointer" onclick="openProfile('${p.id}')">
@@ -925,7 +949,7 @@ const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||
                         </div>
                         <div class="flex items-center gap-1.5 mt-0.5">
                             <span class="bg-black/40 text-orange-300 text-[10px] px-1.5 py-0.5 rounded border border-orange-500/30 font-bold">⚡${p.elo}</span>
-                            <span class="text-xs text-slate-300">| ${p.wins}승 ${p.losses}패</span>
+                            <span class="text-xs text-slate-300">| ${recordStr}</span>
                             <!-- 2. 현상금 잭팟 위치 (텍스트 온리) -->
                             ${bountyHtml}
                         </div>
@@ -970,7 +994,7 @@ const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||
                 const globalIndex = rankingsData.indexOf(item); 
                 const realRank = globalChallengers.findIndex(gp => gp.id === item.id) + 1;
                 const tier = getTier(item.wins, item.losses, item.elo, false); 
-                const totalMatches = (item.wins || 0) + (item.losses || 0);
+                const totalMatches = (item.wins || 0) + (item.losses || 0) + (item.draws || 0);
                 const formHtml = getRecentFormHTML(item.name);
                 
                 let cardClass = tier.class;
@@ -1009,6 +1033,9 @@ const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||
                 }
                 
                 if (shouldHighlight(item.id)) cardClass += ' highlight-slow';
+                
+                let recordStr = `${item.wins}승 ${item.losses}패`;
+                if ((item.draws || 0) > 0) recordStr += ` ${item.draws}무`;
 
                 container.innerHTML += `
                     <div id="rank-card-${item.id}" class="rank-card flex items-center p-3 md:p-4 border rounded-xl mb-2 bg-white hover:shadow-md ${cardClass}" onclick="openProfile('${item.id}')">
@@ -1024,7 +1051,7 @@ const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||
                             </div>
                             <div class="flex items-center gap-1.5 mt-0.5">
                                 <span class="bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded border border-amber-200 font-bold">⚡${item.elo}</span>
-                                <span class="text-xs text-slate-400">| ${item.wins}승 ${item.losses}패</span>
+                                <span class="text-xs text-slate-400">| ${recordStr}</span>
                                 ${bountyStatHtml} 
                             </div>
                         </div>
@@ -1050,6 +1077,9 @@ const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||
                 placement.forEach((p) => {
                     const highlightClass = shouldHighlight(p.id) ? 'highlight-slow' : '';
                     
+                    let recordStr = `${p.wins}승 ${p.losses}패`;
+                    if ((p.draws || 0) > 0) recordStr += ` ${p.draws}무`;
+                    
                     container.innerHTML += `
                         <div id="rank-card-${p.id}" class="rank-card flex items-center p-3 md:p-4 border rounded-xl mb-2 bg-slate-50 opacity-90 hover:opacity-100 ${highlightClass}" onclick="openProfile('${p.id}')">
                             <div class="w-8 text-center mr-2"><span class="text-lg md:text-xl">🐣</span></div>
@@ -1066,7 +1096,7 @@ const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||
                                 </div>
                                 <div class="flex items-center gap-1.5 mt-0.5">
                                     <span class="bg-amber-50 text-amber-600/70 text-[10px] px-1.5 py-0.5 rounded border border-amber-100 font-bold">⚡${p.elo || 1000} (임시)</span>
-                                    <span class="text-xs text-slate-400">| ${p.wins}승 ${p.losses}패</span>
+                                    <span class="text-xs text-slate-400">| ${recordStr}</span>
                                 </div>
                             </div>
                             <div class="flex flex-col items-end justify-center shrink-0 md:h-full"></div>
@@ -1191,7 +1221,7 @@ const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||
                 }
             }
 
-            const filtered = enrichedMatchHistory.filter(m => (m.season || "시즌 1") === viewSeason && m.type !== 'draw'); 
+            const filtered = enrichedMatchHistory.filter(m => (m.season || "시즌 1") === viewSeason); 
             
             if (filtered.length === 0) { 
                 container.innerHTML = `<div class="text-center py-10 text-slate-400 text-sm">기록된 경기가 없습니다.</div>`; 
@@ -1206,33 +1236,36 @@ const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||
             let lastDate = "";
             
             filtered.forEach(m => { 
-                // [NEW] 블루/레드 코너 정렬 로직 (오류 수정 및 적용)
                 let leftName, rightName;
-                let leftResult, rightResult; // 'WIN' or 'LOSE'
+                let leftResult, rightResult; 
+                let isDraw = m.isDraw || m.type === 'draw';
                 
                 if (m.blue) {
                     leftName = m.blue;
                     if (m.winner === m.blue) {
-                        leftResult = 'WIN';
-                        rightName = m.loser;
-                        rightResult = 'LOSE';
+                        leftResult = 'WIN'; rightName = m.loser; rightResult = 'LOSE';
                     } else {
-                        leftResult = 'LOSE';
-                        rightName = m.winner;
-                        rightResult = 'WIN';
+                        leftResult = 'LOSE'; rightName = m.winner; rightResult = 'WIN';
                     }
                 } else {
-                    // 구버전 데이터 호환 (블루 정보 없으면 승자가 왼쪽)
-                    leftName = m.winner;
-                    leftResult = 'WIN';
-                    rightName = m.loser;
-                    rightResult = 'LOSE';
+                    leftName = m.winner; leftResult = 'WIN'; rightName = m.loser; rightResult = 'LOSE';
+                }
+
+                let leftBadgeClass = leftResult === 'WIN' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600';
+                let rightBadgeClass = rightResult === 'WIN' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600';
+                let leftNameClass = leftResult === 'WIN' ? 'font-black text-slate-800' : 'font-medium text-slate-500';
+                let rightNameClass = rightResult === 'WIN' ? 'font-black text-slate-800' : 'font-medium text-slate-500';
+
+                if (isDraw) {
+                    leftResult = 'DRAW'; rightResult = 'DRAW';
+                    leftBadgeClass = 'bg-slate-200 text-slate-600'; rightBadgeClass = 'bg-slate-200 text-slate-600';
+                    leftNameClass = 'text-slate-700 font-bold'; rightNameClass = 'text-slate-700 font-bold';
                 }
 
                 // Stats 가져오기
                 const seasonStats = m.snapshot.season ? m.snapshot.season : (m.snapshot || {});
-                const leftStats = seasonStats[leftName] || { w:0, l:0, h:[] }; 
-                const rightStats = seasonStats[rightName] || { w:0, l:0, h:[] }; 
+                const leftStats = seasonStats[leftName] || { w:0, l:0, d:0, h:[] }; 
+                const rightStats = seasonStats[rightName] || { w:0, l:0, d:0, h:[] }; 
                 
                 // Profile 연결
                 const leftProfile = rankingsData.find(p => p.name === leftName);
@@ -1245,11 +1278,9 @@ const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||
                 const generateDots = (stats) => {
                     let dotsHtml = '';
                     (stats.h || []).forEach((r, i, arr) => {
-                        const isWin = r === 'W';
-                        const color = isWin ? 'bg-emerald-500' : 'bg-rose-500';
+                        const color = r === 'W' ? 'bg-emerald-500' : (r === 'D' ? 'bg-slate-400' : 'bg-rose-500');
                         const opacity = 0.6 + (0.4 * (i / (arr.length - 1 || 1)));
                         const isLatest = i === arr.length - 1;
-                        // [최신 강조] 테두리(Ring) 삭제, 확대만 유지
                         const border = isLatest ? 'scale-110' : '';
                         dotsHtml += `<div class="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full ${color} ${border}" style="opacity: ${opacity};"></div>`;
                     });
@@ -1259,12 +1290,6 @@ const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||
                 const leftDots = generateDots(leftStats);
                 const rightDots = generateDots(rightStats);
                 
-                // 스타일 정의
-                const leftBadgeClass = leftResult === 'WIN' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600';
-                const rightBadgeClass = rightResult === 'WIN' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600';
-                const leftNameClass = leftResult === 'WIN' ? 'font-black text-slate-800' : 'font-medium text-slate-500';
-                const rightNameClass = rightResult === 'WIN' ? 'font-black text-slate-800' : 'font-medium text-slate-500';
-
                 if (m.date !== lastDate) {
                     const count = dateCounts[m.date];
                     const dateHeader = document.createElement('div');
@@ -1335,14 +1360,14 @@ const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||
             if (viewHofSeason === activeSeason) { 
                 isCurrentSeason = true;
                 seasonName = activeSeason + " (진행중)";
-                players = rankingsData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) > 0);
-                targetHistory = matchHistoryData.filter(m => m.season === activeSeason && m.type !== 'draw');
+                players = rankingsData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0) + Number(p.draws || 0)) > 0);
+                targetHistory = matchHistoryData.filter(m => m.season === activeSeason);
             } else { 
                 const arc = seasonArchives[viewHofSeason]; 
                 if (arc) { 
                     seasonName = viewHofSeason;
-                    players = (arc.rankings || []).filter(p => (Number(p.wins || 0) + Number(p.losses || 0)) > 0);
-                    targetHistory = matchHistoryData.filter(m => m.season === viewHofSeason && m.type !== 'draw');
+                    players = (arc.rankings || []).filter(p => (Number(p.wins || 0) + Number(p.losses || 0) + Number(p.draws || 0)) > 0);
+                    targetHistory = matchHistoryData.filter(m => m.season === viewHofSeason);
                 } 
             } 
             
@@ -1364,10 +1389,16 @@ const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||
                 const w = m.winner.trim();
                 const l = m.loser.trim();
                 if (!streakMap[w]) streakMap[w] = { current: 0, max: 0 };
-                streakMap[w].current += 1;
-                if (streakMap[w].current > streakMap[w].max) streakMap[w].max = streakMap[w].current;
                 if (!streakMap[l]) streakMap[l] = { current: 0, max: 0 };
-                streakMap[l].current = 0;
+
+                if (m.isDraw || m.type === 'draw') {
+                    streakMap[w].current = 0;
+                    streakMap[l].current = 0;
+                } else {
+                    streakMap[w].current += 1;
+                    if (streakMap[w].current > streakMap[w].max) streakMap[w].max = streakMap[w].current;
+                    streakMap[l].current = 0;
+                }
             });
             
             const playersWithStreak = players.map(p => {
@@ -1383,21 +1414,21 @@ const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||
                 if (pastSeasons.length > 0) {
                     const prevName = pastSeasons[0];
                     const prevData = seasonArchives[prevName].rankings || [];
-                    championList = prevData.filter(p => (p.wins + p.losses) >= 3)
+                    championList = prevData.filter(p => (p.wins + p.losses + (p.draws||0)) >= 3)
                                                                         .sort((a, b) => (b.elo || 1000) - (a.elo || 1000))
                                                                         .slice(0, 3);
                     champTitle = "전시즌 TOP 3";
                     champSub = `${prevName} 레전드`;
                 }
             } else {
-                championList = players.filter(p => (p.wins + p.losses) >= 3)
+                championList = players.filter(p => (p.wins + p.losses + (p.draws||0)) >= 3)
                                                                  .sort((a, b) => (b.elo || 1000) - (a.elo || 1000))
                                                                  .slice(0, 3);
             }
 
             const ironWillList = [...players].sort((a, b) => {
-                const totalA = a.wins + a.losses;
-                const totalB = b.wins + b.losses;
+                const totalA = (a.wins||0) + (a.losses||0) + (a.draws||0);
+                const totalB = (b.wins||0) + (b.losses||0) + (b.draws||0);
                 if (totalA !== totalB) return totalB - totalA;
                 return (b.elo || 1000) - (a.elo || 1000);
             }).slice(0, 3);
@@ -1412,7 +1443,6 @@ const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||
                 return (b.elo || 1000) - (a.elo || 1000);
             }).filter(p => p.maxStreak > 0).slice(0, 3);
 
-
             const createPodiumSection = (title, sub, icon, list, colorFrom, colorTo, type) => {
                 if (!list || list.length === 0) return ''; 
 
@@ -1422,7 +1452,7 @@ const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||
 
                 const getValue = (p) => {
                     if (type === 'elo') return `⚡${p.elo}`;
-                    if (type === 'match') return `${p.wins+p.losses}전`;
+                    if (type === 'match') return `${(p.wins||0)+(p.losses||0)+(p.draws||0)}전`;
                     if (type === 'win') return `${p.wins}승`;
                     if (type === 'streak') return `${p.maxStreak}연승`;
                     return '';
@@ -1503,7 +1533,6 @@ const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||
         window.openRules = () => document.getElementById('rulesModal').classList.remove('hidden'); window.closeRules = () => document.getElementById('rulesModal').classList.add('hidden');
         window.switchTab = (tab) => { ['ranking', 'matches', 'hof', 'tournament'].forEach(t => { document.getElementById(t + 'Section').classList.add('hidden'); const btn = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1)); btn.className = "tab-inactive flex-1 py-3 text-sm transition-colors text-center"; }); document.getElementById(tab + 'Section').classList.remove('hidden'); const activeBtn = document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)); activeBtn.className = "tab-active flex-1 py-3 text-sm transition-colors text-center"; };
 
-        // [복구됨] 누락되었던 openProfile 및 updateProfileStats 함수 다시 추가
         window.openProfile = (id) => { 
             currentProfileId = id; 
             const p = rankingsData.find(x => x.id === id); 
@@ -1515,9 +1544,9 @@ const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||
             if (p.isChampion) {
                 rankEl.classList.add('hidden'); 
             } else {
-                const totalMatches = (p.wins || 0) + (p.losses || 0);
+                const totalMatches = (p.wins || 0) + (p.losses || 0) + (p.draws || 0);
                 if (totalMatches >= 3) {
-                    const challengers = rankingsData.filter(r => !r.isChampion && (Number(r.wins||0) + Number(r.losses||0)) >= 3)
+                    const challengers = rankingsData.filter(r => !r.isChampion && (Number(r.wins||0) + Number(r.losses||0) + Number(r.draws||0)) >= 3)
                                                     .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
                     const myRank = challengers.findIndex(r => r.id === id) + 1;
                     if (myRank > 0) {
@@ -1585,18 +1614,23 @@ const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||
         window.updateProfileStats = (id, filter) => { 
             const p = rankingsData.find(x => x.id === id); 
             if (!p) return; 
-            let matches = enrichedMatchHistory.filter(m => (m.winner === p.name || m.loser === p.name) && m.type !== 'draw'); 
+            let matches = enrichedMatchHistory.filter(m => (m.winner === p.name || m.loser === p.name)); 
             if (filter === 'current') matches = matches.filter(m => m.season === activeSeason); 
             else if (filter !== 'all') matches = matches.filter(m => m.season === filter); 
             matches.sort((a, b) => new Date(b.date) - new Date(a.date)); 
             
-            let wins = 0, losses = 0; 
-            matches.forEach(m => { if (m.winner === p.name) wins++; else losses++; }); 
-            const total = wins + losses; 
+            let wins = 0, losses = 0, draws = 0; 
+            matches.forEach(m => { 
+                if (m.isDraw || m.type === 'draw') draws++;
+                else if (m.winner === p.name) wins++; 
+                else losses++; 
+            }); 
+            const total = wins + losses + draws; 
             const winRate = total > 0 ? Math.round((wins / total) * 100) : 0; 
             
             document.getElementById('pBigWins').textContent = wins; 
             document.getElementById('pBigLosses').textContent = losses; 
+            document.getElementById('pBigDraws').textContent = draws;
             document.getElementById('pModalWinRate').textContent = `${winRate}%`; 
             document.getElementById('pModalElo').textContent = p.elo || 1000; 
             document.getElementById('pModalHighElo').textContent = p.careerHighElo || p.elo || 1000; 
@@ -1610,17 +1644,18 @@ const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||
             } 
             
             matches.forEach(m => { 
-                const isWin = m.winner === p.name; 
-                const resultText = isWin ? 'W' : 'L'; 
-                const resultColor = isWin ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'; 
+                const isDraw = m.isDraw || m.type === 'draw';
+                const isWin = !isDraw && m.winner === p.name; 
+                const resultText = isDraw ? 'D' : (isWin ? 'W' : 'L'); 
+                const resultColor = isDraw ? 'bg-slate-200 text-slate-600' : (isWin ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'); 
+                
                 const oppName = isWin ? m.loser : m.winner; 
-                const oppStats = m.snapshot[filter === 'all' ? 'all' : 'season'][oppName] || { w:0, l:0, h:[] }; 
-                const oppRecordStr = `${oppStats.w}승 ${oppStats.l}패`; 
+                const oppStats = m.snapshot[filter === 'all' ? 'all' : 'season'][oppName] || { w:0, l:0, d:0, h:[] }; 
+                const oppRecordStrFull = `${oppStats.w}승 ${oppStats.l}패` + (oppStats.d > 0 ? ` ${oppStats.d}무` : '');
                 
                 let oppDots = ''; 
                 (oppStats.h || []).forEach((res, i, arr) => { 
-                    const isWin = res === 'W';
-                    const color = isWin ? 'bg-emerald-500' : 'bg-rose-500';
+                    const color = res === 'W' ? 'bg-emerald-500' : (res === 'D' ? 'bg-slate-400' : 'bg-rose-500');
                     const opacity = 0.6 + (0.4 * (i / (arr.length - 1 || 1)));
                     const isLatest = i === arr.length - 1;
                     const styleClass = isLatest ? 'scale-110' : '';
@@ -1628,14 +1663,21 @@ const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||
                 }); 
 
                 let scoreBadge = ''; 
-                if (isWin && m.winnerChange !== undefined) { 
+                if (isDraw) {
+                    const myChange = m.winner === p.name ? m.winnerChange : m.loserChange;
+                    if (myChange !== undefined) {
+                        const sign = myChange > 0 ? '+' : '';
+                        const textColor = myChange > 0 ? 'text-emerald-600' : (myChange < 0 ? 'text-rose-600' : 'text-slate-500');
+                        scoreBadge = `<span class="text-[13px] font-black ${textColor} shrink-0">${sign}${myChange}</span>`;
+                    }
+                } else if (isWin && m.winnerChange !== undefined) { 
                     scoreBadge = `<span class="text-[13px] font-black text-emerald-600 shrink-0">+${m.winnerChange}</span>`; 
                 } else if (!isWin && m.loserChange !== undefined) { 
                     scoreBadge = `<span class="text-[13px] font-black text-rose-600 shrink-0">${m.loserChange}</span>`; 
                 } 
 
                 let oppRankBadge = '';
-                const oppRankVal = isWin ? m.loserRankBefore : m.winnerRankBefore;
+                const oppRankVal = isWin || (isDraw && m.winner !== p.name) ? m.loserRankBefore : m.winnerRankBefore;
                 if (oppRankVal !== undefined) {
                     if (oppRankVal > 0) {
                         oppRankBadge = `<span class="bg-slate-200 text-slate-500 text-[11px] px-2 py-0.5 rounded-md font-bold leading-none no-underline shadow-sm">${oppRankVal}위</span>`;
@@ -1661,7 +1703,7 @@ const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||
 
                 const div = document.createElement('div'); 
                 div.className = "flex items-center justify-between text-xs p-3 bg-slate-50 rounded-xl border border-slate-100"; 
-                div.innerHTML = `<div class="flex items-center gap-3 w-full"><div class="flex items-center gap-1.5 shrink-0"><span class="font-bold ${resultColor} w-8 h-8 flex items-center justify-center rounded-lg text-sm shadow-sm">${resultText}</span>${scoreBadge}</div><div class="flex flex-col w-full overflow-hidden"><div class="flex justify-between items-center w-full"><span class="font-bold text-slate-700 text-sm truncate flex items-center gap-1.5 ${oppCursor}" ${oppLink}>vs ${oppName}${oppRankBadge}</span><span class="flex items-center gap-1.5 shrink-0">${seasonBadgeHtml}<span class="text-slate-500 font-medium text-[11px]">${m.date}</span></span></div><div class="flex items-center gap-2 mt-0.5"><span class="text-[11px] text-slate-400 font-medium bg-white px-1.5 py-0.5 rounded border border-slate-100">당시: ${oppRecordStr}</span><div class="flex gap-0.5 md:gap-1">${oppDots}</div></div></div></div>`; 
+                div.innerHTML = `<div class="flex items-center gap-3 w-full"><div class="flex items-center gap-1.5 shrink-0"><span class="font-bold ${resultColor} w-8 h-8 flex items-center justify-center rounded-lg text-sm shadow-sm">${resultText}</span>${scoreBadge}</div><div class="flex flex-col w-full overflow-hidden"><div class="flex justify-between items-center w-full"><span class="font-bold text-slate-700 text-sm truncate flex items-center gap-1.5 ${oppCursor}" ${oppLink}>vs ${oppName}${oppRankBadge}</span><span class="flex items-center gap-1.5 shrink-0">${seasonBadgeHtml}<span class="text-slate-500 font-medium text-[11px]">${m.date}</span></span></div><div class="flex items-center gap-2 mt-0.5"><span class="text-[11px] text-slate-400 font-medium bg-white px-1.5 py-0.5 rounded border border-slate-100">당시: ${oppRecordStrFull}</span><div class="flex gap-0.5 md:gap-1">${oppDots}</div></div></div></div>`; 
                 container.appendChild(div); 
             }); 
         };
@@ -1724,7 +1766,7 @@ const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||
                     if (newPassword) rankings[idx].password = newPassword;
 
                     // [Data Integrity] 11위 이하 현상금 삭제 로직 (사용자 데이터 보정)
-                    const challengers = rankings.filter(p => !p.isChampion && (Number(p.wins||0) + Number(p.losses||0)) >= 3)
+                    const challengers = rankings.filter(p => !p.isChampion && (Number(p.wins||0) + Number(p.losses||0) + Number(p.draws||0)) >= 3)
                                                 .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
                     
                     const myRank = challengers.findIndex(p => p.id === editTargetId) + 1;
