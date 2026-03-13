@@ -39,6 +39,37 @@
         }
         .ember { position: absolute; width: 4px; height: 4px; background: #fbbf24; border-radius: 50%; animation: ember-rise 4s infinite linear; bottom: -10px; opacity: 0; }
 
+        /* 챔피언 왕관 및 독무대 애니메이션 (HOF) */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        .animate-float { animation: float 2s ease-in-out infinite; }
+        
+        .champ-glow {
+            box-shadow: 0 0 30px -5px rgba(250, 204, 21, 0.7);
+        }
+        
+        .shine-effect {
+            position: relative;
+            overflow: hidden;
+        }
+        .shine-effect::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
+            transform: skewX(-25deg);
+            animation: shine 3s infinite;
+        }
+        @keyframes shine {
+            0% { left: -100%; }
+            20% { left: 200%; }
+            100% { left: 200%; }
+        }
 
         /* 기본 티어 스타일 (4위 이하 적용) - 왼쪽 테두리 제거 */
         .tier-bronze, .tier-silver, .tier-gold, .tier-platinum { 
@@ -422,8 +453,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v5.07",
-            updateNote: "티어 계산 무승부 버그 수정",
+            version: "v5.08",
+            updateNote: "명예의 전당 챔피언 독무대 적용",
             title: "RFC 랭킹전"
         };
 
@@ -1328,14 +1359,12 @@
             if (viewHofSeason === activeSeason) { 
                 isCurrentSeason = true;
                 seasonName = activeSeason + " (진행중)";
-                // [FIX] 무승부 포함
                 players = rankingsData.filter(p => (Number(p.wins || 0) + Number(p.losses || 0) + Number(p.draws || 0)) > 0);
                 targetHistory = matchHistoryData.filter(m => m.season === activeSeason);
             } else { 
                 const arc = seasonArchives[viewHofSeason]; 
                 if (arc) { 
                     seasonName = viewHofSeason;
-                    // [FIX] 무승부 포함
                     players = (arc.rankings || []).filter(p => (Number(p.wins || 0) + Number(p.losses || 0) + Number(p.draws || 0)) > 0);
                     targetHistory = matchHistoryData.filter(m => m.season === viewHofSeason);
                 } 
@@ -1375,7 +1404,8 @@
                 return { ...p, maxStreak: (streakMap[p.name.trim()] ? streakMap[p.name.trim()].max : 0) };
             });
 
-            let championList = [];
+            let top3List = [];
+            let seasonChampion = null;
             let champTitle = "시즌 랭킹 TOP 3";
             let champSub = "최종 순위";
 
@@ -1384,22 +1414,23 @@
                 if (pastSeasons.length > 0) {
                     const prevName = pastSeasons[0];
                     const prevData = seasonArchives[prevName].rankings || [];
-                    // [FIX] 무승부 포함
-                    championList = prevData.filter(p => (p.wins + p.losses + (p.draws||0)) >= 3)
-                                                                        .sort((a, b) => (b.elo || 1000) - (a.elo || 1000))
-                                                                        .slice(0, 3);
+                    
+                    seasonChampion = prevData.find(p => p.isChampion);
+                    // 챔피언 제외 순수 랭커 3명
+                    top3List = prevData.filter(p => !p.isChampion && (p.wins + p.losses + (p.draws||0)) >= 3)
+                                       .sort((a, b) => (b.elo || 1000) - (a.elo || 1000))
+                                       .slice(0, 3);
                     champTitle = "전시즌 TOP 3";
                     champSub = `${prevName} 레전드`;
                 }
             } else {
-                // [FIX] 무승부 포함
-                championList = players.filter(p => (p.wins + p.losses + (p.draws||0)) >= 3)
-                                                                 .sort((a, b) => (b.elo || 1000) - (a.elo || 1000))
-                                                                 .slice(0, 3);
+                seasonChampion = players.find(p => p.isChampion);
+                top3List = players.filter(p => !p.isChampion && (p.wins + p.losses + (p.draws||0)) >= 3)
+                                  .sort((a, b) => (b.elo || 1000) - (a.elo || 1000))
+                                  .slice(0, 3);
             }
 
             const ironWillList = [...players].sort((a, b) => {
-                // [FIX] 무승부 포함
                 const totalA = (a.wins||0) + (a.losses||0) + (a.draws||0);
                 const totalB = (b.wins||0) + (b.losses||0) + (b.draws||0);
                 if (totalA !== totalB) return totalB - totalA;
@@ -1416,6 +1447,85 @@
                 return (b.elo || 1000) - (a.elo || 1000);
             }).filter(p => p.maxStreak > 0).slice(0, 3);
 
+            const createChampionSection = (champ) => {
+                if (!champ) return `
+                <div class="bg-gradient-to-b from-yellow-50/50 to-white rounded-2xl p-4 shadow-md border border-yellow-200 relative overflow-hidden mb-6 fade-in">
+                    <div class="absolute -top-20 -right-20 w-48 h-48 bg-amber-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 pointer-events-none"></div>
+                    <div class="absolute -bottom-20 -left-20 w-48 h-48 bg-orange-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 pointer-events-none"></div>
+
+                    <div class="flex items-center gap-3 mb-6 border-b border-amber-100 pb-3 relative z-10">
+                        <span class="text-2xl drop-shadow-sm">👑</span>
+                        <div>
+                            <div class="text-base font-black text-slate-800 tracking-tight leading-none">전 시즌 챔피언</div>
+                            <div class="text-[10px] text-amber-600 font-bold mt-1 uppercase tracking-widest">Undisputed Champion</div>
+                        </div>
+                    </div>
+
+                    <div class="w-full flex justify-center pb-4 pt-2 relative z-10">
+                        <div class="relative flex flex-col items-center w-full max-w-[200px]">
+                            
+                            <div class="relative z-20 flex justify-center mb-1">
+                                <div class="absolute -top-9 text-[40px] drop-shadow-xl z-40 animate-float">👑</div>
+                                <div class="relative">
+                                    <div class="w-[110px] h-[110px] rounded-[1.5rem] flex items-center justify-center border-4 border-yellow-400 champ-glow bg-gradient-to-br from-amber-400 to-orange-500 relative z-10 shine-effect">
+                                        <span class="text-6xl font-black text-white drop-shadow-md">?</span>
+                                    </div>
+                                    <div class="absolute -bottom-3 left-1/2 transform -translate-x-1/2 text-[10px] shadow-lg bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 text-white font-black rounded-full px-4 py-1 border border-yellow-300 whitespace-nowrap z-30 tracking-wide uppercase">
+                                        Challenger
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="py-3 min-h-[70px] w-full bg-gradient-to-b from-amber-50 to-orange-50 border border-amber-200 text-amber-900 rounded-xl flex flex-col items-center justify-center shadow-md mt-2 relative overflow-hidden">
+                                <div class="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9IiMwMDAiLz48L3N2Zz4=')]"></div>
+                                <div class="font-black text-base truncate w-full text-center px-1 leading-tight drop-shadow-sm relative z-10">공석 (No Champion)</div>
+                                <div class="flex items-center gap-1.5 mt-1 relative z-10">
+                                    <span class="text-amber-600 text-[10px] font-bold">도전하세요!</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `; 
+                const defCount = champ.defenseCount || 0;
+                return `
+                <div class="bg-gradient-to-b from-yellow-50/50 to-white rounded-2xl p-4 shadow-md border border-yellow-200 relative overflow-hidden mb-6 fade-in">
+                    <div class="absolute -top-20 -right-20 w-48 h-48 bg-amber-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 pointer-events-none"></div>
+                    <div class="absolute -bottom-20 -left-20 w-48 h-48 bg-orange-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 pointer-events-none"></div>
+
+                    <div class="flex items-center gap-3 mb-6 border-b border-amber-100 pb-3 relative z-10">
+                        <span class="text-2xl drop-shadow-sm">👑</span>
+                        <div>
+                            <div class="text-base font-black text-slate-800 tracking-tight leading-none">전 시즌 챔피언</div>
+                            <div class="text-[10px] text-amber-600 font-bold mt-1 uppercase tracking-widest">Undisputed Champion</div>
+                        </div>
+                    </div>
+
+                    <div class="w-full flex justify-center pb-4 pt-2 group cursor-pointer relative z-10" onclick="openProfile('${champ.id}')">
+                        <div class="relative flex flex-col items-center w-full max-w-[200px] transition-transform duration-300 hover:scale-105">
+                            
+                            <div class="relative z-20 flex justify-center mb-1">
+                                <div class="absolute -top-9 text-[40px] drop-shadow-xl z-40 animate-float">👑</div>
+                                <div class="relative">
+                                    <img src="${champ.imageUrl || 'https://placehold.co/150/f59e0b/white?text=CHAMP'}" class="w-[110px] h-[110px] rounded-[1.5rem] object-cover border-4 border-yellow-400 champ-glow bg-slate-200 relative z-10 shine-effect" onerror="this.src='https://placehold.co/150/f59e0b/white?text=CHAMP'">
+                                </div>
+                            </div>
+                            
+                            <div class="py-3 min-h-[70px] w-full bg-gradient-to-b from-amber-50 to-orange-50 border border-amber-200 text-amber-900 rounded-xl flex flex-col items-center justify-center shadow-md mt-2 relative overflow-hidden">
+                                <div class="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9IiMwMDAiLz48L3N2Zz4=')]"></div>
+                                <div class="font-black text-lg truncate w-full text-center px-1 leading-tight drop-shadow-sm relative z-10">${champ.name}</div>
+                                <div class="flex items-center gap-1.5 mt-0.5 relative z-10">
+                                    <span class="text-amber-600 text-[11px] font-black">⚡${champ.elo || 1000}</span>
+                                    <span class="text-slate-400 text-[10px] font-bold">| 🛡️ ${defCount}차 방어</span>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                `;
+            };
+
             const createPodiumSection = (title, sub, icon, list, colorFrom, colorTo, type) => {
                 if (!list || list.length === 0) return ''; 
 
@@ -1425,7 +1535,6 @@
 
                 const getValue = (p) => {
                     if (type === 'elo') return `⚡${p.elo}`;
-                    // [FIX] 무승부 포함
                     if (type === 'match') return `${(p.wins||0)+(p.losses||0)+(p.draws||0)}전`;
                     if (type === 'win') return `${p.wins}승`;
                     if (type === 'streak') return `${p.maxStreak}연승`;
@@ -1445,7 +1554,7 @@
                     const badgeText = rank + "위";
                     const badgeSize = is1st ? "text-[10px] sm:text-xs" : "text-[10px] sm:text-[11px]";
                     
-                    const crown = '';
+                    const crown = ''; 
                     
                     const plateHeight = is1st ? "h-16 sm:h-20" : "h-14 sm:h-16";
                     const plateBg = is1st ? "bg-gradient-to-b from-amber-100 to-amber-50 border border-amber-200 text-amber-900" : "bg-slate-50 border border-slate-200 text-slate-700";
@@ -1499,7 +1608,8 @@
                     ${createPodiumSection("최다 연승", "멈출 수 없는 기세", "🚀", streakList, "rose-400", "pink-500", "streak")}
                     ${createPodiumSection("최다 플레이", "지치지 않는 열정", "🔥", ironWillList, "slate-500", "slate-700", "match")}
                     ${createPodiumSection("최다승", "압도적인 승리", "⚔️", conquerorList, "blue-500", "indigo-600", "win")}
-                    ${createPodiumSection(champTitle, champSub, "👑", championList, "amber-400", "orange-500", "elo")}
+                    ${createChampionSection(seasonChampion)}
+                    ${createPodiumSection(champTitle, champSub, "👑", top3List, "amber-400", "orange-500", "elo")}
                 </div>
             `; 
         }
