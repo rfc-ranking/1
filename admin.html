@@ -219,7 +219,7 @@
     </div>
 
     <div id="customConfirmModal" class="fixed inset-0 bg-slate-900/80 z-[10000] hidden flex items-center justify-center backdrop-blur-sm" onclick="if(event.target === this) closeConfirmModal()">
-        <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-sm w-full mx-4 transform transition-all scale-100"><div class="text-center"><div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4"><svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77-1.333.192 3 1.732 3z"/></svg></div><h3 class="text-lg font-bold text-slate-800 mb-2">⚠️ 확인이 필요합니다</h3><p id="confirmMessage" class="text-sm text-slate-600 mb-6 whitespace-pre-wrap">정말 실행하시겠습니까?</p><div class="flex justify-center gap-3"><button onclick="closeConfirmModal()" class="bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 px-5 py-2.5 rounded-xl text-sm font-bold transition">취소</button><button id="confirmOkBtn" class="bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-red-500/30 transition">확인 (실행)</button></div></div></div>
+        <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-sm w-full mx-4 transform transition-all scale-100"><div class="text-center"><div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4"><svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg></div><h3 class="text-lg font-bold text-slate-800 mb-2">⚠️ 확인이 필요합니다</h3><p id="confirmMessage" class="text-sm text-slate-600 mb-6 whitespace-pre-wrap">정말 실행하시겠습니까?</p><div class="flex justify-center gap-3"><button onclick="closeConfirmModal()" class="bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 px-5 py-2.5 rounded-xl text-sm font-bold transition">취소</button><button id="confirmOkBtn" class="bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-red-500/30 transition">확인 (실행)</button></div></div></div>
     </div>
 
     <button id="undoBtn" onclick="executeUndo()" class="fixed bottom-6 right-6 z-50 bg-slate-800 text-white px-5 py-3 rounded-full shadow-xl font-bold flex items-center gap-2 transition transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed hidden"><span class="text-lg">↩️</span> 실행 취소 (<span id="undoCount">0</span>)</button>
@@ -520,8 +520,8 @@
         const AUTO_LOGIN_PW = "";
         
         const ADMIN_CONFIG = {
-            version: "v5.15",
-            updateNote: "티어 계산 버그 수정",
+            version: "v5.17",
+            updateNote: "메모 툴팁 수정",
             title: "RFC 매니저"
         };
 
@@ -661,6 +661,7 @@
             html += '</div>'; return html;
         }
 
+        // [FIX] 무승부(draws)를 포함하여 등급을 산정하도록 수정
         function getTier(wins, losses, draws = 0, elo = 0, isChampion = false) { 
             if (isChampion) return { name: '👑CHAMPION', class: 'tier-champion', color: 'bg-gradient-to-r from-yellow-400 to-amber-500 text-white border border-yellow-600 shadow-md' };
             if (elo >= 1300) return { name: '🦅CHALLENGER', class: 'tier-challenger', color: 'bg-slate-900 border border-amber-400 text-amber-400 shadow-md ring-1 ring-amber-400/30' };
@@ -1058,7 +1059,7 @@
 
                 if (m.date !== lastDate) { const count = dateCounts[m.date]; const dateHeader = document.createElement('div'); dateHeader.className = "text-xs font-bold text-slate-500 mt-4 mb-2 px-1 flex items-center gap-1 sticky top-0 bg-f8fafc/90 backdrop-blur-sm z-10 py-1"; dateHeader.style.cssText = "background-color: rgba(248, 250, 252, 0.95); backdrop-filter: blur(2px);"; dateHeader.innerHTML = `<span>📅</span> ${m.date} <span class="text-slate-400 font-normal text-[11px] ml-1">(총 ${count}경기)</span>`; container.appendChild(dateHeader); lastDate = m.date; }
                 const div = document.createElement('div'); div.className = "bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-2 relative group hover:border-blue-300 transition-colors"; 
-                div.innerHTML = `<button onclick="deleteMatchLog(${rawIndex})" class="absolute top-2 right-2 text-slate-300 hover:text-red-500 transition opacity-0 group-hover:opacity-100 p-1" title="기록 삭제"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button><div class="flex items-center justify-between text-xs mt-1"><div class="flex flex-col items-start w-[45%]"><div class="flex items-center gap-1.5"><span class="text-[10px] text-blue-500 font-bold mr-0.5">B</span><span class="text-xs ${leftNameClass} truncate">${leftName}</span><span class="${leftBadgeClass} text-[9px] px-1 py-0.5 rounded font-bold">${leftResult}</span></div><div class="flex items-center gap-2 mt-1"><span class="text-[9px] text-slate-400 font-medium bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">${leftStats.w}승 ${leftStats.l}패</span><div class="flex gap-0.5">${leftDots}</div></div></div><div class="text-[10px] font-bold text-slate-300">VS</div><div class="flex flex-col items-end w-[45%]"><div class="flex items-center gap-1.5"><span class="${rightBadgeClass} text-[9px] px-1 py-0.5 rounded font-bold">${rightResult}</span><span class="text-xs ${rightNameClass} truncate">${rightName}</span><span class="text-[10px] text-red-500 font-bold ml-0.5">R</span></div><div class="flex items-center gap-2 mt-1"><div class="flex gap-0.5">${rightDots}</div><span class="text-[9px] text-slate-400 font-medium bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">${rightStats.w}승 ${rightStats.l}패</span></div></div></div>`; container.appendChild(div); 
+                div.innerHTML = `<button onclick="deleteMatchLog(${rawIndex})" class="absolute top-2 right-2 text-slate-300 hover:text-red-500 transition opacity-0 group-hover:opacity-100 p-1" title="기록 삭제"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button><div class="flex items-center justify-between text-xs mt-1"><div class="flex flex-col items-start w-[45%]"><div class="flex items-center gap-1.5"><span class="text-[10px] text-blue-500 font-bold mr-0.5">B</span><span class="text-xs ${leftNameClass} truncate">${leftName}</span><span class="${leftBadgeClass} text-[9px] px-1 py-0.5 rounded font-bold">${leftResult}</span></div><div class="flex items-center gap-2 mt-1"><span class="text-[9px] text-slate-400 font-medium bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">${leftStats.w}승 ${leftStats.l}패 ${leftStats.d > 0 ? leftStats.d+'무' : ''}</span><div class="flex gap-0.5">${leftDots}</div></div></div><div class="text-[10px] font-bold text-slate-300">VS</div><div class="flex flex-col items-end w-[45%]"><div class="flex items-center gap-1.5"><span class="${rightBadgeClass} text-[9px] px-1 py-0.5 rounded font-bold">${rightResult}</span><span class="text-xs ${rightNameClass} truncate">${rightName}</span><span class="text-[10px] text-red-500 font-bold ml-0.5">R</span></div><div class="flex items-center gap-2 mt-1"><div class="flex gap-0.5">${rightDots}</div><span class="text-[9px] text-slate-400 font-medium bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">${rightStats.w}승 ${rightStats.l}패 ${rightStats.d > 0 ? rightStats.d+'무' : ''}</span></div></div></div>`; container.appendChild(div); 
             }); 
         }
 
@@ -1165,11 +1166,7 @@
                     let leftName, leftRank, rightName, rightRank;
                     if (m.blue) { leftName = m.blue; if (m.winner === m.blue) { leftRank = m.winnerRankBefore; rightName = m.loser; rightRank = m.loserRankBefore; } else { leftRank = m.loserRankBefore; rightName = m.winner; rightRank = m.winnerRankBefore; } } else { leftName = m.winner; leftRank = m.winnerRankBefore; rightName = m.loser; rightRank = m.loserRankBefore; }
                     
-                    if (m.isDraw || m.type === 'draw') {
-                        result += `${getLabel(leftName, leftRank)} VS ${getLabel(rightName, rightRank)} (무승부)\n`; 
-                    } else {
-                        result += `${getLabel(leftName, leftRank)} VS ${getLabel(rightName, rightRank)}\n`; 
-                    }
+                    result += `${getLabel(leftName, leftRank)} VS ${getLabel(rightName, rightRank)}\n`; 
                 });
             }); 
             
@@ -1522,7 +1519,7 @@
             const winRate = total > 0 ? Math.round((wins / total) * 100) : 0; 
             
             document.getElementById('pBigWins').textContent = wins; 
-            document.getElementById('pBigDraws').textContent = draws; 
+            document.getElementById('pBigDraws').textContent = draws;
             document.getElementById('pBigLosses').textContent = losses; 
             document.getElementById('pModalWinRate').textContent = `${winRate}%`; 
             document.getElementById('pModalElo').textContent = p.elo || 1000; 
@@ -1604,10 +1601,7 @@
             const getTooltipHtml = (note) => {
                 if (!note || note.trim() === "") return "";
                 const safeNote = note.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-                return `<div class="css-tooltip-text absolute right-[130%] top-1/2 w-56 bg-amber-100 text-amber-900 border border-amber-300 text-[11px] p-2.5 rounded-lg shadow-lg z-[60] pointer-events-none whitespace-normal leading-snug" style="transform: translateY(-50%) translateX(10px);">
-                            ${safeNote}
-                            <div class="absolute top-1/2 -right-1.5 -translate-y-1/2 w-3 h-3 bg-amber-100 rotate-45 border-t border-r border-amber-300"></div>
-                        </div>`;
+                return `<div class="css-tooltip-text absolute right-[130%] top-1/2 w-max max-w-xs bg-amber-100 text-amber-900 border border-amber-300 text-sm px-3 py-2.5 rounded-lg shadow-lg z-[60] pointer-events-none whitespace-pre-wrap leading-snug text-left" style="transform: translateY(-50%) translateX(10px);">${safeNote}<div class="absolute top-1/2 -right-1.5 -translate-y-1/2 w-3 h-3 bg-amber-100 rotate-45 border-t border-r border-amber-300"></div></div>`;
             };
 
             if (champion) {
