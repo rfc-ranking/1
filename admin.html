@@ -358,9 +358,9 @@
                     <label for="deleteAllCheckbox" class="text-xs text-slate-500 font-bold cursor-pointer select-none">전체 선택</label>
                 </div>
                 <select id="deleteSortSelect" class="text-[11px] font-bold text-slate-500 border border-slate-200 rounded px-2 py-1 bg-white outline-none focus:border-blue-500" onchange="renderDeleteList()">
-                    <option value="name">가나다순</option>
                     <option value="rank_high">점수 높은순 (▼)</option>
                     <option value="rank_low">점수 낮은순 (▲)</option>
+                    <option value="name">가나다순</option>
                 </select>
             </div>
             <div id="deletePlayerList" class="flex-grow overflow-y-auto border border-slate-200 rounded-lg p-2 space-y-1 bg-slate-50 min-h-[200px]"></div>
@@ -520,8 +520,8 @@
         const AUTO_LOGIN_PW = "";
         
         const ADMIN_CONFIG = {
-            version: "v5.17",
-            updateNote: "메모 툴팁 수정",
+            version: "v5.18",
+            updateNote: "선수삭제 수정",
             title: "RFC 매니저"
         };
 
@@ -1234,15 +1234,27 @@
         window.confirmRenameSeason = async () => { const oldName = document.getElementById('renameOldName').value; const newName = document.getElementById('renameInput').value.trim(); if(!newName || newName === oldName) { closeRenameModal(); return; } if(newName === activeSeason || seasonArchives[newName]) return showCustomAlert("이미 존재하는 시즌 이름입니다."); captureState(); if (oldName === activeSeason) { activeSeason = newName; if (seasonArchives[oldName]) delete seasonArchives[oldName]; } else { seasonArchives[newName] = seasonArchives[oldName]; delete seasonArchives[oldName]; } matchHistoryData.forEach(m => { if(m.season === oldName) m.season = newName; }); await saveRankings(); renderSeasonList(); updateSeasonUI(); closeRenameModal(); showCustomAlert("변경됨."); };
         window.finishAndStartNewSeason = () => { const n = document.getElementById('newSeasonNameInput').value.trim(); if(!n) return; if(n === activeSeason || seasonArchives[n]) return; showConfirmModal(`새 시즌 [${n}] 시작?`, async () => { captureState(); seasonArchives[activeSeason] = { rankings: JSON.parse(JSON.stringify(rankingsData)) }; activeSeason = n; rankingsData.forEach(p => { p.previousRank = p.rank || rankingsData.indexOf(p) + 1; p.wins = 0; p.losses = 0; p.draws = 0; p.defenseCount = 0; p.elo = 1000; }); viewHistorySeason = activeSeason; await saveRankings(); updateSeasonUI(); renderSeasonList(); renderRankings(); updateAdminHistorySeasonSelector(); renderAdminMatches(); }); };
 
-        window.openDeletePlayersModal = () => { deleteSelectedIds.clear(); document.getElementById('deleteSearchInput').value = ''; document.getElementById('deleteAllCheckbox').checked = false; document.getElementById('deleteHistoryCheckbox').checked = false; const sortSelect = document.getElementById('deleteSortSelect'); if(sortSelect) sortSelect.value = 'name'; document.getElementById('deletePlayersModal').classList.remove('hidden'); window.renderDeleteList(); };
+        window.openDeletePlayersModal = () => { deleteSelectedIds.clear(); document.getElementById('deleteSearchInput').value = ''; document.getElementById('deleteAllCheckbox').checked = false; document.getElementById('deleteHistoryCheckbox').checked = false; const sortSelect = document.getElementById('deleteSortSelect'); if(sortSelect) sortSelect.value = 'rank_high'; document.getElementById('deletePlayersModal').classList.remove('hidden'); window.renderDeleteList(); };
         window.closeDeletePlayersModal = () => { document.getElementById('deletePlayersModal').classList.add('hidden'); };
         window.renderDeleteList = () => {
             const listContainer = document.getElementById('deletePlayerList'); const badge = document.getElementById('deleteCountBadge');
             const query = document.getElementById('deleteSearchInput').value.toLowerCase().replace(/\s/g, ""); const queryJamo = Hangul.disassemble(query);
-            const sortType = document.getElementById('deleteSortSelect')?.value || 'name'; 
+            const sortType = document.getElementById('deleteSortSelect')?.value || 'rank_high'; 
             listContainer.innerHTML = '';
             const filteredPlayers = rankingsData.filter(p => { const nameClean = p.name.replace(/\s/g, "").toLowerCase(); if (nameClean.includes(query)) return true; if (p.choseong && (p.choseong.includes(query) || p.choseong.includes(queryJamo))) return true; if (p.jamo && p.jamo.includes(queryJamo)) return true; return false; });
-            filteredPlayers.sort((a, b) => { if (sortType === 'rank_high') return (b.elo || 1000) - (a.elo || 1000) || a.name.localeCompare(b.name); else if (sortType === 'rank_low') return (a.elo || 1000) - (b.elo || 1000) || a.name.localeCompare(b.name); else return a.name.localeCompare(b.name); });
+            filteredPlayers.sort((a, b) => { 
+                const isRankerA = ((a.wins || 0) + (a.losses || 0) + (a.draws || 0)) >= 3;
+                const isRankerB = ((b.wins || 0) + (b.losses || 0) + (b.draws || 0)) >= 3;
+                if (sortType === 'rank_high') {
+                    if (isRankerA !== isRankerB) return isRankerA ? -1 : 1;
+                    return (b.elo || 1000) - (a.elo || 1000) || a.name.localeCompare(b.name);
+                } else if (sortType === 'rank_low') {
+                    if (isRankerA !== isRankerB) return isRankerA ? -1 : 1;
+                    return (a.elo || 1000) - (b.elo || 1000) || a.name.localeCompare(b.name);
+                } else {
+                    return a.name.localeCompare(b.name);
+                }
+            });
             if (filteredPlayers.length === 0) listContainer.innerHTML = `<div class="text-center text-xs text-slate-400 py-6">검색 결과 없음.</div>`;
             else { filteredPlayers.forEach(p => { const isChecked = deleteSelectedIds.has(p.id) ? 'checked' : ''; const totalMatches = (p.wins || 0) + (p.losses || 0) + (p.draws || 0); const div = document.createElement('div'); div.className = "flex items-center justify-between p-2 bg-white rounded border border-slate-100 hover:bg-slate-50 transition cursor-pointer"; div.onclick = (e) => { if(e.target.tagName !== 'INPUT') { const cb = div.querySelector('input[type="checkbox"]'); cb.checked = !cb.checked; window.toggleDeleteSelection(p.id, cb.checked); } }; div.innerHTML = `<div class="flex items-center gap-3"><input type="checkbox" value="${p.id}" class="w-4 h-4 text-red-600 rounded border-gray-300 focus:ring-red-500" ${isChecked} onchange="window.toggleDeleteSelection('${p.id}', this.checked)"><div class="flex items-center gap-2"><img src="${p.imageUrl || 'https://placehold.co/150?text=No+Img'}" class="w-8 h-8 rounded bg-slate-100 object-cover border border-slate-200" onerror="this.src='https://placehold.co/150?text=No+Img'"><div><div class="font-bold text-sm text-slate-700">${p.name}</div><div class="text-[10px] text-slate-400">${totalMatches}전 | <span class="text-slate-600 font-bold">${p.elo}점</span></div></div></div></div>`; listContainer.appendChild(div); }); }
             badge.textContent = `${deleteSelectedIds.size}명 선택됨`;
