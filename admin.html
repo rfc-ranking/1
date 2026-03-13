@@ -517,11 +517,11 @@
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         
         const AUTO_LOGIN_EMAIL = "@gmail.com"; 
-        const AUTO_LOGIN_PW = "";
+        const AUTO_LOGIN_PW = "!";
         
         const ADMIN_CONFIG = {
-            version: "v5.18",
-            updateNote: "선수삭제 수정",
+            version: "v5.19",
+            updateNote: "새 시즌 챔피언 초기화",
             title: "RFC 매니저"
         };
 
@@ -1232,7 +1232,7 @@
         window.openRenameModal = (oldName) => { document.getElementById('renameOldName').value = oldName; document.getElementById('renameInput').value = oldName; document.getElementById('renameModal').classList.remove('hidden'); setTimeout(() => document.getElementById('renameInput').focus(), 50); };
         window.closeRenameModal = () => { document.getElementById('renameModal').classList.add('hidden'); };
         window.confirmRenameSeason = async () => { const oldName = document.getElementById('renameOldName').value; const newName = document.getElementById('renameInput').value.trim(); if(!newName || newName === oldName) { closeRenameModal(); return; } if(newName === activeSeason || seasonArchives[newName]) return showCustomAlert("이미 존재하는 시즌 이름입니다."); captureState(); if (oldName === activeSeason) { activeSeason = newName; if (seasonArchives[oldName]) delete seasonArchives[oldName]; } else { seasonArchives[newName] = seasonArchives[oldName]; delete seasonArchives[oldName]; } matchHistoryData.forEach(m => { if(m.season === oldName) m.season = newName; }); await saveRankings(); renderSeasonList(); updateSeasonUI(); closeRenameModal(); showCustomAlert("변경됨."); };
-        window.finishAndStartNewSeason = () => { const n = document.getElementById('newSeasonNameInput').value.trim(); if(!n) return; if(n === activeSeason || seasonArchives[n]) return; showConfirmModal(`새 시즌 [${n}] 시작?`, async () => { captureState(); seasonArchives[activeSeason] = { rankings: JSON.parse(JSON.stringify(rankingsData)) }; activeSeason = n; rankingsData.forEach(p => { p.previousRank = p.rank || rankingsData.indexOf(p) + 1; p.wins = 0; p.losses = 0; p.draws = 0; p.defenseCount = 0; p.elo = 1000; }); viewHistorySeason = activeSeason; await saveRankings(); updateSeasonUI(); renderSeasonList(); renderRankings(); updateAdminHistorySeasonSelector(); renderAdminMatches(); }); };
+        window.finishAndStartNewSeason = () => { const n = document.getElementById('newSeasonNameInput').value.trim(); if(!n) return; if(n === activeSeason || seasonArchives[n]) return; showConfirmModal(`새 시즌 [${n}] 시작?`, async () => { captureState(); seasonArchives[activeSeason] = { rankings: JSON.parse(JSON.stringify(rankingsData)) }; activeSeason = n; rankingsData.forEach(p => { p.previousRank = p.rank || rankingsData.indexOf(p) + 1; p.wins = 0; p.losses = 0; p.draws = 0; p.defenseCount = 0; p.elo = 1000; p.isChampion = false; p.currentStreak = 0; p.bounty = 0; }); viewHistorySeason = activeSeason; await saveRankings(); updateSeasonUI(); renderSeasonList(); renderRankings(); updateAdminHistorySeasonSelector(); renderAdminMatches(); }); };
 
         window.openDeletePlayersModal = () => { deleteSelectedIds.clear(); document.getElementById('deleteSearchInput').value = ''; document.getElementById('deleteAllCheckbox').checked = false; document.getElementById('deleteHistoryCheckbox').checked = false; const sortSelect = document.getElementById('deleteSortSelect'); if(sortSelect) sortSelect.value = 'rank_high'; document.getElementById('deletePlayersModal').classList.remove('hidden'); window.renderDeleteList(); };
         window.closeDeletePlayersModal = () => { document.getElementById('deletePlayersModal').classList.add('hidden'); };
