@@ -140,6 +140,7 @@
         .tab-btn { @apply text-slate-500 border-b-2 border-transparent hover:text-slate-700 font-medium transition-colors; }
         .tab-btn.active { @apply text-blue-600 border-blue-600 font-bold; }
         ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: #f1f1f1; } ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; } ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .sticky-left-panel::-webkit-scrollbar { width: 4px; } .sticky-left-panel::-webkit-scrollbar-track { background: transparent; } .sticky-left-panel::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 4px; } .sticky-left-panel::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
         .pop-in { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         .modal-enter { animation: modalSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
@@ -205,7 +206,7 @@
         .tooltip-value { color: #60a5fa; font-weight: bold; }
     </style>
 </head>
-<body class="text-slate-800 relative min-h-screen">
+<body class="text-slate-800 relative h-screen overflow-hidden">
 
     <div id="inspector-tooltip">
         <div class="tooltip-row"><span class="tooltip-label">Tag</span><span class="tooltip-value" id="tt-tag">DIV</span></div>
@@ -232,8 +233,8 @@
         </div>
     </div>
 
-    <div id="mainContent" class="max-w-6xl mx-auto p-4 hidden min-h-screen flex flex-col">
-        <header class="flex flex-col md:flex-row justify-between items-center mb-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+    <div id="mainContent" class="max-w-6xl mx-auto p-4 hidden h-full flex flex-col">
+        <header class="shrink-0 flex flex-col md:flex-row justify-between items-center mb-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
             <div class="flex items-center gap-3">
                 <h1 class="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">RFC 매니저</h1>
                 
@@ -249,16 +250,23 @@
             <div class="mt-2 md:mt-0 text-xs text-slate-400 font-medium"><span id="adminVersionDisplay">v?.??</span></div>
         </header>
 
-        <div class="bg-white rounded-t-2xl border-b border-slate-200 px-4 flex gap-6 mb-4 shadow-sm overflow-x-auto">
-            <button onclick="switchTab('main')" id="tabMain" class="tab-btn active py-4 whitespace-nowrap">🔥 랭킹/경기</button>
-            <button onclick="switchTab('history')" id="tabHistory" class="tab-btn py-4 whitespace-nowrap">⚔️ 경기 기록</button>
-            <button onclick="switchTab('season')" id="tabSeason" class="tab-btn py-4 whitespace-nowrap">📅 시즌 관리</button>
-            <button onclick="switchTab('tools')" id="tabTools" class="tab-btn py-4 whitespace-nowrap">🛠️ 데이터/백업</button>
-            <button onclick="switchTab('settings')" id="tabSettings" class="tab-btn py-4 whitespace-nowrap">⚙️ 설정/메모</button>
+        <div class="shrink-0 bg-white rounded-t-2xl border-b border-slate-200 px-4 flex justify-between items-center mb-4 shadow-sm overflow-x-auto">
+            <div class="flex gap-6">
+                <button onclick="switchTab('main')" id="tabMain" class="tab-btn active py-4 whitespace-nowrap">🔥 랭킹/경기</button>
+                <button onclick="switchTab('history')" id="tabHistory" class="tab-btn py-4 whitespace-nowrap">⚔️ 경기 기록</button>
+                <button onclick="switchTab('season')" id="tabSeason" class="tab-btn py-4 whitespace-nowrap">📅 시즌 관리</button>
+                <button onclick="switchTab('tools')" id="tabTools" class="tab-btn py-4 whitespace-nowrap">🛠️ 데이터/백업</button>
+                <button onclick="switchTab('settings')" id="tabSettings" class="tab-btn py-4 whitespace-nowrap">⚙️ 설정/메모</button>
+            </div>
+            
+            <div class="flex items-center gap-2 py-2 shrink-0 pl-4 border-l border-slate-100 ml-4">
+                <div class="relative"><input type="search" id="searchInput" placeholder="선수/초성 검색" class="w-[155px] text-xs border border-slate-200 rounded-lg pl-8 pr-2 py-2 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"><div class="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs">🔍</div></div>
+                <div class="flex gap-1.5"><button onclick="window.open('index.html')" class="bg-white border border-slate-200 text-slate-600 text-xs font-bold py-2 px-3 rounded-lg hover:bg-slate-50">🌐 사이트 보기</button><button onclick="saveRankings()" class="bg-indigo-600 text-white text-xs font-bold py-2 px-3 rounded-lg shadow hover:bg-indigo-700">💾 저장</button></div>
+            </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-grow">
-            <div class="lg:col-span-4 space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-grow min-h-0 pb-2">
+            <div class="lg:col-span-4 space-y-6 h-full overflow-y-auto pb-4 pr-1 sticky-left-panel">
                 <div id="mainSection" class="tab-content">
                     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 mb-6 relative z-30">
                         <div class="bg-slate-50 p-4 border-b border-slate-100 flex justify-between items-center rounded-t-2xl">
@@ -336,15 +344,8 @@
                 </div>
             </div>
             
-            <div class="lg:col-span-8 bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col h-[calc(100vh-140px)]">
-                <div class="bg-slate-50 p-4 border-b border-slate-100 flex justify-between items-center rounded-t-2xl">
-                    <div><h3 class="font-bold text-slate-700">🔥 실시간 랭킹</h3><p class="text-[10px] text-slate-400 font-medium mt-0.5">현재 활성 시즌: <span class="currentSeasonName text-blue-600 font-bold"></span></p></div>
-                    <div class="flex items-center gap-2">
-                        <div class="relative"><input type="search" id="searchInput" placeholder="선수/초성 검색" class="w-[155px] text-xs border border-slate-200 rounded-lg pl-9 pr-2 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"><div class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs">🔍</div></div>
-                        <div class="flex gap-2"><button onclick="window.open('index.html')" class="bg-white border border-slate-200 text-slate-600 text-xs font-bold py-2 px-3 rounded-lg hover:bg-slate-50">🌐 사이트 보기</button><button onclick="saveRankings()" class="bg-indigo-600 text-white text-xs font-bold py-2 px-3 rounded-lg shadow hover:bg-indigo-700">💾 저장</button></div>
-                    </div>
-                </div>
-                <div id="rankingList" class="flex-grow overflow-y-auto p-2 space-y-1.5 bg-slate-50/50"></div>
+            <div class="lg:col-span-8 bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col h-full overflow-y-auto relative">
+                <div id="rankingList" class="p-2 space-y-1.5 bg-slate-50/50 rounded-2xl min-h-full"></div>
             </div>
         </div>
     </div>
@@ -517,11 +518,11 @@
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         
         const AUTO_LOGIN_EMAIL = "@gmail.com"; 
-        const AUTO_LOGIN_PW = "!";
+        const AUTO_LOGIN_PW = "";
         
         const ADMIN_CONFIG = {
-            version: "v5.19",
-            updateNote: "새 시즌 챔피언 초기화",
+            version: "v5.21",
+            updateNote: "UI 수정",
             title: "RFC 매니저"
         };
 
