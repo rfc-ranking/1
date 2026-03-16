@@ -86,7 +86,7 @@
             box-shadow: none !important;
         }
         /* 텍스트 색상 강제화 제거 (기본 검정으로 복귀) 
-           단, 뱃지(rounded-full)는 제외하여 텍스트 색상이 묻히지 않도록 함 
+            단, 뱃지(rounded-full)는 제외하여 텍스트 색상이 묻히지 않도록 함 
         */
         .tier-challenger .rank-num-normal, 
         .tier-challenger .font-bold:not(.rounded-full) {
@@ -185,25 +185,25 @@
         .tooltip-value { color: #60a5fa; font-weight: bold; }
         
         .active-inspector-btn { background-color: #3b82f6 !important; color: white !important; opacity: 1 !important; }
-        /* [수정] 현상금 뱃지 스타일 - 배경 제거, 텍스트 강조 (Option 2 적용) */
+        
+        /* 현상금 뱃지 스타일 - 배경 제거, 텍스트 강조 */
         .bounty-pill-dark { 
             font-size: 0.75rem; 
-            background-color: transparent; /* 배경 제거 */
-            color: #d97706; /* 진한 앰버색 (amber-600)으로 변경하여 가독성 확보 */
-            padding: 0; /* 패딩 제거 */
+            background-color: transparent; 
+            color: #d97706; 
+            padding: 0; 
             border-radius: 0; 
             margin-left: 4px; 
-            font-weight: 800; /* 두께 강조 */
+            font-weight: 800; 
             vertical-align: middle; 
             display: inline-flex; 
             align-items: center; 
             gap: 1px;
             line-height: 1.2;
             white-space: nowrap; 
-            box-shadow: none; /* 그림자 제거 */
+            box-shadow: none; 
         }
     
-        
         /* 챔피언 뱃지 스타일 */
         .champ-badge {
             background: linear-gradient(135deg, #fbbf24, #d97706); 
@@ -242,6 +242,7 @@
         <div class="tooltip-row"><span class="tooltip-label">Class</span><span class="tooltip-value" id="tt-class" style="max-width:100px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">-</span></div>
     </div>
 
+    <!-- 상단 헤더 (기존 유지) -->
     <header class="bg-white sticky top-0 z-40 shadow-sm border-b border-slate-200">
         <div class="max-w-3xl mx-auto px-4 py-3 flex justify-between items-center">
             <div class="inline-flex flex-col">
@@ -271,8 +272,10 @@
     </header>
 
     <main class="max-w-3xl mx-auto p-3 flex-grow w-full">
+        <!-- 랭킹 탭 -->
         <div id="rankingSection" class="fade-in space-y-3">
-            <div class="flex justify-between items-center px-1 pb-2 gap-2">
+            <!-- [수정] Option 1 적용: sticky 클래스와 배경색(blur 포함)을 추가한 필터 바 -->
+            <div class="sticky-sub-header sticky z-30 bg-slate-100/95 backdrop-blur-sm pt-2 pb-2 -mt-2 flex justify-between items-center px-1 gap-2 border-b border-transparent transition-all">
                 <div class="flex flex-col min-w-0 shrink">
                     <span id="rankingSeasonTitle" class="text-[11px] sm:text-xs font-bold text-slate-700 truncate"></span>
                     <span id="rankingSeasonStartDate" class="text-[9px] sm:text-[10px] text-slate-400 mt-0.5 truncate"></span>
@@ -280,11 +283,11 @@
                 
                 <div class="flex items-center gap-1.5 sm:gap-3 shrink-0">
                     <div class="relative w-[105px] sm:w-[150px]">
-                        <input type="search" id="playerSearchInput" name="q_search_dummy" autocomplete="nope" spellcheck="false" placeholder="선수 검색" class="w-full bg-slate-50 border border-slate-200 rounded-lg pl-6 sm:pl-8 pr-1 sm:pr-2 py-1 sm:py-1.5 text-[11px] sm:text-xs outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors" oninput="handleSearch(this.value)">
+                        <input type="search" id="playerSearchInput" name="q_search_dummy" autocomplete="nope" spellcheck="false" placeholder="선수 검색" class="w-full bg-white border border-slate-200 rounded-lg pl-6 sm:pl-8 pr-1 sm:pr-2 py-1 sm:py-1.5 text-[11px] sm:text-xs outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors shadow-sm" oninput="handleSearch(this.value)">
                         <span class="absolute left-1.5 sm:left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] sm:text-xs pointer-events-none">🔍</span>
                     </div>
                     
-                    <div class="flex gap-1 sm:gap-1.5 items-center bg-slate-50 px-1.5 sm:px-2 py-1 rounded border border-slate-200 shadow-inner shrink-0">
+                    <div class="flex gap-1 sm:gap-1.5 items-center bg-white px-1.5 sm:px-2 py-1 rounded border border-slate-200 shadow-sm shrink-0">
                         <span class="text-[9px] sm:text-[10px] text-slate-500 font-bold flex items-center gap-0.5"><div class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 shadow-sm border border-emerald-500"></div>승</span>
                         <span class="text-[9px] sm:text-[10px] text-slate-500 font-bold flex items-center gap-0.5"><div class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-rose-400 shadow-sm border border-rose-500"></div>패</span>
                         <span class="text-[9px] sm:text-[10px] text-slate-500 font-bold flex items-center gap-0.5"><div class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-slate-400 shadow-sm border border-slate-500"></div>무</span>
@@ -295,8 +298,10 @@
             <div id="rankingList"></div>
         </div>
 
+        <!-- 기록 탭 -->
         <div id="matchesSection" class="hidden fade-in">
-            <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between mb-4 gap-2">
+            <!-- [수정] 기록 탭 필터 바 고정 -->
+            <div class="sticky-sub-header sticky z-30 bg-white/95 backdrop-blur-sm p-3 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between mb-4 gap-2 transition-all">
                 <div class="flex flex-col min-w-0 shrink">
                     <span id="matchesSeasonTitle" class="text-[13px] font-black text-slate-700 truncate tracking-tight"></span>
                     <span id="matchesSeasonStartDate" class="text-[10px] text-slate-400 mt-0.5 truncate"></span>
@@ -306,8 +311,10 @@
             <div id="matchList" class="space-y-3 pb-6"></div>
         </div>
 
+        <!-- 전당 탭 -->
         <div id="hofSection" class="hidden fade-in">
-            <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between mb-4 gap-2">
+            <!-- [수정] 전당 탭 필터 바 고정 -->
+            <div class="sticky-sub-header sticky z-30 bg-white/95 backdrop-blur-sm p-3 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between mb-4 gap-2 transition-all">
                 <div class="flex flex-col min-w-0 shrink">
                     <span id="hofSeasonTitle" class="text-[13px] font-black text-slate-700 truncate tracking-tight"></span>
                     <span id="hofSeasonStartDate" class="text-[10px] text-slate-400 mt-0.5 truncate"></span>
@@ -349,6 +356,7 @@
         </div>
     </div>
 
+    <!-- 모달창 영역 (기존 유지) -->
     <div id="profileModal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
         <div class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity" onclick="closeProfile()"></div>
         <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.2)] max-w-3xl mx-auto h-[92vh] overflow-y-auto modal-enter flex flex-col">
@@ -367,7 +375,7 @@
 
                     <div class="w-full max-w-sm mb-6">
                         <div class="flex justify-between items-end mb-2 h-8">
-                            <div id="pModalBadges" class="flex gap-1.5"></div> <!-- 뱃지 컨테이너 -->
+                            <div id="pModalBadges" class="flex gap-1.5"></div>
                             <select id="pModalSeason" class="text-xs font-bold text-slate-600 bg-slate-100 border border-slate-200 rounded px-2 py-1 outline-none focus:border-blue-500 h-7"><option value="all">전체 기록 (All Time)</option><option value="current">현재 시즌 (Current)</option></select>
                         </div>
                         
@@ -453,10 +461,26 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v5.12",
-            updateNote: "명예의 전당 챔피언 왕관 위치 조정",
+            version: "v5.13",
+            updateNote: "필터/검색바 동적 고정 처리",
             title: "RFC 랭킹전"
         };
+
+        // [NEW] 필터바 동적 상단 고정(Sticky) 계산을 위한 JavaScript 함수
+        window.updateStickyTop = () => {
+            const header = document.querySelector('header');
+            if (header) {
+                const hHeight = header.getBoundingClientRect().height;
+                // 미세한 여백(hairline gap) 방지를 위해 0.5px 정도 빼줌
+                document.querySelectorAll('.sticky-sub-header').forEach(el => {
+                    el.style.top = (hHeight - 0.5) + 'px';
+                });
+            }
+        };
+
+        // 크기 변경이나 로드 시마다 위치 재계산
+        window.addEventListener('resize', window.updateStickyTop);
+        window.addEventListener('load', window.updateStickyTop);
 
         function initSystemUI() {
             try {
@@ -465,6 +489,9 @@
                 if(headerVerEl) headerVerEl.textContent = USER_CONFIG.version;
                 const footerVerEl = document.getElementById('displayVersion');
                 if(footerVerEl) footerVerEl.textContent = `${USER_CONFIG.version} ${USER_CONFIG.updateNote}`;
+                
+                // 초기 실행
+                window.updateStickyTop();
             } catch (e) {
                 console.warn("System UI Init Failed", e);
             }
@@ -612,7 +639,6 @@
                 rankingsData = data.rankings || []; 
                 matchHistoryData = data.matchHistory || []; 
                 
-                // [FIX] 데이터 로드 시 경기 기록을 날짜 내림차순(최신순)으로 강제 정렬
                 matchHistoryData.sort((a, b) => new Date(b.date) - new Date(a.date));
 
                 activeSeason = data.activeSeason || "시즌 1"; 
@@ -630,7 +656,7 @@
                     p.choseong = Hangul.getCho(p.name);
                     p.jamo = Hangul.disassemble(p.name);
                     if(p.bounty === undefined) p.bounty = 0;
-                    if(p.draws === undefined) p.draws = 0; // 무승부 초기화
+                    if(p.draws === undefined) p.draws = 0;
                 }); 
                 
                 enrichMatchHistory(); 
@@ -719,9 +745,9 @@
             const dateStr = now.toLocaleDateString('en-CA').replace(/-/g, '.');
             document.getElementById('currentDate').textContent = dateStr; 
             updateHeaderSeasonSelector(); renderRankings(); updateSeasonSelector(); updateHofSeasonSelector(); renderMatches(); renderHOF(); 
+            if (window.updateStickyTop) setTimeout(window.updateStickyTop, 100);
         }
         
-        // [FIX] getTier 함수에 draws 파라미터 추가
         function getTier(wins, losses, draws = 0, elo = 0, isChampion = false) { 
             if (isChampion) {
                 return { 
@@ -737,7 +763,6 @@
                     color: 'bg-slate-900 border border-amber-400 text-amber-400 shadow-md ring-1 ring-amber-400/30' 
                 };
             }
-            // [FIX] 승+패+무 를 모두 합산하여 등급 계산
             const matches = (wins || 0) + (losses || 0) + (draws || 0); 
             if (matches < 3) return { name: 'BRONZE', class: 'tier-bronze', color: 'bg-white border border-amber-600 text-amber-700' }; 
             if (matches < 7) return { name: 'SILVER', class: 'tier-silver', color: 'bg-white border border-slate-400 text-slate-500' }; 
@@ -838,7 +863,6 @@
             return html;
         }
         
-        // [NEW] HOF 지능형 이미지 참조 함수
         function getHOFImageUrl(player) {
             if (player.imageUrl && player.imageUrl.trim() !== '') {
                 return player.imageUrl;
@@ -885,7 +909,6 @@
 
             const champion = fullData.find(p => p.isChampion);
             
-            // [FIX] 모집단 계산 시 무승부 횟수 포함
             const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||0)+Number(p.losses||0)+Number(p.draws||0)) >= 3);
             
             let displayList = fullData;
@@ -903,7 +926,6 @@
             }
 
             const showChampion = champion && displayList.find(p => p.id === champion.id);
-            // [FIX] 무승부 횟수 포함
             const ranked = displayList.filter(p => !p.isChampion && (Number(p.wins||0)+Number(p.losses||0)+Number(p.draws||0)) >= 3)
                                     .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
             
@@ -921,7 +943,6 @@
                 return;
             }
 
-            // --- [CHAMPION SECTION] ---
             if (showChampion) {
                 const p = champion;
                 const defCount = p.defenseCount || 0;
@@ -955,7 +976,6 @@
                     </div>
 
                     <div class="flex-grow min-w-0 flex flex-col justify-center py-1 relative z-10">
-                        <!-- 1. 방어 뱃지를 상단으로 이동 -->
                         <div class="flex items-center gap-2 mb-1">
                              <div class="champ-badge">CHAMPION</div>
                              <span class="bg-orange-950/50 text-orange-300 border border-orange-500/30 text-[10px] px-1.5 py-0.5 rounded font-bold">🛡️ ${defCount}차 방어</span>
@@ -968,7 +988,6 @@
                         <div class="flex items-center gap-1.5 mt-0.5">
                             <span class="bg-black/40 text-orange-300 text-[10px] px-1.5 py-0.5 rounded border border-orange-500/30 font-bold">⚡${p.elo}</span>
                             <span class="text-xs text-slate-300">| ${recordStr}</span>
-                            <!-- 2. 현상금 잭팟 위치 (텍스트 온리) -->
                             ${bountyHtml}
                         </div>
                     </div>
@@ -1006,11 +1025,9 @@
                 </div>`;
             }
 
-            // --- [LIST SECTION] 도전자 (1순위 ~) ---
             ranked.forEach((item) => { 
                 const globalIndex = rankingsData.indexOf(item); 
                 const realRank = globalChallengers.findIndex(gp => gp.id === item.id) + 1;
-                // [FIX] getTier에 draws 전달
                 const tier = getTier(item.wins, item.losses, item.draws, item.elo, false); 
                 const totalMatches = (item.wins || 0) + (item.losses || 0) + (item.draws || 0);
                 const formHtml = getRecentFormHTML(item.name);
@@ -1642,7 +1659,20 @@
         }
         
         window.openRules = () => document.getElementById('rulesModal').classList.remove('hidden'); window.closeRules = () => document.getElementById('rulesModal').classList.add('hidden');
-        window.switchTab = (tab) => { ['ranking', 'matches', 'hof', 'tournament'].forEach(t => { document.getElementById(t + 'Section').classList.add('hidden'); const btn = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1)); btn.className = "tab-inactive flex-1 py-3 text-sm transition-colors text-center"; }); document.getElementById(tab + 'Section').classList.remove('hidden'); const activeBtn = document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)); activeBtn.className = "tab-active flex-1 py-3 text-sm transition-colors text-center"; };
+        
+        window.switchTab = (tab) => { 
+            ['ranking', 'matches', 'hof', 'tournament'].forEach(t => { 
+                document.getElementById(t + 'Section').classList.add('hidden'); 
+                const btn = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1)); 
+                btn.className = "tab-inactive flex-1 py-3 text-sm transition-colors text-center"; 
+            }); 
+            document.getElementById(tab + 'Section').classList.remove('hidden'); 
+            const activeBtn = document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)); 
+            activeBtn.className = "tab-active flex-1 py-3 text-sm transition-colors text-center"; 
+            
+            // 탭 전환 시 요소가 새로 렌더링될 수 있으므로 Sticky 위치를 다시 계산
+            if (window.updateStickyTop) setTimeout(window.updateStickyTop, 50);
+        };
 
         window.openProfile = (id) => { 
             currentProfileId = id; 
@@ -1655,7 +1685,6 @@
             if (p.isChampion) {
                 rankEl.classList.add('hidden'); 
             } else {
-                // [FIX] 무승부 포함
                 const totalMatches = (p.wins || 0) + (p.losses || 0) + (p.draws || 0);
                 if (totalMatches >= 3) {
                     const challengers = rankingsData.filter(r => !r.isChampion && (Number(r.wins||0) + Number(r.losses||0) + Number(r.draws||0)) >= 3)
@@ -1704,7 +1733,6 @@
             filterEl.value = 'all'; 
             filterEl.onchange = (e) => updateProfileStats(id, e.target.value); 
             
-            // [FIX] getTier에 draws 전달
             const tier = getTier(p.wins, p.losses, p.draws, p.elo, p.isChampion);            
             const tierEl = document.getElementById('pModalTierBadge'); 
             tierEl.textContent = tier.name; 
@@ -1738,7 +1766,6 @@
                 else if (m.winner === p.name) wins++; 
                 else losses++; 
             }); 
-            // [FIX] 총 경기수에 무승부 포함
             const total = wins + losses + draws; 
             const winRate = total > 0 ? Math.round((wins / total) * 100) : 0; 
             
@@ -1877,7 +1904,6 @@
                     rankings[idx].height = newHeight; rankings[idx].reach = newReach; rankings[idx].stance = newStance; rankings[idx].gameId = newGameId; rankings[idx].imageUrl = newImageUrl; rankings[idx].trunkColor = newTrunkColor; rankings[idx].tags = newTags;
                     if (newPassword) rankings[idx].password = newPassword;
 
-                    // [FIX] 사용자 보정 로직에도 무승부 횟수 포함
                     const challengers = rankings.filter(p => !p.isChampion && (Number(p.wins||0) + Number(p.losses||0) + Number(p.draws||0)) >= 3)
                                                 .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
                     
