@@ -190,6 +190,10 @@
             visibility: visible; opacity: 1; transform: translateY(-50%) translateX(0);
         }
 
+        /* [NEW] 아코디언 전용 스타일 (높이 여유 있게 설정) */
+        .memo-acc-content { max-height: 0; overflow: hidden; transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease; opacity: 0; }
+        .memo-acc-content.open { max-height: 1200px; opacity: 1; }
+
         #inspector-tooltip {
             position: fixed; pointer-events: none; 
             z-index: 2147483647 !important; 
@@ -371,47 +375,103 @@
                             <div class="flex justify-between items-center"><h3 class="font-bold flex items-center gap-2">🛠️ 스타일 인스펙터 (개발자 모드)</h3><label class="relative inline-flex items-center cursor-pointer"><input type="checkbox" id="inspectorToggle" class="sr-only peer" onchange="toggleInspector()"><div class="w-9 h-5 bg-slate-600 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-500"></div></label></div>
                             <p class="text-xs text-slate-400 mt-2">활성화 시 마우스 커서 위치에 해당 요소의 폰트, 색상, 크기 정보가 표시됩니다.</p>
                         </div>
-                        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden p-5"><div class="flex justify-between items-center mb-3"><h3 class="font-bold text-slate-700">📢 사용자 공지사항 관리</h3><label class="relative inline-flex items-center cursor-pointer"><input type="checkbox" id="noticeActiveToggle" class="sr-only peer" onchange="saveNoticeSettings()"><div class="w-9 h-5 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div><span class="ml-2 text-xs font-bold text-slate-600">공지 활성화</span></label></div><textarea id="noticeContentInput" class="w-full h-24 p-3 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 resize-none mb-3" placeholder="공지 내용을 입력하세요..."></textarea><button onclick="saveNoticeSettings()" class="w-full bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-bold py-2 rounded-lg text-xs border border-indigo-100 transition">공지 저장하기</button></div>
-                        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden p-5"><h3 class="font-bold text-slate-700 mb-2">📜 규칙 HTML 편집</h3><textarea id="ruleHtmlInput" class="w-full h-48 p-3 text-xs font-mono border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 resize-none mb-3" placeholder="HTML 코드를 입력하세요..."></textarea><div class="flex gap-2"><button onclick="loadDefaultRuleHtml()" class="flex-1 bg-slate-100 text-slate-600 font-bold py-2.5 rounded-lg text-xs hover:bg-slate-200 transition">↺ 기본 디자인 불러오기</button><button onclick="saveRules()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg text-xs transition">규칙 저장하기</button></div></div>
                         
-                        <!-- [NEW] 패치노트 관리 폼 -->
-                        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden p-5">
-                            <h3 class="font-bold text-slate-700 mb-3">💡 정보(패치노트) 관리</h3>
-                            
-                            <div class="mb-3 p-2 bg-slate-50 rounded-lg border border-slate-200">
-                                <label class="text-[10px] font-bold text-slate-500 block mb-1">분류 선택</label>
-                                <div class="flex gap-4">
-                                    <label class="flex items-center gap-1.5 text-xs font-bold text-blue-700 cursor-pointer"><input type="radio" name="pnType" value="official" checked class="w-3.5 h-3.5 accent-blue-600"> 🚀 공식 패치노트</label>
-                                    <label class="flex items-center gap-1.5 text-xs font-bold text-indigo-700 cursor-pointer"><input type="radio" name="pnType" value="community" class="w-3.5 h-3.5 accent-indigo-600"> 💬 커뮤니티 정보</label>
+                        <!-- 공지사항 아코디언 -->
+                        <div class="bg-slate-50 rounded-2xl shadow-sm border border-slate-200 overflow-hidden transition-colors" id="noticeWrapper">
+                            <div class="p-4 flex justify-between items-center cursor-pointer group" onclick="toggleAdminAccordion('notice')">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-lg grayscale group-hover:grayscale-0 transition-all">📢</span>
+                                    <h3 class="font-bold text-slate-600 group-hover:text-indigo-600 transition-colors">사용자 공지사항 관리</h3>
+                                </div>
+                                <div class="w-7 h-7 rounded-full bg-white border border-slate-200 flex items-center justify-center shadow-sm transition-all group-hover:border-indigo-300 group-hover:shadow-md">
+                                    <svg id="noticeChevron" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" /></svg>
                                 </div>
                             </div>
-
-                            <div class="grid grid-cols-2 gap-2 mb-2">
-                                <div><label class="text-[10px] font-bold text-slate-500">버전 (예: v5.15)</label><input type="text" id="pnVersion" class="w-full border border-slate-200 p-2 rounded text-xs bg-slate-50 focus:outline-none focus:border-blue-500"></div>
-                                <div><label class="text-[10px] font-bold text-slate-500">날짜 (예: 26.03.17)</label><input type="text" id="pnDate" class="w-full border border-slate-200 p-2 rounded text-xs bg-slate-50 focus:outline-none focus:border-blue-500"></div>
-                            </div>
-                            <div class="mb-2">
-                                <label class="text-[10px] font-bold text-slate-500">주요 제목</label>
-                                <input type="text" id="pnTitle" class="w-full border border-slate-200 p-2 rounded text-xs bg-slate-50 focus:outline-none focus:border-blue-500" placeholder="예: 상대별 전적 탭 신설 및 UI 개선">
-                            </div>
-                            <div class="mb-3">
-                                <div class="flex justify-between items-center mb-1">
-                                    <label class="text-[10px] font-bold text-slate-500">세부 내용 (엔터로 항목 구분)</label>
-                                    <button type="button" onclick="openFocusMode()" class="text-blue-600 hover:bg-blue-100 bg-blue-50 border border-blue-100 text-[10px] font-bold px-2 py-0.5 rounded transition flex items-center gap-1 shadow-sm">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3 h-3"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" /></svg>
-                                        넓게 쓰기
-                                    </button>
+                            <div id="noticeAccordion" class="memo-acc-content">
+                                <div class="p-4 pt-0">
+                                    <div class="bg-white rounded-xl p-3 border border-slate-100 flex flex-col">
+                                        <div class="flex justify-between items-center mb-3">
+                                            <span class="text-xs font-bold text-slate-500">홈 화면 팝업 공지</span>
+                                            <label class="relative inline-flex items-center cursor-pointer"><input type="checkbox" id="noticeActiveToggle" class="sr-only peer" onchange="saveNoticeSettings()"><div class="w-9 h-5 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div><span class="ml-2 text-xs font-bold text-slate-600">공지 활성화</span></label>
+                                        </div>
+                                        <textarea id="noticeContentInput" class="w-full h-24 p-3 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 resize-none mb-3" placeholder="공지 내용을 입력하세요..."></textarea>
+                                        <button onclick="saveNoticeSettings()" class="w-full bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-bold py-2 rounded-lg text-xs border border-indigo-100 transition">공지 저장하기</button>
+                                    </div>
                                 </div>
-                                <textarea id="pnDetails" class="w-full h-20 border border-slate-200 p-2 rounded text-xs bg-slate-50 resize-none focus:outline-none focus:border-blue-500" placeholder="- 상세한 업데이트 내용을 입력하세요...&#10;- 엔터키를 치면 줄바꿈이 유지됩니다."></textarea>
-                            </div>
-                            <button onclick="addPatchNote()" class="w-full bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold py-2 rounded-lg text-xs transition border border-blue-100 mb-4">+ 새 업데이트 등록</button>
-                            
-                            <div id="patchNotesAdminList" class="space-y-2 max-h-40 overflow-y-auto bg-slate-50 p-2 rounded border border-slate-100">
-                                <!-- 패치노트 리스트 -->
                             </div>
                         </div>
 
-                        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden p-5 flex flex-col h-[400px]"><h3 class="font-bold text-slate-700 mb-3 flex justify-between">📝 관리자 메모장</h3><div id="memoListContainer" class="flex-grow overflow-y-auto space-y-2 mb-3 pr-1 bg-slate-50 rounded-lg p-2 border border-slate-100"><div class="text-center text-xs text-gray-400 py-4">작성된 메모가 없습니다.</div></div><div class="flex gap-2"><input type="text" id="newMemoInput" class="flex-grow border border-slate-200 rounded-lg p-2.5 text-sm focus:outline-none focus:border-blue-500" placeholder="메세지 남기기..." onkeypress="if(event.key==='Enter') addMemo()"><button onclick="addMemo()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold px-4 rounded-lg text-xs transition whitespace-nowrap">등록</button></div></div>
+                        <!-- 규칙 아코디언 -->
+                        <div class="bg-slate-50 rounded-2xl shadow-sm border border-slate-200 overflow-hidden transition-colors" id="rulesWrapper">
+                            <div class="p-4 flex justify-between items-center cursor-pointer group" onclick="toggleAdminAccordion('rules')">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-lg grayscale group-hover:grayscale-0 transition-all">📜</span>
+                                    <h3 class="font-bold text-slate-600 group-hover:text-indigo-600 transition-colors">규칙 HTML 편집</h3>
+                                </div>
+                                <div class="w-7 h-7 rounded-full bg-white border border-slate-200 flex items-center justify-center shadow-sm transition-all group-hover:border-indigo-300 group-hover:shadow-md">
+                                    <svg id="rulesChevron" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" /></svg>
+                                </div>
+                            </div>
+                            <div id="rulesAccordion" class="memo-acc-content">
+                                <div class="p-4 pt-0">
+                                    <div class="bg-white rounded-xl p-3 border border-slate-100 flex flex-col">
+                                        <textarea id="ruleHtmlInput" class="w-full h-48 p-3 text-xs font-mono border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 resize-none mb-3" placeholder="HTML 코드를 입력하세요..."></textarea>
+                                        <div class="flex gap-2"><button onclick="loadDefaultRuleHtml()" class="flex-1 bg-slate-100 text-slate-600 font-bold py-2.5 rounded-lg text-xs hover:bg-slate-200 transition">↺ 기본 디자인 불러오기</button><button onclick="saveRules()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-lg text-xs transition">규칙 저장하기</button></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 패치노트 관리 아코디언 -->
+                        <div class="bg-slate-50 rounded-2xl shadow-sm border border-slate-200 overflow-hidden transition-colors" id="patchWrapper">
+                            <div class="p-4 flex justify-between items-center cursor-pointer group" onclick="toggleAdminAccordion('patch')">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-lg grayscale group-hover:grayscale-0 transition-all">💡</span>
+                                    <h3 class="font-bold text-slate-600 group-hover:text-indigo-600 transition-colors">정보(패치노트) 관리</h3>
+                                </div>
+                                <div class="w-7 h-7 rounded-full bg-white border border-slate-200 flex items-center justify-center shadow-sm transition-all group-hover:border-indigo-300 group-hover:shadow-md">
+                                    <svg id="patchChevron" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" /></svg>
+                                </div>
+                            </div>
+                            <div id="patchAccordion" class="memo-acc-content">
+                                <div class="p-4 pt-0">
+                                    <div class="bg-white rounded-xl p-3 border border-slate-100 flex flex-col">
+                                        <div class="mb-3 p-2 bg-slate-50 rounded-lg border border-slate-200">
+                                            <label class="text-[10px] font-bold text-slate-500 block mb-1">분류 선택</label>
+                                            <div class="flex gap-4">
+                                                <label class="flex items-center gap-1.5 text-xs font-bold text-blue-700 cursor-pointer"><input type="radio" name="pnType" value="official" checked class="w-3.5 h-3.5 accent-blue-600"> 🚀 공식 패치노트</label>
+                                                <label class="flex items-center gap-1.5 text-xs font-bold text-indigo-700 cursor-pointer"><input type="radio" name="pnType" value="community" class="w-3.5 h-3.5 accent-indigo-600"> 💬 커뮤니티 정보</label>
+                                            </div>
+                                        </div>
+
+                                        <div class="grid grid-cols-2 gap-2 mb-2">
+                                            <div><label class="text-[10px] font-bold text-slate-500">버전 (예: v5.15)</label><input type="text" id="pnVersion" class="w-full border border-slate-200 p-2 rounded text-xs bg-slate-50 focus:outline-none focus:border-indigo-500"></div>
+                                            <div><label class="text-[10px] font-bold text-slate-500">날짜 (예: 26.03.17)</label><input type="text" id="pnDate" class="w-full border border-slate-200 p-2 rounded text-xs bg-slate-50 focus:outline-none focus:border-indigo-500"></div>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="text-[10px] font-bold text-slate-500">주요 제목</label>
+                                            <input type="text" id="pnTitle" class="w-full border border-slate-200 p-2 rounded text-xs bg-slate-50 focus:outline-none focus:border-indigo-500" placeholder="예: 상대별 전적 탭 신설 및 UI 개선">
+                                        </div>
+                                        <div class="mb-3">
+                                            <div class="flex justify-between items-center mb-1">
+                                                <label class="text-[10px] font-bold text-slate-500">세부 내용 (엔터로 항목 구분)</label>
+                                                <button type="button" onclick="openFocusMode()" class="text-indigo-600 hover:bg-indigo-100 bg-indigo-50 border border-indigo-100 text-[10px] font-bold px-2 py-0.5 rounded transition flex items-center gap-1 shadow-sm">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3 h-3"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" /></svg>
+                                                    넓게 쓰기
+                                                </button>
+                                            </div>
+                                            <textarea id="pnDetails" class="w-full h-20 border border-slate-200 p-2 rounded text-xs bg-slate-50 resize-none focus:outline-none focus:border-indigo-500" placeholder="- 상세한 업데이트 내용을 입력하세요...&#10;- 엔터키를 치면 줄바꿈이 유지됩니다."></textarea>
+                                        </div>
+                                        <button onclick="addPatchNote()" class="w-full bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-bold py-2 rounded-lg text-xs transition border border-indigo-100 mb-4">+ 새 업데이트 등록</button>
+                                        
+                                        <div id="patchNotesAdminList" class="space-y-2 max-h-40 overflow-y-auto bg-slate-50 p-2 rounded border border-slate-100">
+                                            <!-- 패치노트 리스트 -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -613,8 +673,8 @@
         const AUTO_LOGIN_PW = "";
         
         const ADMIN_CONFIG = {
-            version: "v5.30",
-            updateNote: "정보탭 관리 수정",
+            version: "v5.32",
+            updateNote: "정보탭 아코디언 수정",
             title: "RFC 매니저"
         };
 
@@ -632,7 +692,7 @@
         const firebaseConfig = { apiKey: "AIzaSyDlj68ex-fM0ExRdD-tvCy-UyIneVoPmGk", authDomain: "rfk-ranking.firebaseapp.com", projectId: "rfk-ranking", storageBucket: "rfk-ranking.firebasestorage.app", messagingSenderId: "675366165774", appId: "1:675366165774:web:795d34c56eab630b4dcb5f", measurementId: "G-CXPDZQ8GTL" };
         const app = initializeApp(firebaseConfig); const db = getFirestore(app); const auth = getAuth(app); const appId = 'ranking-manager-default';
         
-        let rankingsData = []; let matchHistoryData = []; let seasonArchives = {}; let activeSeason = "시즌 1"; let adminMemos = []; let ruleHtml = ""; let patchNotesData = [];
+        let rankingsData = []; let matchHistoryData = []; let seasonArchives = {}; let activeSeason = "시즌 1"; let ruleHtml = ""; let patchNotesData = [];
         let undoStack = []; const MAX_UNDO = 10;
         let searchQuery = "";
         let enrichedHistory = [];
@@ -653,6 +713,47 @@
             if (isInspectorActive) { document.body.appendChild(tooltipEl); tooltipEl.style.display = 'block'; } 
             else { tooltipEl.style.display = 'none'; }
         };
+
+        // [NEW] 관리자 공통 아코디언 토글 로직
+        window.toggleAdminAccordion = (idPrefix) => {
+            const el = document.getElementById(idPrefix + 'Accordion');
+            const chevron = document.getElementById(idPrefix + 'Chevron');
+            const wrapper = document.getElementById(idPrefix + 'Wrapper');
+            
+            el.classList.toggle('open');
+            
+            if(el.classList.contains('open')) {
+                chevron.classList.add('rotate-180');
+                wrapper.classList.remove('bg-slate-50');
+                wrapper.classList.add('bg-white', 'border-indigo-200');
+                localStorage.setItem(`rfc_admin_acc_${idPrefix}`, 'true');
+            } else {
+                chevron.classList.remove('rotate-180');
+                wrapper.classList.add('bg-slate-50');
+                wrapper.classList.remove('bg-white', 'border-indigo-200');
+                localStorage.setItem(`rfc_admin_acc_${idPrefix}`, 'false');
+            }
+        };
+
+        // [NEW] 초기 로드 시 아코디언 상태 복구
+        window.initAdminAccordions = () => {
+            ['notice', 'rules', 'patch'].forEach(idPrefix => {
+                const isOpen = localStorage.getItem(`rfc_admin_acc_${idPrefix}`) === 'true';
+                const el = document.getElementById(idPrefix + 'Accordion');
+                const chevron = document.getElementById(idPrefix + 'Chevron');
+                const wrapper = document.getElementById(idPrefix + 'Wrapper');
+                if (!el || !chevron || !wrapper) return;
+                
+                if (isOpen) {
+                    el.classList.add('open');
+                    chevron.classList.add('rotate-180');
+                    wrapper.classList.remove('bg-slate-50');
+                    wrapper.classList.add('bg-white', 'border-indigo-200');
+                }
+            });
+        };
+
+        setTimeout(() => window.initAdminAccordions(), 50);
 
         function rgbToHex(rgb) {
             if (!rgb) return ''; if (rgb.startsWith('#')) return rgb;
@@ -865,7 +966,6 @@
         }
 
         function selectPresetColor(code, element) { document.getElementById('editTrunkColor').value = code; document.querySelectorAll('.color-preset').forEach(el => el.classList.remove('active')); if(element) element.classList.add('active'); }
-        function renderMemos() { const container = document.getElementById('memoListContainer'); if(!container) return; if(adminMemos.length === 0) { container.innerHTML = '<div class="text-center text-xs text-gray-400 py-4">작성된 메모가 없습니다.</div>'; return; } container.innerHTML = ''; adminMemos.forEach(m => { const el = document.createElement('div'); el.className = 'bg-white border border-slate-200 rounded p-2 text-sm shadow-sm flex justify-between items-start group'; el.innerHTML = `<div><div class="text-[10px] text-slate-400 font-medium mb-0.5">${m.date}</div><div class="text-slate-700 whitespace-pre-wrap">${m.content}</div></div><button onclick="deleteMemo(${m.id})" class="text-slate-300 hover:text-red-500 text-xs px-1 opacity-0 group-hover:opacity-100 transition">✕</button>`; container.appendChild(el); }); }
         function renderSeasonList() { const container = document.getElementById('seasonListContainer'); if(!container) return; container.innerHTML = ''; const seasons = [activeSeason, ...Object.keys(seasonArchives).sort().reverse().filter(s => s !== activeSeason)]; seasons.forEach(sName => { const isActive = sName === activeSeason; const div = document.createElement('div'); div.className = `flex justify-between items-center p-3 rounded-lg border ${isActive ? 'bg-blue-50 border-blue-300' : 'bg-white border-slate-200'}`; div.innerHTML = `<div class="flex items-center gap-2"><span class="${isActive ? 'text-blue-700 font-bold' : 'text-slate-600'} text-sm">${sName}</span>${isActive ? '<span class="text-[10px] bg-blue-600 text-white px-1.5 py-0.5 rounded">Active</span>' : ''}</div><div class="flex gap-1">${!isActive ? `<button onclick="switchActiveSeason('${sName}')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded border border-slate-200">선택</button>` : ''}<button onclick="openRenameModal('${sName}')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-500 px-2 py-1 rounded border border-slate-200">이름변경</button>${!isActive ? `<button onclick="deleteSeason('${sName}')" class="text-xs bg-red-50 hover:bg-red-100 text-red-500 px-2 py-1 rounded border border-red-100">삭제</button>` : ''}</div>`; container.appendChild(div); }); }
 
         function loadData() { 
@@ -873,9 +973,9 @@
             onSnapshot(docRef, (doc) => { 
                 if (doc.exists()) { 
                     const data = doc.data(); 
-                    rankingsData = data.rankings || []; matchHistoryData = data.matchHistory || []; seasonArchives = data.seasonArchives || {}; activeSeason = data.activeSeason || "시즌 1"; adminMemos = data.adminMemos || []; ruleHtml = data.ruleHtml || DEFAULT_RULE_HTML; patchNotesData = data.patchNotes || [];
+                    rankingsData = data.rankings || []; matchHistoryData = data.matchHistory || []; seasonArchives = data.seasonArchives || {}; activeSeason = data.activeSeason || "시즌 1"; ruleHtml = data.ruleHtml || DEFAULT_RULE_HTML; patchNotesData = data.patchNotes || [];
                     if(!viewHistorySeason) viewHistorySeason = activeSeason; 
-                    updateSeasonUI(); renderMemos(); renderSeasonList(); renderAdminPatchNotes();
+                    updateSeasonUI(); renderSeasonList(); renderAdminPatchNotes();
                     document.getElementById('ruleHtmlInput').value = ruleHtml; 
                     if(data.noticeData) { document.getElementById('noticeContentInput').value = data.noticeData.content || ""; document.getElementById('noticeActiveToggle').checked = data.noticeData.active || false; } 
                     rankingsData.forEach((p, i) => { 
@@ -1315,22 +1415,29 @@
         function captureState() { const currentState = { rankings: JSON.parse(JSON.stringify(rankingsData)), matchHistory: JSON.parse(JSON.stringify(matchHistoryData)), seasonArchives: JSON.parse(JSON.stringify(seasonArchives)), activeSeason: activeSeason, patchNotes: JSON.parse(JSON.stringify(patchNotesData)) }; undoStack.push(currentState); if (undoStack.length > MAX_UNDO) undoStack.shift(); updateUndoUI(); }
         window.executeUndo = async () => { if (undoStack.length === 0) return; const prevState = undoStack.pop(); rankingsData = prevState.rankings; matchHistoryData = prevState.matchHistory; seasonArchives = prevState.seasonArchives; activeSeason = prevState.activeSeason; patchNotesData = prevState.patchNotes || []; await saveRankings(true); renderRankings(); updateUndoUI(); alert("되돌렸습니다."); };
         function updateUndoUI() { const btn = document.getElementById('undoBtn'); const cnt = document.getElementById('undoCount'); if (undoStack.length > 0) { btn.classList.remove('hidden'); btn.classList.add('pop-in'); btn.disabled = false; cnt.textContent = undoStack.length; } else { btn.classList.add('hidden'); } }
-        window.saveRankings = async function(isUndo = false) { const statusEl = document.getElementById('saveStatus'); const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'rankings', 'main'); try { await runTransaction(db, async (transaction) => { const sfDoc = await transaction.get(docRef); if (!sfDoc.exists()) throw "Doc missing!"; const payload = { rankings: rankingsData, matchHistory: matchHistoryData, seasonArchives: seasonArchives, activeSeason: activeSeason, date: new Date().toISOString() }; if(!isUndo) { payload.adminMemos = adminMemos; payload.ruleHtml = ruleHtml; payload.patchNotes = patchNotesData; } transaction.update(docRef, payload); }); statusEl.style.opacity = 1; setTimeout(() => statusEl.style.opacity = 0, 2000); } catch (e) { alert("저장 오류: " + e.message); } }
+        window.saveRankings = async function(isUndo = false) { const statusEl = document.getElementById('saveStatus'); const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'rankings', 'main'); try { await runTransaction(db, async (transaction) => { const sfDoc = await transaction.get(docRef); if (!sfDoc.exists()) throw "Doc missing!"; const payload = { rankings: rankingsData, matchHistory: matchHistoryData, seasonArchives: seasonArchives, activeSeason: activeSeason, date: new Date().toISOString() }; if(!isUndo) { payload.ruleHtml = ruleHtml; payload.patchNotes = patchNotesData; } transaction.update(docRef, payload); }); statusEl.style.opacity = 1; setTimeout(() => statusEl.style.opacity = 0, 2000); } catch (e) { alert("저장 오류: " + e.message); } }
         window.saveRules = () => { ruleHtml = document.getElementById('ruleHtmlInput').value; saveRankings(); alert("저장됨."); };
         window.loadDefaultRuleHtml = () => { if(confirm("초기화?")) document.getElementById('ruleHtmlInput').value = DEFAULT_RULE_HTML; };
-        window.addMemo = () => { const input = document.getElementById('newMemoInput'); const content = input.value.trim(); if (!content) return; adminMemos.unshift({ id: Date.now(), content: content, date: new Date().toLocaleString() }); input.value = ''; saveRankings(); renderMemos(); };
-        window.deleteMemo = (id) => { if(!confirm("삭제?")) return; adminMemos = adminMemos.filter(m => m.id !== id); saveRankings(); renderMemos(); };
         
         // [NEW] 관리자 패치노트 로직
         window.addPatchNote = () => {
-            const version = document.getElementById('pnVersion').value.trim();
-            const date = document.getElementById('pnDate').value.trim();
+            let version = document.getElementById('pnVersion').value.trim();
+            let date = document.getElementById('pnDate').value.trim();
             const title = document.getElementById('pnTitle').value.trim();
             const detailsText = document.getElementById('pnDetails').value;
             const typeNode = document.querySelector('input[name="pnType"]:checked');
             const type = typeNode ? typeNode.value : 'official';
             
-            if (!version || !date || !title) return showCustomAlert("버전, 날짜, 제목을 모두 입력해주세요.");
+            // 빈칸일 경우 자동 기본값 채우기
+            if (!version) version = "-";
+            if (!date) {
+                const todayStr = getKSTDate(); // "YYYY-MM-DD"
+                const parts = todayStr.split('-');
+                if (parts.length === 3) date = `${parts[0].slice(-2)}.${parts[1]}.${parts[2]}`; // "YY.MM.DD" 포맷
+                else date = todayStr;
+            }
+
+            if (!title) return showCustomAlert("제목을 입력해주세요.");
             
             // 엔터(빈 줄) 간격 유지 및 작성된 텍스트 원본 보존
             const details = detailsText.split('\n');
@@ -1646,8 +1753,7 @@
             } else {
                 const totalMatches = (p.wins || 0) + (p.losses || 0) + (p.draws || 0);
                 if (totalMatches >= 3) {
-                    const challengers = rankingsData.filter(r => !r.isChampion && (Number(r.wins||0) + Number(r.losses||0) + Number(r.draws||0)) >= 3)
-                                                    .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
+                    const challengers = rankingsData.filter(r => !r.isChampion && (Number(r.wins || 0) + Number(r.losses || 0) + Number(r.draws || 0)) >= 3).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
                     const myRank = challengers.findIndex(r => r.id === id) + 1;
                     if (myRank > 0) {
                         rankEl.textContent = `#${myRank}`;
