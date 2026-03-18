@@ -268,7 +268,7 @@
                 </div>
             </div>
         </div>
-        <nav class="flex border-t border-slate-100 max-w-3xl mx-auto"><button onclick="switchTab('ranking')" id="tabRanking" class="tab-active flex-1 py-3 text-sm transition-colors text-center">🔥 랭킹</button><button onclick="switchTab('matches')" id="tabMatches" class="tab-inactive flex-1 py-3 text-sm transition-colors text-center">⚔️ 기록</button><button onclick="switchTab('hof')" id="tabHof" class="tab-inactive flex-1 py-3 text-sm transition-colors text-center">🏛️ 전당</button><button onclick="switchTab('tournament')" id="tabTournament" class="tab-inactive flex-1 py-3 text-sm transition-colors text-center">🏆 대진</button></nav>
+        <nav class="flex border-t border-slate-100 max-w-3xl mx-auto"><button onclick="switchTab('ranking')" id="tabRanking" class="tab-active flex-1 py-2.5 text-[11px] sm:text-sm font-bold transition-colors text-center tracking-tighter">🔥랭킹</button><button onclick="switchTab('matches')" id="tabMatches" class="tab-inactive flex-1 py-2.5 text-[11px] sm:text-sm font-bold transition-colors text-center tracking-tighter">⚔️기록</button><button onclick="switchTab('hof')" id="tabHof" class="tab-inactive flex-1 py-2.5 text-[11px] sm:text-sm font-bold transition-colors text-center tracking-tighter">🏛️전당</button><button onclick="switchTab('tournament')" id="tabTournament" class="tab-inactive flex-1 py-2.5 text-[11px] sm:text-sm font-bold transition-colors text-center tracking-tighter">🏆대진</button><button onclick="switchTab('patch')" id="tabPatch" class="tab-inactive flex-1 py-2.5 text-[11px] sm:text-sm font-bold transition-colors text-center tracking-tighter">💡정보</button></nav>
     </header>
 
     <main class="max-w-3xl mx-auto p-3 flex-grow w-full">
@@ -324,6 +324,69 @@
             <div id="hofContent" class="space-y-6"></div>
         </div>
         <div id="tournamentSection" class="hidden fade-in"><div id="bracketContainer" class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 overflow-x-auto min-h-[300px] flex items-center justify-center text-slate-400 text-sm">진행 중인 토너먼트가 없습니다.</div></div>
+        
+        <!-- [NEW] TOF2 패치노트 & 커뮤니티 탭 -->
+        <div id="patchSection" class="hidden fade-in">
+            <!-- 상단 고정 탭 컨트롤러 -->
+            <div class="sticky-sub-header sticky z-30 bg-white/95 backdrop-blur-sm p-2 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between mb-4 gap-2 transition-all">
+                <div class="flex p-1 bg-slate-100 rounded-lg w-full">
+                    <button id="btnInfoOfficial" onclick="switchInfoSubTab('official')" class="flex-1 py-1.5 text-[11px] sm:text-xs font-bold text-blue-600 bg-white shadow-sm rounded-md transition-all">🚀 공식 패치노트</button>
+                    <button id="btnInfoDiscord" onclick="switchInfoSubTab('discord')" class="flex-1 py-1.5 text-[11px] sm:text-xs font-bold text-slate-500 rounded-md transition-all hover:bg-slate-200/50">💬 커뮤니티 정보</button>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mt-1 mb-6">
+                
+                <!-- 공식 패치노트 영역 -->
+                <div id="infoOfficialWrapper">
+                    <div class="bg-slate-800 text-white p-4 flex items-center justify-between">
+                        <div>
+                            <h3 class="font-black text-lg">🥊 TOF2 오피셜</h3>
+                            <p class="text-[10px] text-slate-300 mt-1">주요 업데이트 내역</p>
+                        </div>
+                        <span class="text-4xl opacity-20">🚀</span>
+                    </div>
+                    <div id="patchNotesContainer" class="p-4 space-y-6 min-h-[200px]">
+                        <!-- JavaScript가 Firestore 데이터를 불러와서 여기에 렌더링합니다 -->
+                    </div>
+                </div>
+
+                <!-- 디스코드 정보 영역 (기본 숨김) -->
+                <div id="infoDiscordWrapper" class="hidden">
+                    <div class="bg-[#5865F2] text-white p-4 flex items-center justify-between">
+                        <div>
+                            <h3 class="font-black text-lg">💬 커뮤니티 비하인드</h3>
+                            <p class="text-[10px] text-indigo-200 mt-1">오피셜엔 없는 개발자 썰과 유용한 팁</p>
+                        </div>
+                        <span class="text-4xl opacity-20">🤫</span>
+                    </div>
+                    <div class="p-4 space-y-4 bg-indigo-50/30">
+                        <!-- 동적으로 렌더링될 커뮤니티 정보 컨테이너 -->
+                        <div id="communityNotesContainer" class="space-y-4 min-h-[150px]">
+                            <!-- JavaScript가 Firestore 데이터를 불러와서 여기에 렌더링합니다 -->
+                        </div>
+                        
+                        <!-- 디스코드 초대 배너 -->
+                        <div class="mt-2 border-t border-indigo-100/50 pt-6">
+                            <div class="bg-white border border-slate-200 rounded-xl p-4 text-center shadow-sm">
+                                <div class="w-12 h-12 bg-[#5865F2] rounded-full flex items-center justify-center mx-auto mb-2 shadow-md">
+                                    <span class="text-2xl text-white">💬</span>
+                                </div>
+                                <h4 class="text-sm font-black text-slate-800">더 많은 팁과 유출 정보를 원하시나요?</h4>
+                                <p class="text-[11px] text-slate-500 mt-1 mb-3">공식 디스코드 서버에 참여하여 유저들과 소통하세요!</p>
+                                <button onclick="window.open('https://discord.gg/pq8q4xjF', '_blank')" class="bg-[#5865F2] hover:bg-[#4752C4] text-white text-xs font-bold px-6 py-2.5 rounded-lg transition shadow-sm w-full sm:w-auto">
+                                    디스코드 서버 입장하기
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 p-4 border-t border-slate-100 text-center">
+                    <div class="text-xs font-bold text-slate-500">Developed by Admin</div>
+                </div>
+            </div>
+        </div>
     </main>
 
     <footer class="text-center py-8 mt-4 border-t border-slate-200 bg-slate-50">
@@ -461,8 +524,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v5.14",
-            updateNote: "상대별 전적 추가",
+            version: "v5.18",
+            updateNote: "정보 탭 수정2",
             title: "RFC 랭킹전"
         };
 
@@ -501,6 +564,7 @@
         const firebaseConfig = { apiKey: "AIzaSyDlj68ex-fM0ExRdD-tvCy-UyIneVoPmGk", authDomain: "rfk-ranking.firebaseapp.com", projectId: "rfk-ranking", storageBucket: "rfk-ranking.firebasestorage.app", messagingSenderId: "675366165774", appId: "1:675366165774:web:795d34c56eab630b4dcb5f", measurementId: "G-CXPDZQ8GTL" };
         const app = initializeApp(firebaseConfig); const db = getFirestore(app); const appId = 'ranking-manager-default';
         let rankingsData = []; let matchHistoryData = []; let enrichedMatchHistory = []; let seasonArchives = {}; let activeSeason = ""; let viewSeason = ""; let viewHofSeason = ""; let viewRankingSeason = ""; let currentProfileId = null;
+        let patchNotesData = [];
         let currentProfileTab = 'chrono';
         let searchQuery = ""; 
         let activeHighlight = { ids: [], endTime: 0 };
@@ -639,6 +703,7 @@
                 const data = docSnapshot.data(); 
                 rankingsData = data.rankings || []; 
                 matchHistoryData = data.matchHistory || []; 
+                patchNotesData = data.patchNotes || [];
                 
                 matchHistoryData.sort((a, b) => new Date(b.date) - new Date(a.date));
 
@@ -661,6 +726,7 @@
                 }); 
                 
                 enrichMatchHistory(); 
+                renderPatchNotes();
                 updateUI();
                 checkNotice(data.noticeData);
 
@@ -739,6 +805,86 @@
                 return { ...match, snapshot }; 
             }); 
             enrichedMatchHistory.reverse(); 
+        }
+
+        function renderPatchNotes() {
+            const officialContainer = document.getElementById('patchNotesContainer');
+            const communityContainer = document.getElementById('communityNotesContainer');
+            
+            if (officialContainer) officialContainer.innerHTML = '';
+            if (communityContainer) communityContainer.innerHTML = '';
+            
+            if (patchNotesData.length === 0) {
+                if (officialContainer) officialContainer.innerHTML = '<div class="text-center text-xs text-slate-400 py-10">등록된 업데이트 내역이 없습니다.</div>';
+                if (communityContainer) communityContainer.innerHTML = '<div class="text-center text-xs text-indigo-400 py-10">등록된 커뮤니티 정보가 없습니다.</div>';
+                return;
+            }
+
+            let officialCount = 0;
+            let communityCount = 0;
+
+            patchNotesData.forEach((note) => {
+                const isCommunity = note.type === 'community';
+
+                let detailsHtml = '';
+                (note.details || []).forEach(detail => {
+                    if (detail.trim() === '') {
+                        detailsHtml += `<div class="h-3"></div>`; // 빈 줄(엔터) 간격 추가
+                    } else {
+                        let prefix = '';
+                        // 직접 '-', '•', '*' 등의 기호를 적지 않은 경우에만 기본 불릿(•)을 추가
+                        if (!detail.trim().startsWith('-') && !detail.trim().startsWith('•') && !detail.trim().startsWith('*')) {
+                            prefix = '<span class="mr-1.5 opacity-60 flex-shrink-0">•</span>';
+                        }
+                        detailsHtml += `<div class="flex items-start">${prefix}<span class="flex-1 whitespace-pre-wrap break-words">${detail}</span></div>`;
+                    }
+                });
+
+                if (isCommunity) {
+                    communityCount++;
+                    if (communityContainer) {
+                        communityContainer.innerHTML += `
+                            <div class="bg-indigo-50 rounded-xl p-4 border border-indigo-100 relative shadow-sm">
+                                <div class="text-[10px] font-bold text-indigo-400 mb-1">${note.version} (${note.date})</div>
+                                <h4 class="text-sm font-bold text-indigo-900 mb-2">${note.title}</h4>
+                                <div class="text-xs text-indigo-700 leading-relaxed space-y-0.5">
+                                    ${detailsHtml}
+                                </div>
+                            </div>
+                        `;
+                    }
+                } else {
+                    const isLatest = officialCount === 0;
+                    officialCount++;
+                    
+                    const borderColor = isLatest ? 'border-blue-500' : 'border-slate-200';
+                    const dotColor = isLatest ? 'bg-blue-500' : 'bg-slate-300';
+                    const versionColor = isLatest ? 'text-blue-600' : 'text-slate-400';
+                    const titleColor = isLatest ? 'text-slate-800' : 'text-slate-700';
+                    const textColor = isLatest ? 'text-slate-600' : 'text-slate-500';
+                    const tagLabel = isLatest ? '최신 업데이트' : '이전 업데이트';
+
+                    if (officialContainer) {
+                        officialContainer.innerHTML += `
+                            <div class="relative pl-4 border-l-2 ${borderColor}">
+                                <div class="absolute -left-[5px] top-1 w-2 h-2 rounded-full ${dotColor} ring-4 ring-white"></div>
+                                <div class="text-[11px] font-bold ${versionColor} mb-1">${note.version} 업데이트 (${note.date}) <span class="ml-2 text-[9px] font-normal opacity-70 px-1.5 py-0.5 bg-slate-100 rounded border border-slate-200">${tagLabel}</span></div>
+                                <h4 class="text-sm font-bold ${titleColor} mb-2">${note.title}</h4>
+                                <div class="text-xs ${textColor} leading-relaxed space-y-0.5">
+                                    ${detailsHtml}
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+            });
+            
+            if (officialCount === 0 && officialContainer) {
+                officialContainer.innerHTML = '<div class="text-center text-xs text-slate-400 py-10">등록된 공식 업데이트 내역이 없습니다.</div>';
+            }
+            if (communityCount === 0 && communityContainer) {
+                communityContainer.innerHTML = '<div class="text-center text-xs text-indigo-400 py-10">등록된 커뮤니티 정보가 없습니다.</div>';
+            }
         }
 
         function updateUI() { 
@@ -1662,16 +1808,37 @@
         window.openRules = () => document.getElementById('rulesModal').classList.remove('hidden'); window.closeRules = () => document.getElementById('rulesModal').classList.add('hidden');
         
         window.switchTab = (tab) => { 
-            ['ranking', 'matches', 'hof', 'tournament'].forEach(t => { 
+            ['ranking', 'matches', 'hof', 'tournament', 'patch'].forEach(t => { 
                 document.getElementById(t + 'Section').classList.add('hidden'); 
                 const btn = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1)); 
-                btn.className = "tab-inactive flex-1 py-3 text-sm transition-colors text-center"; 
+                btn.className = "tab-inactive flex-1 py-2.5 text-[11px] sm:text-sm font-bold transition-colors text-center tracking-tighter"; 
             }); 
             document.getElementById(tab + 'Section').classList.remove('hidden'); 
             const activeBtn = document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)); 
-            activeBtn.className = "tab-active flex-1 py-3 text-sm transition-colors text-center"; 
+            activeBtn.className = "tab-active flex-1 py-2.5 text-[11px] sm:text-sm font-bold transition-colors text-center tracking-tighter"; 
             
             // 탭 전환 시 요소가 새로 렌더링될 수 있으므로 Sticky 위치를 다시 계산
+            if (window.updateStickyTop) setTimeout(window.updateStickyTop, 50);
+        };
+
+        // [NEW] 💡정보 탭 내부 서브탭 전환 로직
+        window.switchInfoSubTab = (tab) => {
+            const btnO = document.getElementById('btnInfoOfficial');
+            const btnD = document.getElementById('btnInfoDiscord');
+            const wrapO = document.getElementById('infoOfficialWrapper');
+            const wrapD = document.getElementById('infoDiscordWrapper');
+            
+            if (tab === 'official') {
+                btnO.className = "flex-1 py-1.5 text-[11px] sm:text-xs font-bold text-blue-600 bg-white shadow-sm rounded-md transition-all";
+                btnD.className = "flex-1 py-1.5 text-[11px] sm:text-xs font-bold text-slate-500 rounded-md transition-all hover:bg-slate-200/50";
+                wrapO.classList.remove('hidden');
+                wrapD.classList.add('hidden');
+            } else {
+                btnD.className = "flex-1 py-1.5 text-[11px] sm:text-xs font-bold text-[#5865F2] bg-white shadow-sm rounded-md transition-all";
+                btnO.className = "flex-1 py-1.5 text-[11px] sm:text-xs font-bold text-slate-500 rounded-md transition-all hover:bg-slate-200/50";
+                wrapD.classList.remove('hidden');
+                wrapO.classList.add('hidden');
+            }
             if (window.updateStickyTop) setTimeout(window.updateStickyTop, 50);
         };
 
