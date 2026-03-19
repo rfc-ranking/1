@@ -524,8 +524,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v5.18",
-            updateNote: "정보 탭 수정2",
+            version: "v5.19",
+            updateNote: "정보 탭 가독성 패치",
             title: "RFC 랭킹전"
         };
 
@@ -846,8 +846,8 @@
                         communityContainer.innerHTML += `
                             <div class="bg-indigo-50 rounded-xl p-4 border border-indigo-100 relative shadow-sm">
                                 <div class="text-[10px] font-bold text-indigo-400 mb-1">${note.version} (${note.date})</div>
-                                <h4 class="text-sm font-bold text-indigo-900 mb-2">${note.title}</h4>
-                                <div class="text-xs text-indigo-700 leading-relaxed space-y-0.5">
+                                <h4 class="text-[15px] font-bold text-indigo-900 mb-2">${note.title}</h4>
+                                <div class="text-[14px] text-indigo-700 leading-relaxed space-y-0.5">
                                     ${detailsHtml}
                                 </div>
                             </div>
@@ -869,8 +869,8 @@
                             <div class="relative pl-4 border-l-2 ${borderColor}">
                                 <div class="absolute -left-[5px] top-1 w-2 h-2 rounded-full ${dotColor} ring-4 ring-white"></div>
                                 <div class="text-[11px] font-bold ${versionColor} mb-1">${note.version} 업데이트 (${note.date}) <span class="ml-2 text-[9px] font-normal opacity-70 px-1.5 py-0.5 bg-slate-100 rounded border border-slate-200">${tagLabel}</span></div>
-                                <h4 class="text-sm font-bold ${titleColor} mb-2">${note.title}</h4>
-                                <div class="text-xs ${textColor} leading-relaxed space-y-0.5">
+                                <h4 class="text-[15px] font-bold ${titleColor} mb-2">${note.title}</h4>
+                                <div class="text-[14px] ${textColor} leading-relaxed space-y-0.5">
                                     ${detailsHtml}
                                 </div>
                             </div>
