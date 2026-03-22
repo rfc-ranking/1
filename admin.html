@@ -497,16 +497,48 @@
                             </div>
                         </div>
 
+                        <!-- 🔒 관리자 메모 아코디언 -->
+                        <div class="bg-amber-50/30 rounded-2xl shadow-sm border border-amber-200 overflow-hidden transition-colors" id="adminMemoWrapper">
+                            <div class="p-4 flex justify-between items-center cursor-pointer group" onclick="toggleAdminAccordion('adminMemo')">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-lg grayscale group-hover:grayscale-0 transition-all drop-shadow-sm">🔒</span>
+                                    <h3 class="font-bold text-amber-800 group-hover:text-amber-600 transition-colors">관리자 메모</h3>
+                                </div>
+                                <div class="w-7 h-7 rounded-full bg-white border border-amber-200 flex items-center justify-center shadow-sm transition-all group-hover:border-amber-400 group-hover:shadow-md">
+                                    <svg id="adminMemoChevron" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-amber-600 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" /></svg>
+                                </div>
+                            </div>
+                            <div id="adminMemoAccordion" class="memo-acc-content">
+                                <div class="p-4 pt-0">
+                                    <div class="bg-white rounded-xl p-3 border border-amber-100 flex flex-col shadow-sm relative overflow-hidden">
+                                        <div class="absolute -right-4 -top-4 text-6xl opacity-5 pointer-events-none">🔒</div>
+                                        <div class="flex justify-between items-center mb-3 relative z-10">
+                                            <span class="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded shadow-sm border border-amber-200 flex items-center gap-1">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> Admin Only
+                                            </span>
+                                            <span class="text-[10px] text-slate-400 font-medium">사용자 페이지에는 절대 노출되지 않습니다.</span>
+                                        </div>
+                                        <textarea id="adminGlobalNoteInput" class="w-full h-32 p-3 text-xs border border-amber-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 bg-amber-50/50 resize-none mb-3 text-slate-700 leading-relaxed placeholder:text-amber-800/40 relative z-10" placeholder="대회 운영 계획, 향후 패치 아이디어, 전체 주의사항 등 관리자만 볼 내용을 자유롭게 기록하세요..."></textarea>
+                                        <button onclick="saveAdminGlobalNote()" class="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold py-2.5 rounded-lg text-xs shadow-md shadow-amber-500/30 transition transform active:scale-95 relative z-10">
+                                            💾 관리자 메모 저장하기
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
             
+            <!-- 삭제되었던 우측 랭킹 리스트 영역 복원 -->
             <div class="lg:col-span-8 bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col h-full overflow-y-auto relative">
                 <div id="rankingList" class="p-2 space-y-1.5 bg-slate-50/50 rounded-2xl min-h-full"></div>
             </div>
         </div>
-    </div>
+    </div> <!-- End of mainContent -->
 
+    <!-- 삭제되었던 모달창(팝업)들 복원 -->
     <div id="deletePlayersModal" class="fixed inset-0 bg-black/50 hidden z-[9999] flex items-center justify-center" onclick="if(event.target === this) closeDeletePlayersModal()">
         <div class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-md flex flex-col max-h-[90vh]">
             <div class="flex justify-between items-center mb-4 border-b pb-2"><div class="flex items-center gap-2"><h3 class="text-lg font-bold text-slate-800">🗑️ 선수 삭제</h3><span id="deleteCountBadge" class="bg-red-100 text-red-600 text-xs px-2 py-1 rounded-full whitespace-nowrap">0명 선택됨</span></div><div class="relative"><input type="search" id="deleteSearchInput" placeholder="이름/초성 검색" class="w-[155px] border p-2 pl-9 rounded-lg text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-red-500 transition" oninput="renderDeleteList()"><div class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-sm">🔍</div></div></div>
@@ -695,11 +727,11 @@
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         
         const AUTO_LOGIN_EMAIL = "@gmail.com"; 
-        const AUTO_LOGIN_PW = "";
+        const AUTO_LOGIN_PW = "!";
         
         const ADMIN_CONFIG = {
-            version: "v5.40",
-            updateNote: "관리자 패치노트 다중태그 기능",
+            version: "v5.43",
+            updateNote: "무승부 오류 수정",
             title: "RFC 매니저"
         };
 
@@ -748,33 +780,41 @@
             
             el.classList.toggle('open');
             
+            const isAmber = idPrefix === 'adminMemo';
+            const defaultBg = isAmber ? 'bg-amber-50/30' : 'bg-slate-50';
+            const openBorder = isAmber ? 'border-amber-300' : 'border-indigo-200';
+            
             if(el.classList.contains('open')) {
                 chevron.classList.add('rotate-180');
-                wrapper.classList.remove('bg-slate-50');
-                wrapper.classList.add('bg-white', 'border-indigo-200');
+                wrapper.classList.remove(defaultBg);
+                wrapper.classList.add('bg-white', openBorder);
                 localStorage.setItem(`rfc_admin_acc_${idPrefix}`, 'true');
             } else {
                 chevron.classList.remove('rotate-180');
-                wrapper.classList.add('bg-slate-50');
-                wrapper.classList.remove('bg-white', 'border-indigo-200');
+                wrapper.classList.add(defaultBg);
+                wrapper.classList.remove('bg-white', openBorder);
                 localStorage.setItem(`rfc_admin_acc_${idPrefix}`, 'false');
             }
         };
 
         // [NEW] 초기 로드 시 아코디언 상태 복구
         window.initAdminAccordions = () => {
-            ['notice', 'rules', 'patch'].forEach(idPrefix => {
+            ['notice', 'rules', 'patch', 'adminMemo'].forEach(idPrefix => {
                 const isOpen = localStorage.getItem(`rfc_admin_acc_${idPrefix}`) === 'true';
                 const el = document.getElementById(idPrefix + 'Accordion');
                 const chevron = document.getElementById(idPrefix + 'Chevron');
                 const wrapper = document.getElementById(idPrefix + 'Wrapper');
                 if (!el || !chevron || !wrapper) return;
                 
+                const isAmber = idPrefix === 'adminMemo';
+                const defaultBg = isAmber ? 'bg-amber-50/30' : 'bg-slate-50';
+                const openBorder = isAmber ? 'border-amber-300' : 'border-indigo-200';
+                
                 if (isOpen) {
                     el.classList.add('open');
                     chevron.classList.add('rotate-180');
-                    wrapper.classList.remove('bg-slate-50');
-                    wrapper.classList.add('bg-white', 'border-indigo-200');
+                    wrapper.classList.remove(defaultBg);
+                    wrapper.classList.add('bg-white', openBorder);
                 }
             });
         };
@@ -1009,6 +1049,7 @@
                     updateSeasonUI(); renderSeasonList(); renderAdminPatchNotes();
                     document.getElementById('ruleHtmlInput').value = ruleHtml; 
                     if(data.noticeData) { document.getElementById('noticeContentInput').value = data.noticeData.content || ""; document.getElementById('noticeActiveToggle').checked = data.noticeData.active || false; } 
+                    if(document.getElementById('adminGlobalNoteInput')) { document.getElementById('adminGlobalNoteInput').value = data.adminGlobalNote || ""; }
                     rankingsData.forEach((p, i) => { 
                         if(p.defenseCount === undefined) p.defenseCount = 0; if(p.previousRank === undefined) p.previousRank = i + 1; if(p.careerHighRank === undefined) p.careerHighRank = i + 1; if(p.elo === undefined) p.elo = 1000; if(p.careerHighElo === undefined) p.careerHighElo = p.elo; if(!p.trunkColor) p.trunkColor = '#1f2937'; if(p.bounty === undefined) p.bounty = 0; if(p.currentStreak === undefined) p.currentStreak = 0;
                         if(p.draws === undefined) p.draws = 0; // 무승부 초기화
@@ -1443,10 +1484,10 @@
         };
 
         window.backupData = () => { const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ rankings: rankingsData, history: matchHistoryData, archives: seasonArchives, activeSeason: activeSeason, patchNotes: patchNotesData }, null, 2)); const dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", `RFC_BACKUP_${new Date().toISOString().slice(0,10)}.json`); document.body.appendChild(dl); dl.click(); dl.remove(); };
-        function captureState() { const currentState = { rankings: JSON.parse(JSON.stringify(rankingsData)), matchHistory: JSON.parse(JSON.stringify(matchHistoryData)), seasonArchives: JSON.parse(JSON.stringify(seasonArchives)), activeSeason: activeSeason, patchNotes: JSON.parse(JSON.stringify(patchNotesData)) }; undoStack.push(currentState); if (undoStack.length > MAX_UNDO) undoStack.shift(); updateUndoUI(); }
-        window.executeUndo = async () => { if (undoStack.length === 0) return; const prevState = undoStack.pop(); rankingsData = prevState.rankings; matchHistoryData = prevState.matchHistory; seasonArchives = prevState.seasonArchives; activeSeason = prevState.activeSeason; patchNotesData = prevState.patchNotes || []; await saveRankings(true); renderRankings(); updateUndoUI(); alert("되돌렸습니다."); };
-        function updateUndoUI() { const btn = document.getElementById('undoBtn'); const cnt = document.getElementById('undoCount'); if (undoStack.length > 0) { btn.classList.remove('hidden'); btn.classList.add('pop-in'); btn.disabled = false; cnt.textContent = undoStack.length; } else { btn.classList.add('hidden'); } }
-        window.saveRankings = async function(isUndo = false) { const statusEl = document.getElementById('saveStatus'); const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'rankings', 'main'); try { await runTransaction(db, async (transaction) => { const sfDoc = await transaction.get(docRef); if (!sfDoc.exists()) throw "Doc missing!"; const payload = { rankings: rankingsData, matchHistory: matchHistoryData, seasonArchives: seasonArchives, activeSeason: activeSeason, date: new Date().toISOString() }; if(!isUndo) { payload.ruleHtml = ruleHtml; payload.patchNotes = patchNotesData; payload.availablePatchTags = availablePatchTags; /* [NEW] 태그 데이터 추가 */ } transaction.update(docRef, payload); }); statusEl.style.opacity = 1; setTimeout(() => statusEl.style.opacity = 0, 2000); } catch (e) { alert("저장 오류: " + e.message); } }
+        window.saveRankings = async function(isUndo = false) { const statusEl = document.getElementById('saveStatus'); const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'rankings', 'main'); try { await runTransaction(db, async (transaction) => { const sfDoc = await transaction.get(docRef); if (!sfDoc.exists()) throw "Doc missing!"; const payload = { rankings: rankingsData, matchHistory: matchHistoryData, seasonArchives: seasonArchives, activeSeason: activeSeason, date: new Date().toISOString() }; if(!isUndo) { payload.ruleHtml = ruleHtml; payload.patchNotes = patchNotesData; payload.availablePatchTags = availablePatchTags; payload.adminGlobalNote = document.getElementById('adminGlobalNoteInput')?.value || ""; } transaction.update(docRef, payload); }); statusEl.style.opacity = 1; setTimeout(() => statusEl.style.opacity = 0, 2000); } catch (e) { alert("저장 오류: " + e.message); } }
+        
+        window.saveAdminGlobalNote = async () => { await saveRankings(); showCustomAlert("✅ 관리자 메모가 성공적으로 저장되었습니다."); };
+        
         window.saveRules = () => { ruleHtml = document.getElementById('ruleHtmlInput').value; saveRankings(); alert("저장됨."); };
         window.loadDefaultRuleHtml = () => { if(confirm("초기화?")) document.getElementById('ruleHtmlInput').value = DEFAULT_RULE_HTML; };
         
@@ -2100,7 +2141,7 @@
                 matches.forEach(m => {
                     const isDraw = m.isDraw || m.type === 'draw';
                     const isWin = !isDraw && m.winner === p.name;
-                    const oppName = isWin ? m.loser : m.winner;
+                    const oppName = m.winner === p.name ? m.loser : m.winner;
                     
                     if (!h2hMap[oppName]) {
                         h2hMap[oppName] = { name: oppName, w: 0, l: 0, d: 0, history: [], profile: rankingsData.find(u => u.name === oppName) };
@@ -2169,7 +2210,7 @@
                 const resultText = isDraw ? 'D' : (isWin ? 'W' : 'L'); 
                 const resultColor = isDraw ? 'bg-slate-200 text-slate-600' : (isWin ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'); 
                 
-                const oppName = isWin ? m.loser : m.winner; 
+                const oppName = m.winner === p.name ? m.loser : m.winner; 
                 const oppStats = m.snapshot[filter === 'all' ? 'all' : 'season'][oppName] || { w:0, l:0, d:0, h:[] }; 
                 const oppRecordStr = `${oppStats.w}승 ${oppStats.l}패` + (oppStats.d > 0 ? ` ${oppStats.d}무` : ''); 
                 let oppDots = ''; (oppStats.h || []).forEach(res => oppDots += `<div class="w-1 h-1 rounded-full ${res === 'W' ? 'bg-emerald-400' : (res === 'D' ? 'bg-slate-400' : 'bg-rose-400')}"></div>`); 
@@ -2188,7 +2229,7 @@
                     scoreBadge = `<span class="text-[13px] font-black text-rose-600 shrink-0">${m.loserChange}</span>`; 
                 } 
 
-                let oppRankBadge = ''; const oppRankVal = isWin || (isDraw && m.winner !== p.name) ? m.loserRankBefore : m.winnerRankBefore;
+                let oppRankBadge = ''; const oppRankVal = (m.winner === p.name) ? m.loserRankBefore : m.winnerRankBefore;
                 if (oppRankVal !== undefined) { if (oppRankVal > 0) oppRankBadge = `<span class="bg-slate-200 text-slate-500 text-[11px] px-2 py-0.5 rounded-md font-bold leading-none no-underline shadow-sm">${oppRankVal}위</span>`; else oppRankBadge = `<span class="bg-slate-100 text-slate-400 text-[11px] px-2 py-0.5 rounded-md font-bold leading-none no-underline shadow-sm border border-slate-200">배치중</span>`; } else oppRankBadge = `<span class="bg-slate-100 text-slate-400 text-[11px] px-2 py-0.5 rounded-md font-bold leading-none no-underline shadow-sm border border-slate-200" title="과거 기록">-</span>`;
                 const oppProfile = rankingsData.find(u => u.name === oppName); const oppLink = oppProfile ? `onclick="openProfile('${oppProfile.id}')"` : ''; const oppCursor = oppProfile ? 'cursor-pointer hover:underline hover:text-blue-600' : '';
                 
