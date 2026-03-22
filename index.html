@@ -524,8 +524,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v5.19",
-            updateNote: "정보 탭 가독성 패치",
+            version: "v5.20",
+            updateNote: "정보 탭 스마트 링크",
             title: "RFC 랭킹전"
         };
 
@@ -840,6 +840,52 @@
                     }
                 });
 
+                // [NEW] 링크 카드 생성 로직
+                let linkHtml = '';
+                if (note.link && note.link.trim() !== '') {
+                    const url = note.link.trim();
+                    let bgColor = 'bg-slate-500';
+                    let icon = '🔗';
+                    let platformName = 'External Link';
+                    let hoverBorder = 'hover:border-slate-400';
+                    let hoverBg = 'group-hover:bg-slate-100';
+
+                    if (url.includes('kakao.com')) {
+                        bgColor = 'bg-[#FAE100]';
+                        icon = '💬';
+                        platformName = 'Kakao Open Chat';
+                        hoverBorder = 'hover:border-yellow-400';
+                        hoverBg = 'group-hover:bg-yellow-50/50';
+                    } else if (url.includes('discord.gg') || url.includes('discord.com')) {
+                        bgColor = 'bg-[#5865F2]';
+                        icon = '🎮';
+                        platformName = 'Discord Server';
+                        hoverBorder = 'hover:border-[#5865F2]';
+                        hoverBg = 'group-hover:bg-[#5865F2]/5';
+                    }
+
+                    // 보여줄 짧은 주소 만들기
+                    let shortUrl = url.replace(/^https?:\/\//, '');
+                    if (shortUrl.length > 35) shortUrl = shortUrl.substring(0, 32) + '...';
+
+                    linkHtml = `
+                        <a href="${url}" target="_blank" class="block mt-4 border border-slate-200 rounded-xl overflow-hidden ${hoverBorder} hover:shadow-md transition-all group bg-white no-underline">
+                            <div class="flex items-stretch h-[65px]">
+                                <div class="w-[65px] ${bgColor} flex items-center justify-center shrink-0 border-r border-slate-100">
+                                    <span class="text-2xl drop-shadow-sm">${icon}</span>
+                                </div>
+                                <div class="flex flex-col justify-center px-3 flex-grow min-w-0 bg-slate-50 ${hoverBg} transition-colors">
+                                    <div class="text-[13px] font-bold text-slate-800 truncate mb-0.5">${platformName}</div>
+                                    <div class="text-[11px] text-slate-500 truncate mb-1">${shortUrl}</div>
+                                    <div class="text-[10px] text-blue-500 font-bold flex items-center gap-1">
+                                        링크 열기 <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    `;
+                }
+
                 if (isCommunity) {
                     communityCount++;
                     if (communityContainer) {
@@ -850,6 +896,7 @@
                                 <div class="text-[14px] text-indigo-700 leading-relaxed space-y-0.5">
                                     ${detailsHtml}
                                 </div>
+                                ${linkHtml}
                             </div>
                         `;
                     }
@@ -873,6 +920,7 @@
                                 <div class="text-[14px] ${textColor} leading-relaxed space-y-0.5">
                                     ${detailsHtml}
                                 </div>
+                                ${linkHtml}
                             </div>
                         `;
                     }
