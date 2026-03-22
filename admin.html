@@ -134,6 +134,7 @@
         .rank-unranked { color: #cbd5e1; font-size: 1.0rem; font-weight: 700; }
         
         .style-checkbox:checked + label { background-color: #3b82f6 !important; color: white !important; border-color: #3b82f6 !important; }
+        .tag-checkbox:checked + label { background-color: #6366f1 !important; color: white !important; border-color: #6366f1 !important; box-shadow: 0 2px 4px rgba(99, 102, 241, 0.3); }
         .boxrec-win { background: linear-gradient(180deg, #16a34a 0%, #15803d 100%); }
         .boxrec-loss { background: linear-gradient(180deg, #dc2626 0%, #b91c1c 100%); }
 
@@ -453,6 +454,18 @@
                                             <label class="text-[10px] font-bold text-slate-500">주요 제목</label>
                                             <input type="text" id="pnTitle" class="w-full border border-slate-200 p-2 rounded text-xs bg-slate-50 focus:outline-none focus:border-indigo-500" placeholder="예: 상대별 전적 탭 신설 및 UI 개선">
                                         </div>
+                                        
+                                        <!-- [NEW] 제자리 수정 기능이 적용된 다중 태그 입력 영역 -->
+                                        <div class="mb-3 bg-indigo-50/30 p-3 rounded-lg border border-indigo-100">
+                                            <label class="text-[10px] font-bold text-indigo-600 block mb-3 flex justify-between items-center">
+                                                <span>📌 게시글 태그 (다중 선택 가능)</span>
+                                                <span class="text-slate-400 font-normal">마우스를 올려 태그 수정</span>
+                                            </label>
+                                            <div class="flex flex-wrap gap-2.5 items-center" id="pnTagContainer">
+                                                <!-- 자바스크립트로 태그 렌더링됨 -->
+                                            </div>
+                                        </div>
+
                                         <div class="mb-3">
                                             <div class="flex justify-between items-center mb-1">
                                                 <label class="text-[10px] font-bold text-slate-500">세부 내용 (엔터로 항목 구분)</label>
@@ -685,8 +698,8 @@
         const AUTO_LOGIN_PW = "";
         
         const ADMIN_CONFIG = {
-            version: "v5.35",
-            updateNote: "정보탭 패치노트 링크 ui 수정",
+            version: "v5.40",
+            updateNote: "관리자 패치노트 다중태그 기능",
             title: "RFC 매니저"
         };
 
@@ -705,6 +718,7 @@
         const app = initializeApp(firebaseConfig); const db = getFirestore(app); const auth = getAuth(app); const appId = 'ranking-manager-default';
         
         let rankingsData = []; let matchHistoryData = []; let seasonArchives = {}; let activeSeason = "시즌 1"; let ruleHtml = ""; let patchNotesData = [];
+        let availablePatchTags = []; // [NEW] 태그 저장용 배열
         let undoStack = []; const MAX_UNDO = 10;
         let searchQuery = "";
         let enrichedHistory = [];
@@ -986,6 +1000,11 @@
                 if (doc.exists()) { 
                     const data = doc.data(); 
                     rankingsData = data.rankings || []; matchHistoryData = data.matchHistory || []; seasonArchives = data.seasonArchives || {}; activeSeason = data.activeSeason || "시즌 1"; ruleHtml = data.ruleHtml || DEFAULT_RULE_HTML; patchNotesData = data.patchNotes || [];
+                    
+                    // [NEW] 태그 리스트 불러오기 (없으면 기본값 할당)
+                    availablePatchTags = data.availablePatchTags || ["🚧 개발중/예정", "🟢 적용완료(LIVE)", "⚖️ 밸런스", "⚙️ 시스템", "💡 유저 팁", "🤫 루머/유출"];
+                    renderAvailablePatchTags();
+
                     if(!viewHistorySeason) viewHistorySeason = activeSeason; 
                     updateSeasonUI(); renderSeasonList(); renderAdminPatchNotes();
                     document.getElementById('ruleHtmlInput').value = ruleHtml; 
@@ -1427,7 +1446,7 @@
         function captureState() { const currentState = { rankings: JSON.parse(JSON.stringify(rankingsData)), matchHistory: JSON.parse(JSON.stringify(matchHistoryData)), seasonArchives: JSON.parse(JSON.stringify(seasonArchives)), activeSeason: activeSeason, patchNotes: JSON.parse(JSON.stringify(patchNotesData)) }; undoStack.push(currentState); if (undoStack.length > MAX_UNDO) undoStack.shift(); updateUndoUI(); }
         window.executeUndo = async () => { if (undoStack.length === 0) return; const prevState = undoStack.pop(); rankingsData = prevState.rankings; matchHistoryData = prevState.matchHistory; seasonArchives = prevState.seasonArchives; activeSeason = prevState.activeSeason; patchNotesData = prevState.patchNotes || []; await saveRankings(true); renderRankings(); updateUndoUI(); alert("되돌렸습니다."); };
         function updateUndoUI() { const btn = document.getElementById('undoBtn'); const cnt = document.getElementById('undoCount'); if (undoStack.length > 0) { btn.classList.remove('hidden'); btn.classList.add('pop-in'); btn.disabled = false; cnt.textContent = undoStack.length; } else { btn.classList.add('hidden'); } }
-        window.saveRankings = async function(isUndo = false) { const statusEl = document.getElementById('saveStatus'); const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'rankings', 'main'); try { await runTransaction(db, async (transaction) => { const sfDoc = await transaction.get(docRef); if (!sfDoc.exists()) throw "Doc missing!"; const payload = { rankings: rankingsData, matchHistory: matchHistoryData, seasonArchives: seasonArchives, activeSeason: activeSeason, date: new Date().toISOString() }; if(!isUndo) { payload.ruleHtml = ruleHtml; payload.patchNotes = patchNotesData; } transaction.update(docRef, payload); }); statusEl.style.opacity = 1; setTimeout(() => statusEl.style.opacity = 0, 2000); } catch (e) { alert("저장 오류: " + e.message); } }
+        window.saveRankings = async function(isUndo = false) { const statusEl = document.getElementById('saveStatus'); const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'rankings', 'main'); try { await runTransaction(db, async (transaction) => { const sfDoc = await transaction.get(docRef); if (!sfDoc.exists()) throw "Doc missing!"; const payload = { rankings: rankingsData, matchHistory: matchHistoryData, seasonArchives: seasonArchives, activeSeason: activeSeason, date: new Date().toISOString() }; if(!isUndo) { payload.ruleHtml = ruleHtml; payload.patchNotes = patchNotesData; payload.availablePatchTags = availablePatchTags; /* [NEW] 태그 데이터 추가 */ } transaction.update(docRef, payload); }); statusEl.style.opacity = 1; setTimeout(() => statusEl.style.opacity = 0, 2000); } catch (e) { alert("저장 오류: " + e.message); } }
         window.saveRules = () => { ruleHtml = document.getElementById('ruleHtmlInput').value; saveRankings(); alert("저장됨."); };
         window.loadDefaultRuleHtml = () => { if(confirm("초기화?")) document.getElementById('ruleHtmlInput').value = DEFAULT_RULE_HTML; };
         
@@ -1449,6 +1468,22 @@
             document.getElementById('pnTitle').value = note.title;
             document.getElementById('pnDetails').value = note.details.join('\n');
             document.getElementById('pnLink').value = note.link || '';
+
+            // [NEW] 기존 게시물에만 있고 현재 태그 목록에 없는 레거시 태그가 있다면 목록에 일시 복원
+            const noteTags = note.tags || [];
+            let tagsChanged = false;
+            noteTags.forEach(t => {
+                if (!availablePatchTags.includes(t)) {
+                    availablePatchTags.push(t);
+                    tagsChanged = true;
+                }
+            });
+            if (tagsChanged) renderAvailablePatchTags();
+
+            // 태그 복원
+            document.querySelectorAll('.pn-tag-checkbox').forEach(cb => {
+                cb.checked = noteTags.includes(cb.value);
+            });
 
             // UI 변경
             const title = document.getElementById('pnFormTitle');
@@ -1476,6 +1511,9 @@
             document.getElementById('pnTitle').value = '';
             document.getElementById('pnDetails').value = '';
             document.getElementById('pnLink').value = '';
+            
+            // 태그 초기화
+            document.querySelectorAll('.pn-tag-checkbox').forEach(cb => cb.checked = false);
 
             // UI 복구
             const title = document.getElementById('pnFormTitle');
@@ -1500,6 +1538,10 @@
             const type = typeNode ? typeNode.value : 'official';
             const link = document.getElementById('pnLink').value.trim();
             
+            // 태그 가져오기
+            const checkedTags = document.querySelectorAll('.pn-tag-checkbox:checked');
+            const tags = Array.from(checkedTags).map(cb => cb.value);
+            
             // 빈칸일 경우 자동 기본값 채우기
             if (!version) version = "-";
             if (!date) {
@@ -1517,18 +1559,19 @@
             if (editingPatchNoteId) {
                 const idx = patchNotesData.findIndex(n => n.id === editingPatchNoteId);
                 if (idx !== -1) {
-                    patchNotesData[idx] = { ...patchNotesData[idx], version, date, title, details, type, link };
+                    patchNotesData[idx] = { ...patchNotesData[idx], version, date, title, details, type, link, tags };
                 }
                 showCustomAlert("✅ 업데이트 내역이 수정되었습니다.");
                 cancelEditPatchNote(); 
             } else {
-                patchNotesData.unshift({ id: Date.now(), version, date, title, details, type, link });
+                patchNotesData.unshift({ id: Date.now(), version, date, title, details, type, link, tags });
                 showCustomAlert("✅ 업데이트 내역이 등록되었습니다.");
                 document.getElementById('pnVersion').value = '';
                 document.getElementById('pnDate').value = '';
                 document.getElementById('pnTitle').value = '';
                 document.getElementById('pnDetails').value = '';
                 document.getElementById('pnLink').value = '';
+                document.querySelectorAll('.pn-tag-checkbox').forEach(cb => cb.checked = false);
             }
 
             saveRankings();
@@ -1574,12 +1617,29 @@
                     : '<span class="text-red-500 bg-red-50 border border-red-200 px-1 py-[1px] rounded text-[9px]">공식</span>';
                 
                 const linkIcon = note.link ? '<span class="text-indigo-400 text-[10px] ml-1" title="링크 포함됨">🔗</span>' : '';
+                
+                // 태그 렌더링
+                let tagsHtml = '';
+                if (note.tags && note.tags.length > 0) {
+                    tagsHtml = '<div class="flex flex-wrap gap-1 mt-1.5">';
+                    note.tags.forEach(tag => {
+                        if(tag.includes('개발중')) {
+                            tagsHtml += `<span class="bg-amber-100 text-amber-700 border border-amber-200 text-[9px] px-1.5 py-[1px] rounded font-bold shadow-sm">${tag}</span>`;
+                        } else if(tag.includes('적용완료')) {
+                            tagsHtml += `<span class="bg-emerald-100 text-emerald-700 border border-emerald-200 text-[9px] px-1.5 py-[1px] rounded font-bold shadow-sm">${tag}</span>`;
+                        } else {
+                            tagsHtml += `<span class="bg-white text-indigo-600 border border-indigo-200 text-[9px] px-1.5 py-[1px] rounded font-bold shadow-sm">${tag}</span>`;
+                        }
+                    });
+                    tagsHtml += '</div>';
+                }
 
                 list.innerHTML += `
                     <div class="bg-white p-3 rounded-lg border border-slate-200 flex justify-between items-start shadow-sm mb-2">
-                        <div>
+                        <div class="flex-grow pr-2">
                             <div class="text-[10px] font-bold text-blue-600 mb-0.5 flex items-center gap-1">${typeLabel} <span>${note.version} (${note.date})</span>${linkIcon}</div>
                             <div class="text-xs font-bold text-slate-700">${note.title}</div>
+                            ${tagsHtml}
                             <div class="text-[10px] text-slate-500 mt-1">${note.details.length}줄의 작성 내용</div>
                         </div>
                         <div class="flex gap-1 shrink-0">
@@ -1591,6 +1651,120 @@
             });
         }
         
+        // [NEW] 인라인 태그 렌더링 및 편집 로직
+        window.escapeHtml = (text) => {
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        };
+
+        window.renderAvailablePatchTags = () => {
+            const container = document.getElementById('pnTagContainer');
+            if(!container) return;
+            
+            // 기존 체크된 태그들 유지
+            const checkedTags = Array.from(document.querySelectorAll('.pn-tag-checkbox:checked')).map(cb => cb.value);
+            
+            let html = '';
+            availablePatchTags.forEach((tag, index) => {
+                const isChecked = checkedTags.includes(tag) ? 'checked' : '';
+                const safeId = `pnTag_${index}`;
+                const escapedTag = escapeHtml(tag);
+                const jsEscapedTag = tag.replace(/'/g, "\\'");
+                
+                html += `
+                <div class="relative group inline-block" id="tag-item-${index}">
+                    <input type="checkbox" id="${safeId}" value="${escapedTag}" class="hidden tag-checkbox pn-tag-checkbox" ${isChecked}>
+                    <label for="${safeId}" class="cursor-pointer inline-flex items-center justify-center bg-white text-slate-500 border border-slate-200 px-3.5 py-1.5 rounded-full text-[10px] font-bold transition hover:bg-slate-50 hover:border-slate-300 shadow-sm select-none">
+                        ${escapedTag}
+                    </label>
+                    <div class="absolute -top-3 -right-2 hidden group-hover:flex gap-1 z-10 pop-in">
+                        <button type="button" onclick="editInlineTag(${index}, '${jsEscapedTag}')" class="bg-white text-blue-600 border border-blue-200 hover:bg-blue-50 rounded-full w-5 h-5 flex items-center justify-center shadow-md transition" title="수정">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                        </button>
+                        <button type="button" onclick="deleteInlineTag(${index})" class="bg-white text-red-500 border border-red-200 hover:bg-red-50 rounded-full w-5 h-5 flex items-center justify-center shadow-md transition" title="삭제">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                    </div>
+                </div>
+                `;
+            });
+            
+            html += `
+            <div class="inline-block" id="add-btn-container">
+                <button type="button" onclick="showAddInput()" class="bg-white border border-dashed border-indigo-300 text-indigo-400 hover:text-indigo-600 hover:border-indigo-400 hover:bg-indigo-50/50 px-3.5 py-1.5 rounded-full text-[10px] font-bold transition flex items-center gap-1">
+                    <span>+</span> 새 태그
+                </button>
+            </div>
+            `;
+            
+            container.innerHTML = html;
+        };
+
+        window.editInlineTag = (index, currentValue) => {
+            const container = document.getElementById(`tag-item-${index}`);
+            const escapedValue = escapeHtml(currentValue);
+            
+            container.innerHTML = `
+                <div class="inline-flex items-center bg-white border border-indigo-400 rounded-full overflow-hidden shadow-inner pop-in">
+                    <input type="text" id="edit-input-${index}" value="${escapedValue}" class="bg-transparent text-[10px] font-bold px-3 py-1.5 w-32 outline-none text-indigo-700">
+                    <button type="button" onclick="cancelInlineEdit()" class="bg-slate-100 text-slate-500 px-2 py-1.5 text-[10px] font-bold hover:bg-slate-200 transition border-l border-slate-200">✕</button>
+                    <button type="button" onclick="saveInlineTag(${index})" class="bg-indigo-500 text-white px-3 py-1.5 text-[10px] font-bold hover:bg-indigo-600 transition border-l border-indigo-600">저장</button>
+                </div>
+            `;
+            
+            const input = document.getElementById(`edit-input-${index}`);
+            if(input) {
+                input.focus();
+                input.selectionStart = input.selectionEnd = input.value.length;
+                input.onkeypress = (e) => { if (e.key === 'Enter') { e.preventDefault(); saveInlineTag(index); } };
+            }
+        };
+
+        window.cancelInlineEdit = () => {
+            renderAvailablePatchTags();
+        };
+
+        window.saveInlineTag = async (index) => {
+            const input = document.getElementById(`edit-input-${index}`);
+            const newValue = input.value.trim();
+            if (!newValue) { alert('태그 이름을 입력해주세요.'); input.focus(); return; }
+            
+            availablePatchTags[index] = newValue;
+            await saveRankings();
+            renderAvailablePatchTags();
+        };
+
+        window.deleteInlineTag = async (index) => {
+            if(!confirm(`[${availablePatchTags[index]}] 태그를 삭제하시겠습니까?\n(기존에 작성된 게시물의 태그는 이전 이름으로 유지됩니다)`)) return;
+            availablePatchTags.splice(index, 1);
+            await saveRankings();
+            renderAvailablePatchTags();
+        };
+
+        window.showAddInput = () => {
+            const container = document.getElementById('add-btn-container');
+            container.innerHTML = `
+                <div class="inline-flex items-center bg-white border border-emerald-400 rounded-full overflow-hidden shadow-inner pop-in">
+                    <input type="text" id="add-input" placeholder="새 태그 이름" class="bg-transparent text-[10px] font-bold px-3 py-1.5 w-28 outline-none text-emerald-700 placeholder:text-emerald-300">
+                    <button type="button" onclick="cancelInlineEdit()" class="bg-slate-100 text-slate-500 px-2 py-1.5 text-[10px] font-bold hover:bg-slate-200 transition border-l border-slate-200">✕</button>
+                    <button type="button" onclick="saveAddTag()" class="bg-emerald-500 text-white px-3 py-1.5 text-[10px] font-bold hover:bg-emerald-600 transition border-l border-emerald-600">추가</button>
+                </div>
+            `;
+            const input = document.getElementById('add-input');
+            if(input) {
+                setTimeout(() => input.focus(), 50);
+                input.onkeypress = (e) => { if (e.key === 'Enter') { e.preventDefault(); saveAddTag(); } };
+            }
+        };
+
+        window.saveAddTag = async () => {
+            const val = document.getElementById('add-input').value.trim();
+            if(!val) { cancelInlineEdit(); return; }
+            
+            availablePatchTags.push(val);
+            await saveRankings();
+            renderAvailablePatchTags();
+        };
+
         window.switchProfileTab = (tab) => {
             currentProfileTab = tab;
             const btnC = document.getElementById('btnTabChrono');
