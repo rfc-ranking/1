@@ -524,8 +524,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v5.22",
-            updateNote: "다중태그 기능",
+            version: "v5.23",
+            updateNote: "무승부 오류",
             title: "RFC 랭킹전"
         };
 
@@ -2058,7 +2058,8 @@
                 matches.forEach(m => {
                     const isDraw = m.isDraw || m.type === 'draw';
                     const isWin = !isDraw && m.winner === p.name;
-                    const oppName = isWin ? m.loser : m.winner;
+                    // [수정] Option 1: 무승부 시 상대방 이름을 정확히 찾도록 절대 조건식으로 변경
+                    const oppName = (m.winner === p.name) ? m.loser : m.winner;
                     
                     if (!h2hMap[oppName]) {
                         h2hMap[oppName] = { name: oppName, w: 0, l: 0, d: 0, history: [], profile: rankingsData.find(u => u.name === oppName) };
@@ -2127,7 +2128,8 @@
                 const resultText = isDraw ? 'D' : (isWin ? 'W' : 'L'); 
                 const resultColor = isDraw ? 'bg-slate-200 text-slate-600' : (isWin ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'); 
                 
-                const oppName = isWin ? m.loser : m.winner; 
+                // [수정] Option 1: 날짜별 기록 탭에서도 동일하게 무승부 오류 수정
+                const oppName = (m.winner === p.name) ? m.loser : m.winner; 
                 const oppStats = m.snapshot[filter === 'all' ? 'all' : 'season'][oppName] || { w:0, l:0, d:0, h:[] }; 
                 const oppRecordStrFull = `${oppStats.w}승 ${oppStats.l}패` + ((oppStats.d || 0) > 0 ? ` ${oppStats.d}무` : '');
                 
