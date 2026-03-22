@@ -524,8 +524,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v5.23",
-            updateNote: "무승부 오류",
+            version: "v5.24",
+            updateNote: "무승부 랭킹 오류 수정",
             title: "RFC 랭킹전"
         };
 
@@ -1890,7 +1890,7 @@
                 btn.className = "tab-inactive flex-1 py-2.5 text-[11px] sm:text-sm font-bold transition-colors text-center tracking-tighter"; 
             }); 
             document.getElementById(tab + 'Section').classList.remove('hidden'); 
-            const activeBtn = document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)); 
+            const activeBtn = document.getElementById('tab' + tab.charAt(0).toUpperCase() + t.slice(1)); 
             activeBtn.className = "tab-active flex-1 py-2.5 text-[11px] sm:text-sm font-bold transition-colors text-center tracking-tighter"; 
             
             // 탭 전환 시 요소가 새로 렌더링될 수 있으므로 Sticky 위치를 다시 계산
@@ -2157,7 +2157,7 @@
                 } 
 
                 let oppRankBadge = '';
-                const oppRankVal = isWin || (isDraw && m.winner !== p.name) ? m.loserRankBefore : m.winnerRankBefore;
+                const oppRankVal = (m.winner === p.name) ? m.loserRankBefore : m.winnerRankBefore;
                 if (oppRankVal !== undefined) {
                     if (oppRankVal > 0) {
                         oppRankBadge = `<span class="bg-slate-200 text-slate-500 text-[11px] px-2 py-0.5 rounded-md font-bold leading-none no-underline shadow-sm">${oppRankVal}위</span>`;
