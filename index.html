@@ -524,8 +524,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v5.20",
-            updateNote: "정보 탭 스마트 링크",
+            version: "v5.22",
+            updateNote: "다중태그 기능",
             title: "RFC 랭킹전"
         };
 
@@ -886,12 +886,35 @@
                     `;
                 }
 
+                // [NEW] 태그 렌더링 로직 (사용자 사이트용 UI)
+                let tagsHtml = '';
+                if (note.tags && note.tags.length > 0) {
+                    note.tags.forEach(tag => {
+                        if(tag.includes('개발중')) {
+                            tagsHtml += `<span class="bg-amber-100 text-amber-700 border border-amber-200 text-[13px] px-2 py-0.5 rounded-md font-bold shadow-sm whitespace-nowrap">${tag}</span>`;
+                        } else if(tag.includes('적용완료')) {
+                            tagsHtml += `<span class="bg-emerald-100 text-emerald-700 border border-emerald-200 text-[13px] px-2 py-0.5 rounded-md font-bold shadow-sm whitespace-nowrap">${tag}</span>`;
+                        } else {
+                            if (isCommunity) {
+                                tagsHtml += `<span class="bg-white text-indigo-600 border border-indigo-200 text-[13px] px-2 py-0.5 rounded-md font-bold shadow-sm whitespace-nowrap">${tag}</span>`;
+                            } else {
+                                tagsHtml += `<span class="bg-white text-blue-600 border border-blue-200 text-[13px] px-2 py-0.5 rounded-md font-bold shadow-sm whitespace-nowrap">${tag}</span>`;
+                            }
+                        }
+                    });
+                }
+
                 if (isCommunity) {
                     communityCount++;
                     if (communityContainer) {
                         communityContainer.innerHTML += `
                             <div class="bg-indigo-50 rounded-xl p-4 border border-indigo-100 relative shadow-sm">
-                                <div class="text-[10px] font-bold text-indigo-400 mb-1">${note.version} (${note.date})</div>
+                                <div class="flex justify-between items-start mb-2 border-b border-indigo-100/50 pb-2">
+                                    <div class="text-[13px] font-bold text-indigo-400 mt-0.5">${note.version} (${note.date})</div>
+                                    <div class="flex flex-wrap gap-1.5 justify-end max-w-[70%]">
+                                        ${tagsHtml}
+                                    </div>
+                                </div>
                                 <h4 class="text-[15px] font-bold text-indigo-900 mb-2">${note.title}</h4>
                                 <div class="text-[14px] text-indigo-700 leading-relaxed space-y-0.5">
                                     ${detailsHtml}
@@ -915,7 +938,12 @@
                         officialContainer.innerHTML += `
                             <div class="relative pl-4 border-l-2 ${borderColor}">
                                 <div class="absolute -left-[5px] top-1 w-2 h-2 rounded-full ${dotColor} ring-4 ring-white"></div>
-                                <div class="text-[11px] font-bold ${versionColor} mb-1">${note.version} 업데이트 (${note.date}) <span class="ml-2 text-[9px] font-normal opacity-70 px-1.5 py-0.5 bg-slate-100 rounded border border-slate-200">${tagLabel}</span></div>
+                                <div class="flex justify-between items-start mb-2">
+                                    <div class="text-[13px] font-bold ${versionColor} mt-0.5">${note.version} 업데이트 (${note.date}) <span class="ml-2 text-[9px] font-normal opacity-70 px-1.5 py-0.5 bg-slate-100 rounded border border-slate-200">${tagLabel}</span></div>
+                                    <div class="flex flex-wrap gap-1.5 justify-end max-w-[60%]">
+                                        ${tagsHtml}
+                                    </div>
+                                </div>
                                 <h4 class="text-[15px] font-bold ${titleColor} mb-2">${note.title}</h4>
                                 <div class="text-[14px] ${textColor} leading-relaxed space-y-0.5">
                                     ${detailsHtml}
