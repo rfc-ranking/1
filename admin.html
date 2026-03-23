@@ -730,8 +730,8 @@
         const AUTO_LOGIN_PW = "";
         
         const ADMIN_CONFIG = {
-            version: "v5.45",
-            updateNote: "경기기록 오류 수정",
+            version: "v5.46",
+            updateNote: "경기기록 배치 수정",
             title: "RFC 매니저"
         };
 
@@ -2422,7 +2422,7 @@
             const sortedRankedIndices = rankingsData.map((p, i) => ({ ...p, originalIndex: i })).filter(p => (p.wins + p.losses + (p.draws||0)) >= 3).sort((a, b) => (b.elo || 1000) - (a.elo || 1000)).map(p => p.originalIndex); 
             const playerOptions = rankingsData.map((p, index) => { 
                 const rankIndex = sortedRankedIndices.indexOf(index); const isRanked = rankIndex !== -1; const totalMatches = (p.wins || 0) + (p.losses || 0) + (p.draws || 0); 
-                let rankPrefix = ''; if (isRanked) rankPrefix = `${rankIndex + 1}. `; 
+                let rankPrefix = ''; if (isRanked) rankPrefix = `${rankIndex + 1}. `; else if (totalMatches > 0) rankPrefix = `[배치] `; 
                 const displayName = `${rankPrefix}${p.name}`; 
                 return { value: index, text: `${displayName} (${p.elo})`, displayName: displayName, name: p.name, gameId: p.gameId || '-', choseong: p.choseong, jamo: p.jamo, elo: p.elo || 1000, isRanked: isRanked, totalMatches: totalMatches }; 
             }); 
