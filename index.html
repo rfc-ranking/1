@@ -331,7 +331,7 @@
             <div class="sticky-sub-header sticky z-30 bg-white/95 backdrop-blur-sm p-2 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between mb-4 gap-2 transition-all">
                 <div class="flex p-1 bg-slate-100 rounded-lg w-full">
                     <button id="btnInfoOfficial" onclick="switchInfoSubTab('official')" class="flex-1 py-1.5 text-[11px] sm:text-xs font-bold text-blue-600 bg-white shadow-sm rounded-md transition-all">🚀 공식 패치노트</button>
-                    <button id="btnInfoDiscord" onclick="switchInfoSubTab('discord')" class="flex-1 py-1.5 text-[11px] sm:text-xs font-bold text-slate-500 rounded-md transition-all hover:bg-slate-200/50">💬 커뮤니티 정보</button>
+                    <button id="btnInfoDiscord" onclick="switchInfoSubTab('discord')" class="flex-1 py-1.5 text-[11px] sm:text-xs font-bold text-slate-500 rounded-md transition-all hover:bg-slate-200/50">💬 디스코드 정보</button>
                 </div>
             </div>
 
@@ -355,7 +355,7 @@
                 <div id="infoDiscordWrapper" class="hidden">
                     <div class="bg-[#5865F2] text-white p-4 flex items-center justify-between">
                         <div>
-                            <h3 class="font-black text-lg">💬 커뮤니티 비하인드</h3>
+                            <h3 class="font-black text-lg">💬 디스코드 정보</h3>
                             <p class="text-[10px] text-indigo-200 mt-1">오피셜엔 없는 개발자 썰과 유용한 팁</p>
                         </div>
                         <span class="text-4xl opacity-20">🤫</span>
@@ -524,8 +524,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v5.24",
-            updateNote: "무승부 랭킹 오류 수정",
+            version: "v5.25",
+            updateNote: "정보탭 UI수정",
             title: "RFC 랭킹전"
         };
 
@@ -1890,7 +1890,7 @@
                 btn.className = "tab-inactive flex-1 py-2.5 text-[11px] sm:text-sm font-bold transition-colors text-center tracking-tighter"; 
             }); 
             document.getElementById(tab + 'Section').classList.remove('hidden'); 
-            const activeBtn = document.getElementById('tab' + tab.charAt(0).toUpperCase() + t.slice(1)); 
+            const activeBtn = document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)); 
             activeBtn.className = "tab-active flex-1 py-2.5 text-[11px] sm:text-sm font-bold transition-colors text-center tracking-tighter"; 
             
             // 탭 전환 시 요소가 새로 렌더링될 수 있으므로 Sticky 위치를 다시 계산
