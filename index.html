@@ -432,7 +432,7 @@
                 <div class="flex flex-col items-center">
                     <div class="text-center mb-4"><h2 class="text-3xl font-black text-slate-800 flex items-center justify-center gap-2 tracking-tight"><span id="pModalRank" class="text-2xl text-blue-600 font-black hidden"></span><span id="pModalCrown" class="text-2xl hidden">👑</span><span id="pModalName">Name</span></h2><div class="flex items-center justify-center gap-2 mt-1"><span id="pModalGameId" class="text-xs text-slate-500 font-bold bg-slate-100 px-2 py-0.5 rounded">ID: -</span><span id="pModalTierBadge" class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-400">Tier</span></div></div>
                     
-                    <div class="mb-5 relative w-48 h-48 mx-auto group">
+                    <div class="mb-5 relative w-48 h-48 md:w-72 md:h-72 lg:w-80 lg:h-80 mx-auto group transition-all duration-300">
                         <img id="pModalImg" src="" class="w-full h-full rounded-2xl object-cover border-4 border-white shadow-xl bg-slate-50" onerror="this.src='https://placehold.co/150?text=No+Img'">
                     </div>
 
@@ -484,7 +484,7 @@
                 <div>
                     <label class="text-xs font-bold text-slate-500 mb-1 block">프로필 사진 (URL 주소)</label>
                     <div class="flex items-start gap-4">
-                        <img id="userEditPreview" src="" class="w-16 h-16 rounded-2xl object-cover bg-slate-100 border border-slate-200" onerror="this.src='https://placehold.co/150?text=No+Img'">
+                        <img id="userEditPreview" src="" class="w-16 h-16 md:w-20 md:h-20 shrink-0 rounded-2xl object-cover bg-slate-100 border border-slate-200 transition-all" onerror="this.src='https://placehold.co/150?text=No+Img'">
                         <div class="flex-grow">
                             <input type="text" id="userImageUrlInput" placeholder="이미지 주소 붙여넣기" class="w-full border p-3 rounded-xl text-xs font-bold bg-slate-50 focus:bg-white focus:border-blue-500 transition" oninput="updateUserPreview(this.value)">
                             <p class="text-[10px] text-slate-400 mt-1.5">
@@ -524,8 +524,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v5.25",
-            updateNote: "정보탭 UI수정",
+            version: "v5.26",
+            updateNote: "프로필 모달 사진크기 수정",
             title: "RFC 랭킹전"
         };
 
