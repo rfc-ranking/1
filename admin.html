@@ -727,11 +727,11 @@
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         
         const AUTO_LOGIN_EMAIL = "@gmail.com"; 
-        const AUTO_LOGIN_PW = "";
+        const AUTO_LOGIN_PW = "!";
         
         const ADMIN_CONFIG = {
-            version: "v5.47",
-            updateNote: "프로필 모달 사진크기 수정",
+            version: "v5.48",
+            updateNote: "챌린저 1250점으로 수정",
             title: "RFC 매니저"
         };
 
@@ -984,7 +984,7 @@
         // [FIX] 무승부(draws)를 포함하여 등급을 산정하도록 수정
         function getTier(wins, losses, draws = 0, elo = 0, isChampion = false) { 
             if (isChampion) return { name: '👑CHAMPION', class: 'tier-champion', color: 'bg-gradient-to-r from-yellow-400 to-amber-500 text-white border border-yellow-600 shadow-md' };
-            if (elo >= 1300) return { name: '🦅CHALLENGER', class: 'tier-challenger', color: 'bg-slate-900 border border-amber-400 text-amber-400 shadow-md ring-1 ring-amber-400/30' };
+            if (elo >= 1250) return { name: '🦅CHALLENGER', class: 'tier-challenger', color: 'bg-slate-900 border border-amber-400 text-amber-400 shadow-md ring-1 ring-amber-400/30' };
             const matches = (wins || 0) + (losses || 0) + (draws || 0);
             if (matches < 3) return { name: 'BRONZE', class: 'tier-bronze', color: 'bg-white border border-amber-600 text-amber-700' };
             if (matches < 7) return { name: 'SILVER', class: 'tier-silver', color: 'bg-white border border-slate-400 text-slate-500' };
@@ -993,7 +993,7 @@
         }
         
         function getTierBonus(matchCount, currentElo) { 
-            if (currentElo >= 1300) return { winMult: 1.0, lossMult: 1.0, base: 5, tier: '🦅Challenger' };
+            if (currentElo >= 1250) return { winMult: 1.0, lossMult: 1.0, base: 5, tier: '🦅Challenger' };
             if (matchCount < 3) return { winMult: 1.0, lossMult: 1.0, base: 5, tier: '🥉Bronze' };
             else if (matchCount < 7) return { winMult: 1.1, lossMult: 0.9, base: 7, tier: '🥈Silver' };
             else if (matchCount < 13) return { winMult: 1.2, lossMult: 0.8, base: 9, tier: '🥇Gold' };
@@ -1022,7 +1022,7 @@
                 details.push({ label: `기본 변동 점수 (K=${K})`, value: `+${baseGain.toFixed(1)}`, colorClass: 'text-slate-600', valueClass: '' });
                 let winPoints = (baseGain * winMult) + base;
                 let tierBonusStr = `x${winMult} + ${base}`;
-                const rankColor = p1Elo >= 1300 ? 'text-amber-600 bg-amber-50/50' : 'text-indigo-600 bg-indigo-50/50';
+                const rankColor = p1Elo >= 1250 ? 'text-amber-600 bg-amber-50/50' : 'text-indigo-600 bg-indigo-50/50';
                 details.push({ label: `티어 가중치 (${label}, ${tierBonusStr})`, value: `+${winPoints.toFixed(1)}`, colorClass: `${rankColor} -mx-1 px-1 rounded py-0.5`, valueClass: 'font-bold' });
                 if (opponentBounty > 0) details.push({ label: '💰 현상금 사냥 보너스', value: `+${opponentBounty}`, colorClass: 'text-amber-600 font-bold', valueClass: '' });
                 finalChange = winPoints + opponentBounty; 
@@ -1031,7 +1031,7 @@
                 details.push({ label: `기본 변동 점수 (K=${K})`, value: `${baseLoss.toFixed(1)}`, colorClass: 'text-slate-600', valueClass: '' });
                 let lossPoints = (baseLoss * lossMult) + base; 
                 let tierBonusStr = `x${lossMult} + ${base}`;
-                const rankColor = p1Elo >= 1300 ? 'text-amber-700 bg-amber-50/50' : 'text-rose-600 bg-rose-50/50';
+                const rankColor = p1Elo >= 1250 ? 'text-amber-700 bg-amber-50/50' : 'text-rose-600 bg-rose-50/50';
                 details.push({ label: `티어 가중치 (${label}, ${tierBonusStr})`, value: `${lossPoints.toFixed(1)}`, colorClass: `${rankColor} -mx-1 px-1 rounded py-0.5`, valueClass: 'font-bold' });
                 if (lossPoints > -5) { lossPoints = -5; details.push({ label: '📉 최소 패널티 보정', value: '-5 (강제)', colorClass: 'text-blue-600 font-bold bg-blue-50/50 -mx-1 px-1 rounded py-0.5', valueClass: '' }); }
                 finalChange = lossPoints; 
@@ -1142,7 +1142,7 @@
             const checkbox = document.getElementById('isTitleMatch');
             const hasChampion = p1.isChampion || p2.isChampion;
             const isVacant = !rankingsData.some(p => p.isChampion);
-            const isChallengerMatch = (p1.elo >= 1300) && (p2.elo >= 1300);
+            const isChallengerMatch = (p1.elo >= 1250) && (p2.elo >= 1250);
             if (hasChampion || (isVacant && isChallengerMatch)) {
                 if (!checkbox.checked) { checkbox.checked = true; const toggleBg = checkbox.nextElementSibling; if(toggleBg) { toggleBg.classList.add('ring-2', 'ring-yellow-400', 'ring-offset-2'); setTimeout(() => toggleBg.classList.remove('ring-2', 'ring-yellow-400', 'ring-offset-2'), 800); } }
             } else { if (checkbox.checked) checkbox.checked = false; }
@@ -1191,7 +1191,7 @@
             const isTitleMatch = document.getElementById('isTitleMatch').checked;
             if (isTitleMatch && winnerVal !== 'draw') {
                 const winnerObj = winnerVal === 'blue' ? simP1 : simP2; const loserObj = winnerVal === 'blue' ? simP2 : simP1;
-                const winnerIsChallenger = (winnerObj.elo || 1000) >= 1300; const loserIsChallenger = (loserObj.elo || 1000) >= 1300;
+                const winnerIsChallenger = (winnerObj.elo || 1000) >= 1250; const loserIsChallenger = (loserObj.elo || 1000) >= 1250;
                 const winnerWasChamp = winnerObj.isChampion === true; const loserWasChamp = loserObj.isChampion === true;
                 let newChampionId = null;
                 if (winnerIsChallenger && loserIsChallenger) newChampionId = winnerObj.id;
@@ -1245,13 +1245,13 @@
 
             const isTitleMatch = document.getElementById('isTitleMatch').checked;
             if (isTitleMatch && !isDraw) {
-                const winnerIsChallenger = (winner.elo || 1000) >= 1300; const loserIsChallenger = (loser.elo || 1000) >= 1300;
+                const winnerIsChallenger = (winner.elo || 1000) >= 1250; const loserIsChallenger = (loser.elo || 1000) >= 1250;
                 const winnerWasChamp = winner.isChampion === true; const loserWasChamp = loser.isChampion === true;
                 let newChampionId = null; 
                 if (winnerIsChallenger && loserIsChallenger) newChampionId = winner.id; 
                 else if (winnerWasChamp) newChampionId = winner.id; 
                 else if (loserWasChamp && winnerIsChallenger) newChampionId = winner.id; 
-                else if (loserWasChamp && !winnerIsChallenger) { newChampionId = null; alert(`🚨 챔피언 [${loser.name}] 선수가 패배했지만,\n승자 [${winner.name}] 선수가 '챌린저(1300점)' 자격이 없어\n타이틀이 [공석] 처리되었습니다.`); }
+                else if (loserWasChamp && !winnerIsChallenger) { newChampionId = null; alert(`🚨 챔피언 [${loser.name}] 선수가 패배했지만,\n승자 [${winner.name}] 선수가 '챌린저(1250점)' 자격이 없어\n타이틀이 [공석] 처리되었습니다.`); }
                 else newChampionId = null; 
                 rankingsData.forEach(p => {
                     if (p.id === newChampionId) {
