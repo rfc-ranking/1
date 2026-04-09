@@ -759,7 +759,7 @@
         const AUTO_LOGIN_PW = "";
         
         const ADMIN_CONFIG = {
-            version: "v5.50",
+            version: "v5.51",
             updateNote: "다중 Game ID 지원",
             title: "RFC 매니저"
         };
@@ -2311,9 +2311,9 @@
                 const mainId = p.gameId || "-";
                 const subIds = p.subGameIds || [];
                 
-                gameIdContainer.innerHTML += `<span class="text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded shadow-sm">Main: ${mainId}</span>`;
+                gameIdContainer.innerHTML += `<span class="text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded shadow-sm">ID: ${mainId}</span>`;
                 subIds.forEach(sub => {
-                    if (sub) gameIdContainer.innerHTML += `<span class="text-[10px] font-bold text-slate-500 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded">Sub: ${sub}</span>`;
+                    if (sub) gameIdContainer.innerHTML += `<span class="text-[10px] font-bold text-slate-500 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded">ID: ${sub}</span>`;
                 });
             }
 
