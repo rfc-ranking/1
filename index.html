@@ -257,7 +257,7 @@
         <div class="tooltip-row"><span class="tooltip-label">Class</span><span class="tooltip-value" id="tt-class" style="max-width:100px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">-</span></div>
     </div>
 
-    <!-- 상단 헤더 (기존 유지) -->
+    <!-- 상단 헤더 -->
     <header class="bg-white sticky top-0 z-40 shadow-sm border-b border-slate-200">
         <div class="max-w-3xl mx-auto px-4 py-3 flex justify-between items-center">
             <div class="inline-flex flex-col">
@@ -289,7 +289,6 @@
     <main class="max-w-3xl mx-auto p-3 flex-grow w-full">
         <!-- 랭킹 탭 -->
         <div id="rankingSection" class="fade-in space-y-3">
-            <!-- [수정] Option 1 적용: sticky 클래스와 배경색(blur 포함)을 추가한 필터 바 -->
             <div class="sticky-sub-header sticky z-30 bg-slate-100/95 backdrop-blur-sm pt-2 pb-2 -mt-2 flex justify-between items-center px-1 gap-2 border-b border-transparent transition-all">
                 <div class="flex flex-col min-w-0 shrink">
                     <span id="rankingSeasonTitle" class="text-[11px] sm:text-xs font-bold text-slate-700 truncate"></span>
@@ -315,7 +314,6 @@
 
         <!-- 기록 탭 -->
         <div id="matchesSection" class="hidden fade-in">
-            <!-- [수정] 기록 탭 필터 바 고정 -->
             <div class="sticky-sub-header sticky z-30 bg-white/95 backdrop-blur-sm p-3 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between mb-4 gap-2 transition-all">
                 <div class="flex flex-col min-w-0 shrink">
                     <span id="matchesSeasonTitle" class="text-[13px] font-black text-slate-700 truncate tracking-tight"></span>
@@ -328,7 +326,6 @@
 
         <!-- 전당 탭 -->
         <div id="hofSection" class="hidden fade-in">
-            <!-- [수정] 전당 탭 필터 바 고정 -->
             <div class="sticky-sub-header sticky z-30 bg-white/95 backdrop-blur-sm p-3 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between mb-4 gap-2 transition-all">
                 <div class="flex flex-col min-w-0 shrink">
                     <span id="hofSeasonTitle" class="text-[13px] font-black text-slate-700 truncate tracking-tight"></span>
@@ -434,7 +431,7 @@
         </div>
     </div>
 
-    <!-- 모달창 영역 (기존 유지) -->
+    <!-- 모달창 영역 -->
     <div id="profileModal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
         <div class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity" onclick="closeProfile()"></div>
         <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.2)] max-w-3xl mx-auto h-[92vh] overflow-y-auto modal-enter flex flex-col">
@@ -451,7 +448,7 @@
                             <span id="pModalCrown" class="text-2xl hidden">👑</span>
                             <span id="pModalName">Name</span>
                         </h2>
-                        <!-- [수정] 여러 개의 ID를 보여줄 수 있는 컨테이너로 변경 -->
+                        <!-- 여러 개의 ID를 보여줄 수 있는 컨테이너로 변경 -->
                         <div id="pModalGameIdContainer" class="flex flex-wrap items-center justify-center gap-1.5 mt-1 min-h-[24px]"></div>
                         <div class="flex items-center justify-center gap-2 mt-1">
                             <span id="pModalTierBadge" class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-400">Tier</span>
@@ -562,8 +559,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v5.28",
-            updateNote: "다중 Game ID 지원",
+            version: "v5.29",
+            updateNote: "챔피언 배경 점 삭제",
             title: "RFC 랭킹전"
         };
 
@@ -1772,7 +1769,6 @@
                             </div>
                             
                             <div class="py-3 min-h-[70px] w-full bg-gradient-to-b from-amber-50 to-orange-50 border border-amber-200 text-amber-900 rounded-xl flex flex-col items-center justify-center shadow-md mt-2 relative overflow-hidden">
-                                <div class="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9IiMwMDAiLz48L3N2Zz4=')]"></div>
                                 <div class="font-black text-base truncate w-full text-center px-1 leading-tight drop-shadow-sm relative z-10">공석 (No Champion)</div>
                                 <div class="flex items-center gap-1.5 mt-1 relative z-10">
                                     <span class="text-amber-600 text-[10px] font-bold">도전하세요!</span>
@@ -1818,7 +1814,6 @@
                             </div>
                             
                             <div class="py-3 min-h-[70px] w-full bg-gradient-to-b from-amber-50 to-orange-50 border border-amber-200 text-amber-900 rounded-xl flex flex-col items-center justify-center shadow-md mt-2 relative overflow-hidden">
-                                <div class="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9IiMwMDAiLz48L3N2Zz4=')]"></div>
                                 <div class="font-black text-lg truncate w-full text-center px-1 leading-tight drop-shadow-sm relative z-10">${champ.name}</div>
                                 <div class="flex items-center gap-1.5 mt-0.5 relative z-10">
                                     <span class="text-amber-600 text-[11px] font-black">⚡${champ.elo || 1000}</span>
