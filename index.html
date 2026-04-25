@@ -430,6 +430,27 @@
             </div>
         </div>
     </div>
+    <div id="champDefenseModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4" onclick="if(event.target === this) document.getElementById('champDefenseModal').classList.add('hidden')">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all">
+            <div class="bg-gradient-to-r from-amber-500 to-orange-500 p-4 text-white flex justify-between items-center">
+                <h3 class="font-black flex items-center gap-2">
+                    <span>👑</span> <span id="defenseModalTitle">챔피언 방어 전적</span>
+                </h3>
+                <button onclick="document.getElementById('champDefenseModal').classList.add('hidden')" class="text-white hover:text-amber-200 font-bold text-lg">✕</button>
+            </div>
+            <div class="p-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                <div class="text-xs font-bold text-slate-500" id="defenseModalSeason">시즌 정보</div>
+                <div class="text-xs font-black text-amber-600 bg-amber-100 px-2 py-1 rounded-md" id="defenseModalCount">방어 횟수</div>
+            </div>
+            <div class="p-4 max-h-[50vh] overflow-y-auto">
+                <div id="defenseMatchList" class="space-y-2">
+                    </div>
+            </div>
+            <div class="p-4 border-t border-slate-100">
+                <button onclick="document.getElementById('champDefenseModal').classList.add('hidden')" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 rounded-lg text-sm font-bold transition">닫기</button>
+            </div>
+        </div>
+    </div>
 
     <!-- 모달창 영역 -->
     <div id="profileModal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
@@ -1899,7 +1920,52 @@
                 `; 
             };
 
-            container.innerHTML = `
+                        // --- [추가] 역대 챔피언 계보 수집 및 HTML 생성 ---
+            let allChamps = [];
+            // 1. 과거 시즌 챔피언들
+            Object.keys(seasonArchives).sort().forEach(s => {
+                const c = (seasonArchives[s].rankings || []).find(p => p.isChampion);
+                if (c) allChamps.push({ ...c, seasonDisplay: s });
+            });
+            // 2. 현재 시즌 챔피언
+            const curChamp = rankingsData.find(p => p.isChampion);
+            if (curChamp) allChamps.push({ ...curChamp, seasonDisplay: activeSeason + " (진행중)" });
+            
+            // 최신 시즌이 가장 먼저 오도록 뒤집기
+            allChamps.reverse();
+
+            let historyCarouselHtml = '';
+            if (allChamps.length > 0) {
+                let cardsHtml = allChamps.map(c => `
+                    <div class="shrink-0 w-40 bg-gradient-to-b from-amber-50 to-white border border-amber-200 rounded-xl p-3 flex flex-col items-center shadow-sm snap-center relative overflow-hidden">
+                        <div class="text-[10px] font-black text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full mb-2 w-full text-center truncate">${c.seasonDisplay}</div>
+                        <img src="${c.imageUrl || 'https://placehold.co/150?text=No+Img'}" class="w-16 h-16 rounded-full object-cover border-2 border-amber-400 mb-2 shadow-sm bg-slate-100" onerror="this.src='https://placehold.co/150?text=No+Img'">
+                        <div class="font-black text-sm text-slate-800 truncate w-full text-center">${c.name}</div>
+                        <div class="text-[11px] text-slate-500 font-bold mb-3">🛡️ ${c.defenseCount || 0}차 방어</div>
+                        <button onclick="showChampDefense('${c.name}', '${c.seasonDisplay}', ${c.defenseCount || 0})" class="w-full bg-slate-800 hover:bg-slate-900 text-white text-[11px] font-bold py-1.5 rounded-lg transition shadow-sm mt-auto">방어 전적 보기</button>
+                    </div>
+                `).join('');
+
+                historyCarouselHtml = `
+                    <div class="mb-8 fade-in">
+                        <div class="flex items-center gap-2 mb-3 px-1">
+                            <span class="text-xl">📜</span>
+                            <div>
+                                <h3 class="font-black text-slate-800 tracking-tight leading-none">역대 챔피언 계보</h3>
+                                <p class="text-[10px] text-slate-400 mt-1">좌우로 스크롤하여 확인하세요</p>
+                            </div>
+                        </div>
+                        <div class="flex overflow-x-auto gap-3 pb-4 px-1 snap-x" style="scrollbar-width: none; -ms-overflow-style: none;">
+                            <style>.snap-x::-webkit-scrollbar { display: none; }</style>
+                            ${cardsHtml}
+                        </div>
+                    </div>
+                `;
+            }
+            // --- [추가 끝] ---
+
+            // 컨테이너에 합쳐서 그리기 (여기부터가 원래 있던 코드가 합쳐진 부분입니다)
+            container.innerHTML = historyCarouselHtml + `
                 <div class="text-center mb-6">
                     <h3 class="text-xl font-black text-slate-800 tracking-tight">${seasonName}</h3>
                     <p class="text-xs text-slate-400 mt-1 uppercase tracking-widest">Season Awards Podium</p>
@@ -1914,6 +1980,7 @@
                 </div>
             `; 
         }
+
         
         window.openRules = () => document.getElementById('rulesModal').classList.remove('hidden'); window.closeRules = () => document.getElementById('rulesModal').classList.add('hidden');
         
@@ -2065,7 +2132,45 @@
         };
 
         window.closeProfile = () => { document.getElementById('profileModal').classList.add('hidden'); }
-        
+                // 챔피언 방어 전적 모달 열기
+        window.showChampDefense = (champName, seasonStr, defenseCount) => {
+            document.getElementById('defenseModalTitle').textContent = `${champName} 방어전`;
+            document.getElementById('defenseModalSeason').textContent = seasonStr;
+            document.getElementById('defenseModalCount').textContent = `🛡️ ${defenseCount}차 방어 성공`;
+            
+            const container = document.getElementById('defenseMatchList');
+            
+            container.innerHTML = '';
+
+            // 해당 시즌에서 챔피언이 승리하거나 무승부(타이틀 방어)한 경기 추출
+            const cleanSeason = seasonStr.replace(" (진행중)", "");
+            const defenseMatches = enrichedMatchHistory.filter(m => 
+                (m.season || "시즌 1") === cleanSeason && 
+                (m.winner === champName || (m.isDraw && (m.blue === champName || m.loser === champName)))
+            );
+
+            if (defenseMatches.length === 0) {
+                container.innerHTML = `<div class="text-center text-xs text-slate-400 py-6">방어전 기록이 없습니다. (새 챔피언)</div>`;
+            } else {
+                defenseMatches.forEach((m, idx) => {
+                    const isDraw = m.isDraw || m.type === 'draw';
+                    const oppName = (m.winner === champName) ? m.loser : (m.blue === champName ? m.loser : m.winner);
+                    const resultText = isDraw ? '<span class="text-slate-500 bg-slate-200 px-1.5 py-0.5 rounded text-[10px]">무승부(방어)</span>' : '<span class="text-emerald-600 bg-emerald-100 px-1.5 py-0.5 rounded text-[10px]">승리(방어)</span>';
+                    
+                    container.innerHTML += `
+                        <div class="flex justify-between items-center bg-white p-3 rounded-lg border border-slate-200 shadow-sm">
+                            <div class="flex flex-col">
+                                <span class="text-xs text-slate-400 mb-0.5">${m.date}</span>
+                                <span class="text-sm font-bold text-slate-700">vs ${oppName}</span>
+                            </div>
+                            <div>${resultText}</div>
+                        </div>
+                    `;
+                });
+            }
+            document.getElementById('champDefenseModal').classList.remove('hidden');
+        };
+
         window.updateProfileStats = (id, filter) => { 
             const p = rankingsData.find(x => x.id === id); 
             if (!p) return; 
