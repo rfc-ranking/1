@@ -372,12 +372,22 @@
                 </div>
 
                 <div id="seasonSection" class="tab-content hidden">
-                    <div class="space-y-4">
-                        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden p-5"><h3 class="font-bold text-slate-700 mb-3 border-b pb-2">📅 시즌 목록</h3><div id="seasonListContainer" class="space-y-2 max-h-60 overflow-y-auto mb-2"></div><p class="text-[10px] text-slate-400 mt-2">* 목록에서 삭제하면 사용자 화면에서도 즉시 사라집니다.</p></div>
-                        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden p-5"><div class="flex justify-between items-center mb-2"><h3 class="font-bold text-slate-700">😴 미참여 선수</h3><span id="seasonInactiveCount" class="bg-slate-100 text-slate-600 text-xs font-bold px-2 py-1 rounded">0명</span></div><div class="text-xs text-slate-500 mb-3">현재 시즌(<span class="currentSeasonName font-bold"></span>) 경기 기록 없음</div><button onclick="toggleInactiveList()" class="text-xs text-blue-500 font-bold underline mb-2">목록 보기/숨기기</button><ul id="seasonInactiveList" class="hidden bg-slate-50 p-2 rounded text-xs text-slate-600 space-y-1 mb-3 max-h-40 overflow-y-auto border border-slate-200"></ul></div>
-                        <div class="bg-purple-50 rounded-2xl shadow-sm border border-purple-100 overflow-hidden p-5"><h3 class="font-bold text-purple-800 mb-2">🚀 시즌 종료 및 시작</h3><p class="text-xs text-purple-600 mb-4">현재 시즌을 마감하고 새 시즌을 시작합니다.</p><div class="flex gap-2"><input type="text" id="newSeasonNameInput" class="flex-grow border border-purple-200 rounded-lg p-2 text-sm focus:outline-none focus:border-purple-400" placeholder="새 시즌 이름"><button onclick="finishAndStartNewSeason()" class="bg-purple-600 hover:bg-purple-700 text-white font-bold px-4 py-2 rounded-lg text-xs shadow transition whitespace-nowrap">시즌 시작</button></div></div>
-                    </div>
-                </div>
+    <div class="space-y-4">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden p-5"><h3 class="font-bold text-slate-700 mb-3 border-b pb-2">📅 시즌 목록</h3><div id="seasonListContainer" class="space-y-2 max-h-60 overflow-y-auto mb-2"></div><p class="text-[10px] text-slate-400 mt-2">* 목록에서 삭제하면 사용자 화면에서도 즉시 사라집니다.</p></div>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden p-5"><div class="flex justify-between items-center mb-2"><h3 class="font-bold text-slate-700">😴 미참여 선수</h3><span id="seasonInactiveCount" class="bg-slate-100 text-slate-600 text-xs font-bold px-2 py-1 rounded">0명</span></div><div class="text-xs text-slate-500 mb-3">현재 시즌(<span class="currentSeasonName font-bold"></span>) 경기 기록 없음</div><button onclick="toggleInactiveList()" class="text-xs text-blue-500 font-bold underline mb-2">목록 보기/숨기기</button><ul id="seasonInactiveList" class="hidden bg-slate-50 p-2 rounded text-xs text-slate-600 space-y-1 mb-3 max-h-40 overflow-y-auto border border-slate-200"></ul></div>
+        <div class="bg-purple-50 rounded-2xl shadow-sm border border-purple-100 overflow-hidden p-5"><h3 class="font-bold text-purple-800 mb-2">🚀 시즌 종료 및 시작</h3><p class="text-xs text-purple-600 mb-4">현재 시즌을 마감하고 새 시즌을 시작합니다.</p><div class="flex gap-2"><input type="text" id="newSeasonNameInput" class="flex-grow border border-purple-200 rounded-lg p-2 text-sm focus:outline-none focus:border-purple-400" placeholder="새 시즌 이름"><button onclick="finishAndStartNewSeason()" class="bg-purple-600 hover:bg-purple-700 text-white font-bold px-4 py-2 rounded-lg text-xs shadow transition whitespace-nowrap">시즌 시작</button></div></div>
+        
+        <div class="bg-amber-50 rounded-2xl shadow-sm border border-amber-200 overflow-hidden p-5">
+            <div class="flex justify-between items-center mb-3 border-b border-amber-200 pb-2">
+                <h3 class="font-bold text-amber-800">🏆 역대 챔피언 계보 관리</h3>
+                <button onclick="autoExtractLineage()" class="text-[10px] bg-white border border-amber-300 text-amber-700 hover:bg-amber-100 px-2 py-1.5 rounded transition shadow-sm font-bold flex items-center gap-1">🔄 전체 기록에서 자동 추출</button>
+            </div>
+            <div id="adminLineageList" class="space-y-2 max-h-60 overflow-y-auto mb-3 pr-1"></div>
+            <button onclick="openLineageEditModal()" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 rounded-lg text-xs shadow transition">+ 새 챔피언 수동 추가</button>
+        </div>
+
+    </div>
+</div>
 
                 <div id="toolsSection" class="tab-content hidden">
                     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden p-5 space-y-4">
@@ -725,7 +735,39 @@
             </div>
         </div>
     </div>
+<div id="lineageEditModal" class="fixed inset-0 bg-slate-900/80 z-[10005] hidden flex items-center justify-center backdrop-blur-sm" onclick="if(event.target === this) closeLineageEditModal()">
+        <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all scale-100 max-h-[90vh] overflow-y-auto">
+            <h3 class="text-lg font-bold text-amber-800 mb-4 border-b pb-2 flex items-center gap-2"><span>👑</span> 챔피언 정보 편집</h3>
+            <input type="hidden" id="linEditIndex">
+            
+            <div class="grid grid-cols-2 gap-3 mb-3">
+                <div><label class="text-[10px] font-bold text-slate-500 block mb-1">대수 (예: 1, 2)</label><input type="number" id="linGen" class="w-full border p-2 rounded text-xs bg-slate-50"></div>
+                <div><label class="text-[10px] font-bold text-slate-500 block mb-1">이름</label><input type="text" id="linName" class="w-full border p-2 rounded text-xs font-bold bg-white focus:border-amber-500 outline-none"></div>
+            </div>
+            
+            <div class="grid grid-cols-3 gap-2 mb-3">
+                <div><label class="text-[10px] font-bold text-slate-500 block mb-1">시즌</label><input type="text" id="linSeason" class="w-full border p-2 rounded text-xs bg-slate-50"></div>
+                <div><label class="text-[10px] font-bold text-slate-500 block mb-1">시작일</label><input type="text" id="linStart" class="w-full border p-2 rounded text-xs bg-slate-50" placeholder="YY.MM.DD"></div>
+                <div><label class="text-[10px] font-bold text-slate-500 block mb-1">종료일</label><input type="text" id="linEnd" class="w-full border p-2 rounded text-xs bg-slate-50" placeholder="빈칸 시 '현재'"></div>
+            </div>
 
+            <div class="mb-4">
+                <label class="text-[10px] font-bold text-slate-500 block mb-1">방어전 상세 기록 (구분자: 쉼표)</label>
+                <div class="bg-amber-50/50 p-2 rounded-lg border border-amber-100 mb-1">
+                    <p class="text-[9px] text-amber-700 leading-snug">작성 규칙: <b>[구분], [날짜], [상대이름], [결과]</b><br>예시1: <span class="text-slate-500">타이틀, 24.03.01, 도전자A, 승</span><br>예시2: <span class="text-slate-500">방어, 24.03.15, 도전자B, 승</span><br>예시3: <span class="text-slate-500">상실, 24.04.01, 도전자C, 패</span></p>
+                </div>
+                <textarea id="linMatches" class="w-full h-32 p-2 text-[11px] font-mono border border-slate-300 rounded focus:outline-none focus:border-amber-500 resize-none whitespace-pre" wrap="off"></textarea>
+            </div>
+
+            <div class="flex justify-between items-center mt-4">
+                <button onclick="deleteLineageItem()" class="text-xs text-red-500 hover:text-red-700 font-bold px-2 py-1">🗑️ 기록 삭제</button>
+                <div class="flex gap-2">
+                    <button onclick="closeLineageEditModal()" class="bg-gray-100 text-gray-600 hover:bg-gray-200 px-4 py-2 rounded-lg text-xs font-bold transition">취소</button>
+                    <button onclick="saveLineageItem()" class="bg-amber-600 hover:bg-amber-700 text-white px-6 py-2 rounded-lg text-xs font-bold shadow transition">저장</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <div id="profileModal" class="fixed inset-0 z-[10000] hidden" role="dialog" aria-modal="true">
         <div class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity" onclick="closeProfile()"></div>
         <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.2)] max-w-3xl mx-auto h-[92vh] overflow-y-auto modal-enter flex flex-col">
@@ -824,7 +866,7 @@
         let deleteSelectedIds = new Set();
         let lastCheckedIndex = null; 
         let batchPenaltyTargets = [];
-
+        let championLineage = [];
         let isInspectorActive = false;
         const tooltipEl = document.getElementById('inspector-tooltip');
 
@@ -1161,6 +1203,8 @@
                 if (doc.exists()) { 
                     const data = doc.data(); 
                     rankingsData = data.rankings || []; matchHistoryData = data.matchHistory || []; seasonArchives = data.seasonArchives || {}; activeSeason = data.activeSeason || "시즌 1"; ruleHtml = data.ruleHtml || DEFAULT_RULE_HTML; patchNotesData = data.patchNotes || [];
+                    championLineage = data.championLineage || []; // 👈 추가
+if(window.renderLineageAdmin) window.renderLineageAdmin(); // 👈 추가
                     
                     // [NEW] 태그 리스트 불러오기 (없으면 기본값 할당)
                     availablePatchTags = data.availablePatchTags || ["🚧 개발중/예정", "🟢 적용완료(LIVE)", "⚖️ 밸런스", "⚙️ 시스템", "💡 유저 팁", "🤫 루머/유출"];
@@ -1640,7 +1684,7 @@
         };
 
         window.backupData = () => { const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ rankings: rankingsData, history: matchHistoryData, archives: seasonArchives, activeSeason: activeSeason, patchNotes: patchNotesData }, null, 2)); const dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", `RFC_BACKUP_${new Date().toISOString().slice(0,10)}.json`); document.body.appendChild(dl); dl.click(); dl.remove(); };
-        window.saveRankings = async function(isUndo = false) { const statusEl = document.getElementById('saveStatus'); const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'rankings', 'main'); try { await runTransaction(db, async (transaction) => { const sfDoc = await transaction.get(docRef); if (!sfDoc.exists()) throw "Doc missing!"; const payload = { rankings: rankingsData, matchHistory: matchHistoryData, seasonArchives: seasonArchives, activeSeason: activeSeason, date: new Date().toISOString() }; if(!isUndo) { payload.ruleHtml = ruleHtml; payload.patchNotes = patchNotesData; payload.availablePatchTags = availablePatchTags; payload.adminGlobalNote = document.getElementById('adminGlobalNoteInput')?.value || ""; } transaction.update(docRef, payload); }); statusEl.style.opacity = 1; setTimeout(() => statusEl.style.opacity = 0, 2000); } catch (e) { alert("저장 오류: " + e.message); } }
+        window.saveRankings = async function(isUndo = false) { const statusEl = document.getElementById('saveStatus'); const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'rankings', 'main'); try { await runTransaction(db, async (transaction) => { const sfDoc = await transaction.get(docRef); if (!sfDoc.exists()) throw "Doc missing!"; const payload = { rankings: rankingsData, matchHistory: matchHistoryData, championLineage: championLineage, seasonArchives: seasonArchives, activeSeason: activeSeason, date: new Date().toISOString() }; if(!isUndo) { payload.ruleHtml = ruleHtml; payload.patchNotes = patchNotesData; payload.availablePatchTags = availablePatchTags; payload.adminGlobalNote = document.getElementById('adminGlobalNoteInput')?.value || ""; } transaction.update(docRef, payload); }); statusEl.style.opacity = 1; setTimeout(() => statusEl.style.opacity = 0, 2000); } catch (e) { alert("저장 오류: " + e.message); } }
         
         window.saveAdminGlobalNote = async () => { await saveRankings(); showCustomAlert("✅ 관리자 메모가 성공적으로 저장되었습니다."); };
         
@@ -2699,6 +2743,171 @@
         const redConfig = { ...config, onChange: function(value) { updateMatchPreview(); checkAutoTitleMatch(); }, onInitialize: function() { this.control_input.setAttribute('type', 'search'); this.wrapper.classList.add('red-theme'); } }; 
         try { p1Tom = new TomSelect('#p1Select', previewConfig); p2Tom = new TomSelect('#p2Select', redConfig); if(sPen) pPenTom = new TomSelect('#penaltyTargetSelect', config); } catch(e) {} 
     };
+        let championLineage = []; // 전역 변수 추가 (기존 변수 선언부에 추가해도 됨)
+
+        // loadData() 내부 onSnapshot 콜백 안에 추가할 줄:
+        // championLineage = data.championLineage || [];
+        // renderLineageAdmin();
+
+        // saveRankings() 내부 payload 객체에 추가할 줄:
+        // payload.championLineage = championLineage;
+        // 실행 취소를 위해 captureState()와 executeUndo()에도 championLineage를 JSON 처리해 주세요.
+
+        // --- [NEW] 챔피언 계보 관리 함수들 ---
+        window.renderLineageAdmin = () => {
+            const list = document.getElementById('adminLineageList');
+            if(!list) return;
+            list.innerHTML = '';
+            if(championLineage.length === 0) {
+                list.innerHTML = '<div class="text-center text-xs text-amber-600/50 py-4 font-bold">기록이 없습니다. 추출 버튼을 눌러보세요.</div>';
+                return;
+            }
+            
+            [...championLineage].reverse().forEach((lin, reverseIdx) => {
+                const realIdx = championLineage.length - 1 - reverseIdx;
+                const endStr = lin.endDate ? lin.endDate : '현재';
+                const defCount = lin.matches.filter(m => m.type !== '타이틀' && (m.res === '승' || m.res === '무')).length;
+                
+                list.innerHTML += `
+                    <div class="bg-white p-3 rounded-xl border border-amber-200 shadow-sm flex justify-between items-center cursor-pointer hover:border-amber-400 transition" onclick="openLineageEditModal(${realIdx})">
+                        <div class="flex flex-col">
+                            <div class="flex items-center gap-1.5 mb-1">
+                                <span class="bg-amber-100 text-amber-700 text-[9px] px-1.5 py-0.5 rounded font-black border border-amber-200">${lin.generation}대</span>
+                                <span class="font-black text-slate-800 text-sm">${lin.name}</span>
+                            </div>
+                            <div class="text-[10px] text-slate-500">방어 ${defCount}회 | ${lin.startDate} ~ ${endStr}</div>
+                        </div>
+                        <span class="text-amber-500 text-xs font-bold bg-amber-50 px-2 py-1 rounded">수정 ✏️</span>
+                    </div>
+                `;
+            });
+        };
+
+        window.autoExtractLineage = () => {
+            showConfirmModal("⚠️ 기존 수동 편집 기록이 모두 덮어씌워집니다. 자동 추출하시겠습니까?", () => {
+                captureState();
+                const lineage = [];
+                const chronological = [...matchHistoryData].reverse();
+
+                chronological.forEach((m, idx) => {
+                    const isDraw = m.isDraw || m.type === 'draw';
+                    const w = m.winner; const l = m.loser;
+                    const wC = m.winnerRankBefore === 'C'; const lC = m.loserRankBefore === 'C';
+
+                    if (wC) {
+                        let lr = lineage.length > 0 ? lineage[lineage.length - 1] : null;
+                        if (!lr || lr.name !== w) { lineage.push({ generation: lineage.length + 1, name: w, season: m.season, startDate: m.date, endDate: null, matches: [] }); lr = lineage[lineage.length - 1]; }
+                        lr.matches.push({ type: '방어', date: m.date, opp: l, res: isDraw ? '무' : '승' });
+                    } else if (lC) {
+                        let lr = lineage.length > 0 ? lineage[lineage.length - 1] : null;
+                        if (!lr || lr.name !== l) { lineage.push({ generation: lineage.length + 1, name: l, season: m.season, startDate: m.date, endDate: null, matches: [] }); lr = lineage[lineage.length - 1]; }
+                        
+                        if (isDraw) {
+                            lr.matches.push({ type: '방어', date: m.date, opp: w, res: '무' });
+                        } else {
+                            lr.matches.push({ type: '상실', date: m.date, opp: w, res: '패' });
+                            lr.endDate = m.date;
+                            lineage.push({ generation: lineage.length + 1, name: w, season: m.season, startDate: m.date, endDate: null, matches: [{ type: '타이틀', date: m.date, opp: l, res: '승' }] });
+                        }
+                    } else {
+                        const future = chronological.slice(idx + 1);
+                        const next = future.find(fm => fm.winner === w || fm.loser === w);
+                        if (next && ((next.winner === w && next.winnerRankBefore === 'C') || (next.loser === w && next.loserRankBefore === 'C'))) {
+                            let lr = lineage.length > 0 ? lineage[lineage.length - 1] : null;
+                            if (lr && lr.endDate === null) lr.endDate = m.date;
+                            lineage.push({ generation: lineage.length + 1, name: w, season: m.season, startDate: m.date, endDate: null, matches: [{ type: '타이틀', date: m.date, opp: l, res: '승' }] });
+                        }
+                    }
+                });
+
+                const currentChamp = rankingsData.find(p => p.isChampion);
+                if (currentChamp) {
+                    let lr = lineage.length > 0 ? lineage[lineage.length - 1] : null;
+                    if (!lr || lr.name !== currentChamp.name) {
+                        if (lr && lr.endDate === null) lr.endDate = "박탈";
+                        lineage.push({ generation: lineage.length + 1, name: currentChamp.name, season: activeSeason, startDate: currentChamp.lastMatchDate || "최근", endDate: null, matches: [] });
+                    }
+                }
+
+                championLineage = lineage;
+                saveRankings();
+                renderLineageAdmin();
+                showCustomAlert("✅ 자동 추출 완료!");
+            });
+        };
+
+        window.openLineageEditModal = (idx = -1) => {
+            const modal = document.getElementById('lineageEditModal');
+            document.getElementById('linEditIndex').value = idx;
+            
+            if (idx === -1) {
+                document.getElementById('linGen').value = championLineage.length + 1;
+                document.getElementById('linName').value = "";
+                document.getElementById('linSeason').value = activeSeason;
+                document.getElementById('linStart').value = "";
+                document.getElementById('linEnd').value = "";
+                document.getElementById('linMatches').value = "";
+            } else {
+                const lin = championLineage[idx];
+                document.getElementById('linGen').value = lin.generation;
+                document.getElementById('linName').value = lin.name;
+                document.getElementById('linSeason').value = lin.season;
+                document.getElementById('linStart').value = lin.startDate;
+                document.getElementById('linEnd').value = lin.endDate || "";
+                
+                const textStr = lin.matches.map(m => `${m.type}, ${m.date}, ${m.opp}, ${m.res}`).join('\n');
+                document.getElementById('linMatches').value = textStr;
+            }
+            modal.classList.remove('hidden');
+        };
+
+        window.closeLineageEditModal = () => document.getElementById('lineageEditModal').classList.add('hidden');
+
+        window.saveLineageItem = () => {
+            const idx = parseInt(document.getElementById('linEditIndex').value);
+            const gen = parseInt(document.getElementById('linGen').value) || 1;
+            const name = document.getElementById('linName').value.trim();
+            const season = document.getElementById('linSeason').value.trim();
+            const start = document.getElementById('linStart').value.trim();
+            let end = document.getElementById('linEnd').value.trim();
+            if (end === "") end = null;
+            
+            const textStr = document.getElementById('linMatches').value.trim();
+            const matches = [];
+            if (textStr) {
+                const lines = textStr.split('\n');
+                lines.forEach(line => {
+                    const parts = line.split(',').map(s => s.trim());
+                    if (parts.length >= 4) {
+                        matches.push({ type: parts[0], date: parts[1], opp: parts[2], res: parts[3] });
+                    }
+                });
+            }
+
+            captureState();
+            if (idx === -1) {
+                championLineage.push({ generation: gen, name, season, startDate: start, endDate: end, matches });
+            } else {
+                championLineage[idx] = { generation: gen, name, season, startDate: start, endDate: end, matches };
+            }
+            
+            saveRankings();
+            renderLineageAdmin();
+            closeLineageEditModal();
+            showCustomAlert("✅ 챔피언 정보가 저장되었습니다.");
+        };
+
+        window.deleteLineageItem = () => {
+            const idx = parseInt(document.getElementById('linEditIndex').value);
+            if (idx === -1) return;
+            showConfirmModal("정말 이 챔피언 기록을 삭제하시겠습니까?", () => {
+                captureState();
+                championLineage.splice(idx, 1);
+                saveRankings();
+                renderLineageAdmin();
+                closeLineageEditModal();
+            });
+        };
     </script>
 </body>
 </html>
