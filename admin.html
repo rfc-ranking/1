@@ -373,13 +373,6 @@
 
                 <div id="seasonSection" class="tab-content hidden">
                     <div class="space-y-4">
-                      <div class="bg-amber-50 rounded-2xl shadow-sm border border-amber-200 overflow-hidden p-5 mb-4">
-                            <div class="flex justify-between items-center mb-2">
-                                <h3 class="font-bold text-amber-800">👑 역대 챔피언 관리</h3>
-                            </div>
-                            <p class="text-xs text-amber-600 mb-3">사용자 사이트 명예의 전당 최상단에 표시되는 역대 챔피언 목록과 방어전 기록을 자유롭게 편집합니다.</p>
-                            <button onclick="openPastChampModal()" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 rounded-lg text-xs transition shadow-sm">역대 챔피언 관리 열기</button>
-                        </div>
                         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden p-5"><h3 class="font-bold text-slate-700 mb-3 border-b pb-2">📅 시즌 목록</h3><div id="seasonListContainer" class="space-y-2 max-h-60 overflow-y-auto mb-2"></div><p class="text-[10px] text-slate-400 mt-2">* 목록에서 삭제하면 사용자 화면에서도 즉시 사라집니다.</p></div>
                         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden p-5"><div class="flex justify-between items-center mb-2"><h3 class="font-bold text-slate-700">😴 미참여 선수</h3><span id="seasonInactiveCount" class="bg-slate-100 text-slate-600 text-xs font-bold px-2 py-1 rounded">0명</span></div><div class="text-xs text-slate-500 mb-3">현재 시즌(<span class="currentSeasonName font-bold"></span>) 경기 기록 없음</div><button onclick="toggleInactiveList()" class="text-xs text-blue-500 font-bold underline mb-2">목록 보기/숨기기</button><ul id="seasonInactiveList" class="hidden bg-slate-50 p-2 rounded text-xs text-slate-600 space-y-1 mb-3 max-h-40 overflow-y-auto border border-slate-200"></ul></div>
                         <div class="bg-purple-50 rounded-2xl shadow-sm border border-purple-100 overflow-hidden p-5"><h3 class="font-bold text-purple-800 mb-2">🚀 시즌 종료 및 시작</h3><p class="text-xs text-purple-600 mb-4">현재 시즌을 마감하고 새 시즌을 시작합니다.</p><div class="flex gap-2"><input type="text" id="newSeasonNameInput" class="flex-grow border border-purple-200 rounded-lg p-2 text-sm focus:outline-none focus:border-purple-400" placeholder="새 시즌 이름"><button onclick="finishAndStartNewSeason()" class="bg-purple-600 hover:bg-purple-700 text-white font-bold px-4 py-2 rounded-lg text-xs shadow transition whitespace-nowrap">시즌 시작</button></div></div>
@@ -819,8 +812,7 @@
         const app = initializeApp(firebaseConfig); const db = getFirestore(app); const auth = getAuth(app); const appId = 'ranking-manager-default';
         
         let rankingsData = []; let matchHistoryData = []; let seasonArchives = {}; let activeSeason = "시즌 1"; let ruleHtml = ""; let patchNotesData = [];
-      let pastChampionsData = [];  
-      let availablePatchTags = []; // [NEW] 태그 저장용 배열
+        let availablePatchTags = []; // [NEW] 태그 저장용 배열
         let undoStack = []; const MAX_UNDO = 10;
         let searchQuery = "";
         let enrichedHistory = [];
@@ -853,8 +845,7 @@
                 archives: JSON.stringify(seasonArchives),
                 season: activeSeason,
                 patchNotes: JSON.stringify(patchNotesData),
-                tags: JSON.stringify(availablePatchTags),
-              pastChampions: JSON.stringify(pastChampionsData)
+                tags: JSON.stringify(availablePatchTags)
             });
             window.updateUndoUI();
         };
@@ -871,8 +862,7 @@
                 activeSeason = prevState.season;
                 if (prevState.patchNotes) patchNotesData = JSON.parse(prevState.patchNotes);
                 if (prevState.tags) availablePatchTags = JSON.parse(prevState.tags);
-                if (prevState.pastChampions) pastChampionsData = JSON.parse(prevState.pastChampions);
-              
+                
                 window.updateUndoUI();
                 await saveRankings(true); // true: Undo 모드로 저장 (시간 등 일부 업데이트 스킵 방지용 플래그)
                 
@@ -1175,7 +1165,7 @@
                     // [NEW] 태그 리스트 불러오기 (없으면 기본값 할당)
                     availablePatchTags = data.availablePatchTags || ["🚧 개발중/예정", "🟢 적용완료(LIVE)", "⚖️ 밸런스", "⚙️ 시스템", "💡 유저 팁", "🤫 루머/유출"];
                     renderAvailablePatchTags();
-pastChampionsData = data.pastChampions || [];
+
                     if(!viewHistorySeason) viewHistorySeason = activeSeason; 
                     updateSeasonUI(); renderSeasonList(); renderAdminPatchNotes();
                     document.getElementById('ruleHtmlInput').value = ruleHtml; 
@@ -1650,7 +1640,7 @@ pastChampionsData = data.pastChampions || [];
         };
 
         window.backupData = () => { const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ rankings: rankingsData, history: matchHistoryData, archives: seasonArchives, activeSeason: activeSeason, patchNotes: patchNotesData }, null, 2)); const dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", `RFC_BACKUP_${new Date().toISOString().slice(0,10)}.json`); document.body.appendChild(dl); dl.click(); dl.remove(); };
-        window.saveRankings = async function(isUndo = false) { const statusEl = document.getElementById('saveStatus'); const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'rankings', 'main'); try { await runTransaction(db, async (transaction) => { const sfDoc = await transaction.get(docRef); if (!sfDoc.exists()) throw "Doc missing!"; const payload = { rankings: rankingsData, matchHistory: matchHistoryData, seasonArchives: seasonArchives, activeSeason: activeSeason, date: new Date().toISOString() }; if(!isUndo) { payload.ruleHtml = ruleHtml; payload.patchNotes = patchNotesData; payload.availablePatchTags = availablePatchTags; payload.adminGlobalNote = document.getElementById('adminGlobalNoteInput')?.value || ""; payload.pastChampions = pastChampionsData;} transaction.update(docRef, payload); }); statusEl.style.opacity = 1; setTimeout(() => statusEl.style.opacity = 0, 2000); } catch (e) { alert("저장 오류: " + e.message); } }
+        window.saveRankings = async function(isUndo = false) { const statusEl = document.getElementById('saveStatus'); const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'rankings', 'main'); try { await runTransaction(db, async (transaction) => { const sfDoc = await transaction.get(docRef); if (!sfDoc.exists()) throw "Doc missing!"; const payload = { rankings: rankingsData, matchHistory: matchHistoryData, seasonArchives: seasonArchives, activeSeason: activeSeason, date: new Date().toISOString() }; if(!isUndo) { payload.ruleHtml = ruleHtml; payload.patchNotes = patchNotesData; payload.availablePatchTags = availablePatchTags; payload.adminGlobalNote = document.getElementById('adminGlobalNoteInput')?.value || ""; } transaction.update(docRef, payload); }); statusEl.style.opacity = 1; setTimeout(() => statusEl.style.opacity = 0, 2000); } catch (e) { alert("저장 오류: " + e.message); } }
         
         window.saveAdminGlobalNote = async () => { await saveRankings(); showCustomAlert("✅ 관리자 메모가 성공적으로 저장되었습니다."); };
         
@@ -2709,122 +2699,6 @@ pastChampionsData = data.pastChampions || [];
         const redConfig = { ...config, onChange: function(value) { updateMatchPreview(); checkAutoTitleMatch(); }, onInitialize: function() { this.control_input.setAttribute('type', 'search'); this.wrapper.classList.add('red-theme'); } }; 
         try { p1Tom = new TomSelect('#p1Select', previewConfig); p2Tom = new TomSelect('#p2Select', redConfig); if(sPen) pPenTom = new TomSelect('#penaltyTargetSelect', config); } catch(e) {} 
     };
-      window.openPastChampModal = () => {
-            renderPastChampionsAdmin();
-            document.getElementById('pastChampModal').classList.remove('hidden');
-        };
-
-        window.closePastChampModal = () => {
-            document.getElementById('pastChampModal').classList.add('hidden');
-        };
-
-        window.renderPastChampionsAdmin = () => {
-            const listEl = document.getElementById('pastChampAdminList');
-            if(!listEl) return;
-            listEl.innerHTML = '';
-            
-            if(pastChampionsData.length === 0) {
-                listEl.innerHTML = '<div class="text-center text-sm text-slate-400 py-10">등록된 역대 챔피언이 없습니다.<br>아래 버튼을 눌러 추가하세요.</div>';
-                return;
-            }
-
-            pastChampionsData.forEach((champ) => {
-                const safeId = champ.id;
-                listEl.innerHTML += `
-                    <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm relative group" id="champ-admin-item-${safeId}">
-                        <button onclick="deletePastChamp('${safeId}')" class="absolute top-3 right-3 text-red-400 hover:text-red-600 font-bold text-xs bg-red-50 px-2 py-1 rounded transition opacity-0 group-hover:opacity-100">삭제</button>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-                            <div class="md:col-span-3 flex flex-col gap-2">
-                                <label class="text-[10px] font-bold text-slate-500">프로필 이미지 URL</label>
-                                <img src="${champ.imageUrl || 'https://placehold.co/150?text=No+Img'}" class="w-16 h-16 rounded-full object-cover border border-slate-200 shadow-sm mx-auto" id="champ-img-preview-${safeId}" onerror="this.src='https://placehold.co/150?text=No+Img'">
-                                <input type="text" value="${champ.imageUrl || ''}" oninput="document.getElementById('champ-img-preview-${safeId}').src = this.value || 'https://placehold.co/150?text=No+Img'" id="champ-img-${safeId}" class="w-full border p-2 rounded text-[10px] bg-slate-50" placeholder="https://...">
-                            </div>
-                            
-                            <div class="md:col-span-9 grid grid-cols-2 gap-3">
-                                <div>
-                                    <label class="text-[10px] font-bold text-slate-500">선수 이름</label>
-                                    <input type="text" id="champ-name-${safeId}" value="${champ.name}" class="w-full border p-2 rounded text-sm font-bold focus:border-blue-500 outline-none">
-                                </div>
-                                <div>
-                                    <label class="text-[10px] font-bold text-slate-500">유지 기간 (예: 2024.01.01 ~ 2024.05.05)</label>
-                                    <input type="text" id="champ-period-${safeId}" value="${champ.period || ''}" class="w-full border p-2 rounded text-xs bg-slate-50 focus:border-blue-500 outline-none">
-                                </div>
-                                <div>
-                                    <label class="text-[10px] font-bold text-slate-500">방어전 횟수 (숫자)</label>
-                                    <input type="number" id="champ-defense-${safeId}" value="${champ.defenseCount || 0}" class="w-full border p-2 rounded text-xs font-bold bg-amber-50 text-amber-700 focus:border-blue-500 outline-none">
-                                </div>
-                                <div class="col-span-2">
-                                    <label class="text-[10px] font-bold text-slate-500 flex justify-between">
-                                        <span>방어전 상대 (콤마 쉼표 ',' 로 구분하여 입력)</span>
-                                        <span class="text-blue-500 font-normal">예: 김철수, 홍길동, 박지성</span>
-                                    </label>
-                                    <textarea id="champ-opps-${safeId}" class="w-full border p-2 rounded text-xs bg-slate-50 focus:border-blue-500 outline-none resize-none h-16">${champ.opponents || ''}</textarea>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-        };
-
-        window.addNewPastChamp = () => {
-            const newId = 'champ_' + Date.now();
-            pastChampionsData.push({
-                id: newId,
-                name: "새 챔피언",
-                imageUrl: "",
-                period: "2024.00.00 ~ 현재",
-                defenseCount: 0,
-                opponents: ""
-            });
-            renderPastChampionsAdmin();
-            setTimeout(() => {
-                const list = document.getElementById('pastChampAdminList');
-                list.scrollTop = list.scrollHeight;
-            }, 50);
-        };
-
-        window.deletePastChamp = (id) => {
-            if(confirm("이 챔피언 데이터를 삭제하시겠습니까?")) {
-                pastChampionsData = pastChampionsData.filter(c => c.id !== id);
-                renderPastChampionsAdmin();
-            }
-        };
-
-        window.savePastChampionsAdmin = async () => {
-            captureState();
-            pastChampionsData.forEach(champ => {
-                champ.name = document.getElementById(`champ-name-${champ.id}`).value.trim();
-                champ.imageUrl = document.getElementById(`champ-img-${champ.id}`).value.trim();
-                champ.period = document.getElementById(`champ-period-${champ.id}`).value.trim();
-                champ.defenseCount = parseInt(document.getElementById(`champ-defense-${champ.id}`).value) || 0;
-                champ.opponents = document.getElementById(`champ-opps-${champ.id}`).value.trim();
-            });
-
-            await saveRankings();
-            showCustomAlert("✅ 역대 챔피언 데이터가 성공적으로 저장되었습니다.");
-            closePastChampModal();
-        };
     </script>
-  <div id="pastChampModal" class="fixed inset-0 bg-slate-900/90 hidden z-[9999] flex items-center justify-center backdrop-blur-sm" onclick="if(event.target === this) closePastChampModal()">
-        <div class="bg-white rounded-2xl shadow-2xl p-6 w-11/12 max-w-3xl max-h-[90vh] flex flex-col relative overflow-hidden">
-            <div class="flex justify-between items-center mb-4 border-b border-slate-100 pb-3">
-                <h3 class="text-lg font-black text-slate-800 flex items-center gap-2">👑 역대 챔피언 편집</h3>
-                <button onclick="closePastChampModal()" class="text-slate-400 hover:text-slate-600 font-bold text-xl">✕</button>
-            </div>
-            
-            <div class="flex-grow overflow-y-auto pr-2 space-y-4" id="pastChampAdminList"></div>
-            
-            <div class="mt-4 pt-4 border-t border-slate-100">
-                <button onclick="addNewPastChamp()" class="w-full bg-slate-50 text-slate-600 hover:bg-slate-100 font-bold py-3 rounded-xl border border-dashed border-slate-300 transition flex items-center justify-center gap-2">
-                    <span class="text-lg">+</span> 새로운 역대 챔피언 데이터 추가
-                </button>
-            </div>
-            <div class="mt-4 flex justify-end">
-                <button onclick="savePastChampionsAdmin()" class="bg-amber-600 hover:bg-amber-700 text-white px-8 py-3 rounded-xl text-sm font-bold shadow-lg shadow-amber-500/30 transition">전체 저장하기</button>
-            </div>
-        </div>
-    </div>
 </body>
 </html>
