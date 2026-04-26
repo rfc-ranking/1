@@ -8,7 +8,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Pretendard', sans-serif; background-color: #f1f5f9; -webkit-tap-highlight-color: transparent; }
-        
+        /* 가로 스크롤바 숨김 (역대 챔피언용) */
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         /* 공통: 랭킹 카드 기본 스타일 (1위와 동일한 구조) */
         /* [수정] Hover 시 z-index 상승으로 툴팁이 윗 카드에 가려지지 않게 함 */
         .rank-card { position: relative; border-bottom: 1px solid #f1f5f9; transition: all 0.3s; z-index: 1; }
@@ -599,7 +601,8 @@
         const firebaseConfig = { apiKey: "AIzaSyDlj68ex-fM0ExRdD-tvCy-UyIneVoPmGk", authDomain: "rfk-ranking.firebaseapp.com", projectId: "rfk-ranking", storageBucket: "rfk-ranking.firebasestorage.app", messagingSenderId: "675366165774", appId: "1:675366165774:web:795d34c56eab630b4dcb5f", measurementId: "G-CXPDZQ8GTL" };
         const app = initializeApp(firebaseConfig); const db = getFirestore(app); const appId = 'ranking-manager-default';
         let rankingsData = []; let matchHistoryData = []; let enrichedMatchHistory = []; let seasonArchives = {}; let activeSeason = ""; let viewSeason = ""; let viewHofSeason = ""; let viewRankingSeason = ""; let currentProfileId = null;
-        let patchNotesData = [];
+      let pastChampionsData = [];  
+      let patchNotesData = [];
         let currentProfileTab = 'chrono';
         let searchQuery = ""; 
         let activeHighlight = { ids: [], endTime: 0 };
@@ -739,7 +742,8 @@
                 rankingsData = data.rankings || []; 
                 matchHistoryData = data.matchHistory || []; 
                 patchNotesData = data.patchNotes || [];
-                
+              pastChampionsData = data.pastChampions || [];
+              
                 matchHistoryData.sort((a, b) => new Date(b.date) - new Date(a.date));
 
                 activeSeason = data.activeSeason || "시즌 1"; 
@@ -1899,20 +1903,51 @@
                 `; 
             };
 
-            container.innerHTML = `
-                <div class="text-center mb-6">
-                    <h3 class="text-xl font-black text-slate-800 tracking-tight">${seasonName}</h3>
-                    <p class="text-xs text-slate-400 mt-1 uppercase tracking-widest">Season Awards Podium</p>
-                </div>
-                
-                <div class="px-1 pb-10">
-                    ${createPodiumSection("최다 연승", "멈출 수 없는 기세", "🚀", streakList, "rose-400", "pink-500", "streak")}
-                    ${createPodiumSection("최다 플레이", "지치지 않는 열정", "🔥", ironWillList, "slate-500", "slate-700", "match")}
-                    ${createPodiumSection("최다승", "압도적인 승리", "⚔️", conquerorList, "blue-500", "indigo-600", "win")}
-                    ${createChampionSection(seasonChampion)}
-                    ${createPodiumSection(champTitle, champSub, "👑", top3List, "amber-400", "orange-500", "elo")}
-                </div>
-            `; 
+           // ✅ 덮어씌울 코드 (After)
+            let pastChampHtml = "";
+            if (pastChampionsData && pastChampionsData.length > 0) {
+                let cardsHtml = pastChampionsData.map(champ => {
+                    return `
+                    <div class="shrink-0 w-[180px] sm:w-[200px] snap-center bg-gradient-to-b from-amber-50 to-white border border-amber-200 rounded-xl p-4 shadow-sm flex flex-col items-center text-center relative overflow-hidden group">
+                        <div class="absolute -top-10 -right-10 text-6xl opacity-10">👑</div>
+                        <img src="${champ.imageUrl || 'https://placehold.co/150?text=No+Img'}" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover border-[3px] border-amber-400 shadow-md mb-3 z-10" onerror="this.src='https://placehold.co/150?text=No+Img'">
+                        <div class="font-black text-slate-800 text-sm sm:text-base z-10 w-full truncate">${champ.name}</div>
+                        <div class="text-[10px] sm:text-xs text-slate-500 mb-2 z-10 w-full truncate">${champ.period}</div>
+                        <div class="bg-amber-100 text-amber-700 text-[10px] font-bold px-2.5 py-1 rounded-full mb-4 z-10 shadow-sm border border-amber-200">방어 ${champ.defenseCount}회</div>
+                        <button onclick="showOpponentsModal('${champ.id}')" class="w-full bg-slate-800 text-white text-[10px] sm:text-xs font-bold py-2 rounded-lg hover:bg-slate-700 transition z-10 shadow-sm">방어전 상대보기</button>
+                    </div>`;
+                }).join('');
+
+                pastChampHtml = `
+                    <div class="bg-white rounded-2xl p-4 shadow-sm border border-amber-200 mb-6 relative overflow-hidden fade-in">
+                        <div class="flex items-center gap-3 mb-4 border-b border-slate-100 pb-3">
+                            <span class="text-2xl drop-shadow-sm">👑</span>
+                            <div>
+                                <div class="text-base sm:text-lg font-black text-slate-800 tracking-tight">역대 챔피언</div>
+                                <div class="text-[10px] sm:text-xs text-amber-500 font-bold mt-0.5 uppercase tracking-widest">Hall of Fame - Legends</div>
+                            </div>
+                        </div>
+                        <div class="flex overflow-x-auto gap-3 pb-2 snap-x snap-mandatory hide-scrollbar">
+                            ${cardsHtml}
+                        </div>
+                    </div>
+                `;
+            }
+
+            const seasonAwardsHtml = `
+                <div class="text-center mb-6 pt-2">
+                    <h3 class="text-xl font-black text-slate-800 tracking-tight">${seasonName}</h3>
+                    <p class="text-xs text-slate-400 mt-1 uppercase tracking-widest">Season Awards Podium</p>
+                </div>
+                <div class="px-1 pb-10">
+                    ${createPodiumSection("최다 연승", "멈출 수 없는 기세", "🚀", streakList, "rose-400", "pink-500", "streak")}
+                    ${createPodiumSection("최다 플레이", "지치지 않는 열정", "🔥", ironWillList, "slate-500", "slate-700", "match")}
+                    ${createPodiumSection("최다승", "압도적인 승리", "⚔️", conquerorList, "blue-500", "indigo-600", "win")}
+                    ${createChampionSection(seasonChampion)}
+                    ${createPodiumSection(champTitle, champSub, "👑", top3List, "amber-400", "orange-500", "elo")}
+                </div>
+            `; 
+            container.innerHTML = pastChampHtml + seasonAwardsHtml;
         }
         
         window.openRules = () => document.getElementById('rulesModal').classList.remove('hidden'); window.closeRules = () => document.getElementById('rulesModal').classList.add('hidden');
@@ -2412,7 +2447,44 @@
                 alert("정보가 수정되었습니다."); closeUserEdit(); if (currentProfileId === editTargetId) openProfile(currentProfileId);
             } catch (e) { console.error(e); alert("저장 중 오류가 발생했습니다. 다시 시도해주세요."); }
         };
+      window.showOpponentsModal = (id) => {
+            const champ = pastChampionsData.find(c => c.id === id);
+            if (!champ) return;
+            document.getElementById('oppModalName').textContent = champ.name;
+            
+            const listEl = document.getElementById('oppModalList');
+            const opps = (champ.opponents || "").split(',').map(s => s.trim()).filter(s => s);
+            
+            if (opps.length === 0) {
+                listEl.innerHTML = '<div class="text-center text-xs text-slate-400 py-6">기록된 방어전 상대가 없습니다.</div>';
+            } else {
+                listEl.innerHTML = opps.map((opp, idx) => {
+                    const label = idx === 0 ? "🏆 타이틀 등극" : `🛡️ ${idx}차 방어`;
+                    const color = idx === 0 ? "text-amber-600 bg-amber-50 border-amber-200" : "text-slate-600 bg-white border-slate-200";
+                    return `
+                    <div class="flex items-center justify-between p-3 rounded-xl border ${color} shadow-sm">
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-md ${idx === 0 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'}">${label}</span>
+                        <span class="text-sm font-black text-slate-800">${opp}</span>
+                    </div>`;
+                }).join('');
+            }
+            document.getElementById('opponentsModal').classList.remove('hidden');
+        };
+        window.closeOpponentsModal = () => document.getElementById('opponentsModal').classList.add('hidden');
     </script>
+  <div id="opponentsModal" class="fixed inset-0 z-[110] hidden flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all scale-100 p-5 relative">
+            <button onclick="closeOpponentsModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-xl">✕</button>
+            <div class="flex items-center gap-2 mb-4 pr-6">
+                <span class="text-2xl drop-shadow-sm">⚔️</span>
+                <h3 class="font-black text-slate-800 text-lg leading-tight"><span id="oppModalName" class="text-amber-600"></span> 방어전 기록</h3>
+            </div>
+            <div class="text-[11px] text-slate-500 mb-4 bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+                타이틀 획득 및 챔피언 유지 기간 동안 방어에 성공한 상대 목록입니다. (시간 순)
+            </div>
+            <div class="max-h-[50vh] overflow-y-auto pr-1 space-y-2" id="oppModalList"></div>
+        </div>
+    </div>
 </body>
 </html>
 
