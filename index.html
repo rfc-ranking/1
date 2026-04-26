@@ -1640,75 +1640,170 @@
             }
 
             // ----------------------------------------------------
-            // [NEW] 역대 챔피언 캐러셀 (가로 스크롤) 데이터 추출 및 렌더링
+            // [NEW] 역대 챔피언 '계보(Lineage)' 전체 추적 알고리즘
             // ----------------------------------------------------
-            let pastChampionsHtml = '';
-            const allSeasons = [activeSeason, ...Object.keys(seasonArchives).sort().reverse().filter(s => s !== activeSeason)];
-            let champCardsHtml = '';
+            const lineage = [];
+            const chronological = [...matchHistoryData].reverse(); // 오래된 경기부터 재생
 
-            allSeasons.forEach(season => {
-                let seasonData = season === activeSeason ? rankingsData : (seasonArchives[season]?.rankings || []);
-                let champ = seasonData.find(p => p.isChampion);
+            chronological.forEach((m, idx) => {
+                const isDraw = m.isDraw || m.type === 'draw';
+                const w = m.winner;
+                const l = m.loser;
+                const wC = m.winnerRankBefore === 'C';
+                const lC = m.loserRankBefore === 'C';
 
-                if (champ) {
-                    const dateRange = getSeasonDateRange(season) || '진행중';
-                    // 해당 시즌에서 챔피언이 치른 모든 경기 추출
-                    const sMatches = matchHistoryData.filter(m => m.season === season && (m.winner === champ.name || m.loser === champ.name));
-
-                    let oppHtml = '';
-                    if (sMatches.length === 0) {
-                        oppHtml = '<div class="text-center py-3 text-slate-400">경기 기록 없음</div>';
-                    } else {
-                        sMatches.forEach(m => {
-                            const isDraw = m.isDraw || m.type === 'draw';
-                            const opp = m.winner === champ.name ? m.loser : m.winner;
-                            const res = isDraw ? '무' : (m.winner === champ.name ? '승' : '패');
-                            const resColor = isDraw ? 'text-slate-500' : (res === '승' ? 'text-emerald-500' : 'text-rose-500');
-                            
-                            oppHtml += `
-                                <div class="flex justify-between items-center border-b border-slate-100 last:border-0 py-1.5">
-                                    <span class="font-bold text-slate-600 truncate mr-2">vs ${opp}</span>
-                                    <span class="font-black ${resColor} shrink-0">${res}</span>
-                                </div>`;
-                        });
+                if (wC) {
+                    // 챔피언이 이김 (방어 성공)
+                    let lastReign = lineage.length > 0 ? lineage[lineage.length - 1] : null;
+                    if (!lastReign || lastReign.name !== w) {
+                        lineage.push({ name: w, season: m.season, startDate: m.date, endDate: null, matches: [] });
+                        lastReign = lineage[lineage.length - 1];
                     }
-
-                    champCardsHtml += `
-                        <div class="w-[260px] shrink-0 bg-white border border-amber-200 rounded-2xl p-4 shadow-sm snap-center relative flex flex-col hover:shadow-md transition-shadow">
-                            <div class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-amber-100 to-transparent rounded-tr-2xl opacity-50 pointer-events-none"></div>
-                            
-                            <div class="text-[10px] font-black text-amber-600 tracking-wider uppercase mb-3 bg-amber-50 inline-block self-start px-2 py-1 rounded border border-amber-100 shadow-sm">
-                                🏆 ${season}
-                            </div>
-                            
-                            <div class="flex items-center gap-3 cursor-pointer group" onclick="openProfile('${champ.id}')">
-                                <div class="relative shrink-0">
-                                    <div class="absolute -top-3 -left-3 text-2xl drop-shadow-md z-10 transform -rotate-12 group-hover:scale-110 transition-transform duration-300">👑</div>
-                                    <img src="${champ.imageUrl || 'https://placehold.co/150?text=No+Img'}" class="w-16 h-16 rounded-2xl object-cover border-2 border-amber-300 shadow-sm group-hover:border-amber-500 transition-colors bg-slate-100" onerror="this.src='https://placehold.co/150?text=No+Img'">
-                                </div>
-                                <div class="min-w-0">
-                                    <div class="font-black text-slate-800 text-lg truncate group-hover:text-amber-600 transition-colors">${champ.name}</div>
-                                    <div class="text-xs font-bold text-slate-500 mt-0.5">🛡️ ${champ.defenseCount || 0}차 방어</div>
-                                    <div class="text-[9px] text-slate-400 mt-1 truncate font-medium bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">${dateRange}</div>
-                                </div>
-                            </div>
-                            
-                            <div class="mt-4 pt-3 border-t border-slate-100 flex-grow">
-                                <details class="group/details">
-                                    <summary class="cursor-pointer text-xs font-bold text-slate-600 hover:text-amber-600 flex justify-between items-center list-none outline-none select-none bg-slate-50 hover:bg-amber-50 p-2 rounded-lg border border-slate-100 transition-colors">
-                                        <span class="flex items-center gap-1.5"><span>⚔️</span> 시즌 방어전 기록</span>
-                                        <span class="transition-transform duration-300 group-open/details:rotate-180">▼</span>
-                                    </summary>
-                                    <div class="mt-2 text-[11px] bg-slate-50 p-2 rounded-lg border border-slate-200 max-h-[120px] overflow-y-auto custom-scrollbar">
-                                        ${oppHtml}
-                                    </div>
-                                </details>
-                            </div>
-                        </div>
-                    `;
+                    lastReign.matches.push({ date: m.date, opp: l, res: isDraw ? '무' : '승', isTitleWin: false });
+                } else if (lC) {
+                    // 챔피언이 경기를 함 (방어전)
+                    let lastReign = lineage.length > 0 ? lineage[lineage.length - 1] : null;
+                    if (!lastReign || lastReign.name !== l) {
+                        lineage.push({ name: l, season: m.season, startDate: m.date, endDate: null, matches: [] });
+                        lastReign = lineage[lineage.length - 1];
+                    }
+                    
+                    if (isDraw) {
+                        lastReign.matches.push({ date: m.date, opp: w, res: '무', isTitleWin: false });
+                    } else {
+                        // 챔피언이 짐 -> 타이틀 상실!
+                        lastReign.matches.push({ date: m.date, opp: w, res: '패', isTitleWin: false });
+                        lastReign.endDate = m.date; // 챔피언 박탈 날짜
+                        
+                        // 새로운 챔피언의 시대 시작
+                        lineage.push({ name: w, season: m.season, startDate: m.date, endDate: null, matches: [{ date: m.date, opp: l, res: '승', isTitleWin: true }] });
+                    }
+                } else {
+                    // 둘 다 C가 아님 -> 공석에서 벌어진 타이틀전인지 확인
+                    const future = chronological.slice(idx + 1);
+                    const nextAppearance = future.find(fm => fm.winner === w || fm.loser === w);
+                    if (nextAppearance) {
+                        const willBeC = (nextAppearance.winner === w && nextAppearance.winnerRankBefore === 'C') ||
+                                        (nextAppearance.loser === w && nextAppearance.loserRankBefore === 'C');
+                        if (willBeC) {
+                            let lastReign = lineage.length > 0 ? lineage[lineage.length - 1] : null;
+                            if (lastReign && lastReign.endDate === null) lastReign.endDate = m.date; // 공석 처리 기록 보정
+                            lineage.push({ name: w, season: m.season, startDate: m.date, endDate: null, matches: [{ date: m.date, opp: l, res: '승', isTitleWin: true }] });
+                        }
+                    }
                 }
             });
 
+            // 현재 활동 중인 챔피언 처리 (아직 방어전을 한 번도 안 치렀을 수 있으므로)
+            const currentChampProfile = rankingsData.find(p => p.isChampion);
+            if (currentChampProfile) {
+                let lastReign = lineage.length > 0 ? lineage[lineage.length - 1] : null;
+                if (!lastReign || lastReign.name !== currentChampProfile.name) {
+                    if (lastReign && lastReign.endDate === null) lastReign.endDate = "관리자 박탈";
+                    lineage.push({ name: currentChampProfile.name, season: activeSeason, startDate: currentChampProfile.lastMatchDate || "최근", endDate: null, matches: [] });
+                }
+            }
+
+            // 역대 챔피언 렌더링 
+            let champCardsHtml = '';
+            const reversedLineage = [...lineage].reverse(); // UI 표시는 최신 챔피언이 가장 왼쪽으로 오게
+
+            const getPlayerProfile = (name) => {
+                let p = rankingsData.find(x => x.name === name);
+                if (p) return p;
+                for (let s in seasonArchives) {
+                    p = (seasonArchives[s].rankings || []).find(x => x.name === name);
+                    if (p) return p;
+                }
+                return { name: name, id: '', imageUrl: 'https://placehold.co/150?text=No+Img' };
+            };
+
+            reversedLineage.forEach((reign, idx) => {
+                const profile = getPlayerProfile(reign.name);
+                const endDateStr = reign.endDate ? reign.endDate : (profile.isChampion ? '현재' : '시즌 종료/박탈');
+                const reignPeriod = `${reign.startDate} ~ ${endDateStr}`;
+                const generation = lineage.length - idx; // 제 n대 챔피언 계산
+
+                // 순수 방어 성공 횟수 (타이틀 획득전 제외, 승/무 기록)
+                const realDefenseCount = reign.matches.filter(m => !m.isTitleWin && (m.res === '승' || m.res === '무')).length;
+
+                let oppHtml = '';
+                if (reign.matches.length === 0) {
+                    oppHtml = '<div class="text-center py-3 text-slate-400">방어전 기록 없음</div>';
+                } else {
+                    let dIdx = 1;
+                    reign.matches.forEach((m) => {
+                        const resColor = m.res === '무' ? 'text-slate-500' : (m.res === '승' ? 'text-blue-600' : 'text-rose-500');
+                        let matchLabel = '';
+                        
+                        if (m.isTitleWin) {
+                            matchLabel = '<span class="text-amber-600 font-black">👑 타이틀 획득</span>';
+                        } else {
+                            if (m.res === '무') {
+                                matchLabel = `<span class="text-slate-500 font-bold">🛡️ 방어 (무승부)</span>`;
+                            } else if (m.res === '패') {
+                                matchLabel = `<span class="text-rose-500 font-bold">💀 타이틀 상실</span>`;
+                            } else {
+                                matchLabel = `<span class="text-blue-600 font-black">🛡️ ${dIdx}차 방어</span>`;
+                                dIdx++;
+                            }
+                        }
+                        
+                        oppHtml += `
+                            <div class="flex justify-between items-center border-b border-slate-200 border-dashed last:border-0 py-2.5">
+                                <div class="flex flex-col">
+                                    <span class="text-[10px] mb-0.5">${matchLabel}</span>
+                                    <span class="font-bold text-slate-700 text-xs">vs ${m.opp}</span>
+                                </div>
+                                <div class="flex flex-col items-end gap-1">
+                                    <span class="font-black ${resColor} text-xs shrink-0 bg-white px-2 py-0.5 rounded shadow-sm border border-slate-100">${m.res}</span>
+                                    <span class="text-[8px] text-slate-400">${m.date}</span>
+                                </div>
+                            </div>`;
+                    });
+                }
+
+                champCardsHtml += `
+                    <div class="w-[260px] shrink-0 bg-white border border-amber-200 rounded-2xl p-4 shadow-sm snap-center relative flex flex-col hover:shadow-md transition-shadow">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-amber-100 to-transparent rounded-tr-2xl opacity-50 pointer-events-none"></div>
+                        
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="text-[10px] font-black text-amber-600 tracking-wider uppercase bg-amber-50 inline-block px-2 py-1 rounded border border-amber-100 shadow-sm">
+                                제 ${generation}대 챔피언
+                            </div>
+                            <div class="text-[9px] font-bold text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200">
+                                ${reign.season}
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center gap-3 cursor-pointer group" onclick="openProfile('${profile.id}')">
+                            <div class="relative shrink-0">
+                                <div class="absolute -top-3 -left-3 text-2xl drop-shadow-md z-10 transform -rotate-12 group-hover:scale-110 transition-transform duration-300">👑</div>
+                                <img src="${profile.imageUrl || 'https://placehold.co/150?text=No+Img'}" class="w-16 h-16 rounded-2xl object-cover border-2 border-amber-300 shadow-sm group-hover:border-amber-500 transition-colors bg-slate-100" onerror="this.src='https://placehold.co/150?text=No+Img'">
+                            </div>
+                            <div class="min-w-0">
+                                <div class="font-black text-slate-800 text-lg truncate group-hover:text-amber-600 transition-colors">${reign.name}</div>
+                                <div class="text-xs font-bold text-slate-500 mt-0.5">🛡️ 총 ${realDefenseCount}차 방어</div>
+                                <div class="text-[9px] text-slate-400 mt-1 truncate font-medium bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">${reignPeriod}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 pt-3 border-t border-slate-100 flex-grow">
+                            <details class="group/details">
+                                <summary class="cursor-pointer text-xs font-bold text-slate-600 hover:text-amber-600 flex justify-between items-center list-none outline-none select-none bg-slate-50 hover:bg-amber-50 p-2 rounded-lg border border-slate-100 transition-colors">
+                                    <span class="flex items-center gap-1.5"><span>⚔️</span> 타이틀전 및 방어 기록</span>
+                                    <span class="transition-transform duration-300 group-open/details:rotate-180">▼</span>
+                                </summary>
+                                <div class="mt-2 text-[11px] bg-slate-50 p-2 px-3 rounded-lg border border-slate-200 max-h-[140px] overflow-y-auto custom-scrollbar">
+                                    ${oppHtml}
+                                </div>
+                            </details>
+                        </div>
+                    </div>
+                `;
+            });
+
+            let pastChampionsHtml = '';
             if (champCardsHtml) {
                 pastChampionsHtml = `
                     <div class="mb-8">
@@ -1717,7 +1812,7 @@
                                 <h2 class="text-[15px] sm:text-lg font-black text-slate-800 tracking-tight flex items-center gap-1.5">
                                     <span class="text-xl">🏆</span> 역대 챔피언
                                 </h2>
-                                <p class="text-[10px] sm:text-[11px] text-slate-400 mt-0.5 ml-1">시즌별 왕좌에 올랐던 레전드 플레이어</p>
+                                <p class="text-[10px] sm:text-[11px] text-slate-400 mt-0.5 ml-1">RFC 역사상 가장 빛났던 제왕의 계보</p>
                             </div>
                         </div>
                         <div class="flex overflow-x-auto snap-x snap-mandatory gap-3 pb-4 px-1 custom-scrollbar">
@@ -1841,7 +1936,7 @@
                     <div class="flex items-center gap-3 mb-6 border-b border-amber-100 pb-3 relative z-10">
                         <span class="text-2xl drop-shadow-sm">👑</span>
                         <div>
-                            <div class="text-base font-black text-slate-800 tracking-tight leading-none">전 시즌 챔피언</div>
+                            <div class="text-base font-black text-slate-800 tracking-tight leading-none">해당 시즌 챔피언</div>
                             <div class="text-[10px] text-amber-600 font-bold mt-1 uppercase tracking-widest">Undisputed Champion</div>
                         </div>
                     </div>
@@ -1886,7 +1981,7 @@
                     <div class="flex items-center gap-3 mb-6 border-b border-amber-100 pb-3 relative z-10">
                         <span class="text-2xl drop-shadow-sm">👑</span>
                         <div>
-                            <div class="text-base font-black text-slate-800 tracking-tight leading-none">전 시즌 챔피언</div>
+                            <div class="text-base font-black text-slate-800 tracking-tight leading-none">해당 시즌 챔피언</div>
                             <div class="text-[10px] text-amber-600 font-bold mt-1 uppercase tracking-widest">Undisputed Champion</div>
                         </div>
                     </div>
@@ -1996,16 +2091,16 @@
             container.innerHTML = `
                 ${pastChampionsHtml}
                 <div class="text-center mb-6 pt-6 border-t border-slate-200">
-                    <h3 class="text-xl font-black text-slate-800 tracking-tight">${seasonName}</h3>
+                    <h3 class="text-xl font-black text-slate-800 tracking-tight">${seasonName} 결산</h3>
                     <p class="text-xs text-slate-400 mt-1 uppercase tracking-widest">Season Awards Podium</p>
                 </div>
                 
                 <div class="px-1 pb-10">
+                    ${createChampionSection(seasonChampion)}
                     ${createPodiumSection("최다 연승", "멈출 수 없는 기세", "🚀", streakList, "rose-400", "pink-500", "streak")}
                     ${createPodiumSection("최다 플레이", "지치지 않는 열정", "🔥", ironWillList, "slate-500", "slate-700", "match")}
                     ${createPodiumSection("최다승", "압도적인 승리", "⚔️", conquerorList, "blue-500", "indigo-600", "win")}
-                    ${createChampionSection(seasonChampion)}
-                    ${createPodiumSection(champTitle, champSub, "👑", top3List, "amber-400", "orange-500", "elo")}
+                    ${createPodiumSection(champTitle, champSub, "🏆", top3List, "amber-400", "orange-500", "elo")}
                 </div>
             `; 
         }
