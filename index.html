@@ -2073,6 +2073,27 @@
             if (filter === 'current') matches = matches.filter(m => m.season === activeSeason); 
             else if (filter !== 'all') matches = matches.filter(m => m.season === filter); 
             matches.sort((a, b) => new Date(b.date) - new Date(a.date)); 
+
+            // 관리자 사이트가 선수에게 저장한 패널티 이력을 날짜별 기록에 함께 표시합니다.
+            let penalties = Array.isArray(p.penaltyHistory) ? p.penaltyHistory.map((penalty, index) => ({
+                ...penalty,
+                _type: 'penalty',
+                _penaltyIndex: index,
+                date: penalty.date || '',
+                season: penalty.season || activeSeason
+            })) : [];
+            if (filter === 'current') penalties = penalties.filter(x => x.season === activeSeason);
+            else if (filter !== 'all') penalties = penalties.filter(x => x.season === filter);
+
+            const timeline = [
+                ...matches.map(m => ({ ...m, _type: 'match' })),
+                ...penalties
+            ].sort((a, b) => {
+                const dateDiff = new Date(b.date) - new Date(a.date);
+                if (dateDiff !== 0) return dateDiff;
+                // 같은 날짜라면 경기 기록을 먼저 표시
+                return a._type === 'match' ? -1 : 1;
+            });
             
             let wins = 0, losses = 0, draws = 0; 
             matches.forEach(m => { 
@@ -2093,7 +2114,7 @@
             const container = document.getElementById('pModalMatchList'); 
             container.innerHTML = ''; 
             
-            if (matches.length === 0) { 
+            if (timeline.length === 0) { 
                 container.innerHTML = `<div class="text-center text-xs text-slate-400 py-4">해당 기간 기록이 없습니다.</div>`; 
                 return; 
             } 
@@ -2166,7 +2187,25 @@
                 return;
             }
 
-            matches.forEach(m => { 
+            timeline.forEach(m => { 
+                // 패널티는 승/패/무 통계와 H2H에는 포함하지 않고 날짜별 기록에만 표시합니다.
+                if (m._type === 'penalty') {
+                    const penaltyPoints = Number(m.points);
+                    const penaltyText = Number.isFinite(penaltyPoints)
+                        ? `${penaltyPoints > 0 ? '+' : ''}${penaltyPoints}`
+                        : (m.points ?? '-');
+                    const reason = m.reason || '패널티 적용';
+                    const seasonBadgeHtml = filter === 'all'
+                        ? `<span class="bg-amber-100 text-amber-700 text-[9px] px-1.5 py-[2px] rounded-md font-bold tracking-tight">${m.season || '시즌 1'}</span>`
+                        : '';
+
+                    const div = document.createElement('div'); 
+                    div.className = "flex items-center justify-between text-xs p-3 bg-rose-50 rounded-xl border border-rose-100"; 
+                    div.innerHTML = `<div class="flex items-center gap-3 w-full"><div class="flex items-center gap-1.5 shrink-0"><span class="font-bold text-rose-600 w-8 h-8 flex items-center justify-center rounded-lg text-sm shadow-sm bg-white border border-rose-100">💀</span><span class="text-[13px] font-black text-rose-600 shrink-0">${penaltyText}</span></div><div class="flex flex-col w-full overflow-hidden"><div class="flex justify-between items-center w-full"><span class="font-bold text-rose-700 text-sm truncate flex items-center gap-1.5">패널티</span><span class="flex items-center gap-1.5 shrink-0">${seasonBadgeHtml}<span class="text-rose-500 font-medium text-[11px]">${m.date || '-'}</span></span></div><div class="flex items-center gap-2 mt-0.5"><span class="text-[11px] text-rose-500 font-medium bg-white px-1.5 py-0.5 rounded border border-rose-100">${reason}</span></div></div></div>`;
+                    container.appendChild(div);
+                    return;
+                }
+
                 const isDraw = m.isDraw || m.type === 'draw';
                 const isWin = !isDraw && m.winner === p.name; 
                 const resultText = isDraw ? 'D' : (isWin ? 'W' : 'L'); 
