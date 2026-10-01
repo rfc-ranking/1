@@ -2201,7 +2201,13 @@
 
                 let oppRankBadge = '';
                 const oppRankVal = (m.winner === p.name) ? m.loserRankBefore : m.winnerRankBefore;
-                if (oppRankVal !== undefined) {
+                // 관리자 사이트에서 저장한 "경기 당시 챔피언 여부"를 최우선으로 표시합니다.
+                // 기존 데이터의 C 값도 챔피언으로 인식하여 이전 기록과 호환합니다.
+                const oppWasChampion = (m.winner === p.name) ? m.loserWasChampion === true : m.winnerWasChampion === true;
+                const isHistoricalChampion = oppWasChampion || oppRankVal === 'C';
+                if (isHistoricalChampion) {
+                    oppRankBadge = `<span class="bg-gradient-to-r from-yellow-400 to-amber-500 text-white text-[11px] px-2 py-0.5 rounded-md font-black leading-none no-underline shadow-sm border border-yellow-500">👑CHAMPION</span>`;
+                } else if (oppRankVal !== undefined) {
                     if (oppRankVal > 0) {
                         oppRankBadge = `<span class="bg-slate-200 text-slate-500 text-[11px] px-2 py-0.5 rounded-md font-bold leading-none no-underline shadow-sm">${oppRankVal}위</span>`;
                     } else {
