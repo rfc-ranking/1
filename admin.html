@@ -775,7 +775,7 @@
                                 <div class="text-[10px] font-bold opacity-80 uppercase tracking-widest mt-1">Draws</div>
                             </div>
                         </div>
-                        <div class="flex bg-slate-50 border border-slate-200 border-t-0 rounded-b-lg divide-x divide-slate-200 text-center py-2 shadow-sm"><div class="flex-1"><div class="text-[10px] text-slate-400 font-bold uppercase">Win Rate</div><div class="text-sm font-black text-slate-700" id="pModalWinRate">0%</div></div><div class="flex-1"><div class="text-[10px] text-slate-400 font-bold uppercase">Elo Rating</div><div class="text-sm font-black text-amber-600" id="pModalElo">1000</div></div><div class="flex-1"><div class="text-[10px] text-slate-400 font-bold uppercase">Career High</div><div class="text-sm font-black text-slate-700" id="pModalHighElo">1000</div></div></div>
+                        <div class="flex bg-slate-50 border border-slate-200 border-t-0 rounded-b-lg divide-x divide-slate-200 text-center py-2 shadow-sm"><div class="flex-1"><div class="text-[10px] text-slate-400 font-bold uppercase">Win Rate</div><div class="text-sm font-black text-slate-700" id="pModalWinRate">0%</div></div><div class="flex-1"><div class="text-[10px] text-slate-400 font-bold uppercase">Elo Rating</div><div class="text-sm font-black text-amber-600" id="pModalElo">1000</div></div><div class="flex-1"><div class="text-[10px] text-slate-400 font-bold uppercase">Career High</div><div class="text-sm font-black text-slate-700" id="pModalHighElo">1000</div></div><div class="flex-1"><div class="text-[10px] text-slate-400 font-bold uppercase">최고 순위</div><div class="text-sm font-black text-blue-600" id="pModalHighRank">-</div></div></div>
                     </div>
                     <div class="w-full space-y-6"><div class="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm"><div class="grid grid-cols-3 gap-4 text-center"><div><div class="text-[10px] text-slate-400 font-bold uppercase mb-1">Height</div><div id="pModalHeight" class="font-bold text-slate-700 text-sm">-</div></div><div class="border-x border-slate-100"><div class="text-[10px] text-slate-400 font-bold uppercase mb-1">Reach</div><div id="pModalReach" class="font-bold text-slate-700 text-sm">-</div></div><div><div class="text-[10px] text-slate-400 font-bold uppercase mb-1">Stance</div><div id="pModalStance" class="font-bold text-slate-700 text-sm">-</div></div></div><div id="pModalTags" class="flex flex-wrap gap-1.5 justify-center mt-3"></div></div><div class="mb-2"><div class="flex p-1 bg-slate-100 rounded-lg mb-3"><button id="btnTabChrono" onclick="switchProfileTab('chrono')" class="flex-1 py-1.5 text-[11px] font-bold text-blue-600 bg-white shadow-sm rounded-md transition-all">📅 날짜별 기록</button><button id="btnTabH2H" onclick="switchProfileTab('h2h')" class="flex-1 py-1.5 text-[11px] font-bold text-slate-500 rounded-md transition-all hover:bg-slate-200/50">⚔️ 상대별 전적</button></div><div id="pModalMatchList" class="space-y-2 pb-10"></div></div></div>
                 </div>
@@ -792,8 +792,8 @@
         const AUTO_LOGIN_PW = "";
         
         const ADMIN_CONFIG = {
-            version: "v5.57",
-            updateNote: "패널티 중복 방지",
+            version: "v5.58",
+            updateNote: "최고 순위 챔피언 표시 개선",
             title: "RFC 매니저"
         };
 
@@ -2475,6 +2475,50 @@ window.confirmBatchPenalty = (days, score) => { if(batchPenaltyTargets.length ==
     };
     window.closeProfile = () => { document.getElementById('profileModal').classList.add('hidden'); currentProfileId = null; };
     
+    function getCareerHighRank(playerName) {
+        let bestRank = null;
+        let hasChampionExperience = false;
+        const seasonMatchCounts = {};
+
+        // 전체 경기 기록을 오래된 순서로 보면서 시즌별 경기 수를 계산합니다.
+        const chronologicalMatches = [...enrichedHistory].sort(
+            (a, b) => new Date(a.date) - new Date(b.date)
+        );
+
+        chronologicalMatches.forEach(m => {
+            if (m.winner !== playerName && m.loser !== playerName) return;
+
+            const season = m.season || "시즌 1";
+            seasonMatchCounts[season] = (seasonMatchCounts[season] || 0) + 1;
+
+            // 배치 3판 + 정상 경기 2판 = 총 5판 완료 후부터 최고 순위를 인정합니다.
+            if (seasonMatchCounts[season] <= 5) return;
+
+            let rankValue;
+
+            if (m.winner === playerName) {
+                rankValue = m.winnerRankBefore;
+            } else {
+                rankValue = m.loserRankBefore;
+            }
+
+            // 챔피언은 실제 랭킹 1위와 별개의 기록입니다.
+            if (rankValue === 'C') {
+                hasChampionExperience = true;
+                return;
+            }
+
+            const numericRank = Number(rankValue);
+            if (Number.isFinite(numericRank) && numericRank > 0) {
+                if (bestRank === null || numericRank < bestRank) {
+                    bestRank = numericRank;
+                }
+            }
+        });
+
+        return { rank: bestRank, hasChampionExperience };
+    }
+
     window.updateProfileStats = (id, filter) => { 
         const p = rankingsData.find(x => x.id === id); if (!p) return; 
         let matches = enrichedHistory.filter(m => (m.winner === p.name || m.loser === p.name)); 
@@ -2501,7 +2545,16 @@ window.confirmBatchPenalty = (days, score) => { if(batchPenaltyTargets.length ==
         document.getElementById('pBigLosses').textContent = losses; 
         document.getElementById('pModalWinRate').textContent = `${winRate}%`; 
         document.getElementById('pModalElo').textContent = p.elo || 1000; 
-        document.getElementById('pModalHighElo').textContent = p.careerHighElo || p.elo || 1000; 
+        document.getElementById('pModalHighElo').textContent = p.careerHighElo || p.elo || 1000;
+        const careerHighRankInfo = getCareerHighRank(p.name);
+        const highRankText = careerHighRankInfo.rank ? `${careerHighRankInfo.rank}위` : '-';
+        const highRankEl = document.getElementById('pModalHighRank');
+        if (highRankEl) {
+            highRankEl.textContent =
+                careerHighRankInfo.hasChampionExperience && careerHighRankInfo.rank
+                    ? `${highRankText} 🏆`
+                    : highRankText;
+        } 
         
         const container = document.getElementById('pModalMatchList'); container.innerHTML = ''; 
         if (matches.length === 0 && penalties.length === 0) { container.innerHTML = `<div class="text-center text-xs text-slate-400 py-4">기록 없음</div>`; return; } 
