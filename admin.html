@@ -335,6 +335,18 @@
                             <button onclick="openNewPlayerModal()" class="flex-1 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 font-bold py-2.5 rounded-xl border border-emerald-100 transition text-xs">+ 선수 등록</button>
                             <button onclick="openDeletePlayersModal()" class="flex-1 bg-red-50 text-red-600 hover:bg-red-100 font-bold py-2.5 rounded-xl border border-red-100 transition text-xs">🗑️ 선수 삭제</button>
                         </div>
+
+                        <!-- 👑 챔피언 관리: 선수 등록/삭제와 분리된 전용 관리 영역 -->
+                        <div id="championManagementCard" class="bg-amber-50/70 border border-amber-200 rounded-xl p-3 mb-3">
+                            <div class="flex items-center justify-between gap-3">
+                                <div class="min-w-0">
+                                    <h4 class="text-[11px] font-black text-amber-800 flex items-center gap-1">👑 챔피언 관리</h4>
+                                    <div id="championManagementStatus" class="text-xs font-bold text-slate-700 mt-1 truncate">현재 챔피언: 없음</div>
+                                </div>
+                                <button id="stripChampionBtn" onclick="openChampionStripConfirm()" class="shrink-0 bg-amber-50 text-amber-700 hover:bg-amber-100 font-bold px-3 py-2 rounded-lg border border-amber-200 transition text-[11px] hidden">⚠️ 챔피언 박탈</button>
+                            </div>
+                            <div id="championVacantStatus" class="hidden mt-2 text-[10px] font-bold text-slate-500 bg-white/70 border border-amber-100 rounded-lg px-2 py-1.5">🏆 타이틀 공석 · 챔피언 결정전에서 새 챔피언 지정 가능</div>
+                        </div>
                         
                         <div class="bg-orange-50 border border-orange-200 rounded-xl p-2 mb-2 flex items-center justify-between gap-2">
                             <h4 class="text-[11px] font-bold text-orange-700 whitespace-nowrap pl-1">💀 수동 패널티</h4>
@@ -792,8 +804,8 @@
         const AUTO_LOGIN_PW = "";
         
         const ADMIN_CONFIG = {
-            version: "v5.53",
-            updateNote: "퀘스트 기기 표시 적용",
+            version: "v5.54",
+            updateNote: "챔피언 박탈 기능 적용",
             title: "RFC 매니저"
         };
 
@@ -2022,6 +2034,49 @@
         window.toggleDeleteSelectAll = () => { const isChecked = document.getElementById('deleteAllCheckbox').checked; const query = document.getElementById('deleteSearchInput').value.toLowerCase().replace(/\s/g, ""); const queryJamo = Hangul.disassemble(query); const filteredPlayers = rankingsData.filter(p => { const nameClean = p.name.replace(/\s/g, "").toLowerCase(); if (nameClean.includes(query)) return true; if (p.choseong && (p.choseong.includes(query) || p.choseong.includes(queryJamo))) return true; if (p.jamo && p.jamo.includes(queryJamo)) return true; return false; }); filteredPlayers.forEach(p => { if (isChecked) deleteSelectedIds.add(p.id); else deleteSelectedIds.delete(p.id); }); window.renderDeleteList(); };
         window.confirmDeletePlayers = () => { if (deleteSelectedIds.size === 0) return showCustomAlert("선수를 선택해주세요."); const deleteHistory = document.getElementById('deleteHistoryCheckbox').checked; const msg = `정말 ${deleteSelectedIds.size}명의 선수를 삭제?`; showConfirmModal(msg, async () => { captureState(); const deletedNames = new Set(); rankingsData = rankingsData.filter(p => { if (deleteSelectedIds.has(p.id)) { deletedNames.add(p.name); return false; } return true; }); if (deleteHistory) { matchHistoryData = matchHistoryData.filter(m => !deletedNames.has(m.winner) && !deletedNames.has(m.loser)); } await saveRankings(); renderRankings(); window.closeDeletePlayersModal(); showCustomAlert(`✅ 삭제됨.`); }); };
 
+        // 👑 챔피언 관리 UI 갱신
+        window.updateChampionManagementUI = () => {
+            const statusEl = document.getElementById('championManagementStatus');
+            const stripBtn = document.getElementById('stripChampionBtn');
+            const vacantEl = document.getElementById('championVacantStatus');
+            if (!statusEl || !stripBtn || !vacantEl) return;
+
+            const champion = rankingsData.find(p => p.isChampion === true);
+            if (champion) {
+                const defenseCount = Number(champion.defenseCount || 0);
+                statusEl.innerHTML = `현재 챔피언: <span class="text-amber-700">${champion.name}</span>${defenseCount > 0 ? ` <span class="text-[10px] text-slate-500">(${defenseCount}차 방어)</span>` : ''}`;
+                stripBtn.classList.remove('hidden');
+                vacantEl.classList.add('hidden');
+            } else {
+                statusEl.innerHTML = '현재 챔피언: <span class="text-slate-500">없음</span>';
+                stripBtn.classList.add('hidden');
+                vacantEl.classList.remove('hidden');
+            }
+        };
+
+        // 👑 챔피언 박탈 확인
+        window.openChampionStripConfirm = () => {
+            const champion = rankingsData.find(p => p.isChampion === true);
+            if (!champion) {
+                updateChampionManagementUI();
+                return showCustomAlert('현재 챔피언이 없어 박탈할 수 없습니다.');
+            }
+
+            showConfirmModal(`⚠️ 챔피언 타이틀 박탈\n\n[${champion.name}] 선수의 챔피언 타이틀을 박탈하시겠습니까?\n\n승/패 기록 → 유지\nElo 점수 → 유지\n경기 기록 → 유지\n방어 횟수 → 유지\n챔피언 타이틀 → 공석`, async () => {
+                captureState();
+                const target = rankingsData.find(p => p.id === champion.id);
+                if (!target) return;
+
+                // 타이틀 상태만 변경합니다. 승/패, Elo, 경기 기록, 방어 횟수, 현상금은 그대로 유지합니다.
+                target.isChampion = false;
+
+                await saveRankings();
+                renderRankings();
+                updateChampionManagementUI();
+                showCustomAlert(`✅ [${target.name}] 챔피언 타이틀이 박탈되었습니다.\n타이틀은 현재 공석이며 승/패 및 Elo 점수는 유지되었습니다.`);
+            });
+        };
+
         window.openNewPlayerModal = () => { const modal = document.getElementById('newPlayerModal'); if (modal) { modal.classList.remove('hidden'); setTimeout(() => document.getElementById('newPlayerNameInput').focus(), 50); } };
         window.showCustomAlert = (message) => { document.getElementById('alertMessage').innerText = message; document.getElementById('customAlertModal').classList.remove('hidden'); };
         window.closeAlertModal = () => { document.getElementById('customAlertModal').classList.add('hidden'); };
@@ -2569,6 +2624,7 @@
     };
 
     function renderRankings() { 
+        if (typeof window.updateChampionManagementUI === 'function') window.updateChampionManagementUI();
         const list = document.getElementById('rankingList'); list.innerHTML = ''; 
         
         // [NEW] 기기별 프리미엄 그라데이션 뱃지 생성 함수 (Option 4)
