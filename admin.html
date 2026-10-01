@@ -792,8 +792,8 @@
         const AUTO_LOGIN_PW = "";
         
         const ADMIN_CONFIG = {
-            version: "v5.54",
-            updateNote: "챔피언 최상단",
+            version: "v5.53",
+            updateNote: "퀘스트 기기 표시 적용",
             title: "RFC 매니저"
         };
 
@@ -1302,9 +1302,13 @@
             const winner = isDraw ? p1 : (isBlueWin ? p1 : p2); 
             const loser = isDraw ? p2 : (isBlueWin ? p2 : p1); 
             
+            // 경기 당시 챔피언 여부를 경기 기록에 고정 저장
+            const winnerWasChampion = winner.isChampion === true;
+            const loserWasChampion = loser.isChampion === true;
+            
             captureState(); 
 
-            const loserBountyVal = isDraw ? 0 : (loser.isChampion ? (loser.defenseCount || 0) * 20 : parseInt(loser.bounty || 0, 10));
+            const loserBountyVal = isDraw ? 0 : (loserWasChampion ? (loser.defenseCount || 0) * 20 : parseInt(loser.bounty || 0, 10));
 
             const isTitleMatch = document.getElementById('isTitleMatch').checked;
             if (isTitleMatch && !isDraw) {
@@ -1366,7 +1370,7 @@
                 if (rank <= 10) { if ((p.currentStreak || 0) >= 3) { p.bounty = (p.currentStreak - 2) * 10; } else { p.bounty = 0; } } else { p.bounty = 0; }
             });
 
-            matchHistoryData.unshift({ date: matchDate, winner: isDraw ? p1.name : (isBlueWin ? p1.name : p2.name), loser: isDraw ? p2.name : (isBlueWin ? p2.name : p1.name), type, isDraw, season: activeSeason, blue: p1.name, winnerChange: winCalc.change, loserChange: loseCalc.change, winnerRankBefore: winnerRankBefore, loserRankBefore: loserRankBefore }); 
+            matchHistoryData.unshift({ date: matchDate, winner: isDraw ? p1.name : (isBlueWin ? p1.name : p2.name), loser: isDraw ? p2.name : (isBlueWin ? p2.name : p1.name), type, isDraw, season: activeSeason, blue: p1.name, winnerChange: winCalc.change, loserChange: loseCalc.change, winnerRankBefore: winnerRankBefore, loserRankBefore: loserRankBefore, winnerWasChampion: winnerWasChampion, loserWasChampion: loserWasChampion }); 
             matchHistoryData.sort((a, b) => new Date(b.date) - new Date(a.date));
             activeHighlight = { ids: [winner.id, loser.id], endTime: Date.now() + 60000 };
             saveRankings(); renderRankings(); scrollToTarget(winner.id); resetMatchInputs(true);
