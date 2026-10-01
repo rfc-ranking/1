@@ -792,8 +792,8 @@
         const AUTO_LOGIN_PW = "";
         
         const ADMIN_CONFIG = {
-            version: "v5.56",
-            updateNote: "미참여 패널티 날짜 기록 표시 개선",
+            version: "v5.57",
+            updateNote: "패널티 중복 방지",
             title: "RFC 매니저"
         };
 
@@ -2036,8 +2036,77 @@
         window.applyManualPenalty = () => { let idx = pPenTom ? pPenTom.getValue() : document.getElementById('penaltyTargetSelect')?.value; if (idx === "" || idx == null) return; const p = rankingsData[parseInt(idx)]; if (!p) return; showConfirmModal(`[${p.name}] -30점?`, async () => { captureState(); p.elo -= 30; rankingsData.sort((a, b) => b.elo - a.elo); await saveRankings(); renderRankings(); showCustomAlert("차감 완료."); }); };
 
         window.resetBatchInactiveForm = () => { document.getElementById('inactiveDaysInput').value = 30; document.getElementById('penaltyScoreInput').value = 30; document.getElementById('inactiveListArea').classList.add('hidden'); document.getElementById('inactiveUserList').innerHTML = ''; batchPenaltyTargets = []; };
-        window.checkBatchInactiveUsers = () => { const days = parseInt(document.getElementById('inactiveDaysInput').value) || 30; const score = parseInt(document.getElementById('penaltyScoreInput').value) || 30; const today = new Date(getKSTDate()); const rankedPlayers = rankingsData.filter(p => !p.isChampion && (Number(p.wins || 0) + Number(p.losses || 0) + Number(p.draws || 0)) >= 3).sort((a, b) => (b.elo || 1000) - (a.elo || 1000)); batchPenaltyTargets = []; const listEl = document.getElementById('inactiveUserList'); listEl.innerHTML = ''; rankingsData.forEach(p => { const totalMatches = (p.wins || 0) + (p.losses || 0) + (p.draws || 0); if (totalMatches < 3 || !p.lastMatchDate) return; const diffDays = Math.ceil((today - new Date(p.lastMatchDate)) / (1000 * 60 * 60 * 24)); if(diffDays >= days) { const rank = rankedPlayers.findIndex(rp => rp.id === p.id) + 1; batchPenaltyTargets.push({ ...p, diffDays, rank }); } }); batchPenaltyTargets.sort((a, b) => b.diffDays - a.diffDays); const area = document.getElementById('inactiveListArea'); if(batchPenaltyTargets.length > 0) { document.getElementById('inactiveCountDisplay').textContent = batchPenaltyTargets.length; batchPenaltyTargets.forEach(t => { const li = document.createElement('li'); li.className = "flex justify-between items-center border-b border-slate-50 last:border-0 pb-1 mb-1 last:pb-0 last:mb-0"; li.innerHTML = `<div class="flex items-center gap-1.5"><span class="text-[10px] font-black text-blue-600 min-w-[24px] text-right">#${t.rank}</span><span class="font-bold text-slate-700">${t.name}</span><span class="text-[10px] bg-slate-100 text-slate-500 px-1 rounded">${t.elo}점</span></div><span class="text-red-500 font-bold text-[10px]">${t.diffDays}일 전</span>`; listEl.appendChild(li); }); const btn = document.getElementById('btnApplyBatchPenalty'); btn.innerHTML = `<span>💀</span> 일괄 -${score}점 적용하기`; btn.onclick = () => confirmBatchPenalty(days, score); area.classList.remove('hidden'); area.classList.add('pop-in'); } else { area.classList.add('hidden'); showCustomAlert("대상자 없음."); } };
-        window.confirmBatchPenalty = (days, score) => { if(batchPenaltyTargets.length === 0) return; showConfirmModal(`패널티 실행?`, async () => { captureState(); const targetIds = new Set(batchPenaltyTargets.map(t => t.id)); const penaltyDate = getKSTDate(); rankingsData.forEach(p => { if(targetIds.has(p.id)) { p.elo -= score; if (!Array.isArray(p.penaltyHistory)) p.penaltyHistory = []; p.penaltyHistory.push({ date: penaltyDate, points: -Math.abs(score), reason: `${days}일 미참여 패널티`, season: activeSeason }); } }); rankingsData.sort((a, b) => b.elo - a.elo); await saveRankings(); renderRankings(); document.getElementById('inactiveListArea').classList.add('hidden'); batchPenaltyTargets = []; showCustomAlert(`적용됨. (${penaltyDate} / -${Math.abs(score)}점 기록 저장)`); }); };
+        window.checkBatchInactiveUsers = () => {
+            const days = parseInt(document.getElementById('inactiveDaysInput').value) || 30;
+            const score = parseInt(document.getElementById('penaltyScoreInput').value) || 30;
+            const today = new Date(getKSTDate());
+            const rankedPlayers = rankingsData
+                .filter(p => !p.isChampion && (Number(p.wins || 0) + Number(p.losses || 0) + Number(p.draws || 0)) >= 3)
+                .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
+
+            batchPenaltyTargets = [];
+            const listEl = document.getElementById('inactiveUserList');
+            listEl.innerHTML = '';
+
+            rankingsData.forEach(p => {
+                const totalMatches = (p.wins || 0) + (p.losses || 0) + (p.draws || 0);
+                if (totalMatches < 3 || !p.lastMatchDate) return;
+
+                const lastMatchDate = new Date(p.lastMatchDate);
+                let referenceDate = lastMatchDate;
+                let lastPenaltyDate = null;
+
+                // 가장 최근 패널티 적용일을 찾아 실제 마지막 경기일과 비교합니다.
+                if (Array.isArray(p.penaltyHistory)) {
+                    p.penaltyHistory.forEach(penalty => {
+                        if (!penalty || !penalty.date) return;
+                        const penaltyDate = new Date(penalty.date);
+                        if (!Number.isNaN(penaltyDate.getTime()) &&
+                            (!lastPenaltyDate || penaltyDate > lastPenaltyDate)) {
+                            lastPenaltyDate = penaltyDate;
+                        }
+                    });
+                }
+
+                // 마지막 경기일과 최근 패널티일 중 더 최근 날짜부터 다시 30일을 계산합니다.
+                if (lastPenaltyDate && lastPenaltyDate > referenceDate) {
+                    referenceDate = lastPenaltyDate;
+                }
+
+                const diffDays = Math.ceil((today - referenceDate) / (1000 * 60 * 60 * 24));
+
+                if (diffDays >= days) {
+                    const rank = rankedPlayers.findIndex(rp => rp.id === p.id) + 1;
+                    batchPenaltyTargets.push({
+                        ...p,
+                        diffDays,
+                        rank
+                    });
+                }
+            });
+
+            batchPenaltyTargets.sort((a, b) => b.diffDays - a.diffDays);
+
+            const area = document.getElementById('inactiveListArea');
+            if (batchPenaltyTargets.length > 0) {
+                document.getElementById('inactiveCountDisplay').textContent = batchPenaltyTargets.length;
+                batchPenaltyTargets.forEach(t => {
+                    const li = document.createElement('li');
+                    li.className = "flex justify-between items-center border-b border-slate-50 last:border-0 pb-1 mb-1 last:pb-0 last:mb-0";
+                    li.innerHTML = `<div class="flex items-center gap-1.5"><span class="text-[10px] font-black text-blue-600 min-w-[24px] text-right">#${t.rank}</span><span class="font-bold text-slate-700">${t.name}</span><span class="text-[10px] bg-slate-100 text-slate-500 px-1 rounded">${t.elo}점</span></div><span class="text-red-500 font-bold text-[10px]">${t.diffDays}일 전</span>`;
+                    listEl.appendChild(li);
+                });
+                const btn = document.getElementById('btnApplyBatchPenalty');
+                btn.innerHTML = `<span>💀</span> 일괄 -${score}점 적용하기`;
+                btn.onclick = () => confirmBatchPenalty(days, score);
+                area.classList.remove('hidden');
+                area.classList.add('pop-in');
+            } else {
+                area.classList.add('hidden');
+                showCustomAlert("대상자 없음.");
+            }
+        };
+window.confirmBatchPenalty = (days, score) => { if(batchPenaltyTargets.length === 0) return; showConfirmModal(`패널티 실행?`, async () => { captureState(); const targetIds = new Set(batchPenaltyTargets.map(t => t.id)); const penaltyDate = getKSTDate(); rankingsData.forEach(p => { if(targetIds.has(p.id)) { p.elo -= score; if (!Array.isArray(p.penaltyHistory)) p.penaltyHistory = []; p.penaltyHistory.push({ date: penaltyDate, points: -Math.abs(score), reason: `${days}일 미참여 패널티`, season: activeSeason }); } }); rankingsData.sort((a, b) => b.elo - a.elo); await saveRankings(); renderRankings(); document.getElementById('inactiveListArea').classList.add('hidden'); batchPenaltyTargets = []; showCustomAlert(`적용됨. (${penaltyDate} / -${Math.abs(score)}점 기록 저장)`); }); };
         
         window.fixDataIntegrity = () => { 
             const chronologicalHistory = [...matchHistoryData].reverse(); const streakMap = {}; 
