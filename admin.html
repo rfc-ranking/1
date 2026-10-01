@@ -792,8 +792,8 @@
         const AUTO_LOGIN_PW = "";
         
         const ADMIN_CONFIG = {
-            version: "v5.54",
-            updateNote: "챔피언 기록 적용",
+            version: "v5.53",
+            updateNote: "퀘스트 기기 표시 적용",
             title: "RFC 매니저"
         };
 
@@ -2528,8 +2528,17 @@
                 scoreBadge = `<span class="text-[13px] font-black text-rose-600 shrink-0">${m.loserChange}</span>`; 
             } 
 
-            let oppRankBadge = ''; const oppRankVal = (m.winner === p.name) ? m.loserRankBefore : m.winnerRankBefore;
-            if (oppRankVal !== undefined) { if (oppRankVal > 0) oppRankBadge = `<span class="bg-slate-200 text-slate-500 text-[11px] px-2 py-0.5 rounded-md font-bold leading-none no-underline shadow-sm">${oppRankVal}위</span>`; else oppRankBadge = `<span class="bg-slate-100 text-slate-400 text-[11px] px-2 py-0.5 rounded-md font-bold leading-none no-underline shadow-sm border border-slate-200">배치중</span>`; } else oppRankBadge = `<span class="bg-slate-100 text-slate-400 text-[11px] px-2 py-0.5 rounded-md font-bold leading-none no-underline shadow-sm border border-slate-200" title="과거 기록">-</span>`;
+            let oppRankBadge = '';
+            const oppRankVal = (m.winner === p.name) ? m.loserRankBefore : m.winnerRankBefore;
+            const oppWasChampion = (m.winner === p.name) ? (m.loserWasChampion === true || m.loserRankBefore === 'C') : (m.winnerWasChampion === true || m.winnerRankBefore === 'C');
+            if (oppWasChampion) {
+                oppRankBadge = `<span class="bg-gradient-to-r from-yellow-400 to-amber-500 text-white text-[11px] px-2 py-0.5 rounded-md font-black leading-none no-underline shadow-sm border border-yellow-500">👑CHAMPION</span>`;
+            } else if (oppRankVal !== undefined) {
+                if (oppRankVal > 0) oppRankBadge = `<span class="bg-slate-200 text-slate-500 text-[11px] px-2 py-0.5 rounded-md font-bold leading-none no-underline shadow-sm">${oppRankVal}위</span>`;
+                else oppRankBadge = `<span class="bg-slate-100 text-slate-400 text-[11px] px-2 py-0.5 rounded-md font-bold leading-none no-underline shadow-sm border border-slate-200">배치중</span>`;
+            } else {
+                oppRankBadge = `<span class="bg-slate-100 text-slate-400 text-[11px] px-2 py-0.5 rounded-md font-bold leading-none no-underline shadow-sm border border-slate-200" title="과거 기록">-</span>`;
+            }
             const oppProfile = rankingsData.find(u => u.name === oppName); const oppLink = oppProfile ? `onclick="openProfile('${oppProfile.id}')"` : ''; const oppCursor = oppProfile ? 'cursor-pointer hover:underline hover:text-blue-600' : '';
             
             let seasonBadgeHtml = '';
