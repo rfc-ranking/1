@@ -559,8 +559,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v5.40",
-            updateNote: "최고 순위 인정 기준을 시즌 10경기부터로 변경",
+            version: "v5.41",
+            updateNote: "최고 순위 계산 기준 개선: 10경기부터 전후 순위 + 시즌 종료 최종 순위",
             title: "RFC 랭킹전"
         };
 
@@ -2187,18 +2187,22 @@
                 const season = m.season || "시즌 1";
                 seasonMatchCounts[season] = (seasonMatchCounts[season] || 0) + 1;
 
-                // 시즌 총 10경기부터 경기 당시 실제 랭킹을 최고 순위 후보로 인정합니다.
+                // 1~9번째 경기는 최고 순위 계산에서 제외합니다.
+                // 10번째 경기부터 경기 전/후 순위를 모두 최고 순위 후보로 인정합니다.
                 if (seasonMatchCounts[season] < 10) return;
 
-                let rankValue;
+                let rankBefore;
+                let rankAfter;
                 let wasChampion = false;
 
                 if (m.winner === playerName) {
-                    rankValue = m.winnerRankBefore;
-                    wasChampion = m.winnerWasChampion === true || rankValue === 'C';
+                    rankBefore = m.winnerRankBefore;
+                    rankAfter = m.winnerRankAfter;
+                    wasChampion = m.winnerWasChampion === true || rankBefore === 'C';
                 } else {
-                    rankValue = m.loserRankBefore;
-                    wasChampion = m.loserWasChampion === true || rankValue === 'C';
+                    rankBefore = m.loserRankBefore;
+                    rankAfter = m.loserRankAfter;
+                    wasChampion = m.loserWasChampion === true || rankBefore === 'C';
                 }
 
                 // 챔피언은 경기 당시 랭킹 후보에서는 제외하되, 챔피언 경험은 보존합니다.
@@ -2207,7 +2211,9 @@
                     return;
                 }
 
-                considerRank(rankValue);
+                // 10번째 경기부터는 경기 전/후 순위를 모두 최고 순위 후보로 반영합니다.
+                considerRank(rankBefore);
+                considerRank(rankAfter);
             });
 
             // [FIX] 시즌 종료 후 새 시즌을 시작하면 마지막 경기 이후의 최종 ELO 순위가
@@ -2224,11 +2230,6 @@
                 const archivedPlayer = archivedRankings.find(p => p && p.name === playerName);
                 if (!archivedPlayer) return;
 
-                const totalMatches = Number(archivedPlayer.wins || 0)
-                    + Number(archivedPlayer.losses || 0)
-                    + Number(archivedPlayer.draws || 0);
-                if (totalMatches < 10) return;
-
                 if (archivedPlayer.isChampion === true) {
                     hasChampionExperience = true;
                 }
@@ -2236,7 +2237,7 @@
                 // 시즌 최종 순위는 해당 시즌 종료 시점의 ELO를 기준으로 계산합니다.
                 // 챔피언도 ELO 최종 순위를 확인할 수 있도록 여기서는 챔피언을 제외하지 않습니다.
                 const finalRankedPlayers = archivedRankings
-                    .filter(p => p && (Number(p.wins || 0) + Number(p.losses || 0) + Number(p.draws || 0)) >= 10)
+                    .filter(p => p)
                     .sort((a, b) => (Number(b.elo) || 1000) - (Number(a.elo) || 1000));
 
                 const finalRank = finalRankedPlayers.findIndex(p => p && p.name === playerName) + 1;
