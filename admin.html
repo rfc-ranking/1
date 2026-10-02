@@ -2841,9 +2841,9 @@ window.confirmBatchPenalty = (days, score) => { if(batchPenaltyTargets.length ==
             const rankIndex = sortedRankedIndices.indexOf(index); const isRanked = rankIndex !== -1; const totalMatches = (p.wins || 0) + (p.losses || 0) + (p.draws || 0); 
             let rankPrefix = ''; if (isRanked) rankPrefix = `${rankIndex + 1}. `; else if (totalMatches > 0) rankPrefix = `[배치] `; 
             const displayName = `${rankPrefix}${p.name}`; 
-            return { value: index, text: `${displayName} (${p.elo})`, displayName: displayName, name: p.name, gameId: p.gameId || '-', choseong: p.choseong, jamo: p.jamo, elo: p.elo || 1000, isRanked: isRanked, totalMatches: totalMatches }; 
+            return { value: index, text: `${displayName} (${p.elo})`, displayName: displayName, name: p.name, gameId: p.gameId || '-', choseong: p.choseong, jamo: p.jamo, elo: p.elo || 1000, isRanked: isRanked, totalMatches: totalMatches, isChampion: !!p.isChampion }; 
         }); 
-        playerOptions.sort((a, b) => { const typeA = a.isRanked ? 2 : (a.totalMatches > 0 ? 1 : 0); const typeB = b.isRanked ? 2 : (b.totalMatches > 0 ? 1 : 0); if (typeA !== typeB) return typeB - typeA; if (b.elo !== a.elo) return b.elo - a.elo; return a.name.localeCompare(b.name); }); 
+        playerOptions.sort((a, b) => { if (a.isChampion !== b.isChampion) return b.isChampion ? 1 : -1; const typeA = a.isRanked ? 2 : (a.totalMatches > 0 ? 1 : 0); const typeB = b.isRanked ? 2 : (b.totalMatches > 0 ? 1 : 0); if (typeA !== typeB) return typeB - typeA; if (b.elo !== a.elo) return b.elo - a.elo; return a.name.localeCompare(b.name); }); 
         if (typeof TomSelect === 'undefined') return; 
         const config = { 
             options: playerOptions, valueField: 'value', labelField: 'text', searchField: ['text'], create: false, maxOptions: null, 
