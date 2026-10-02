@@ -559,8 +559,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v5.32",
-            updateNote: "최고 순위 챔피언 표시 개선",
+            version: "v5.33",
+            updateNote: "공지 수정 시 자동 재표시를 위한 noticeVersion 적용",
             title: "RFC 랭킹전"
         };
 
@@ -770,20 +770,42 @@
             }
         });
 
+        // [v5.33] 공지 버전이 바뀌면 기존 "오늘 하루 보지 않기" 기록을 무시합니다.
+        // 관리자에서 공지를 수정/활성화 상태 변경할 때 noticeVersion이 증가하며,
+        // 사용자는 마지막으로 숨긴 공지의 버전과 현재 버전을 비교합니다.
         function checkNotice(noticeData) {
             if (!noticeData || !noticeData.active || !noticeData.content) return;
-            const today = new Date().toLocaleDateString('en-CA'); 
+
+            const today = new Date().toLocaleDateString('en-CA');
+            const currentNoticeVersion = String(noticeData.version || 1);
             const hiddenDate = localStorage.getItem('rfc_notice_hide_date');
-            if (hiddenDate === today) return; 
+            const hiddenVersion = localStorage.getItem('rfc_notice_hide_version');
+
+            // 같은 공지 버전을 오늘 숨긴 경우에만 숨김 상태를 유지합니다.
+            if (hiddenDate === today && hiddenVersion === currentNoticeVersion) return;
+
+            // 이전 버전에서 사용하던 날짜-only 기록은 새 버전 체계와 충돌하지 않도록 정리합니다.
+            // 특히 관리자가 공지를 수정한 경우에는 수정된 공지가 다시 표시되어야 합니다.
+            if (hiddenVersion !== currentNoticeVersion) {
+                localStorage.removeItem('rfc_notice_hide_date');
+            }
+
             document.getElementById('noticeContent').textContent = noticeData.content;
-            document.getElementById('noticeModal').classList.remove('hidden');
+            const noticeModal = document.getElementById('noticeModal');
+            if (noticeModal) noticeModal.dataset.noticeVersion = currentNoticeVersion;
+            noticeModal?.classList.remove('hidden');
         }
 
         window.closeNotice = () => {
             const checkBox = document.getElementById('dontShowToday');
             if (checkBox && checkBox.checked) {
                 const today = new Date().toLocaleDateString('en-CA');
+                const currentNoticeContent = document.getElementById('noticeContent')?.textContent || '';
+                // 현재 표시 중인 공지 버전은 checkNotice에서 관리하므로,
+                // DOM에 저장해 둔 전용 속성에서 가져옵니다.
+                const currentNoticeVersion = document.getElementById('noticeModal')?.dataset.noticeVersion || '1';
                 localStorage.setItem('rfc_notice_hide_date', today);
+                localStorage.setItem('rfc_notice_hide_version', currentNoticeVersion);
             }
             document.getElementById('noticeModal').classList.add('hidden');
         };
