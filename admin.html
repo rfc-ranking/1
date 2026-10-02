@@ -376,9 +376,9 @@
 
                 <div id="seasonSection" class="tab-content hidden">
                     <div class="space-y-4">
-                        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden p-5"><h3 class="font-bold text-slate-700 mb-3 border-b pb-2">📅 시즌 목록</h3><div id="seasonListContainer" class="space-y-2 max-h-60 overflow-y-auto mb-2"></div><p class="text-[10px] text-slate-400 mt-2">* 목록에서 삭제하면 사용자 화면에서도 즉시 사라집니다.</p></div>
+                        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden p-5"><h3 class="font-bold text-slate-700 mb-3 border-b pb-2">📅 시즌 목록</h3><div id="seasonListContainer" class="space-y-2 max-h-72 overflow-y-auto mb-2"></div><p class="text-[10px] text-slate-400 mt-2">* 시작일과 종료일은 직접 관리할 수 있으며 사용자 화면에도 동일하게 표시됩니다.</p></div>
                         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden p-5"><div class="flex justify-between items-center mb-2"><h3 class="font-bold text-slate-700">😴 미참여 선수</h3><span id="seasonInactiveCount" class="bg-slate-100 text-slate-600 text-xs font-bold px-2 py-1 rounded">0명</span></div><div class="text-xs text-slate-500 mb-3">현재 시즌(<span class="currentSeasonName font-bold"></span>) 경기 기록 없음</div><button onclick="toggleInactiveList()" class="text-xs text-blue-500 font-bold underline mb-2">목록 보기/숨기기</button><ul id="seasonInactiveList" class="hidden bg-slate-50 p-2 rounded text-xs text-slate-600 space-y-1 mb-3 max-h-40 overflow-y-auto border border-slate-200"></ul></div>
-                        <div class="bg-purple-50 rounded-2xl shadow-sm border border-purple-100 overflow-hidden p-5"><h3 class="font-bold text-purple-800 mb-2">🚀 시즌 종료 및 시작</h3><p class="text-xs text-purple-600 mb-4">현재 시즌을 마감하고 새 시즌을 시작합니다.</p><div class="flex gap-2"><input type="text" id="newSeasonNameInput" class="flex-grow border border-purple-200 rounded-lg p-2 text-sm focus:outline-none focus:border-purple-400" placeholder="새 시즌 이름"><button onclick="finishAndStartNewSeason()" class="bg-purple-600 hover:bg-purple-700 text-white font-bold px-4 py-2 rounded-lg text-xs shadow transition whitespace-nowrap">시즌 시작</button></div></div>
+                        <div class="bg-purple-50 rounded-2xl shadow-sm border border-purple-100 overflow-hidden p-5"><h3 class="font-bold text-purple-800 mb-2">🚀 시즌 종료 및 시작</h3><p class="text-xs text-purple-600 mb-4">새 시즌의 이름과 기간을 직접 입력합니다. 종료일을 비워두면 진행 중으로 표시됩니다.</p><div class="grid grid-cols-1 md:grid-cols-3 gap-2"><input type="text" id="newSeasonNameInput" class="border border-purple-200 rounded-lg p-2 text-sm focus:outline-none focus:border-purple-400" placeholder="새 시즌 이름"><div><label class="block text-[9px] font-bold text-purple-600 mb-1">시작일</label><input type="date" id="newSeasonStartDateInput" class="w-full border border-purple-200 rounded-lg p-2 text-sm focus:outline-none focus:border-purple-400"></div><div><label class="block text-[9px] font-bold text-purple-600 mb-1">종료일 (선택)</label><input type="date" id="newSeasonEndDateInput" class="w-full border border-purple-200 rounded-lg p-2 text-sm focus:outline-none focus:border-purple-400"></div></div><button onclick="finishAndStartNewSeason()" class="w-full mt-3 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 rounded-lg text-xs shadow transition">새 시즌 시작</button></div>
                     </div>
                 </div>
 
@@ -710,6 +710,16 @@
         </div>
     </div>
 
+    <div id="seasonDateModal" class="fixed inset-0 bg-slate-900/80 z-[10003] hidden flex items-center justify-center backdrop-blur-sm" onclick="if(event.target === this) closeSeasonDateModal()">
+        <div class="bg-white rounded-2xl shadow-2xl w-11/12 max-w-sm p-5">
+            <input type="hidden" id="seasonDateTarget">
+            <h2 class="text-lg font-black text-slate-800 mb-1">📅 시즌 기간 수정</h2>
+            <p id="seasonDateTargetLabel" class="text-xs text-slate-400 mb-4"></p>
+            <div class="space-y-3"><div><label class="block text-[10px] font-bold text-slate-500 mb-1">시작일</label><input type="date" id="seasonStartDateInput" class="w-full border border-slate-200 rounded-lg p-2.5 text-sm focus:outline-none focus:border-blue-500"></div><div><label class="block text-[10px] font-bold text-slate-500 mb-1">종료일 <span class="font-normal text-slate-400">(진행 중이면 비워두세요)</span></label><input type="date" id="seasonEndDateInput" class="w-full border border-slate-200 rounded-lg p-2.5 text-sm focus:outline-none focus:border-blue-500"></div></div>
+            <div class="flex gap-2 mt-5"><button onclick="closeSeasonDateModal()" class="flex-1 bg-slate-100 text-slate-600 font-bold py-2.5 rounded-lg text-xs">취소</button><button onclick="saveSeasonDates()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg text-xs">기간 저장</button></div>
+        </div>
+    </div>
+
     <div id="renameModal" class="fixed inset-0 bg-slate-900/80 z-[10002] hidden flex items-center justify-center backdrop-blur-sm" onclick="if(event.target === this) closeRenameModal()">
         <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-sm w-full mx-4 transform transition-all scale-100"><h3 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">✏️ 시즌 이름 변경</h3><input type="hidden" id="renameOldName"><input type="text" id="renameInput" class="w-full border p-3 rounded-lg text-sm mb-6 focus:ring-2 focus:ring-blue-500 outline-none bg-slate-50" placeholder="새 시즌 이름" onkeypress="if(event.key==='Enter') confirmRenameSeason()"><div class="flex justify-end gap-2"><button onclick="closeRenameModal()" class="bg-gray-100 text-gray-600 hover:bg-gray-200 px-4 py-2 rounded-lg text-sm font-bold transition">취소</button><button onclick="confirmRenameSeason()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg text-sm font-bold shadow transition">변경</button></div></div>
     </div>
@@ -810,8 +820,8 @@
         const AUTO_LOGIN_PW = "";
         
         const ADMIN_CONFIG = {
-            version: "v5.68",
-            updateNote: "새 시즌 선수 정렬 개선: 전 시즌 최종 랭킹 → 배치중 → 미배치 가나다순으로 시작",
+            version: "v5.69",
+            updateNote: "시즌별 시작일·종료일 직접 관리 및 시즌 목록 기간 표시",
             title: "RFC 매니저"
         };
 
@@ -829,7 +839,7 @@
         const firebaseConfig = { apiKey: "AIzaSyDlj68ex-fM0ExRdD-tvCy-UyIneVoPmGk", authDomain: "rfk-ranking.firebaseapp.com", projectId: "rfk-ranking", storageBucket: "rfk-ranking.firebasestorage.app", messagingSenderId: "675366165774", appId: "1:675366165774:web:795d34c56eab630b4dcb5f", measurementId: "G-CXPDZQ8GTL" };
         const app = initializeApp(firebaseConfig); const db = getFirestore(app); const auth = getAuth(app); const appId = 'ranking-manager-default';
         
-        let rankingsData = []; let matchHistoryData = []; let seasonArchives = {}; let activeSeason = "시즌 1"; let championVacant = false; let ruleHtml = ""; let patchNotesData = [];
+        let rankingsData = []; let matchHistoryData = []; let seasonArchives = {}; let seasonDates = {}; let activeSeason = "시즌 1"; let championVacant = false; let ruleHtml = ""; let patchNotesData = [];
         let noticeVersion = 1; // [v5.62] 사용자 공지 변경 식별 버전
         let availablePatchTags = []; // [NEW] 태그 저장용 배열
         let undoStack = []; const MAX_UNDO = 10;
@@ -862,6 +872,7 @@
                 rankings: JSON.stringify(rankingsData),
                 history: JSON.stringify(matchHistoryData),
                 archives: JSON.stringify(seasonArchives),
+                seasonDates: JSON.stringify(seasonDates),
                 season: activeSeason,
                 championVacant: championVacant,
                 patchNotes: JSON.stringify(patchNotesData),
@@ -879,6 +890,7 @@
                 rankingsData = JSON.parse(prevState.rankings);
                 matchHistoryData = JSON.parse(prevState.history);
                 seasonArchives = JSON.parse(prevState.archives);
+                seasonDates = prevState.seasonDates ? JSON.parse(prevState.seasonDates) : {};
                 activeSeason = prevState.season;
                 championVacant = prevState.championVacant === true;
                 if (prevState.patchNotes) patchNotesData = JSON.parse(prevState.patchNotes);
@@ -1003,35 +1015,17 @@
         function getKSTDate() { return new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Seoul" }); }
 
         function getSeasonDateRange(seasonName) {
-            const seasonMatches = matchHistoryData.filter(m => (m.season || "시즌 1") === seasonName);
-            if (seasonMatches.length === 0) return "경기 기록 없음";
-            
-            const dates = seasonMatches.map(m => {
-                const d = new Date(m.date);
-                return isNaN(d.getTime()) ? 0 : d.getTime();
-            }).filter(t => t > 0);
-
-            if (dates.length === 0) return "경기 기록 없음";
-
-            const oldestTime = Math.min(...dates);
-            const newestTime = Math.max(...dates);
-            
-            const formatDate = (time) => {
-                const d = new Date(time);
-                const yy = String(d.getFullYear()).slice(-2);
-                const mm = String(d.getMonth() + 1).padStart(2, '0');
-                const dd = String(d.getDate()).padStart(2, '0');
-                return `${yy}.${mm}.${dd}`;
-            };
-
-            const startDate = formatDate(oldestTime);
-            
-            if (seasonName === activeSeason) {
-                return `${startDate} ~ 진행중`;
-            } else {
-                const endDate = formatDate(newestTime);
-                return `${startDate} ~ ${endDate}`;
+            const meta = seasonDates[seasonName] || {};
+            const fallbackMatches = matchHistoryData.filter(m => (m.season || "시즌 1") === seasonName);
+            let startDate = meta.startDate || "";
+            let endDate = meta.endDate || "";
+            if (!startDate && fallbackMatches.length) {
+                const dates = fallbackMatches.map(m => new Date(m.date)).filter(d => !isNaN(d.getTime()));
+                if (dates.length) startDate = new Date(Math.min(...dates.map(d => d.getTime()))).toISOString().slice(0,10);
             }
+            if (!startDate) return "기간 미설정";
+            const fmt = d => { const x = new Date(d + 'T00:00:00'); return `${String(x.getFullYear()).slice(-2)}.${String(x.getMonth()+1).padStart(2,'0')}.${String(x.getDate()).padStart(2,'0')}`; };
+            return endDate ? `${fmt(startDate)} ~ ${fmt(endDate)}` : `${fmt(startDate)} ~ 진행중`;
         }
         
         function isRecentRankIn(dateStr) {
@@ -1174,14 +1168,25 @@
         }
 
         function selectPresetColor(code, element) { document.getElementById('editTrunkColor').value = code; document.querySelectorAll('.color-preset').forEach(el => el.classList.remove('active')); if(element) element.classList.add('active'); }
-        function renderSeasonList() { const container = document.getElementById('seasonListContainer'); if(!container) return; container.innerHTML = ''; const seasons = [activeSeason, ...Object.keys(seasonArchives).sort().reverse().filter(s => s !== activeSeason)]; seasons.forEach(sName => { const isActive = sName === activeSeason; const div = document.createElement('div'); div.className = `flex justify-between items-center p-3 rounded-lg border ${isActive ? 'bg-blue-50 border-blue-300' : 'bg-white border-slate-200'}`; div.innerHTML = `<div class="flex items-center gap-2"><span class="${isActive ? 'text-blue-700 font-bold' : 'text-slate-600'} text-sm">${sName}</span>${isActive ? '<span class="text-[10px] bg-blue-600 text-white px-1.5 py-0.5 rounded">Active</span>' : ''}</div><div class="flex gap-1">${!isActive ? `<button onclick="switchActiveSeason('${sName}')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded border border-slate-200">선택</button>` : ''}<button onclick="openRenameModal('${sName}')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-500 px-2 py-1 rounded border border-slate-200">이름변경</button>${!isActive ? `<button onclick="deleteSeason('${sName}')" class="text-xs bg-red-50 hover:bg-red-100 text-red-500 px-2 py-1 rounded border border-red-100">삭제</button>` : ''}</div>`; container.appendChild(div); }); }
+        function renderSeasonList() {
+            const container = document.getElementById('seasonListContainer'); if(!container) return; container.innerHTML = '';
+            const seasons = [activeSeason, ...Object.keys(seasonArchives).sort().reverse().filter(s => s !== activeSeason)];
+            seasons.forEach(sName => {
+                const isActive = sName === activeSeason; const range = getSeasonDateRange(sName); const div = document.createElement('div');
+                div.className = `p-3 rounded-lg border ${isActive ? 'bg-blue-50 border-blue-300' : 'bg-white border-slate-200'}`;
+                div.innerHTML = `<div class="flex justify-between items-start gap-3"><div class="min-w-0"><div class="flex items-center gap-2"><span class="${isActive ? 'text-blue-700 font-bold' : 'text-slate-600'} text-sm truncate">${sName}</span>${isActive ? '<span class="text-[10px] bg-blue-600 text-white px-1.5 py-0.5 rounded">Active</span>' : ''}</div><div class="text-[11px] text-slate-400 mt-1">📅 ${range}</div></div><div class="flex gap-1 shrink-0">${!isActive ? `<button onclick="switchActiveSeason('${sName}')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded border border-slate-200">선택</button>` : ''}<button onclick="openSeasonDateModal('${sName}')" class="text-xs bg-blue-50 hover:bg-blue-100 text-blue-600 px-2 py-1 rounded border border-blue-100">기간 수정</button><button onclick="openRenameModal('${sName}')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-500 px-2 py-1 rounded border border-slate-200">이름변경</button>${!isActive ? `<button onclick="deleteSeason('${sName}')" class="text-xs bg-red-50 hover:bg-red-100 text-red-500 px-2 py-1 rounded border border-red-100">삭제</button>` : ''}</div></div>`; container.appendChild(div);
+            });
+        }
+        window.openSeasonDateModal = (seasonName) => { const meta = seasonDates[seasonName] || {}; document.getElementById('seasonDateTarget').value = seasonName; document.getElementById('seasonDateTargetLabel').textContent = `${seasonName}의 시작일과 종료일을 직접 설정합니다.`; document.getElementById('seasonStartDateInput').value = meta.startDate || ''; document.getElementById('seasonEndDateInput').value = meta.endDate || ''; document.getElementById('seasonDateModal').classList.remove('hidden'); };
+        window.closeSeasonDateModal = () => document.getElementById('seasonDateModal')?.classList.add('hidden');
+        window.saveSeasonDates = async () => { const seasonName = document.getElementById('seasonDateTarget').value; const startDate = document.getElementById('seasonStartDateInput').value; const endDate = document.getElementById('seasonEndDateInput').value; if (!startDate) return showCustomAlert('시작일을 입력해주세요.'); if (endDate && endDate < startDate) return showCustomAlert('종료일은 시작일보다 빠를 수 없습니다.'); captureState(); seasonDates[seasonName] = { startDate, endDate: endDate || '' }; await saveRankings(); renderSeasonList(); updateSeasonUI(); closeSeasonDateModal(); showCustomAlert('시즌 기간이 저장되었습니다.'); };
 
         function loadData() { 
             const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'rankings', 'main'); 
             onSnapshot(docRef, (doc) => { 
                 if (doc.exists()) { 
                     const data = doc.data(); 
-                    rankingsData = data.rankings || []; matchHistoryData = data.matchHistory || []; seasonArchives = data.seasonArchives || {}; activeSeason = data.activeSeason || "시즌 1"; championVacant = data.championVacant !== undefined ? data.championVacant === true : !rankingsData.some(p => p.isChampion === true); ruleHtml = data.ruleHtml || DEFAULT_RULE_HTML; patchNotesData = data.patchNotes || [];
+                    rankingsData = data.rankings || []; matchHistoryData = data.matchHistory || []; seasonArchives = data.seasonArchives || {}; seasonDates = data.seasonDates || {}; activeSeason = data.activeSeason || "시즌 1"; championVacant = data.championVacant !== undefined ? data.championVacant === true : !rankingsData.some(p => p.isChampion === true); ruleHtml = data.ruleHtml || DEFAULT_RULE_HTML; patchNotesData = data.patchNotes || [];
                     
                     // [NEW] 태그 리스트 불러오기 (없으면 기본값 할당)
                     availablePatchTags = data.availablePatchTags || ["🚧 개발중/예정", "🟢 적용완료(LIVE)", "⚖️ 밸런스", "⚙️ 시스템", "💡 유저 팁", "🤫 루머/유출"];
@@ -1224,7 +1229,7 @@
             
             document.querySelectorAll('.currentSeasonName').forEach(el => el.textContent = activeSeason); 
             const num = parseInt(activeSeason.replace(/[^0-9]/g, '')) || 0; 
-            document.getElementById('newSeasonNameInput').value = `시즌 ${num + 1}`; 
+            document.getElementById('newSeasonNameInput').value = `시즌 ${num + 1}`; const startInput = document.getElementById('newSeasonStartDateInput'); if(startInput && !startInput.value) startInput.value = getKSTDate(); 
         }
         window.resetMatchInputs = (keepDate = false) => { if(p1Tom) p1Tom.clear(); if(p2Tom) p2Tom.clear(); document.querySelectorAll('input[name="winner"]').forEach(r => r.checked = false); document.getElementById('isTitleMatch').checked = false; const p1Ind = document.getElementById('p1TrunkIndicator'); const p2Ind = document.getElementById('p2TrunkIndicator'); if(p1Ind) p1Ind.style.backgroundColor = '#f1f5f9'; if(p2Ind) p2Ind.style.backgroundColor = '#f1f5f9'; window.updateMatchPreview(); if (!keepDate) setMatchDate('today'); };
         
@@ -1692,7 +1697,7 @@
             } catch (e) { showCustomAlert("오류 발생."); }
         };
 
-        window.backupData = () => { const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ rankings: rankingsData, history: matchHistoryData, archives: seasonArchives, activeSeason: activeSeason, championVacant: championVacant, patchNotes: patchNotesData }, null, 2)); const dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", `RFC_BACKUP_${new Date().toISOString().slice(0,10)}.json`); document.body.appendChild(dl); dl.click(); dl.remove(); };
+        window.backupData = () => { const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ rankings: rankingsData, history: matchHistoryData, archives: seasonArchives, seasonDates: seasonDates, activeSeason: activeSeason, championVacant: championVacant, patchNotes: patchNotesData }, null, 2)); const dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", `RFC_BACKUP_${new Date().toISOString().slice(0,10)}.json`); document.body.appendChild(dl); dl.click(); dl.remove(); };
         window.saveRankings = async function(isUndo = false) {
             const statusEl = document.getElementById('saveStatus');
             const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'rankings', 'main');
@@ -1705,6 +1710,7 @@
                         rankings: rankingsData,
                         matchHistory: matchHistoryData,
                         seasonArchives: seasonArchives,
+                        seasonDates: seasonDates,
                         activeSeason: activeSeason,
                         championVacant: championVacant,
                         date: new Date().toISOString()
@@ -2149,12 +2155,12 @@
         };
 
         window.switchTab = (tab) => { document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden')); document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active')); document.getElementById(tab + 'Section').classList.remove('hidden'); document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active'); };
-        window.deleteSeason = (targetName) => { if (targetName === activeSeason) return showCustomAlert("활성 시즌 삭제 불가."); showConfirmModal(`[${targetName}] 시즌 삭제?`, async () => { captureState(); delete seasonArchives[targetName]; matchHistoryData = matchHistoryData.filter(m => m.season !== targetName); await saveRankings(); renderSeasonList(); showCustomAlert("삭제됨."); }); };
+        window.deleteSeason = (targetName) => { if (targetName === activeSeason) return showCustomAlert("활성 시즌 삭제 불가."); showConfirmModal(`[${targetName}] 시즌 삭제?`, async () => { captureState(); delete seasonArchives[targetName]; delete seasonDates[targetName]; matchHistoryData = matchHistoryData.filter(m => m.season !== targetName); await saveRankings(); renderSeasonList(); showCustomAlert("삭제됨."); }); };
         window.switchActiveSeason = (targetName) => { showConfirmModal(`[${targetName}] 전환?`, async () => { captureState(); seasonArchives[activeSeason] = { rankings: JSON.parse(JSON.stringify(rankingsData)), championVacant: championVacant }; const t = seasonArchives[targetName]; if (t) { rankingsData = t.rankings || []; championVacant = t.championVacant !== undefined ? t.championVacant === true : !rankingsData.some(p => p.isChampion === true); } delete seasonArchives[targetName]; activeSeason = targetName; viewHistorySeason = activeSeason; await saveRankings(); updateSeasonUI(); renderSeasonList(); renderRankings(); updateAdminHistorySeasonSelector(); renderAdminMatches(); showCustomAlert("전환됨."); }); };
         window.openRenameModal = (oldName) => { document.getElementById('renameOldName').value = oldName; document.getElementById('renameInput').value = oldName; document.getElementById('renameModal').classList.remove('hidden'); setTimeout(() => document.getElementById('renameInput').focus(), 50); };
         window.closeRenameModal = () => { document.getElementById('renameModal').classList.add('hidden'); };
-        window.confirmRenameSeason = async () => { const oldName = document.getElementById('renameOldName').value; const newName = document.getElementById('renameInput').value.trim(); if(!newName || newName === oldName) { closeRenameModal(); return; } if(newName === activeSeason || seasonArchives[newName]) return showCustomAlert("이미 존재하는 시즌 이름입니다."); captureState(); if (oldName === activeSeason) { activeSeason = newName; if (seasonArchives[oldName]) delete seasonArchives[oldName]; } else { seasonArchives[newName] = seasonArchives[oldName]; delete seasonArchives[oldName]; } matchHistoryData.forEach(m => { if(m.season === oldName) m.season = newName; }); await saveRankings(); renderSeasonList(); updateSeasonUI(); closeRenameModal(); showCustomAlert("변경됨."); };
-        window.finishAndStartNewSeason = () => { const n = document.getElementById('newSeasonNameInput').value.trim(); if(!n) return; if(n === activeSeason || seasonArchives[n]) return; showConfirmModal(`새 시즌 [${n}] 시작?`, async () => { captureState(); seasonArchives[activeSeason] = { rankings: JSON.parse(JSON.stringify(rankingsData)), championVacant: championVacant }; activeSeason = n; championVacant = false; const previousSeasonPlayers = JSON.parse(JSON.stringify(rankingsData));
+        window.confirmRenameSeason = async () => { const oldName = document.getElementById('renameOldName').value; const newName = document.getElementById('renameInput').value.trim(); if(!newName || newName === oldName) { closeRenameModal(); return; } if(newName === activeSeason || seasonArchives[newName]) return showCustomAlert("이미 존재하는 시즌 이름입니다."); captureState(); if (oldName === activeSeason) { activeSeason = newName; if (seasonArchives[oldName]) delete seasonArchives[oldName]; if (seasonDates[oldName]) { seasonDates[newName] = seasonDates[oldName]; delete seasonDates[oldName]; } } else { seasonArchives[newName] = seasonArchives[oldName]; delete seasonArchives[oldName]; if (seasonDates[oldName]) { seasonDates[newName] = seasonDates[oldName]; delete seasonDates[oldName]; } } matchHistoryData.forEach(m => { if(m.season === oldName) m.season = newName; }); await saveRankings(); renderSeasonList(); updateSeasonUI(); closeRenameModal(); showCustomAlert("변경됨."); };
+        window.finishAndStartNewSeason = () => { const n = document.getElementById('newSeasonNameInput').value.trim(); if(!n) return; if(n === activeSeason || seasonArchives[n]) return; showConfirmModal(`새 시즌 [${n}] 시작?`, async () => { captureState(); const newStartDate = document.getElementById("newSeasonStartDateInput")?.value || ""; const newEndDate = document.getElementById("newSeasonEndDateInput")?.value || ""; if (!newStartDate) return showCustomAlert("새 시즌 시작일을 입력해주세요."); if (newEndDate && newEndDate < newStartDate) return showCustomAlert("새 시즌 종료일은 시작일보다 빠를 수 없습니다."); seasonArchives[activeSeason] = { rankings: JSON.parse(JSON.stringify(rankingsData)), championVacant: championVacant }; if (!seasonDates[activeSeason]) seasonDates[activeSeason] = { startDate: "", endDate: "" }; activeSeason = n; seasonDates[activeSeason] = { startDate: newStartDate, endDate: newEndDate }; championVacant = false; const previousSeasonPlayers = JSON.parse(JSON.stringify(rankingsData));
             const getPreviousMatchCount = p => Number(p.wins || 0) + Number(p.losses || 0) + Number(p.draws || 0);
             const previousRanked = previousSeasonPlayers
                 .filter(p => getPreviousMatchCount(p) >= 3)
