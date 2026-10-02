@@ -792,8 +792,8 @@
         const AUTO_LOGIN_PW = "";
         
         const ADMIN_CONFIG = {
-            version: "v5.58",
-            updateNote: "최고 순위 챔피언 표시 개선",
+            version: "v5.59",
+            updateNote: "챔피언 상대 날짜별 기록 표시 개선",
             title: "RFC 매니저"
         };
 
@@ -1306,10 +1306,16 @@
 
             const loserBountyVal = isDraw ? 0 : (loser.isChampion ? (loser.defenseCount || 0) * 20 : parseInt(loser.bounty || 0, 10));
 
+            // 경기 시작 시점의 챔피언 여부를 별도로 보존합니다.
+            // 타이틀전에서 챔피언이 교체되면 경기 종료 후 isChampion 값이 바뀌므로,
+            // 날짜별 기록에서는 반드시 '경기 당시' 상태를 사용해야 합니다.
+            const winnerWasChampionAtMatch = winner.isChampion === true;
+            const loserWasChampionAtMatch = loser.isChampion === true;
+
             const isTitleMatch = document.getElementById('isTitleMatch').checked;
             if (isTitleMatch && !isDraw) {
                 const winnerIsChallenger = (winner.elo || 1000) >= 1250; const loserIsChallenger = (loser.elo || 1000) >= 1250;
-                const winnerWasChamp = winner.isChampion === true; const loserWasChamp = loser.isChampion === true;
+                const winnerWasChamp = winnerWasChampionAtMatch; const loserWasChamp = loserWasChampionAtMatch;
                 let newChampionId = null; 
                 if (winnerIsChallenger && loserIsChallenger) newChampionId = winner.id; 
                 else if (winnerWasChamp) newChampionId = winner.id; 
@@ -1366,7 +1372,22 @@
                 if (rank <= 10) { if ((p.currentStreak || 0) >= 3) { p.bounty = (p.currentStreak - 2) * 10; } else { p.bounty = 0; } } else { p.bounty = 0; }
             });
 
-            matchHistoryData.unshift({ date: matchDate, winner: isDraw ? p1.name : (isBlueWin ? p1.name : p2.name), loser: isDraw ? p2.name : (isBlueWin ? p2.name : p1.name), type, isDraw, season: activeSeason, blue: p1.name, winnerChange: winCalc.change, loserChange: loseCalc.change, winnerRankBefore: winnerRankBefore, loserRankBefore: loserRankBefore }); 
+            matchHistoryData.unshift({
+                date: matchDate,
+                winner: isDraw ? p1.name : (isBlueWin ? p1.name : p2.name),
+                loser: isDraw ? p2.name : (isBlueWin ? p2.name : p1.name),
+                type,
+                isDraw,
+                season: activeSeason,
+                blue: p1.name,
+                winnerChange: winCalc.change,
+                loserChange: loseCalc.change,
+                winnerRankBefore: winnerRankBefore,
+                loserRankBefore: loserRankBefore,
+                // 사용자 사이트와 동일하게 경기 당시 챔피언 여부를 기록합니다.
+                winnerWasChampion: winnerWasChampionAtMatch,
+                loserWasChampion: loserWasChampionAtMatch
+            }); 
             matchHistoryData.sort((a, b) => new Date(b.date) - new Date(a.date));
             activeHighlight = { ids: [winner.id, loser.id], endTime: Date.now() + 60000 };
             saveRankings(); renderRankings(); scrollToTarget(winner.id); resetMatchInputs(true);
@@ -2680,8 +2701,20 @@ window.confirmBatchPenalty = (days, score) => { if(batchPenaltyTargets.length ==
                 scoreBadge = `<span class="text-[13px] font-black text-rose-600 shrink-0">${m.loserChange}</span>`; 
             } 
 
-            let oppRankBadge = ''; const oppRankVal = (m.winner === p.name) ? m.loserRankBefore : m.winnerRankBefore;
-            if (oppRankVal !== undefined) { if (oppRankVal > 0) oppRankBadge = `<span class="bg-slate-200 text-slate-500 text-[11px] px-2 py-0.5 rounded-md font-bold leading-none no-underline shadow-sm">${oppRankVal}위</span>`; else oppRankBadge = `<span class="bg-slate-100 text-slate-400 text-[11px] px-2 py-0.5 rounded-md font-bold leading-none no-underline shadow-sm border border-slate-200">배치중</span>`; } else oppRankBadge = `<span class="bg-slate-100 text-slate-400 text-[11px] px-2 py-0.5 rounded-md font-bold leading-none no-underline shadow-sm border border-slate-200" title="과거 기록">-</span>`;
+            let oppRankBadge = '';
+            const oppRankVal = (m.winner === p.name) ? m.loserRankBefore : m.winnerRankBefore;
+            // 사용자 사이트와 동일하게 '경기 당시 챔피언 여부'를 순위보다 먼저 표시합니다.
+            // 기존 데이터의 C 값도 함께 인식하여 이전 기록과 호환합니다.
+            const oppWasChampion = (m.winner === p.name) ? m.loserWasChampion === true : m.winnerWasChampion === true;
+            const isHistoricalChampion = oppWasChampion || oppRankVal === 'C';
+            if (isHistoricalChampion) {
+                oppRankBadge = `<span class="bg-gradient-to-r from-yellow-400 to-amber-500 text-white text-[11px] px-2 py-0.5 rounded-md font-black leading-none no-underline shadow-sm border border-yellow-500">👑CHAMPION</span>`;
+            } else if (oppRankVal !== undefined) {
+                if (oppRankVal > 0) oppRankBadge = `<span class="bg-slate-200 text-slate-500 text-[11px] px-2 py-0.5 rounded-md font-bold leading-none no-underline shadow-sm">${oppRankVal}위</span>`;
+                else oppRankBadge = `<span class="bg-slate-100 text-slate-400 text-[11px] px-2 py-0.5 rounded-md font-bold leading-none no-underline shadow-sm border border-slate-200">배치중</span>`;
+            } else {
+                oppRankBadge = `<span class="bg-slate-100 text-slate-400 text-[11px] px-2 py-0.5 rounded-md font-bold leading-none no-underline shadow-sm border border-slate-200" title="과거 기록">-</span>`;
+            }
             const oppProfile = rankingsData.find(u => u.name === oppName); const oppLink = oppProfile ? `onclick="openProfile('${oppProfile.id}')"` : ''; const oppCursor = oppProfile ? 'cursor-pointer hover:underline hover:text-blue-600' : '';
             
             let seasonBadgeHtml = '';
