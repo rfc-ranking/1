@@ -810,8 +810,8 @@
         const AUTO_LOGIN_PW = "";
         
         const ADMIN_CONFIG = {
-            version: "v5.61",
-            updateNote: "사용자 공지사항 저장 기능 정상화",
+            version: "v5.62",
+            updateNote: "공지 수정 시 사용자 재표시를 위한 noticeVersion 적용",
             title: "RFC 매니저"
         };
 
@@ -830,6 +830,7 @@
         const app = initializeApp(firebaseConfig); const db = getFirestore(app); const auth = getAuth(app); const appId = 'ranking-manager-default';
         
         let rankingsData = []; let matchHistoryData = []; let seasonArchives = {}; let activeSeason = "시즌 1"; let championVacant = false; let ruleHtml = ""; let patchNotesData = [];
+        let noticeVersion = 1; // [v5.62] 사용자 공지 변경 식별 버전
         let availablePatchTags = []; // [NEW] 태그 저장용 배열
         let undoStack = []; const MAX_UNDO = 10;
         let searchQuery = "";
@@ -1192,9 +1193,13 @@
                     if(data.noticeData) {
                         document.getElementById('noticeContentInput').value = data.noticeData.content || "";
                         document.getElementById('noticeActiveToggle').checked = data.noticeData.active === true;
+                        noticeVersion = Number.isFinite(Number(data.noticeData.version)) && Number(data.noticeData.version) > 0
+                            ? Number(data.noticeData.version)
+                            : 1;
                     } else {
                         document.getElementById('noticeContentInput').value = "";
                         document.getElementById('noticeActiveToggle').checked = false;
+                        noticeVersion = 1;
                     } 
                     if(document.getElementById('adminGlobalNoteInput')) { document.getElementById('adminGlobalNoteInput').value = data.adminGlobalNote || ""; }
                     rankingsData.forEach((p, i) => { 
@@ -1711,12 +1716,30 @@
                         payload.availablePatchTags = availablePatchTags;
                         payload.adminGlobalNote = document.getElementById('adminGlobalNoteInput')?.value || "";
 
-                        // [v5.61 FIX] 사용자 공지사항도 동일 문서에 반드시 저장
+                        // [v5.62] 사용자 공지사항 저장 + 변경 버전 관리
+                        // 공지 내용/활성화 상태가 실제로 변경된 경우에만 noticeVersion을 증가시킵니다.
                         const noticeInput = document.getElementById('noticeContentInput');
                         const noticeToggle = document.getElementById('noticeActiveToggle');
+                        const newNoticeContent = noticeInput ? noticeInput.value : "";
+                        const newNoticeActive = noticeToggle ? noticeToggle.checked === true : false;
+                        const oldNoticeData = sfDoc.data().noticeData || {};
+                        const oldNoticeContent = oldNoticeData.content || "";
+                        const oldNoticeActive = oldNoticeData.active === true;
+                        const oldNoticeVersion = Number.isFinite(Number(oldNoticeData.version)) && Number(oldNoticeData.version) > 0
+                            ? Number(oldNoticeData.version)
+                            : 1;
+                        const noticeChanged = newNoticeContent !== oldNoticeContent || newNoticeActive !== oldNoticeActive;
+
+                        if (noticeChanged) {
+                            noticeVersion = oldNoticeVersion + 1;
+                        } else {
+                            noticeVersion = oldNoticeVersion;
+                        }
+
                         payload.noticeData = {
-                            content: noticeInput ? noticeInput.value : "",
-                            active: noticeToggle ? noticeToggle.checked === true : false
+                            content: newNoticeContent,
+                            active: newNoticeActive,
+                            version: noticeVersion
                         };
                     }
 
@@ -1741,8 +1764,8 @@
             }
         };
 
-        // [v5.61 FIX] 사용자 공지사항 저장
-        // 내용과 활성화 여부를 하나의 noticeData 객체로 묶어 Firestore에 저장합니다.
+        // [v5.62] 사용자 공지사항 저장
+        // 내용/활성화 상태와 noticeVersion을 하나의 noticeData 객체로 묶어 Firestore에 저장합니다.
         window.saveNoticeSettings = async () => {
             const contentEl = document.getElementById('noticeContentInput');
             const activeEl = document.getElementById('noticeActiveToggle');
