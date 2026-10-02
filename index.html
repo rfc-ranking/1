@@ -559,8 +559,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v5.43",
-            updateNote: "새 시즌 선수 정렬 개선: 전 시즌 최종 랭킹 → 배치중 → 미배치 가나다순으로 시작",
+            version: "v5.44",
+            updateNote: "시즌별 시작일·종료일 관리 및 기간 표시 연동",
             title: "RFC 랭킹전"
         };
 
@@ -598,7 +598,7 @@
 
         const firebaseConfig = { apiKey: "AIzaSyDlj68ex-fM0ExRdD-tvCy-UyIneVoPmGk", authDomain: "rfk-ranking.firebaseapp.com", projectId: "rfk-ranking", storageBucket: "rfk-ranking.firebasestorage.app", messagingSenderId: "675366165774", appId: "1:675366165774:web:795d34c56eab630b4dcb5f", measurementId: "G-CXPDZQ8GTL" };
         const app = initializeApp(firebaseConfig); const db = getFirestore(app); const appId = 'ranking-manager-default';
-        let rankingsData = []; let matchHistoryData = []; let enrichedMatchHistory = []; let seasonArchives = {}; let activeSeason = ""; let viewSeason = ""; let viewHofSeason = ""; let viewRankingSeason = ""; let currentProfileId = null;
+        let rankingsData = []; let matchHistoryData = []; let enrichedMatchHistory = []; let seasonArchives = {}; let seasonDates = {}; let activeSeason = ""; let viewSeason = ""; let viewHofSeason = ""; let viewRankingSeason = ""; let currentProfileId = null;
         let patchNotesData = [];
         let currentProfileTab = 'chrono';
         let searchQuery = ""; 
@@ -743,7 +743,7 @@
                 matchHistoryData.sort((a, b) => new Date(b.date) - new Date(a.date));
 
                 activeSeason = data.activeSeason || "시즌 1"; 
-                seasonArchives = data.seasonArchives || {};
+                seasonArchives = data.seasonArchives || {}; seasonDates = data.seasonDates || {};
                 
                 const ruleArea = document.getElementById('ruleContentArea'); 
                 if(ruleArea) { if(data.ruleHtml) ruleArea.innerHTML = data.ruleHtml; else ruleArea.innerHTML = "규칙 데이터가 없습니다."; }
@@ -1066,35 +1066,10 @@
         }
 
         function getSeasonDateRange(seasonName) {
-            const seasonMatches = matchHistoryData.filter(m => (m.season || "시즌 1") === seasonName);
-            if (seasonMatches.length === 0) return null;
-            
-            const dates = seasonMatches.map(m => {
-                const d = new Date(m.date);
-                return isNaN(d.getTime()) ? 0 : d.getTime();
-            }).filter(t => t > 0);
-
-            if (dates.length === 0) return null;
-
-            const oldestTime = Math.min(...dates);
-            const newestTime = Math.max(...dates);
-            
-            const formatDate = (time) => {
-                const d = new Date(time);
-                const yy = String(d.getFullYear()).slice(-2);
-                const mm = String(d.getMonth() + 1).padStart(2, '0');
-                const dd = String(d.getDate()).padStart(2, '0');
-                return `${yy}. ${mm}. ${dd}`;
-            };
-
-            const startDate = formatDate(oldestTime);
-            
-            if (seasonName === activeSeason) {
-                return `${startDate} ~`;
-            } else {
-                const endDate = formatDate(newestTime);
-                return `${startDate} ~ ${endDate}`;
-            }
+            const meta = seasonDates[seasonName] || {}; const seasonMatches = matchHistoryData.filter(m => (m.season || "시즌 1") === seasonName); let startDate = meta.startDate || ""; let endDate = meta.endDate || "";
+            if (!startDate && seasonMatches.length) { const dates = seasonMatches.map(m => new Date(m.date)).filter(d => !isNaN(d.getTime())); if (dates.length) startDate = new Date(Math.min(...dates.map(d => d.getTime()))).toISOString().slice(0,10); }
+            if (!startDate) return null; const fmt = d => { const x = new Date(d + 'T00:00:00'); return `${String(x.getFullYear()).slice(-2)}. ${String(x.getMonth()+1).padStart(2,'0')}. ${String(x.getDate()).padStart(2,'0')}`; };
+            if (endDate) return `${fmt(startDate)} ~ ${fmt(endDate)}`; if (seasonName === activeSeason) return `${fmt(startDate)} ~`; if (seasonMatches.length) { const dates = seasonMatches.map(m => new Date(m.date)).filter(d => !isNaN(d.getTime())); if (dates.length) return `${fmt(startDate)} ~ ${fmt(new Date(Math.max(...dates.map(d => d.getTime()))).toISOString().slice(0,10))}`; } return `${fmt(startDate)} ~`;
         }
 
         function formatSeasonTitle(seasonName) {
