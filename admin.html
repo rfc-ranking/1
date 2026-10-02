@@ -810,8 +810,8 @@
         const AUTO_LOGIN_PW = "";
         
         const ADMIN_CONFIG = {
-            version: "v5.64",
-            updateNote: "최고 순위 인정 기준을 시즌 총 10경기로 변경",
+            version: "v5.65",
+            updateNote: "최고 순위 인정 기준을 시즌 10경기부터로 변경",
             title: "RFC 매니저"
         };
 
@@ -2709,8 +2709,8 @@ window.confirmBatchPenalty = (days, score) => { if(batchPenaltyTargets.length ==
             const season = m.season || "시즌 1";
             seasonMatchCounts[season] = (seasonMatchCounts[season] || 0) + 1;
 
-            // 배치 3판을 포함한 시즌 총 10경기 완료 후부터 최고 순위를 인정합니다.
-            if (seasonMatchCounts[season] <= 10) return;
+            // 시즌 총 10경기부터 최고 순위를 인정합니다.
+            if (seasonMatchCounts[season] < 10) return;
 
             let rankValue;
 
