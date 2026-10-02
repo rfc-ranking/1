@@ -810,8 +810,8 @@
         const AUTO_LOGIN_PW = "";
         
         const ADMIN_CONFIG = {
-            version: "v5.59",
-            updateNote: "챔피언 상대 날짜별 기록 표시 개선",
+            version: "v5.61",
+            updateNote: "사용자 공지사항 저장 기능 정상화",
             title: "RFC 매니저"
         };
 
@@ -1189,7 +1189,13 @@
                     if(!viewHistorySeason) viewHistorySeason = activeSeason; 
                     updateSeasonUI(); renderSeasonList(); renderAdminPatchNotes();
                     document.getElementById('ruleHtmlInput').value = ruleHtml; 
-                    if(data.noticeData) { document.getElementById('noticeContentInput').value = data.noticeData.content || ""; document.getElementById('noticeActiveToggle').checked = data.noticeData.active || false; } 
+                    if(data.noticeData) {
+                        document.getElementById('noticeContentInput').value = data.noticeData.content || "";
+                        document.getElementById('noticeActiveToggle').checked = data.noticeData.active === true;
+                    } else {
+                        document.getElementById('noticeContentInput').value = "";
+                        document.getElementById('noticeActiveToggle').checked = false;
+                    } 
                     if(document.getElementById('adminGlobalNoteInput')) { document.getElementById('adminGlobalNoteInput').value = data.adminGlobalNote || ""; }
                     rankingsData.forEach((p, i) => { 
                         if(p.defenseCount === undefined) p.defenseCount = 0; if(p.previousRank === undefined) p.previousRank = i + 1; if(p.careerHighRank === undefined) p.careerHighRank = i + 1; if(p.elo === undefined) p.elo = 1000; if(p.careerHighElo === undefined) p.careerHighElo = p.elo; if(!p.trunkColor) p.trunkColor = '#1f2937'; if(p.bounty === undefined) p.bounty = 0; if(p.currentStreak === undefined) p.currentStreak = 0;
@@ -1682,7 +1688,104 @@
         };
 
         window.backupData = () => { const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ rankings: rankingsData, history: matchHistoryData, archives: seasonArchives, activeSeason: activeSeason, championVacant: championVacant, patchNotes: patchNotesData }, null, 2)); const dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", `RFC_BACKUP_${new Date().toISOString().slice(0,10)}.json`); document.body.appendChild(dl); dl.click(); dl.remove(); };
-        window.saveRankings = async function(isUndo = false) { const statusEl = document.getElementById('saveStatus'); const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'rankings', 'main'); try { await runTransaction(db, async (transaction) => { const sfDoc = await transaction.get(docRef); if (!sfDoc.exists()) throw "Doc missing!"; const payload = { rankings: rankingsData, matchHistory: matchHistoryData, seasonArchives: seasonArchives, activeSeason: activeSeason, championVacant: championVacant, date: new Date().toISOString() }; if(!isUndo) { payload.ruleHtml = ruleHtml; payload.patchNotes = patchNotesData; payload.availablePatchTags = availablePatchTags; payload.adminGlobalNote = document.getElementById('adminGlobalNoteInput')?.value || ""; } transaction.update(docRef, payload); }); statusEl.style.opacity = 1; setTimeout(() => statusEl.style.opacity = 0, 2000); } catch (e) { alert("저장 오류: " + e.message); } }
+        window.saveRankings = async function(isUndo = false) {
+            const statusEl = document.getElementById('saveStatus');
+            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'rankings', 'main');
+            try {
+                await runTransaction(db, async (transaction) => {
+                    const sfDoc = await transaction.get(docRef);
+                    if (!sfDoc.exists()) throw new Error("데이터 문서를 찾을 수 없습니다.");
+
+                    const payload = {
+                        rankings: rankingsData,
+                        matchHistory: matchHistoryData,
+                        seasonArchives: seasonArchives,
+                        activeSeason: activeSeason,
+                        championVacant: championVacant,
+                        date: new Date().toISOString()
+                    };
+
+                    if (!isUndo) {
+                        payload.ruleHtml = ruleHtml;
+                        payload.patchNotes = patchNotesData;
+                        payload.availablePatchTags = availablePatchTags;
+                        payload.adminGlobalNote = document.getElementById('adminGlobalNoteInput')?.value || "";
+
+                        // [v5.61 FIX] 사용자 공지사항도 동일 문서에 반드시 저장
+                        const noticeInput = document.getElementById('noticeContentInput');
+                        const noticeToggle = document.getElementById('noticeActiveToggle');
+                        payload.noticeData = {
+                            content: noticeInput ? noticeInput.value : "",
+                            active: noticeToggle ? noticeToggle.checked === true : false
+                        };
+                    }
+
+                    transaction.update(docRef, payload);
+                });
+
+                if (statusEl) {
+                    statusEl.textContent = "저장 완료";
+                    statusEl.style.opacity = 1;
+                    setTimeout(() => { statusEl.style.opacity = 0; }, 2000);
+                }
+                return true;
+            } catch (e) {
+                console.error("[RFC] 저장 오류:", e);
+                if (statusEl) {
+                    statusEl.textContent = "저장 실패";
+                    statusEl.style.opacity = 1;
+                    setTimeout(() => { statusEl.style.opacity = 0; }, 3000);
+                }
+                alert("저장 오류: " + (e?.message || e));
+                return false;
+            }
+        };
+
+        // [v5.61 FIX] 사용자 공지사항 저장
+        // 내용과 활성화 여부를 하나의 noticeData 객체로 묶어 Firestore에 저장합니다.
+        window.saveNoticeSettings = async () => {
+            const contentEl = document.getElementById('noticeContentInput');
+            const activeEl = document.getElementById('noticeActiveToggle');
+
+            if (!contentEl || !activeEl) {
+                showCustomAlert("공지사항 입력 요소를 찾을 수 없습니다.");
+                return false;
+            }
+
+            const content = contentEl.value;
+            const active = activeEl.checked === true;
+
+            // 저장 중에는 버튼을 잠시 비활성화하여 중복 저장을 방지합니다.
+            const buttons = document.querySelectorAll('button[onclick="saveNoticeSettings()"]');
+            buttons.forEach(btn => {
+                btn.disabled = true;
+                btn.dataset.originalText = btn.textContent;
+                btn.textContent = "저장 중...";
+                btn.classList.add("opacity-60", "cursor-not-allowed");
+            });
+
+            try {
+                const saved = await saveRankings(false);
+                if (!saved) return false;
+
+                // 저장 성공 후 현재 입력값을 기준으로 UI 상태를 확정
+                contentEl.value = content;
+                activeEl.checked = active;
+
+                showCustomAlert(
+                    active
+                        ? "✅ 사용자 공지사항이 저장되었습니다.\n현재 공지 상태: 활성화"
+                        : "✅ 사용자 공지사항이 저장되었습니다.\n현재 공지 상태: 비활성화"
+                );
+                return true;
+            } finally {
+                buttons.forEach(btn => {
+                    btn.disabled = false;
+                    btn.textContent = btn.dataset.originalText || "공지 저장하기";
+                    btn.classList.remove("opacity-60", "cursor-not-allowed");
+                });
+            }
+        };
         
         window.saveAdminGlobalNote = async () => { await saveRankings(); showCustomAlert("✅ 관리자 메모가 성공적으로 저장되었습니다."); };
         
