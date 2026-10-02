@@ -559,8 +559,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v5.38",
-            updateNote: "시즌 종료 최종 ELO 순위를 최고 순위에 반영",
+            version: "v5.39",
+            updateNote: "최고 순위 인정 기준을 시즌 총 10경기로 변경",
             title: "RFC 랭킹전"
         };
 
@@ -2187,9 +2187,9 @@
                 const season = m.season || "시즌 1";
                 seasonMatchCounts[season] = (seasonMatchCounts[season] || 0) + 1;
 
-                // 배치 3판 + 정상 경기 2판 = 총 5판을 완료한 뒤부터
+                // 배치 3판을 포함한 시즌 총 10경기를 완료한 뒤부터
                 // 경기 당시 실제 랭킹을 최고 순위 후보로 인정합니다.
-                if (seasonMatchCounts[season] <= 5) return;
+                if (seasonMatchCounts[season] <= 10) return;
 
                 let rankValue;
                 let wasChampion = false;
@@ -2228,7 +2228,7 @@
                 const totalMatches = Number(archivedPlayer.wins || 0)
                     + Number(archivedPlayer.losses || 0)
                     + Number(archivedPlayer.draws || 0);
-                if (totalMatches < 3) return;
+                if (totalMatches < 10) return;
 
                 if (archivedPlayer.isChampion === true) {
                     hasChampionExperience = true;
@@ -2237,7 +2237,7 @@
                 // 시즌 최종 순위는 해당 시즌 종료 시점의 ELO를 기준으로 계산합니다.
                 // 챔피언도 ELO 최종 순위를 확인할 수 있도록 여기서는 챔피언을 제외하지 않습니다.
                 const finalRankedPlayers = archivedRankings
-                    .filter(p => p && (Number(p.wins || 0) + Number(p.losses || 0) + Number(p.draws || 0)) >= 3)
+                    .filter(p => p && (Number(p.wins || 0) + Number(p.losses || 0) + Number(p.draws || 0)) >= 10)
                     .sort((a, b) => (Number(b.elo) || 1000) - (Number(a.elo) || 1000));
 
                 const finalRank = finalRankedPlayers.findIndex(p => p && p.name === playerName) + 1;
