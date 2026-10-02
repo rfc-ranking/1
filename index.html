@@ -559,8 +559,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v5.39",
-            updateNote: "최고 순위 인정 기준을 시즌 총 10경기로 변경",
+            version: "v5.40",
+            updateNote: "최고 순위 인정 기준을 시즌 10경기부터로 변경",
             title: "RFC 랭킹전"
         };
 
@@ -2187,9 +2187,8 @@
                 const season = m.season || "시즌 1";
                 seasonMatchCounts[season] = (seasonMatchCounts[season] || 0) + 1;
 
-                // 배치 3판을 포함한 시즌 총 10경기를 완료한 뒤부터
-                // 경기 당시 실제 랭킹을 최고 순위 후보로 인정합니다.
-                if (seasonMatchCounts[season] <= 10) return;
+                // 시즌 총 10경기부터 경기 당시 실제 랭킹을 최고 순위 후보로 인정합니다.
+                if (seasonMatchCounts[season] < 10) return;
 
                 let rankValue;
                 let wasChampion = false;
