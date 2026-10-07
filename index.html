@@ -482,7 +482,7 @@
                         
                         <div class="flex bg-slate-50 border border-slate-200 border-t-0 rounded-b-lg divide-x divide-slate-200 text-center py-2 shadow-sm"><div class="flex-1"><div class="text-[10px] text-slate-400 font-bold uppercase">Win Rate</div><div class="text-sm font-black text-slate-700" id="pModalWinRate">0%</div></div><div class="flex-1"><div class="text-[10px] text-slate-400 font-bold uppercase">Elo Rating</div><div class="text-sm font-black text-amber-600" id="pModalElo">1000</div></div><div class="flex-1"><div class="text-[10px] text-slate-400 font-bold uppercase">Career High</div><div class="text-sm font-black text-slate-700" id="pModalHighElo">1000</div></div><div class="flex-1"><div class="text-[10px] text-slate-400 font-bold uppercase">최고 순위</div><div class="text-sm font-black text-blue-600" id="pModalHighRank">-</div></div></div>
                     </div>
-                    <div class="w-full space-y-6"><div class="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm"><div class="grid grid-cols-3 gap-4 text-center"><div><div class="text-[10px] text-slate-400 font-bold uppercase mb-1">Height</div><div id="pModalHeight" class="font-bold text-slate-700 text-sm">-</div></div><div class="border-x border-slate-100"><div class="text-[10px] text-slate-400 font-bold uppercase mb-1">Reach</div><div id="pModalReach" class="font-bold text-slate-700 text-sm">-</div></div><div><div class="text-[10px] text-slate-400 font-bold uppercase mb-1">Stance</div><div id="pModalStance" class="font-bold text-slate-700 text-sm">-</div></div></div><div id="pModalTags" class="flex flex-wrap gap-1.5 justify-center mt-3"></div></div><div class="mb-2"><div class="flex p-1 bg-slate-100 rounded-lg mb-3"><button id="btnTabChrono" onclick="switchProfileTab('chrono')" class="flex-1 py-1.5 text-[11px] font-bold text-blue-600 bg-white shadow-sm rounded-md transition-all">📅 날짜별 기록</button><button id="btnTabH2H" onclick="switchProfileTab('h2h')" class="flex-1 py-1.5 text-[11px] font-bold text-slate-500 rounded-md transition-all hover:bg-slate-200/50">⚔️ 상대별 전적</button></div><div id="pModalMatchList" class="space-y-2 pb-10"></div></div></div>
+                    <div class="w-full space-y-6"><div class="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm"><div class="grid grid-cols-3 gap-4 text-center"><div><div class="text-[10px] text-slate-400 font-bold uppercase mb-1">Height</div><div id="pModalHeight" class="font-bold text-slate-700 text-sm">-</div></div><div class="border-x border-slate-100"><div class="text-[10px] text-slate-400 font-bold uppercase mb-1">Reach</div><div id="pModalReach" class="font-bold text-slate-700 text-sm">-</div></div><div><div class="text-[10px] text-slate-400 font-bold uppercase mb-1">Stance</div><div id="pModalStance" class="font-bold text-slate-700 text-sm">-</div></div></div><div id="pModalTags" class="flex flex-wrap gap-1.5 justify-center mt-3"></div><div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-center gap-2"><span class="text-[10px] text-slate-400 font-bold">📡 인터넷 통신사</span><span id="pModalCarrier" class="text-xs font-black text-slate-700 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-full">미입력</span></div></div><div class="mb-2"><div class="flex p-1 bg-slate-100 rounded-lg mb-3"><button id="btnTabChrono" onclick="switchProfileTab('chrono')" class="flex-1 py-1.5 text-[11px] font-bold text-blue-600 bg-white shadow-sm rounded-md transition-all">📅 날짜별 기록</button><button id="btnTabH2H" onclick="switchProfileTab('h2h')" class="flex-1 py-1.5 text-[11px] font-bold text-slate-500 rounded-md transition-all hover:bg-slate-200/50">⚔️ 상대별 전적</button></div><div id="pModalMatchList" class="space-y-2 pb-10"></div></div></div>
                 </div>
             </div>
         </div>
@@ -525,6 +525,7 @@
 
                 <div class="grid grid-cols-2 gap-3"><div><label class="text-xs font-bold text-slate-500 mb-1 block">키 (cm)</label><input type="text" id="userEditHeight" class="w-full border p-3 rounded-xl text-sm font-bold bg-slate-50"></div><div><label class="text-xs font-bold text-slate-500 mb-1 block">리치 (cm)</label><input type="text" id="userEditReach" class="w-full border p-3 rounded-xl text-sm font-bold bg-slate-50"></div></div>
                 <div><label class="text-xs font-bold text-slate-500 mb-1 block">스탠스</label><select id="userEditStance" class="w-full border p-3 rounded-xl text-sm font-bold bg-slate-50"><option value="Orthodox">Orthodox (오른손)</option><option value="Southpaw">Southpaw (왼손)</option><option value="Switch">Switch (양손)</option></select></div>
+                <div><label class="text-xs font-bold text-slate-500 mb-1 block">📡 인터넷 통신사</label><select id="userEditCarrier" class="w-full border p-3 rounded-xl text-sm font-bold bg-slate-50"><option value="">미입력</option><option value="SK">SK</option><option value="KT">KT</option><option value="LG">LG</option></select></div>
                 
                 <div class="p-3 bg-indigo-50/50 border border-indigo-100 rounded-xl relative shadow-sm">
                     <label class="text-xs font-bold text-slate-600 block mb-2 mt-1 flex justify-between items-center">
@@ -559,8 +560,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v5.47",
-            updateNote: "챔피언 방어 0회 동률 시 현재 챔피언 우선",
+            version: "v5.50",
+            updateNote: "통신사 뱃지 색상 수정 (SK 빨강 · KT 파랑 · LG 노랑)",
             title: "RFC 랭킹전"
         };
 
@@ -1133,6 +1134,18 @@
             return 'https://placehold.co/150?text=No+Img';
         }
 
+        // [v5.49] 통신사별 컬러 뱃지 (Option 2)
+        const getCarrierBadge = (carrierStr) => {
+            if (!carrierStr) return '';
+            const carrier = String(carrierStr).trim().toUpperCase();
+            let cc = '';
+            if (carrier === 'SK') cc = 'bg-red-50 text-red-700 border border-red-200';
+            else if (carrier === 'KT') cc = 'bg-blue-50 text-blue-700 border border-blue-200';
+            else if (carrier === 'LG') cc = 'bg-yellow-50 text-yellow-700 border border-yellow-200';
+            else return '';
+            return `<span class="${cc} px-1.5 py-0.5 rounded text-[10px] font-bold ml-1 shadow-sm">${carrier}</span>`;
+        };
+
         function renderRankings() { 
             const container = document.getElementById('rankingList'); container.innerHTML = ''; 
             
@@ -1328,6 +1341,7 @@
                 
                 let recordStr = `${item.wins}승 ${item.losses}패`;
                 if ((item.draws || 0) > 0) recordStr += ` ${item.draws}무`;
+                const carrierHtml = getCarrierBadge(item.carrier);
 
                 container.innerHTML += `
                     <div id="rank-card-${item.id}" class="rank-card flex items-center p-3 md:p-4 border rounded-xl mb-2 bg-white hover:shadow-md ${cardClass}" onclick="openProfile('${item.id}')">
@@ -1344,7 +1358,7 @@
                             <div class="flex items-center gap-1.5 mt-0.5">
                                 <span class="bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded border border-amber-200 font-bold">⚡${item.elo}</span>
                                 <span class="text-xs text-slate-400">| ${recordStr}</span>
-                                ${bountyStatHtml} 
+                                ${bountyStatHtml}${carrierHtml}
                             </div>
                         </div>
                         <div class="flex flex-col items-end justify-center shrink-0 md:h-full">
@@ -1371,6 +1385,7 @@
                     
                     let recordStr = `${p.wins}승 ${p.losses}패`;
                     if ((p.draws || 0) > 0) recordStr += ` ${p.draws}무`;
+                    const carrierHtml = getCarrierBadge(p.carrier);
                     
                     container.innerHTML += `
                         <div id="rank-card-${p.id}" class="rank-card flex items-center p-3 md:p-4 border rounded-xl mb-2 bg-slate-50 opacity-90 hover:opacity-100 ${highlightClass}" onclick="openProfile('${p.id}')">
@@ -1388,7 +1403,7 @@
                                 </div>
                                 <div class="flex items-center gap-1.5 mt-0.5">
                                     <span class="bg-amber-50 text-amber-600/70 text-[10px] px-1.5 py-0.5 rounded border border-amber-100 font-bold">⚡${p.elo || 1000} (임시)</span>
-                                    <span class="text-xs text-slate-400">| ${recordStr}</span>
+                                    <span class="text-xs text-slate-400">| ${recordStr}</span>${carrierHtml}
                                 </div>
                             </div>
                             <div class="flex flex-col items-end justify-center shrink-0 md:h-full"></div>
@@ -1409,6 +1424,7 @@
 
                 unranked.forEach((p) => {
                     const highlightClass = shouldHighlight(p.id) ? 'highlight-slow' : '';
+                    const carrierHtml = getCarrierBadge(p.carrier);
                     
                     container.innerHTML += `
                         <div class="bg-white rounded-2xl p-3 md:p-4 shadow-sm border border-slate-100 flex items-center gap-3 relative overflow-hidden transition-transform active:scale-[0.99] cursor-pointer opacity-80 ${highlightClass}" onclick="openProfile('${p.id}')">
@@ -1424,7 +1440,7 @@
                                     <span class="font-bold text-slate-500 truncate text-sm md:text-lg">${p.name}</span>
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    <span class="bg-slate-100 text-slate-400 text-[10px] px-1.5 md:px-2 py-0.5 rounded border border-slate-200 font-bold">New Challenger</span>
+                                    <span class="bg-slate-100 text-slate-400 text-[10px] px-1.5 md:px-2 py-0.5 rounded border border-slate-200 font-bold">New Challenger</span>${carrierHtml}
                                 </div>
                             </div>
                             <div class="flex flex-col items-end justify-center shrink-0 md:h-full"></div>
@@ -1827,15 +1843,7 @@
                         return b.calculatedDefenseCount - a.calculatedDefenseCount;
                     }
 
-                    // 방어 횟수가 같으면 현재 챔피언을 최우선으로 합니다.
-                    // 특히 방어 0회 동률에서는 현재 챔피언이 먼저 올라오는 것이 기준입니다.
-                    const aIsCurrentChampion = a.isChampion === true;
-                    const bIsCurrentChampion = b.isChampion === true;
-                    if (aIsCurrentChampion !== bIsCurrentChampion) {
-                        return aIsCurrentChampion ? -1 : 1;
-                    }
-
-                    // 현재 챔피언 여부까지 같으면 챔피언 등극 순서를 우선합니다.
+                    // 방어 횟수가 같으면 ELO가 아니라 챔피언 등극 순서를 우선합니다.
                     // 먼저 챔피언이 된 선수가 같은 방어 횟수에서 더 높은 순위를 차지합니다.
                     return championOrderMap[(a.name || '').trim()] - championOrderMap[(b.name || '').trim()];
                 })
@@ -2178,7 +2186,8 @@
             
             document.getElementById('pModalHeight').textContent = p.height ? p.height + 'cm' : '-'; 
             document.getElementById('pModalReach').textContent = p.reach ? p.reach + 'cm' : '-'; 
-            document.getElementById('pModalStance').textContent = p.stance || '-'; 
+            document.getElementById('pModalStance').textContent = p.stance || '-';
+            const carrierEl = document.getElementById('pModalCarrier'); if (carrierEl) carrierEl.textContent = p.carrier || '미입력'; 
             
             const tagsContainer = document.getElementById('pModalTags'); 
             tagsContainer.innerHTML = ''; 
@@ -2602,7 +2611,7 @@
         };
 
         function openUserEditModal(p) {
-            document.getElementById('userEditHeight').value = p.height || ''; document.getElementById('userEditReach').value = p.reach || ''; document.getElementById('userEditStance').value = p.stance || 'Orthodox'; document.getElementById('userEditPin').value = ''; 
+            document.getElementById('userEditHeight').value = p.height || ''; document.getElementById('userEditReach').value = p.reach || ''; document.getElementById('userEditStance').value = p.stance || 'Orthodox'; document.getElementById('userEditCarrier').value = p.carrier || ''; document.getElementById('userEditPin').value = ''; 
             document.getElementById('userImageUrlInput').value = p.imageUrl || ''; document.getElementById('userEditPreview').src = p.imageUrl || 'https://placehold.co/150?text=No+Img';
             
             const idContainer = document.getElementById('idInputContainer');
@@ -2658,6 +2667,7 @@
             const newHeight = document.getElementById('userEditHeight').value.replace(/</g, "&lt;");
             const newReach = document.getElementById('userEditReach').value.replace(/</g, "&lt;");
             const newStance = document.getElementById('userEditStance').value;
+            const newCarrier = document.getElementById('userEditCarrier').value;
             const newImageUrl = document.getElementById('userImageUrlInput').value.trim().replace(/</g, "&lt;");
             const newTrunkColor = document.getElementById('userEditTrunkColor').value;
             const inputPin = document.getElementById('userEditPin').value;
@@ -2685,7 +2695,7 @@
                     const idx = rankings.findIndex(r => r.id === editTargetId);
                     if (idx === -1) throw "User not found";
                     
-                    rankings[idx].height = newHeight; rankings[idx].reach = newReach; rankings[idx].stance = newStance; rankings[idx].gameId = mainId; rankings[idx].subGameIds = subIds; rankings[idx].imageUrl = newImageUrl; rankings[idx].trunkColor = newTrunkColor; rankings[idx].tags = newTags;
+                    rankings[idx].height = newHeight; rankings[idx].reach = newReach; rankings[idx].stance = newStance; rankings[idx].carrier = newCarrier; rankings[idx].gameId = mainId; rankings[idx].subGameIds = subIds; rankings[idx].imageUrl = newImageUrl; rankings[idx].trunkColor = newTrunkColor; rankings[idx].tags = newTags;
                     if (newPassword) rankings[idx].password = newPassword;
 
                     const challengers = rankings.filter(p => !p.isChampion && (Number(p.wins||0) + Number(p.losses||0) + Number(p.draws||0)) >= 3)
