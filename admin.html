@@ -696,6 +696,17 @@
                 </div>
             </div>
 
+            <!-- [NEW] 인터넷 통신사 선택 -->
+            <div class="mb-4 p-3 bg-sky-50/50 border border-sky-100 rounded-xl relative shadow-sm">
+                <label for="editCarrier" class="text-xs font-bold text-slate-600 block mb-2 mt-1">📡 인터넷 통신사 (관리자 전용 메모)</label>
+                <select id="editCarrier" class="w-full border border-slate-200 rounded-lg p-2.5 text-sm font-bold text-slate-700 bg-white focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-200">
+                    <option value="">미입력</option>
+                    <option value="SK">SK</option>
+                    <option value="KT">KT</option>
+                    <option value="LG">LG</option>
+                </select>
+            </div>
+
             <div class="mb-6 p-3 bg-slate-50 rounded border border-slate-200"><label class="block text-xs font-bold text-slate-600 mb-2">🥊 스타일 태그</label><div id="styleTagsContainer" class="flex flex-wrap gap-2"></div></div>
             
             <!-- 관리자 전용 비밀 메모 영역 -->
@@ -820,8 +831,8 @@
         const AUTO_LOGIN_PW = "";
         
         const ADMIN_CONFIG = {
-            version: "v5.69",
-            updateNote: "시즌별 시작일·종료일 직접 관리 및 시즌 목록 기간 표시",
+            version: "v5.72",
+            updateNote: "통신사 뱃지 색상 수정 (SK 빨강 · KT 파랑 · LG 노랑)",
             title: "RFC 매니저"
         };
 
@@ -2567,6 +2578,10 @@ window.confirmBatchPenalty = (days, score) => { if(batchPenaltyTargets.length ==
         });
         if (!foundDevice) document.getElementById('dev-0').checked = true;
 
+        // [NEW] 인터넷 통신사 불러오기
+        const carrierSelect = document.getElementById('editCarrier');
+        if (carrierSelect) carrierSelect.value = p.carrier || "";
+
         document.getElementById('editPassword').value = ""; 
         const container = document.getElementById('styleTagsContainer'); container.innerHTML = ''; 
         const currentStyles = p.tags || []; 
@@ -2611,6 +2626,10 @@ window.confirmBatchPenalty = (days, score) => { if(batchPenaltyTargets.length ==
         /* [Moñe'ẽrã: Embohape ñongatu (Save device selection)] */
         const checkedDevice = document.querySelector('input[name="editDevice"]:checked');
         p.device = checkedDevice ? checkedDevice.value : "";
+
+        // [NEW] 인터넷 통신사 저장
+        const carrierSelect = document.getElementById('editCarrier');
+        p.carrier = carrierSelect ? carrierSelect.value : "";
 
         p.adminNote = document.getElementById('editAdminNote').value.trim();
         
@@ -3023,6 +3042,18 @@ window.confirmBatchPenalty = (days, score) => { if(batchPenaltyTargets.length ==
             return `<span class="${dc} px-1.5 py-0.5 rounded text-[10px] font-bold ml-1">🥽 ${deviceStr}</span>`;
         };
 
+        // [v5.71] 통신사별 컬러 뱃지 (Option 2)
+        const getCarrierBadge = (carrierStr) => {
+            if (!carrierStr) return '';
+            const carrier = String(carrierStr).trim().toUpperCase();
+            let cc = '';
+            if (carrier === 'SK') cc = 'bg-red-50 text-red-700 border border-red-200';
+            else if (carrier === 'KT') cc = 'bg-blue-50 text-blue-700 border border-blue-200';
+            else if (carrier === 'LG') cc = 'bg-yellow-50 text-yellow-700 border border-yellow-200';
+            else return '';
+            return `<span class="${cc} px-1.5 py-0.5 rounded text-[10px] font-bold ml-1 shadow-sm">${carrier}</span>`;
+        };
+
         const globalChallengers = rankingsData.filter(p => !p.isChampion && (Number(p.wins || 0) + Number(p.losses || 0) + Number(p.draws || 0)) >= 3).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
         const query = searchQuery ? searchQuery.replace(/\s/g, "") : ""; const queryJamo = Hangul.disassemble(query);
         const filteredData = rankingsData.filter(p => { const name = p.name || ""; const nameClean = name.replace(/\s/g, "").toLowerCase(); if (nameClean.includes(query)) return true; if (p.choseong && (p.choseong.includes(query) || p.choseong.includes(queryJamo))) return true; if (p.jamo && p.jamo.includes(queryJamo)) return true; return false; });
@@ -3046,6 +3077,7 @@ window.confirmBatchPenalty = (days, score) => { if(batchPenaltyTargets.length ==
             
             /* [Moñe'ẽrã: Embohape rechauka (Champion device display)] */
             let champDeviceHtml = getDeviceBadge(p.device);
+            let champCarrierHtml = getCarrierBadge(p.carrier);
 
             const hasNote = p.adminNote && p.adminNote.trim() !== "";
             const editBtnClass = hasNote ? "p-1.5 text-orange-500 bg-orange-50 rounded-full ring-2 ring-orange-300 ring-offset-1 ring-offset-slate-900 hover:bg-orange-100 transition mr-1 relative z-10" : "p-2 text-orange-200 hover:text-white transition relative z-10";
@@ -3055,7 +3087,7 @@ window.confirmBatchPenalty = (days, score) => { if(batchPenaltyTargets.length ==
             let recordStr = `${p.wins}승 ${p.losses}패`;
             if ((p.draws || 0) > 0) recordStr += ` ${p.draws}무`;
 
-            list.innerHTML += `<div class="rank-card flex items-center p-3 rounded-xl mb-2 inferno-card relative overflow-visible group cursor-pointer" onclick="openProfile('${p.id}')"><div class="absolute inset-0 overflow-hidden rounded-xl pointer-events-none"><div class="ember-mini" style="left: 20%; animation-delay: 0s;"></div><div class="ember-mini" style="left: 80%; animation-delay: 1.5s;"></div></div><div class="w-10 text-center mr-2 flex flex-col items-center justify-center shrink-0 relative z-10"><div class="text-2xl drop-shadow-md">👑</div><span class="text-[8px] font-bold text-orange-200 uppercase tracking-wide bg-orange-900/50 px-1 rounded border border-orange-500/30 -mt-1">CHAMP</span></div><div class="shrink-0 relative mr-3 -my-2 relative z-10"><img src="${p.imageUrl || 'https://placehold.co/150/f59e0b/white?text=C'}" class="w-10 h-10 rounded-lg bg-slate-900 object-cover border-2 border-orange-300/30 shadow-lg" onerror="this.src='https://placehold.co/150/f59e0b/white?text=C'"></div><div class="flex-grow min-w-0 flex flex-col justify-center py-1 relative z-10"><div class="flex items-center gap-2 mb-1"><div class="champ-badge">👑 CHAMPION</div><span class="bg-orange-950/50 text-orange-300 border border-orange-500/30 text-[9px] px-1.5 py-0.5 rounded font-bold">🛡️ ${defCount}차 방어</span></div><div class="font-bold text-sm text-white flex items-center gap-2"><span class="truncate">${p.name}</span>${streakHtml}</div><div class="flex items-center gap-1.5 mt-0.5"><span class="bg-black/40 text-orange-300 text-[10px] px-1.5 py-0.5 rounded border border-orange-500/30 font-bold">⚡${p.elo}</span><span class="text-xs text-slate-300">| ${recordStr}</span>${bountyHtml}${champDeviceHtml}</div></div><div class="flex flex-row items-center gap-3 shrink-0 pl-2 relative z-10">${formHtml}<div class="relative css-tooltip-container flex items-center" onclick="event.stopPropagation();">${tooltipHtml}<button onclick="openEditModal(${globalIndex})" class="${editBtnClass}" title="${editBtnTitle}"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg></button></div></div></div>`;
+            list.innerHTML += `<div class="rank-card flex items-center p-3 rounded-xl mb-2 inferno-card relative overflow-visible group cursor-pointer" onclick="openProfile('${p.id}')"><div class="absolute inset-0 overflow-hidden rounded-xl pointer-events-none"><div class="ember-mini" style="left: 20%; animation-delay: 0s;"></div><div class="ember-mini" style="left: 80%; animation-delay: 1.5s;"></div></div><div class="w-10 text-center mr-2 flex flex-col items-center justify-center shrink-0 relative z-10"><div class="text-2xl drop-shadow-md">👑</div><span class="text-[8px] font-bold text-orange-200 uppercase tracking-wide bg-orange-900/50 px-1 rounded border border-orange-500/30 -mt-1">CHAMP</span></div><div class="shrink-0 relative mr-3 -my-2 relative z-10"><img src="${p.imageUrl || 'https://placehold.co/150/f59e0b/white?text=C'}" class="w-10 h-10 rounded-lg bg-slate-900 object-cover border-2 border-orange-300/30 shadow-lg" onerror="this.src='https://placehold.co/150/f59e0b/white?text=C'"></div><div class="flex-grow min-w-0 flex flex-col justify-center py-1 relative z-10"><div class="flex items-center gap-2 mb-1"><div class="champ-badge">👑 CHAMPION</div><span class="bg-orange-950/50 text-orange-300 border border-orange-500/30 text-[9px] px-1.5 py-0.5 rounded font-bold">🛡️ ${defCount}차 방어</span></div><div class="font-bold text-sm text-white flex items-center gap-2"><span class="truncate">${p.name}</span>${streakHtml}</div><div class="flex items-center gap-1.5 mt-0.5"><span class="bg-black/40 text-orange-300 text-[10px] px-1.5 py-0.5 rounded border border-orange-500/30 font-bold">⚡${p.elo}</span><span class="text-xs text-slate-300">| ${recordStr}</span>${bountyHtml}${champDeviceHtml}${champCarrierHtml}</div></div><div class="flex flex-row items-center gap-3 shrink-0 pl-2 relative z-10">${formHtml}<div class="relative css-tooltip-container flex items-center" onclick="event.stopPropagation();">${tooltipHtml}<button onclick="openEditModal(${globalIndex})" class="${editBtnClass}" title="${editBtnTitle}"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg></button></div></div></div>`;
         } else {
             list.innerHTML += `<div class="rounded-2xl overflow-hidden border border-slate-300 shadow-lg bg-slate-800 text-white relative cursor-pointer opacity-90 hover:opacity-100 transition-opacity"><div class="absolute left-0 top-0 w-full h-full bg-gradient-to-br from-gray-800 to-black opacity-80"></div><div class="relative z-10 p-4 flex items-center justify-between opacity-80"><div class="flex items-center gap-4"><div class="relative"><div class="w-16 h-16 rounded-2xl border-[3px] border-slate-600 bg-slate-700 flex items-center justify-center shadow-inner"><svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg></div></div><div><div class="flex items-center gap-2 mb-1"><div class="text-xl font-black text-slate-300 leading-none tracking-tight">공석 (Vacant)</div></div><div class="flex items-center gap-2 mt-2"><span class="text-slate-400 text-xs font-bold bg-slate-700/50 px-2 py-0.5 rounded border border-slate-600">ELO -</span><span class="text-slate-500 text-[11px] border-l border-slate-600 pl-2">0승 0패</span></div></div></div><div class="flex flex-col items-center justify-center gap-1 opacity-30"><div class="text-4xl grayscale">👑</div><span class="text-[9px] font-bold uppercase tracking-widest">No Champ</span></div></div></div>`;
         }
@@ -3069,6 +3101,7 @@ window.confirmBatchPenalty = (days, score) => { if(batchPenaltyTargets.length ==
             
             /* [Moñe'ẽrã: Embohape rechauka (Ranker device display)] */
             let deviceHtml = getDeviceBadge(item.device);
+            let carrierHtml = getCarrierBadge(item.carrier);
 
             const prevRank = item.previousRank || realRank; const diff = prevRank - realRank; 
             let ch = ""; if (totalMatches === 3 && isRecentRankIn(item.rankInDate)) ch = `<span class="text-indigo-600 font-black text-[10px] bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100 animate-pulse">New</span>`; else ch = diff > 0 ? `<span class="rank-up">▲${diff}</span>` : (diff < 0 ? `<span class="rank-down">▼${Math.abs(diff)}</span>` : '<span class="rank-keep">-</span>');
@@ -3082,7 +3115,7 @@ window.confirmBatchPenalty = (days, score) => { if(batchPenaltyTargets.length ==
             let recordStr = `${item.wins}승 ${item.losses}패`;
             if ((item.draws || 0) > 0) recordStr += ` ${item.draws}무`;
 
-            list.innerHTML += `<div id="rank-card-${item.id}" class="rank-card flex items-center p-3 border rounded-xl mb-2 bg-white hover:shadow-md ${cardClass} overflow-visible" onclick="openProfile('${item.id}')"><div class="w-10 text-center mr-2"><span class="${rankNumClass}">${realRank}</span><div class="text-[10px]">${ch}</div></div><div class="shrink-0 relative mr-3"><img src="${item.imageUrl || 'https://placehold.co/150?text=No+Img'}" class="w-10 h-10 rounded-lg bg-slate-100 object-cover border border-slate-100" onerror="this.src='https://placehold.co/150?text=No+Img'"></div><div class="flex-grow min-w-0"><div class="font-bold text-sm text-slate-800 flex items-center gap-2"><div class="w-1.5 h-4 rounded-sm shadow-sm ring-1 ring-inset ring-black/10" style="background: ${item.trunkColor || '#1f2937'};" title="트렁크 색상"></div><span class="truncate">${item.name}</span><span class="text-[9px] px-1.5 py-0.5 rounded-full ${tier.color} font-bold tracking-wide uppercase shadow-sm">${tier.name}</span>${streakHtml}</div><div class="flex items-center gap-1.5 mt-0.5"><span class="bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded border border-amber-200 font-bold">⚡${item.elo}</span><span class="text-xs text-slate-400">| ${recordStr}</span>${bountyStatHtml}${deviceHtml}</div></div><div class="flex flex-row items-center gap-3 shrink-0 pl-2">${formHtml}<div class="relative css-tooltip-container flex items-center" onclick="event.stopPropagation();">${tooltipHtml}<button onclick="openEditModal(${globalIndex})" class="${editBtnClass}" title="${editBtnTitle}"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg></button></div></div></div>`; 
+            list.innerHTML += `<div id="rank-card-${item.id}" class="rank-card flex items-center p-3 border rounded-xl mb-2 bg-white hover:shadow-md ${cardClass} overflow-visible" onclick="openProfile('${item.id}')"><div class="w-10 text-center mr-2"><span class="${rankNumClass}">${realRank}</span><div class="text-[10px]">${ch}</div></div><div class="shrink-0 relative mr-3"><img src="${item.imageUrl || 'https://placehold.co/150?text=No+Img'}" class="w-10 h-10 rounded-lg bg-slate-100 object-cover border border-slate-100" onerror="this.src='https://placehold.co/150?text=No+Img'"></div><div class="flex-grow min-w-0"><div class="font-bold text-sm text-slate-800 flex items-center gap-2"><div class="w-1.5 h-4 rounded-sm shadow-sm ring-1 ring-inset ring-black/10" style="background: ${item.trunkColor || '#1f2937'};" title="트렁크 색상"></div><span class="truncate">${item.name}</span><span class="text-[9px] px-1.5 py-0.5 rounded-full ${tier.color} font-bold tracking-wide uppercase shadow-sm">${tier.name}</span>${streakHtml}</div><div class="flex items-center gap-1.5 mt-0.5"><span class="bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded border border-amber-200 font-bold">⚡${item.elo}</span><span class="text-xs text-slate-400">| ${recordStr}</span>${bountyStatHtml}${deviceHtml}${carrierHtml}</div></div><div class="flex flex-row items-center gap-3 shrink-0 pl-2">${formHtml}<div class="relative css-tooltip-container flex items-center" onclick="event.stopPropagation();">${tooltipHtml}<button onclick="openEditModal(${globalIndex})" class="${editBtnClass}" title="${editBtnTitle}"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg></button></div></div></div>`; 
         }); 
 
         if (placement.length > 0) {
@@ -3100,8 +3133,9 @@ window.confirmBatchPenalty = (days, score) => { if(batchPenaltyTargets.length ==
 
                 /* [Moñe'ẽrã: Embohape rechauka (Placement user device display)] */
                 let deviceHtml = getDeviceBadge(item.device);
+            let carrierHtml = getCarrierBadge(item.carrier);
 
-                list.innerHTML += `<div id="rank-card-${item.id}" class="rank-card flex items-center p-3 border rounded-xl mb-2 bg-slate-50 opacity-90 hover:opacity-100 overflow-visible ${highlightClass}" onclick="openProfile('${item.id}')"><div class="w-10 text-center mr-2"><span class="text-lg">🐣</span></div><div class="shrink-0 relative mr-3"><img src="${item.imageUrl || 'https://placehold.co/150?text=No+Img'}" class="w-10 h-10 rounded-lg bg-slate-100 object-cover border border-slate-100" onerror="this.src='https://placehold.co/150?text=No+Img'"></div><div class="flex-grow min-w-0"><div class="font-bold text-sm text-slate-600 flex items-center gap-2"><div class="w-1.5 h-4 rounded-sm shadow-sm ring-1 ring-inset ring-black/10" style="background: ${item.trunkColor || '#1f2937'};" title="트렁크 색상"></div><span class="truncate">${item.name}</span><span class="text-[9px] px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500 border border-slate-200 font-bold tracking-wide uppercase shadow-sm">Placement</span></div><div class="flex items-center gap-1.5 mt-0.5"><span class="bg-amber-50 text-amber-600/70 text-[10px] px-1.5 py-0.5 rounded border border-amber-100 font-bold">⚡${item.elo} (가)</span><span class="text-xs text-slate-400">| ${recordStr}</span>${deviceHtml}</div></div><div class="relative css-tooltip-container flex items-center shrink-0 pl-2" onclick="event.stopPropagation();">${tooltipHtml}<button onclick="openEditModal(${globalIndex})" class="${editBtnClass}" title="${editBtnTitle}"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg></button></div></div>`;
+                list.innerHTML += `<div id="rank-card-${item.id}" class="rank-card flex items-center p-3 border rounded-xl mb-2 bg-slate-50 opacity-90 hover:opacity-100 overflow-visible ${highlightClass}" onclick="openProfile('${item.id}')"><div class="w-10 text-center mr-2"><span class="text-lg">🐣</span></div><div class="shrink-0 relative mr-3"><img src="${item.imageUrl || 'https://placehold.co/150?text=No+Img'}" class="w-10 h-10 rounded-lg bg-slate-100 object-cover border border-slate-100" onerror="this.src='https://placehold.co/150?text=No+Img'"></div><div class="flex-grow min-w-0"><div class="font-bold text-sm text-slate-600 flex items-center gap-2"><div class="w-1.5 h-4 rounded-sm shadow-sm ring-1 ring-inset ring-black/10" style="background: ${item.trunkColor || '#1f2937'};" title="트렁크 색상"></div><span class="truncate">${item.name}</span><span class="text-[9px] px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500 border border-slate-200 font-bold tracking-wide uppercase shadow-sm">Placement</span></div><div class="flex items-center gap-1.5 mt-0.5"><span class="bg-amber-50 text-amber-600/70 text-[10px] px-1.5 py-0.5 rounded border border-amber-100 font-bold">⚡${item.elo} (가)</span><span class="text-xs text-slate-400">| ${recordStr}</span>${deviceHtml}${carrierHtml}</div></div><div class="relative css-tooltip-container flex items-center shrink-0 pl-2" onclick="event.stopPropagation();">${tooltipHtml}<button onclick="openEditModal(${globalIndex})" class="${editBtnClass}" title="${editBtnTitle}"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg></button></div></div>`;
             });
         }
 
@@ -3120,8 +3154,9 @@ window.confirmBatchPenalty = (days, score) => { if(batchPenaltyTargets.length ==
 
                 /* [Moñe'ẽrã: Embohape rechauka (Unranked user device display)] */
                 let deviceHtml = getDeviceBadge(item.device);
+            let carrierHtml = getCarrierBadge(item.carrier);
 
-                list.innerHTML += `<div id="rank-card-${item.id}" class="rank-card flex items-center p-3 border rounded-xl mb-2 bg-slate-50 opacity-80 hover:opacity-100 overflow-visible ${highlightClass}" onclick="openProfile('${item.id}')"><div class="w-10 text-center mr-2"><span class="rank-unranked">-</span></div><div class="shrink-0 relative mr-3"><img src="${item.imageUrl || 'https://placehold.co/150?text=No+Img'}" class="w-10 h-10 rounded-lg bg-slate-100 object-cover border border-slate-100 grayscale" onerror="this.src='https://placehold.co/150?text=No+Img'"></div><div class="flex-grow min-w-0"><div class="font-bold text-sm text-slate-500 flex items-center gap-2"><div class="w-1.5 h-4 rounded-sm shadow-sm ring-1 ring-inset ring-black/10" style="background: ${item.trunkColor || '#1f2937'};" title="트렁크 색상"></div><span class="truncate">${item.name}</span></div><div class="flex items-center gap-1.5 mt-0.5"><span class="bg-slate-100 text-slate-400 text-[10px] px-1.5 py-0.5 rounded border border-slate-200 font-bold">New</span><span class="text-xs text-slate-400">| ${recordStr}</span>${deviceHtml}</div></div><div class="relative css-tooltip-container flex items-center shrink-0 pl-2" onclick="event.stopPropagation();">${tooltipHtml}<button onclick="openEditModal(${globalIndex})" class="${editBtnClass}" title="${editBtnTitle}"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg></button></div></div>`;
+                list.innerHTML += `<div id="rank-card-${item.id}" class="rank-card flex items-center p-3 border rounded-xl mb-2 bg-slate-50 opacity-80 hover:opacity-100 overflow-visible ${highlightClass}" onclick="openProfile('${item.id}')"><div class="w-10 text-center mr-2"><span class="rank-unranked">-</span></div><div class="shrink-0 relative mr-3"><img src="${item.imageUrl || 'https://placehold.co/150?text=No+Img'}" class="w-10 h-10 rounded-lg bg-slate-100 object-cover border border-slate-100 grayscale" onerror="this.src='https://placehold.co/150?text=No+Img'"></div><div class="flex-grow min-w-0"><div class="font-bold text-sm text-slate-500 flex items-center gap-2"><div class="w-1.5 h-4 rounded-sm shadow-sm ring-1 ring-inset ring-black/10" style="background: ${item.trunkColor || '#1f2937'};" title="트렁크 색상"></div><span class="truncate">${item.name}</span></div><div class="flex items-center gap-1.5 mt-0.5"><span class="bg-slate-100 text-slate-400 text-[10px] px-1.5 py-0.5 rounded border border-slate-200 font-bold">New</span><span class="text-xs text-slate-400">| ${recordStr}</span>${deviceHtml}${carrierHtml}</div></div><div class="relative css-tooltip-container flex items-center shrink-0 pl-2" onclick="event.stopPropagation();">${tooltipHtml}<button onclick="openEditModal(${globalIndex})" class="${editBtnClass}" title="${editBtnTitle}"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg></button></div></div>`;
             });
         }
         populateMatchSelectors();
