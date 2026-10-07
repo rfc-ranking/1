@@ -701,7 +701,6 @@
             <div class="mb-4 p-3 bg-sky-50/50 border border-sky-100 rounded-xl relative shadow-sm">
                 <label class="text-xs font-bold text-slate-600 block mb-2 mt-1">📡 인터넷 통신사</label>
                 <div id="carrierTagsContainer" class="flex flex-wrap gap-2">
-                    <div><input type="radio" name="editCarrier" id="carrier-none" value="" class="hidden carrier-radio"><label for="carrier-none" class="cursor-pointer inline-block bg-white border border-slate-200 text-slate-500 px-3 py-1.5 rounded-full text-xs font-bold transition select-none hover:bg-slate-50">미입력</label></div>
                     <div><input type="radio" name="editCarrier" id="carrier-sk" value="SK" class="hidden carrier-radio"><label for="carrier-sk" class="cursor-pointer inline-block bg-white border border-slate-200 text-slate-500 px-3 py-1.5 rounded-full text-xs font-bold transition select-none hover:bg-slate-50">SK</label></div>
                     <div><input type="radio" name="editCarrier" id="carrier-kt" value="KT" class="hidden carrier-radio"><label for="carrier-kt" class="cursor-pointer inline-block bg-white border border-slate-200 text-slate-500 px-3 py-1.5 rounded-full text-xs font-bold transition select-none hover:bg-slate-50">KT</label></div>
                     <div><input type="radio" name="editCarrier" id="carrier-lg" value="LG" class="hidden carrier-radio"><label for="carrier-lg" class="cursor-pointer inline-block bg-white border border-slate-200 text-slate-500 px-3 py-1.5 rounded-full text-xs font-bold transition select-none hover:bg-slate-50">LG</label></div>
@@ -832,8 +831,8 @@
         const AUTO_LOGIN_PW = "";
         
         const ADMIN_CONFIG = {
-            version: "v5.73",
-            updateNote: "통신사 수정 UI를 스타일 태그형 선택 뱃지로 변경",
+            version: "v5.74",
+            updateNote: "통신사 선택에서 미입력 제거 (SK·KT·LG 3사 전용)",
             title: "RFC 매니저"
         };
 
@@ -2584,10 +2583,6 @@ window.confirmBatchPenalty = (days, score) => { if(batchPenaltyTargets.length ==
         document.querySelectorAll('input[name="editCarrier"]').forEach(radio => {
             radio.checked = (radio.value === carrierValue);
         });
-        if (!document.querySelector('input[name="editCarrier"]:checked')) {
-            const noneRadio = document.getElementById('carrier-none');
-            if (noneRadio) noneRadio.checked = true;
-        }
 
         document.getElementById('editPassword').value = ""; 
         const container = document.getElementById('styleTagsContainer'); container.innerHTML = ''; 
