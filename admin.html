@@ -134,6 +134,7 @@
         .rank-unranked { color: #cbd5e1; font-size: 1.0rem; font-weight: 700; }
         
         .style-checkbox:checked + label { background-color: #3b82f6 !important; color: white !important; border-color: #3b82f6 !important; }
+        .carrier-radio:checked + label { background-color: #3b82f6 !important; color: white !important; border-color: #3b82f6 !important; }
         .tag-checkbox:checked + label { background-color: #6366f1 !important; color: white !important; border-color: #6366f1 !important; box-shadow: 0 2px 4px rgba(99, 102, 241, 0.3); }
         .boxrec-win { background: linear-gradient(180deg, #16a34a 0%, #15803d 100%); }
         .boxrec-loss { background: linear-gradient(180deg, #dc2626 0%, #b91c1c 100%); }
@@ -696,15 +697,15 @@
                 </div>
             </div>
 
-            <!-- [NEW] 인터넷 통신사 선택 -->
+            <!-- [v5.73] 인터넷 통신사 선택: 스타일 태그와 동일한 선택형 뱃지 -->
             <div class="mb-4 p-3 bg-sky-50/50 border border-sky-100 rounded-xl relative shadow-sm">
-                <label for="editCarrier" class="text-xs font-bold text-slate-600 block mb-2 mt-1">📡 인터넷 통신사 (관리자 전용 메모)</label>
-                <select id="editCarrier" class="w-full border border-slate-200 rounded-lg p-2.5 text-sm font-bold text-slate-700 bg-white focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-200">
-                    <option value="">미입력</option>
-                    <option value="SK">SK</option>
-                    <option value="KT">KT</option>
-                    <option value="LG">LG</option>
-                </select>
+                <label class="text-xs font-bold text-slate-600 block mb-2 mt-1">📡 인터넷 통신사</label>
+                <div id="carrierTagsContainer" class="flex flex-wrap gap-2">
+                    <div><input type="radio" name="editCarrier" id="carrier-none" value="" class="hidden carrier-radio"><label for="carrier-none" class="cursor-pointer inline-block bg-white border border-slate-200 text-slate-500 px-3 py-1.5 rounded-full text-xs font-bold transition select-none hover:bg-slate-50">미입력</label></div>
+                    <div><input type="radio" name="editCarrier" id="carrier-sk" value="SK" class="hidden carrier-radio"><label for="carrier-sk" class="cursor-pointer inline-block bg-white border border-slate-200 text-slate-500 px-3 py-1.5 rounded-full text-xs font-bold transition select-none hover:bg-slate-50">SK</label></div>
+                    <div><input type="radio" name="editCarrier" id="carrier-kt" value="KT" class="hidden carrier-radio"><label for="carrier-kt" class="cursor-pointer inline-block bg-white border border-slate-200 text-slate-500 px-3 py-1.5 rounded-full text-xs font-bold transition select-none hover:bg-slate-50">KT</label></div>
+                    <div><input type="radio" name="editCarrier" id="carrier-lg" value="LG" class="hidden carrier-radio"><label for="carrier-lg" class="cursor-pointer inline-block bg-white border border-slate-200 text-slate-500 px-3 py-1.5 rounded-full text-xs font-bold transition select-none hover:bg-slate-50">LG</label></div>
+                </div>
             </div>
 
             <div class="mb-6 p-3 bg-slate-50 rounded border border-slate-200"><label class="block text-xs font-bold text-slate-600 mb-2">🥊 스타일 태그</label><div id="styleTagsContainer" class="flex flex-wrap gap-2"></div></div>
@@ -831,8 +832,8 @@
         const AUTO_LOGIN_PW = "";
         
         const ADMIN_CONFIG = {
-            version: "v5.72",
-            updateNote: "통신사 뱃지 색상 수정 (SK 빨강 · KT 파랑 · LG 노랑)",
+            version: "v5.73",
+            updateNote: "통신사 수정 UI를 스타일 태그형 선택 뱃지로 변경",
             title: "RFC 매니저"
         };
 
@@ -2579,8 +2580,14 @@ window.confirmBatchPenalty = (days, score) => { if(batchPenaltyTargets.length ==
         if (!foundDevice) document.getElementById('dev-0').checked = true;
 
         // [NEW] 인터넷 통신사 불러오기
-        const carrierSelect = document.getElementById('editCarrier');
-        if (carrierSelect) carrierSelect.value = p.carrier || "";
+        const carrierValue = String(p.carrier || "").trim().toUpperCase();
+        document.querySelectorAll('input[name="editCarrier"]').forEach(radio => {
+            radio.checked = (radio.value === carrierValue);
+        });
+        if (!document.querySelector('input[name="editCarrier"]:checked')) {
+            const noneRadio = document.getElementById('carrier-none');
+            if (noneRadio) noneRadio.checked = true;
+        }
 
         document.getElementById('editPassword').value = ""; 
         const container = document.getElementById('styleTagsContainer'); container.innerHTML = ''; 
@@ -2627,9 +2634,9 @@ window.confirmBatchPenalty = (days, score) => { if(batchPenaltyTargets.length ==
         const checkedDevice = document.querySelector('input[name="editDevice"]:checked');
         p.device = checkedDevice ? checkedDevice.value : "";
 
-        // [NEW] 인터넷 통신사 저장
-        const carrierSelect = document.getElementById('editCarrier');
-        p.carrier = carrierSelect ? carrierSelect.value : "";
+        // [v5.73] 인터넷 통신사 저장
+        const checkedCarrier = document.querySelector('input[name="editCarrier"]:checked');
+        p.carrier = checkedCarrier ? checkedCarrier.value : "";
 
         p.adminNote = document.getElementById('editAdminNote').value.trim();
         
