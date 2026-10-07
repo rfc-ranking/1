@@ -832,7 +832,10 @@
             const allTimeTracker = {}; 
             const seasonTracker = {}; 
             
-            enrichedMatchHistory = chronological.map(match => { 
+            enrichedMatchHistory = chronological.map((match, chronologicalIndex) => { 
+                // 원본 matchHistoryData의 순서를 보존합니다.
+                // 관리자 사이트와 동일하게 같은 날짜의 경기 순서를 재현하기 위한 내부용 값입니다.
+                const originalIndex = matchHistoryData.length - 1 - chronologicalIndex;
                 const winner = match.winner; 
                 const loser = match.loser; 
                 const season = match.season || "시즌 1";
@@ -860,7 +863,7 @@
                     seasonTracker[season][winner].w++; seasonTracker[season][winner].h = [...seasonTracker[season][winner].h, 'W'].slice(-6);
                     seasonTracker[season][loser].l++; seasonTracker[season][loser].h = [...seasonTracker[season][loser].h, 'L'].slice(-6);
                 } 
-                return { ...match, snapshot }; 
+                return { ...match, snapshot, _originalIndex: originalIndex }; 
             }); 
             enrichedMatchHistory.reverse(); 
         }
@@ -2238,10 +2241,20 @@
         window.updateProfileStats = (id, filter) => { 
             const p = rankingsData.find(x => x.id === id); 
             if (!p) return; 
-            let matches = enrichedMatchHistory.filter(m => (m.winner === p.name || m.loser === p.name)); 
+            let matches = enrichedMatchHistory
+                .filter(m => (m.winner === p.name || m.loser === p.name))
+                .map(m => ({ ...m, _profileOriginalIndex: m._originalIndex }));
             if (filter === 'current') matches = matches.filter(m => m.season === activeSeason); 
             else if (filter !== 'all') matches = matches.filter(m => m.season === filter); 
-            matches.sort((a, b) => new Date(b.date) - new Date(a.date)); 
+
+            // 관리자 사이트와 동일한 기준으로 정렬합니다.
+            // 1) 최신 날짜가 위로 표시
+            // 2) 같은 날짜라면 원본 경기 순서(먼저 치른 경기 → 나중 경기)를 유지
+            matches.sort((a, b) => {
+                const dateDiff = new Date(b.date) - new Date(a.date);
+                if (dateDiff !== 0) return dateDiff;
+                return (b._profileOriginalIndex ?? 0) - (a._profileOriginalIndex ?? 0);
+            }); 
 
             // 관리자 사이트가 선수에게 저장한 패널티 이력을 날짜별 기록에 함께 표시합니다.
             let penalties = Array.isArray(p.penaltyHistory) ? p.penaltyHistory.map((penalty, index) => ({
