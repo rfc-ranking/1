@@ -569,8 +569,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v5.52",
-            updateNote: "통신사 선택에서 미입력 제거 (SK·KT·LG 3사 전용)",
+            version: "v5.53",
+            updateNote: "현상금 위치 변경: 티어 오른쪽 배치 · ELO/전적/통신사 2행 정리",
             title: "RFC 랭킹전"
         };
 
@@ -1332,9 +1332,10 @@
                     if (realRank <= 10) rankNumClass = "rank-num-top10"; 
                 }
 
+                // [v5.53] 랭킹 카드 정보 배치 개선: 현상금을 티어 오른쪽(1행)으로 이동
                 let bountyStatHtml = '';
                 if (item.bounty && item.bounty > 0 && realRank <= 10) {
-                      bountyStatHtml = `<span class="bounty-pill-dark" title="현상금">💰+${item.bounty}</span>`;
+                      bountyStatHtml = `<span class="bounty-pill-dark ml-1" title="현상금">💰+${item.bounty}</span>`;
                 }
 
                 const prevRank = item.previousRank || realRank; 
@@ -1363,11 +1364,12 @@
                                 <div class="w-1.5 h-4 rounded-sm shadow-sm ring-1 ring-inset ring-black/10" style="background: ${item.trunkColor || '#1f2937'};" title="트렁크 색상"></div>
                                 <span class="font-bold text-slate-800 truncate text-sm md:text-lg">${item.name}</span>
                                 <span class="text-[9px] px-1.5 py-0.5 rounded-full ${tier.color} font-bold tracking-wide uppercase shadow-sm">${tier.name}</span>
+                                ${bountyStatHtml}
                             </div>
                             <div class="flex items-center gap-1.5 mt-0.5">
                                 <span class="bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded border border-amber-200 font-bold">⚡${item.elo}</span>
                                 <span class="text-xs text-slate-400">| ${recordStr}</span>
-                                ${bountyStatHtml}${carrierHtml}
+                                ${carrierHtml}
                             </div>
                         </div>
                         <div class="flex flex-col items-end justify-center shrink-0 md:h-full">
