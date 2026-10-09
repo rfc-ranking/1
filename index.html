@@ -569,8 +569,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v5.53",
-            updateNote: "현상금 위치 변경: 티어 오른쪽 배치 · ELO/전적/통신사 2행 정리",
+            version: "v5.54",
+            updateNote: "현 시즌 10경기 이상 선수의 현재 순위를 최고순위 후보에 반영; 현상금 위치 변경: 티어 오른쪽 배치 · ELO/전적/통신사 2행 정리",
             title: "RFC 랭킹전"
         };
 
@@ -2270,6 +2270,26 @@
                 considerRank(rankBefore);
                 considerRank(rankAfter);
             });
+
+            // 현 시즌에 10경기 이상 진행한 선수는 현재 공식 순위도 최고 순위 후보에 포함합니다.
+            // 경기 당시 순위 스냅샷이 누락되었더라도 현재 순위보다 최고 순위가 낮게 표시되지 않도록 합니다.
+            const currentSeasonMatches = seasonMatchCounts[activeSeason] || 0;
+            if (currentSeasonMatches >= 10) {
+                const currentPlayer = (rankingsData || []).find(p => p && p.name === playerName);
+                if (currentPlayer && currentPlayer.isChampion !== true) {
+                    const currentRankedPlayers = [...(rankingsData || [])]
+                        .filter(p => {
+                            if (!p || p.isChampion === true) return false;
+                            const totalMatches = Number(p.wins || 0)
+                                + Number(p.losses || 0)
+                                + Number(p.draws || 0);
+                            return totalMatches >= 3;
+                        })
+                        .sort((a, b) => (Number(b.elo) || 1000) - (Number(a.elo) || 1000));
+                    const currentRank = currentRankedPlayers.findIndex(p => p && p.name === playerName) + 1;
+                    if (currentRank > 0) considerRank(currentRank);
+                }
+            }
 
             // [FIX] 시즌 종료 후 새 시즌을 시작하면 마지막 경기 이후의 최종 ELO 순위가
             // winnerRankBefore / loserRankBefore에 기록되지 않습니다.
