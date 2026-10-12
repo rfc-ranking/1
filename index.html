@@ -298,7 +298,7 @@
                 
                 <div class="flex items-center gap-1.5 sm:gap-3 shrink-0">
                     <div class="relative w-[105px] sm:w-[150px]">
-                        <input type="search" id="playerSearchInput" name="q_search_dummy" autocomplete="nope" spellcheck="false" placeholder="선수 검색" class="w-full bg-white border border-slate-200 rounded-lg pl-6 sm:pl-8 pr-1 sm:pr-2 py-1 sm:py-1.5 text-[11px] sm:text-xs outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors shadow-sm" oninput="handleSearch(this.value)">
+                        <input type="search" id="playerSearchInput" name="q_search_dummy" autocomplete="nope" spellcheck="false" placeholder="이름/초성/ID" class="w-full bg-white border border-slate-200 rounded-lg pl-6 sm:pl-8 pr-1 sm:pr-2 py-1 sm:py-1.5 text-[11px] sm:text-xs outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors shadow-sm" oninput="handleSearch(this.value)">
                         <span class="absolute left-1.5 sm:left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] sm:text-xs pointer-events-none">🔍</span>
                     </div>
                     
@@ -569,8 +569,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v5.54",
-            updateNote: "현 시즌 10경기 이상 선수의 현재 순위를 최고순위 후보에 반영; 현상금 위치 변경: 티어 오른쪽 배치 · ELO/전적/통신사 2행 정리",
+            version: "v5.55",
+            updateNote: "선수 검색 개선: 이름/초성 및 Game ID(다중 계정) 검색 지원",
             title: "RFC 랭킹전"
         };
 
@@ -1202,6 +1202,11 @@
                     if (nameClean.includes(qClean)) return true;
                     if (p.choseong && (p.choseong.includes(qClean) || p.choseong.includes(queryJamo))) return true;
                     if (p.jamo && p.jamo.includes(queryJamo)) return true;
+
+                    // Game ID 검색: 메인 ID와 다중 계정용 서브 ID를 모두 대상으로 검색
+                    const normalizedQuery = qClean.toLowerCase();
+                    const gameIds = [p.gameId, ...(Array.isArray(p.subGameIds) ? p.subGameIds : [])];
+                    if (gameIds.some(id => String(id || "").replace(/\s/g, "").toLowerCase().includes(normalizedQuery))) return true;
                     return false;
                 });
             }
