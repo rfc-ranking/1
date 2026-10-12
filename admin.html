@@ -285,7 +285,7 @@
             </div>
             
             <div class="flex items-center gap-2 py-2 shrink-0 pl-4 border-l border-slate-100 ml-4">
-                <div class="relative"><input type="search" id="searchInput" placeholder="선수/초성 검색" class="w-[155px] text-xs border border-slate-200 rounded-lg pl-8 pr-2 py-2 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"><div class="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs">🔍</div></div>
+                <div class="relative"><input type="search" id="searchInput" placeholder="선수/초성/Game ID 검색" class="w-[155px] text-xs border border-slate-200 rounded-lg pl-8 pr-2 py-2 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"><div class="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs">🔍</div></div>
                 <div class="flex gap-1.5"><button onclick="window.open('index.html')" class="bg-white border border-slate-200 text-slate-600 text-xs font-bold py-2 px-3 rounded-lg hover:bg-slate-50">🌐 사이트 보기</button><button onclick="saveRankings()" class="bg-indigo-600 text-white text-xs font-bold py-2 px-3 rounded-lg shadow hover:bg-indigo-700">💾 저장</button></div>
             </div>
         </div>
@@ -831,8 +831,8 @@
         const AUTO_LOGIN_PW = "";
         
         const ADMIN_CONFIG = {
-            version: "v5.76",
-            updateNote: "최고순위 수정: 현 시즌 10경기 이상 선수의 현재 순위 반영",
+            version: "v5.78",
+            updateNote: "경기 결과 입력 수정: Blue/Red 선수 검색에 Game ID(다중 계정) 지원",
             title: "RFC 매니저"
         };
 
@@ -3078,7 +3078,7 @@ window.confirmBatchPenalty = (days, score) => { if(batchPenaltyTargets.length ==
 
         const globalChallengers = rankingsData.filter(p => !p.isChampion && (Number(p.wins || 0) + Number(p.losses || 0) + Number(p.draws || 0)) >= 3).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
         const query = searchQuery ? searchQuery.replace(/\s/g, "") : ""; const queryJamo = Hangul.disassemble(query);
-        const filteredData = rankingsData.filter(p => { const name = p.name || ""; const nameClean = name.replace(/\s/g, "").toLowerCase(); if (nameClean.includes(query)) return true; if (p.choseong && (p.choseong.includes(query) || p.choseong.includes(queryJamo))) return true; if (p.jamo && p.jamo.includes(queryJamo)) return true; return false; });
+        const filteredData = rankingsData.filter(p => { const name = p.name || ""; const nameClean = name.replace(/\s/g, "").toLowerCase(); if (nameClean.includes(query)) return true; if (p.choseong && (p.choseong.includes(query) || p.choseong.includes(queryJamo))) return true; if (p.jamo && p.jamo.includes(queryJamo)) return true; const gameIds = [p.gameId, ...(Array.isArray(p.subGameIds) ? p.subGameIds : [])].filter(Boolean).map(id => String(id).replace(/\s/g, "").toLowerCase()); if (gameIds.some(id => id.includes(query))) return true; return false; });
         const champion = filteredData.find(p => p.isChampion);
         const ranked = filteredData.filter(p => !p.isChampion && (Number(p.wins || 0) + Number(p.losses || 0) + Number(p.draws || 0)) >= 3).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
         const placement = filteredData.filter(p => !p.isChampion && (Number(p.wins || 0) + Number(p.losses || 0) + Number(p.draws || 0)) > 0 && (Number(p.wins || 0) + Number(p.losses || 0) + Number(p.draws || 0)) < 3).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
@@ -3196,14 +3196,14 @@ window.confirmBatchPenalty = (days, score) => { if(batchPenaltyTargets.length ==
             const rankIndex = sortedRankedIndices.indexOf(index); const isRanked = rankIndex !== -1; const totalMatches = (p.wins || 0) + (p.losses || 0) + (p.draws || 0); 
             let rankPrefix = ''; if (isRanked) rankPrefix = `${rankIndex + 1}. `; else if (totalMatches > 0) rankPrefix = `[배치] `; 
             const displayName = `${rankPrefix}${p.name}`; 
-            return { value: index, text: `${displayName} (${p.elo})`, displayName: displayName, name: p.name, gameId: p.gameId || '-', choseong: p.choseong, jamo: p.jamo, elo: p.elo || 1000, isRanked: isRanked, totalMatches: totalMatches, isChampion: !!p.isChampion }; 
+            return { value: index, text: `${displayName} (${p.elo})`, displayName: displayName, name: p.name, gameId: p.gameId || '-', gameIds: [p.gameId, ...(Array.isArray(p.subGameIds) ? p.subGameIds : [])].filter(Boolean).map(id => String(id)), choseong: p.choseong, jamo: p.jamo, elo: p.elo || 1000, isRanked: isRanked, totalMatches: totalMatches, isChampion: !!p.isChampion }; 
         }); 
         playerOptions.sort((a, b) => { if (a.isChampion !== b.isChampion) return b.isChampion ? 1 : -1; const typeA = a.isRanked ? 2 : (a.totalMatches > 0 ? 1 : 0); const typeB = b.isRanked ? 2 : (b.totalMatches > 0 ? 1 : 0); if (typeA !== typeB) return typeB - typeA; if (b.elo !== a.elo) return b.elo - a.elo; return a.name.localeCompare(b.name); }); 
         if (typeof TomSelect === 'undefined') return; 
         const config = { 
-            options: playerOptions, valueField: 'value', labelField: 'text', searchField: ['text'], create: false, maxOptions: null, 
+            options: playerOptions, valueField: 'value', labelField: 'text', searchField: ['text', 'gameIds'], create: false, maxOptions: null, 
             onInitialize: function() { this.control_input.setAttribute('type', 'search'); }, 
-            score: function(search) { const term = search.toLowerCase().replace(/\s/g, ""); const termJamo = Hangul.disassemble(term); return function(item) { if (item.name.toLowerCase().replace(/\s/g, "").includes(term)) return 100; if (item.choseong && (item.choseong.includes(term) || item.choseong.includes(termJamo))) return 80; if (item.jamo && item.jamo.includes(termJamo)) return 60; return 0; }; }, 
+            score: function(search) { const term = search.toLowerCase().replace(/\s/g, ""); const termJamo = Hangul.disassemble(term); return function(item) { if (!term) return 1; if (item.name.toLowerCase().replace(/\s/g, "").includes(term)) return 100; if (item.gameIds && item.gameIds.some(id => id.toLowerCase().replace(/\s/g, "").includes(term))) return 95; if (item.choseong && (item.choseong.includes(term) || item.choseong.includes(termJamo))) return 80; if (item.jamo && item.jamo.includes(termJamo)) return 60; return 0; }; }, 
             render: { option: function(data, escape) { const rankClass = data.isRanked ? "font-bold text-slate-700" : "text-slate-500"; return `<div class="flex flex-col py-1 leading-tight"><div><span class="${rankClass}">${escape(data.displayName)}</span> <span class="text-xs text-slate-400">(${data.elo})</span></div><div class="text-[10px] text-slate-400">ID: ${escape(data.gameId)}</div></div>`; }, item: function(data, escape) { return `<div class="flex flex-col w-full leading-tight py-0.5"><div class="truncate"><span class="font-bold text-slate-700">${escape(data.displayName)}</span> <span class="text-xs text-gray-400">(${data.elo})</span></div><div class="text-[10px] text-gray-400 truncate">${escape(data.gameId)}</div></div>`; } } 
         }; 
         const previewConfig = { ...config, onChange: function(value) { updateMatchPreview(); checkAutoTitleMatch(); } }; 
