@@ -530,7 +530,7 @@
                     <input type="hidden" id="userEditTrunkColor">
                 </div>
 
-                <div class="grid grid-cols-2 gap-3"><div><label class="text-xs font-bold text-slate-500 mb-1 block">키 (cm)</label><input type="text" id="userEditHeight" class="w-full border p-3 rounded-xl text-sm font-bold bg-slate-50"></div><div><label class="text-xs font-bold text-slate-500 mb-1 block">리치 (cm)</label><input type="text" id="userEditReach" class="w-full border p-3 rounded-xl text-sm font-bold bg-slate-50"></div></div>
+                <div class="grid grid-cols-2 gap-3"><div><label class="text-xs font-bold text-slate-500 mb-1 block">키 (cm)</label><input type="number" id="userEditHeight" min="0" max="220" step="any" inputmode="decimal" oninput="if(this.value!=='' && Number(this.value)>220)this.value=''" class="w-full border p-3 rounded-xl text-sm font-bold bg-slate-50"></div><div><label class="text-xs font-bold text-slate-500 mb-1 block">리치 (cm)</label><input type="number" id="userEditReach" min="0" max="220" step="any" inputmode="decimal" oninput="if(this.value!=='' && Number(this.value)>220)this.value=''" class="w-full border p-3 rounded-xl text-sm font-bold bg-slate-50"></div></div>
                 <div><label class="text-xs font-bold text-slate-500 mb-1 block">스탠스</label><select id="userEditStance" class="w-full border p-3 rounded-xl text-sm font-bold bg-slate-50"><option value="Orthodox">Orthodox (오른손)</option><option value="Southpaw">Southpaw (왼손)</option><option value="Switch">Switch (양손)</option></select></div>
                 <!-- [v5.51] 인터넷 통신사 선택: 스타일 태그와 동일한 선택형 뱃지 -->
                 <div class="p-3 bg-sky-50/50 border border-sky-100 rounded-xl relative shadow-sm">
@@ -575,8 +575,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v5.57",
-            updateNote: "챔피언 방어 횟수 집계 수정: 최초 챔피언 기록을 방어 성공으로 중복 집계하지 않도록 개선",
+            version: "v5.61",
+            updateNote: "타이틀 매치 지정 기록 배지 표시 호환",
             title: "RFC 랭킹전"
         };
 
@@ -749,10 +749,32 @@
 
         function getKSTDate() { return new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Seoul" }); }
 
+        let measurementCleanupStarted = false;
         onSnapshot(docRef, (docSnapshot) => {
             if (docSnapshot.exists()) {
                 const data = docSnapshot.data(); 
                 rankingsData = data.rankings || []; 
+                // 키/리치가 220cm를 초과한 기존 값은 공란으로 초기화해 DB에도 저장합니다.
+                if (!measurementCleanupStarted && rankingsData.some(p => {
+                    const h = Number(p.height), r = Number(p.reach);
+                    return (p.height !== '' && p.height != null && Number.isFinite(h) && h > 220) ||
+                           (p.reach !== '' && p.reach != null && Number.isFinite(r) && r > 220);
+                })) {
+                    measurementCleanupStarted = true;
+                    runTransaction(db, async (transaction) => {
+                        const snap = await transaction.get(docRef);
+                        if (!snap.exists()) return;
+                        const latest = snap.data();
+                        const allRankings = latest.rankings || [];
+                        let changed = false;
+                        allRankings.forEach(p => {
+                            const h = Number(p.height), r = Number(p.reach);
+                            if (p.height !== '' && p.height != null && Number.isFinite(h) && h > 220) { p.height = ''; changed = true; }
+                            if (p.reach !== '' && p.reach != null && Number.isFinite(r) && r > 220) { p.reach = ''; changed = true; }
+                        });
+                        if (changed) transaction.update(docRef, { rankings: allRankings });
+                    }).catch(err => { console.error('키/리치 초과값 초기화 실패:', err); measurementCleanupStarted = false; });
+                }
                 matchHistoryData = data.matchHistory || []; 
                 patchNotesData = data.patchNotes || [];
                 
@@ -2582,9 +2604,12 @@
                     seasonBadgeHtml = `<span class="${badgeBg} text-[9px] px-1.5 py-[2px] rounded-md font-bold tracking-tight">${matchSeason}</span>`;
                 }
 
+                const titleMatchBadge = m.isTitleMatch === true
+                    ? `<span class="inline-flex items-center bg-yellow-100 text-yellow-800 border border-yellow-200 text-[9px] px-1.5 py-0.5 rounded-md font-black shrink-0">👑 타이틀 매치</span>`
+                    : '';
                 const div = document.createElement('div'); 
                 div.className = "flex items-center justify-between text-xs p-3 bg-slate-50 rounded-xl border border-slate-100"; 
-                div.innerHTML = `<div class="flex items-center gap-3 w-full"><div class="flex items-center gap-1.5 shrink-0"><span class="font-bold ${resultColor} w-8 h-8 flex items-center justify-center rounded-lg text-sm shadow-sm">${resultText}</span>${scoreBadge}</div><div class="flex flex-col w-full overflow-hidden"><div class="flex justify-between items-center w-full"><span class="font-bold text-slate-700 text-sm truncate flex items-center gap-1.5 ${oppCursor}" ${oppLink}>vs ${oppName}${oppRankBadge}</span><span class="flex items-center gap-1.5 shrink-0">${seasonBadgeHtml}<span class="text-slate-500 font-medium text-[11px]">${m.date}</span></span></div><div class="flex items-center gap-2 mt-0.5"><span class="text-[11px] text-slate-400 font-medium bg-white px-1.5 py-0.5 rounded border border-slate-100">당시: ${oppRecordStrFull}</span><div class="flex gap-0.5 md:gap-1">${oppDots}</div></div></div></div>`; 
+                div.innerHTML = `<div class="flex items-center gap-3 w-full"><div class="flex items-center gap-1.5 shrink-0"><span class="font-bold ${resultColor} w-8 h-8 flex items-center justify-center rounded-lg text-sm shadow-sm">${resultText}</span>${scoreBadge}</div><div class="flex flex-col w-full overflow-hidden"><div class="flex justify-between items-center w-full gap-1"><span class="font-bold text-slate-700 text-sm truncate flex items-center gap-1.5 ${oppCursor}" ${oppLink}>vs ${oppName}${oppRankBadge}</span><span class="flex items-center gap-1.5 shrink-0">${titleMatchBadge}${seasonBadgeHtml}<span class="text-slate-500 font-medium text-[11px]">${m.date}</span></span></div><div class="flex items-center gap-2 mt-0.5"><span class="text-[11px] text-slate-400 font-medium bg-white px-1.5 py-0.5 rounded border border-slate-100">당시: ${oppRecordStrFull}</span><div class="flex gap-0.5 md:gap-1">${oppDots}</div></div></div></div>`; 
                 container.appendChild(div); 
             }); 
         };
@@ -2729,6 +2754,10 @@
             if (!editTargetId) return;
             const newHeight = document.getElementById('userEditHeight').value.replace(/</g, "&lt;");
             const newReach = document.getElementById('userEditReach').value.replace(/</g, "&lt;");
+            if ((newHeight !== '' && (!Number.isFinite(Number(newHeight)) || Number(newHeight) < 0 || Number(newHeight) > 220)) ||
+                (newReach !== '' && (!Number.isFinite(Number(newReach)) || Number(newReach) < 0 || Number(newReach) > 220))) {
+                alert('키와 리치는 0~220cm 범위로 입력해주세요.'); return;
+            }
             const newStance = document.getElementById('userEditStance').value;
             const checkedCarrier = document.querySelector('input[name="userEditCarrier"]:checked');
             if (!checkedCarrier || !['SK','KT','LG'].includes(checkedCarrier.value)) { alert('통신사를 선택해주세요. (SK / KT / LG)'); return; } const newCarrier = checkedCarrier.value;
