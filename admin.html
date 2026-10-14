@@ -838,7 +838,7 @@
         
         const ADMIN_CONFIG = {
             version: "v5.83",
-            updateNote: "프로필 날짜별 경기 기록에서 타이틀 매치 직접 지정/해제",
+            updateNote: "경기 기록 Log의 타이틀 지정 기능 제거; 프로필 날짜별 기록에서 지정/해제 유지",
             title: "RFC 매니저"
         };
 
@@ -1597,32 +1597,11 @@
 
                 if (m.date !== lastDate) { const count = dateCounts[m.date]; const dateHeader = document.createElement('div'); dateHeader.className = "text-xs font-bold text-slate-500 mt-4 mb-2 px-1 flex items-center gap-1 sticky top-0 bg-f8fafc/90 backdrop-blur-sm z-10 py-1"; dateHeader.style.cssText = "background-color: rgba(248, 250, 252, 0.95); backdrop-filter: blur(2px);"; dateHeader.innerHTML = `<span>📅</span> ${m.date} <span class="text-slate-400 font-normal text-[11px] ml-1">(총 ${count}경기)</span>`; container.appendChild(dateHeader); lastDate = m.date; }
                 const div = document.createElement('div'); div.className = "bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-2 relative group hover:border-blue-300 transition-colors"; 
-                div.innerHTML = `<div class="absolute top-2 right-2 flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition"><button onclick="toggleTitleMatchLog(${rawIndex})" class="text-[10px] font-bold px-2 py-1 rounded-lg border transition ${m.isTitleMatch === true ? 'bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-200' : 'bg-white text-slate-400 border-slate-200 hover:text-yellow-700 hover:border-yellow-300'}" title="${m.isTitleMatch === true ? '일반 경기로 변경' : '타이틀 매치로 지정'}">${m.isTitleMatch === true ? '👑 타이틀 ON' : '👑 타이틀 지정'}</button><button onclick="deleteMatchLog(${rawIndex})" class="text-slate-300 hover:text-red-500 transition p-1" title="기록 삭제"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a1.995 1.995 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button></div><div class="flex items-center justify-between text-xs mt-1 pr-2"><div class="flex flex-col items-start w-[45%]"><div class="flex items-center gap-1.5"><span class="text-[10px] text-blue-500 font-bold mr-0.5">B</span><span class="text-xs ${leftNameClass} truncate">${leftName}</span><span class="${leftBadgeClass} text-[9px] px-1 py-0.5 rounded font-bold">${leftResult}</span></div><div class="flex items-center gap-2 mt-1"><span class="text-[9px] text-slate-400 font-medium bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">${leftStats.w}승 ${leftStats.l}패 ${leftStats.d > 0 ? leftStats.d+'무' : ''}</span><div class="flex gap-0.5">${leftDots}</div></div></div><div class="text-[10px] font-bold text-slate-300">VS</div><div class="flex flex-col items-end w-[45%]"><div class="flex items-center gap-1.5"><span class="${rightBadgeClass} text-[9px] px-1 py-0.5 rounded font-bold">${rightResult}</span><span class="text-xs ${rightNameClass} truncate">${rightName}</span><span class="text-[10px] text-red-500 font-bold ml-0.5">R</span></div><div class="flex items-center gap-2 mt-1"><div class="flex gap-0.5">${rightDots}</div><span class="text-[9px] text-slate-400 font-medium bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">${rightStats.w}승 ${rightStats.l}패 ${rightStats.d > 0 ? rightStats.d+'무' : ''}</span></div></div></div>`; container.appendChild(div); 
+                div.innerHTML = `<div class="absolute top-2 right-2 flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition"><button onclick="deleteMatchLog(${rawIndex})" class="text-slate-300 hover:text-red-500 transition p-1" title="기록 삭제"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a1.995 1.995 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button></div><div class="flex items-center justify-between text-xs mt-1 pr-2"><div class="flex flex-col items-start w-[45%]"><div class="flex items-center gap-1.5"><span class="text-[10px] text-blue-500 font-bold mr-0.5">B</span><span class="text-xs ${leftNameClass} truncate">${leftName}</span><span class="${leftBadgeClass} text-[9px] px-1 py-0.5 rounded font-bold">${leftResult}</span></div><div class="flex items-center gap-2 mt-1"><span class="text-[9px] text-slate-400 font-medium bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">${leftStats.w}승 ${leftStats.l}패 ${leftStats.d > 0 ? leftStats.d+'무' : ''}</span><div class="flex gap-0.5">${leftDots}</div></div></div><div class="text-[10px] font-bold text-slate-300">VS</div><div class="flex flex-col items-end w-[45%]"><div class="flex items-center gap-1.5"><span class="${rightBadgeClass} text-[9px] px-1 py-0.5 rounded font-bold">${rightResult}</span><span class="text-xs ${rightNameClass} truncate">${rightName}</span><span class="text-[10px] text-red-500 font-bold ml-0.5">R</span></div><div class="flex items-center gap-2 mt-1"><div class="flex gap-0.5">${rightDots}</div><span class="text-[9px] text-slate-400 font-medium bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">${rightStats.w}승 ${rightStats.l}패 ${rightStats.d > 0 ? rightStats.d+'무' : ''}</span></div></div></div>`; container.appendChild(div); 
             }); 
         }
 
         function updateAdminHistorySeasonSelector() { const selector = document.getElementById('adminHistorySeason'); selector.innerHTML = ''; const opts = [activeSeason, ...Object.keys(seasonArchives).sort().reverse().filter(s => s !== activeSeason)]; opts.forEach(s => { const opt = document.createElement('option'); opt.value = s; opt.textContent = s + (s === activeSeason ? " 🟢" : ""); selector.appendChild(opt); }); selector.value = viewHistorySeason; selector.onchange = (e) => { viewHistorySeason = e.target.value; renderAdminMatches(); }; }
-        window.toggleTitleMatchLog = async (idx) => {
-            if (idx < 0 || idx >= matchHistoryData.length) return;
-            const match = matchHistoryData[idx];
-            const wasTitleMatch = match.isTitleMatch === true;
-            const actionLabel = wasTitleMatch ? "일반 경기로 변경" : "👑 타이틀 매치로 지정";
-            if (!confirm(`이 경기 기록을 ${actionLabel} 하시겠습니까?\n승패·점수·날짜·당시 전적은 변경되지 않습니다.`)) return;
-            captureState();
-            matchHistoryData[idx].isTitleMatch = !wasTitleMatch;
-            try {
-                await saveRankings();
-                enrichMatchHistory();
-                renderAdminMatches();
-                showCustomAlert(wasTitleMatch ? "일반 경기로 변경했습니다." : "👑 타이틀 매치로 지정했습니다.");
-            } catch (error) {
-                matchHistoryData[idx].isTitleMatch = wasTitleMatch;
-                enrichMatchHistory();
-                renderAdminMatches();
-                showCustomAlert("저장에 실패했습니다. 잠시 후 다시 시도해주세요.");
-                console.error("타이틀 매치 변경 실패:", error);
-            }
-        };
         window.deleteMatchLog = (idx) => { if (idx === -1) return; if(!confirm("⚠️ 경고: 기록 삭제?")) return; captureState(); matchHistoryData.splice(idx, 1); saveRankings(); renderAdminMatches(); alert("기록 삭제됨."); };
 
         window.openMatchExportModal = () => { 
