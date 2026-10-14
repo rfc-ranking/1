@@ -575,8 +575,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v5.56",
-            updateNote: "통신사 태그 필터 추가: SK/KT/LG 선수 목록 필터링 지원",
+            version: "v5.57",
+            updateNote: "챔피언 방어 횟수 집계 수정: 최초 챔피언 기록을 방어 성공으로 중복 집계하지 않도록 개선",
             title: "RFC 랭킹전"
         };
 
@@ -1847,17 +1847,17 @@
                     registerChampionExperience(loserName);
                 }
 
-                // 1) 경기 당시 챔피언이 승리했다면, 현재 왕조의 방어 성공입니다.
-                // 단, reigningChampion이 아직 잡히지 않은 경우에는 해당 승리의 챔피언 정보를
-                // 기준으로 왕조를 시작하되, 과거 왕조의 C 기록을 현재 왕조로 섞지 않습니다.
+                // 1) 경기 당시 챔피언이 승리했다면 방어 성공 후보입니다.
+                // 최초로 확인되는 챔피언 승리는 왕조의 기준점으로만 사용합니다.
+                // 과거 기록에는 'C' 표시만 남아 실제 타이틀 방어 경기인지 구분할 수 없는
+                // 데이터가 있으므로, 최초 기록을 방어 1회로 자동 가산하면 방어 횟수가 부풀려집니다.
                 if (winnerWasChamp) {
                     if (reigningChampion === null) {
                         reigningChampion = winnerName;
-                    }
-
-                    if (reigningChampion === winnerName) {
+                    } else if (reigningChampion === winnerName && !loserWasChamp) {
+                        // 동일 챔피언이 타이틀을 지킨 승리만 방어 성공으로 계산합니다.
                         defenseCountMap[winnerName] = (defenseCountMap[winnerName] || 0) + 1;
-                    } else {
+                    } else if (reigningChampion !== winnerName) {
                         // 과거 기록에서 새 챔피언의 명시적 상태가 확인된 경우 왕조를 전환합니다.
                         reigningChampion = winnerName;
                     }
@@ -1994,7 +1994,7 @@
                     if (type === 'match') return `${(p.wins||0)+(p.losses||0)+(p.draws||0)}전`;
                     if (type === 'win') return `${p.wins}승`;
                     if (type === 'streak') return `${p.maxStreak}연승`;
-                    if (type === 'defense') return `🛡️ ${p.calculatedDefenseCount}회`;
+                    if (type === 'defense') return `🛡️ ${p.calculatedDefenseCount}차 방어`;
                     return '';
                 };
 
