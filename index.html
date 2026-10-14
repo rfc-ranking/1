@@ -301,6 +301,12 @@
                         <input type="search" id="playerSearchInput" name="q_search_dummy" autocomplete="nope" spellcheck="false" placeholder="이름/초성/ID" class="w-full bg-white border border-slate-200 rounded-lg pl-6 sm:pl-8 pr-1 sm:pr-2 py-1 sm:py-1.5 text-[11px] sm:text-xs outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors shadow-sm" oninput="handleSearch(this.value)">
                         <span class="absolute left-1.5 sm:left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] sm:text-xs pointer-events-none">🔍</span>
                     </div>
+                    <div id="carrierFilterTags" class="flex gap-1 items-center shrink-0">
+                        <button type="button" onclick="setCarrierFilter('all')" data-carrier-filter="all" class="carrier-filter-tag px-1.5 py-1 rounded-md border text-[10px] font-bold bg-slate-800 text-white border-slate-800">전체</button>
+                        <button type="button" onclick="setCarrierFilter('SK')" data-carrier-filter="SK" class="carrier-filter-tag px-1.5 py-1 rounded-md border text-[10px] font-bold bg-white text-slate-600 border-slate-200">SK</button>
+                        <button type="button" onclick="setCarrierFilter('KT')" data-carrier-filter="KT" class="carrier-filter-tag px-1.5 py-1 rounded-md border text-[10px] font-bold bg-white text-slate-600 border-slate-200">KT</button>
+                        <button type="button" onclick="setCarrierFilter('LG')" data-carrier-filter="LG" class="carrier-filter-tag px-1.5 py-1 rounded-md border text-[10px] font-bold bg-white text-slate-600 border-slate-200">LG</button>
+                    </div>
                     
                     <div class="flex gap-1 sm:gap-1.5 items-center bg-white px-1.5 sm:px-2 py-1 rounded border border-slate-200 shadow-sm shrink-0">
                         <span class="text-[9px] sm:text-[10px] text-slate-500 font-bold flex items-center gap-0.5"><div class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 shadow-sm border border-emerald-500"></div>승</span>
@@ -569,8 +575,8 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v5.55",
-            updateNote: "선수 검색 개선: 이름/초성 및 Game ID(다중 계정) 검색 지원",
+            version: "v5.56",
+            updateNote: "통신사 태그 필터 추가: SK/KT/LG 선수 목록 필터링 지원",
             title: "RFC 랭킹전"
         };
 
@@ -1064,6 +1070,15 @@
             return { name: 'PLATINUM', class: 'tier-platinum', color: 'bg-white border border-cyan-500 text-cyan-600' }; 
         }
         
+        let carrierFilter = 'all';
+        window.setCarrierFilter = (carrier) => {
+            carrierFilter = carrier;
+            document.querySelectorAll('.carrier-filter-tag').forEach(btn => {
+                const active = btn.dataset.carrierFilter === carrier;
+                btn.className = 'carrier-filter-tag px-1.5 py-1 rounded-md border text-[10px] font-bold ' + (active ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50');
+            });
+            renderRankings();
+        };
         window.handleSearch = (val) => {
             searchQuery = val.trim().toLowerCase();
             renderRankings();
@@ -1193,6 +1208,15 @@
             const globalChallengers = fullData.filter(p => !p.isChampion && (Number(p.wins||0)+Number(p.losses||0)+Number(p.draws||0)) >= 3);
             
             let displayList = fullData;
+            if (carrierFilter !== 'all') {
+                displayList = displayList.filter(p => {
+                    const carrier = String(p.carrier || '').trim().toUpperCase().replace(/\s|\+/g, '');
+                    if (carrierFilter === 'SK') return carrier === 'SK' || carrier === 'SKT';
+                    if (carrierFilter === 'KT') return carrier === 'KT';
+                    if (carrierFilter === 'LG') return carrier === 'LG' || carrier === 'LGU' || carrier === 'LGU+';
+                    return true;
+                });
+            }
             if (searchQuery) {
                 const queryJamo = Hangul.disassemble(searchQuery.replace(/\s/g, ""));
                 const qClean = searchQuery.replace(/\s/g, "");
