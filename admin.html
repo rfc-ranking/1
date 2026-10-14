@@ -286,7 +286,13 @@
             
             <div class="flex items-center gap-2 py-2 shrink-0 pl-4 border-l border-slate-100 ml-4">
                 <div class="relative"><input type="search" id="searchInput" placeholder="선수/초성/Game ID 검색" class="w-[155px] text-xs border border-slate-200 rounded-lg pl-8 pr-2 py-2 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"><div class="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs">🔍</div></div>
-                <div class="flex gap-1.5"><button onclick="window.open('index.html')" class="bg-white border border-slate-200 text-slate-600 text-xs font-bold py-2 px-3 rounded-lg hover:bg-slate-50">🌐 사이트 보기</button><button onclick="saveRankings()" class="bg-indigo-600 text-white text-xs font-bold py-2 px-3 rounded-lg shadow hover:bg-indigo-700">💾 저장</button></div>
+                <div id="carrierFilterBar" class="flex items-center gap-1 shrink-0" aria-label="통신사별 선수 필터">
+                    <button type="button" data-carrier-filter="" onclick="setCarrierFilter('')" class="carrier-filter-btn bg-slate-800 text-white border border-slate-800 text-xs font-bold px-2.5 py-2 rounded-lg">전체</button>
+                    <button type="button" data-carrier-filter="SK" onclick="setCarrierFilter('SK')" class="carrier-filter-btn bg-white text-red-700 border border-red-200 text-xs font-bold px-2.5 py-2 rounded-lg hover:bg-red-50">SK</button>
+                    <button type="button" data-carrier-filter="KT" onclick="setCarrierFilter('KT')" class="carrier-filter-btn bg-white text-blue-700 border border-blue-200 text-xs font-bold px-2.5 py-2 rounded-lg hover:bg-blue-50">KT</button>
+                    <button type="button" data-carrier-filter="LG" onclick="setCarrierFilter('LG')" class="carrier-filter-btn bg-white text-yellow-800 border border-yellow-300 text-xs font-bold px-2.5 py-2 rounded-lg hover:bg-yellow-50">LG</button>
+                </div>
+                <div class="flex gap-1.5"><button onclick="window.open('index.html')" class="bg-white border border-slate-200 text-slate-600 text-xs font-bold py-2 px-3 rounded-lg hover:bg-slate-50">🌐 사이트</button><button onclick="saveRankings()" class="bg-indigo-600 text-white text-xs font-bold py-2 px-3 rounded-lg shadow hover:bg-indigo-700">💾 저장</button></div>
             </div>
         </div>
 
@@ -831,8 +837,8 @@
         const AUTO_LOGIN_PW = "";
         
         const ADMIN_CONFIG = {
-            version: "v5.78",
-            updateNote: "경기 결과 입력 수정: Blue/Red 선수 검색에 Game ID(다중 계정) 지원",
+            version: "v5.80",
+            updateNote: "통신사 태그 클릭 필터: 전체/SK/KT/LG 선수 목록 보기",
             title: "RFC 매니저"
         };
 
@@ -855,6 +861,20 @@
         let availablePatchTags = []; // [NEW] 태그 저장용 배열
         let undoStack = []; const MAX_UNDO = 10;
         let searchQuery = "";
+        let carrierFilter = "";
+
+        window.setCarrierFilter = (carrier) => {
+            carrierFilter = String(carrier || "").toUpperCase();
+            document.querySelectorAll(".carrier-filter-btn").forEach(btn => {
+                const selected = (btn.dataset.carrierFilter || "") === carrierFilter;
+                btn.classList.toggle("bg-slate-800", selected);
+                btn.classList.toggle("text-white", selected);
+                btn.classList.toggle("border-slate-800", selected);
+                if (!selected) { btn.classList.remove("bg-slate-800", "text-white", "border-slate-800"); }
+                if (selected) { btn.classList.add("bg-slate-800", "text-white", "border-slate-800"); }
+            });
+            renderRankings();
+        };
         let enrichedHistory = [];
         let viewHistorySeason = "";
         let currentProfileId = null;
@@ -1223,7 +1243,35 @@
                         if(p.draws === undefined) p.draws = 0; // 무승부 초기화
                         if(!p.subGameIds) p.subGameIds = []; // [NEW] 다중 ID 배열 초기화
                         p.choseong = Hangul.getCho(p.name); p.jamo = Hangul.disassemble(p.name);
-                    }); 
+                    });
+                    // [v5.79] 설문조사 통신사 일괄 반영: 기존 프로필의 carrier 값(SK/KT/LG) 사용
+                    const carrierSurvey = {
+                        "거스리고반":"SK", "게이치":"SK", "매니 통 sk":"SK", "멸치맨":"SK", "뼈약자":"SK", "소년":"SK", "초피치":"SK", "푸른하늘123":"SK", "하이머니":"SK", "휴윤":"SK", "staccato_rep":"SK",
+                        "걸샌":"KT", "고기":"KT", "기쁜 라안":"KT", "두준식이":"KT", "럭키펀치":"KT", "무린이":"KT", "방구석복싱맨":"KT", "복리로 패는 버핏":"KT", "솜방망이":"KT", "안류천":"KT", "중금자":"KT", "크롱":"KT", "현선호":"KT", "화이트쉐도우":"KT", "@@@":"KT",
+                        "로마 첸코":"LG", "망고링":"LG", "물주먹왕":"LG", "뷁뷁":"LG", "빙봉빙":"LG", "샌드백보리":"LG", "션":"LG", "쓰오파조아":"LG", "INGOD":"LG"
+                    };
+                    let carrierSurveyChanged = false;
+                    const carrierSurveyMatched = new Set();
+                    rankingsData.forEach(p => {
+                        const playerName = String(p.name || '').trim();
+                        let carrier = carrierSurvey[playerName];
+                        // 이미지에서 닉네임이 잘린 PhantomStri...는 기존 이름이 PhantomStri로 시작할 때만 KT로 매칭
+                        if (!carrier && playerName.startsWith('PhantomStri')) carrier = 'KT';
+                        if (carrier) {
+                            carrierSurveyMatched.add(playerName);
+                            if (String(p.carrier || '').trim().toUpperCase() !== carrier) {
+                                p.carrier = carrier;
+                                carrierSurveyChanged = true;
+                            }
+                        }
+                    });
+                    if (carrierSurveyChanged && !window.__carrierSurveySaveInProgress) {
+                        window.__carrierSurveySaveInProgress = true;
+                        saveRankings().then(() => {
+                            console.info(`[v5.79] 설문 통신사 데이터 저장 완료: ${carrierSurveyMatched.size}명 매칭`);
+                            showCustomAlert(`📡 설문 통신사 정보 저장 완료 (${carrierSurveyMatched.size}명 매칭).`);
+                        }).catch(err => console.error('[v5.79] 통신사 일괄 저장 실패:', err)).finally(() => { window.__carrierSurveySaveInProgress = false; });
+                    }
                     enrichMatchHistory(); renderRankings(); populateMatchSelectors(); checkSeasonInactive(); updateAdminHistorySeasonSelector(); renderAdminMatches(); 
                     if (currentProfileId) updateProfileStats(currentProfileId, document.getElementById('pModalSeason').value); 
                     if(document.getElementById('totalPlayerCount')) document.getElementById('totalPlayerCount').textContent = `(${rankingsData.length}명)`;
@@ -3078,7 +3126,11 @@ window.confirmBatchPenalty = (days, score) => { if(batchPenaltyTargets.length ==
 
         const globalChallengers = rankingsData.filter(p => !p.isChampion && (Number(p.wins || 0) + Number(p.losses || 0) + Number(p.draws || 0)) >= 3).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
         const query = searchQuery ? searchQuery.replace(/\s/g, "") : ""; const queryJamo = Hangul.disassemble(query);
-        const filteredData = rankingsData.filter(p => { const name = p.name || ""; const nameClean = name.replace(/\s/g, "").toLowerCase(); if (nameClean.includes(query)) return true; if (p.choseong && (p.choseong.includes(query) || p.choseong.includes(queryJamo))) return true; if (p.jamo && p.jamo.includes(queryJamo)) return true; const gameIds = [p.gameId, ...(Array.isArray(p.subGameIds) ? p.subGameIds : [])].filter(Boolean).map(id => String(id).replace(/\s/g, "").toLowerCase()); if (gameIds.some(id => id.includes(query))) return true; return false; });
+        const filteredData = rankingsData.filter(p => {
+            const playerCarrier = String(p.carrier || "").trim().toUpperCase();
+            if (carrierFilter && playerCarrier !== carrierFilter) return false;
+            if (!query) return true;
+            const name = p.name || ""; const nameClean = name.replace(/\s/g, "").toLowerCase(); if (nameClean.includes(query)) return true; if (p.choseong && (p.choseong.includes(query) || p.choseong.includes(queryJamo))) return true; if (p.jamo && p.jamo.includes(queryJamo)) return true; const gameIds = [p.gameId, ...(Array.isArray(p.subGameIds) ? p.subGameIds : [])].filter(Boolean).map(id => String(id).replace(/\s/g, "").toLowerCase()); if (gameIds.some(id => id.includes(query))) return true; return false; });
         const champion = filteredData.find(p => p.isChampion);
         const ranked = filteredData.filter(p => !p.isChampion && (Number(p.wins || 0) + Number(p.losses || 0) + Number(p.draws || 0)) >= 3).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
         const placement = filteredData.filter(p => !p.isChampion && (Number(p.wins || 0) + Number(p.losses || 0) + Number(p.draws || 0)) > 0 && (Number(p.wins || 0) + Number(p.losses || 0) + Number(p.draws || 0)) < 3).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
