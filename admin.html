@@ -9,7 +9,6 @@
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
     
-    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; }
         .rank-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; border-bottom: 1px solid #f1f5f9; }
@@ -253,8 +252,154 @@ img{max-width:100%} .rfc-help{margin:12px 0;padding:14px;border:1px solid #cbd5e
 .rfc-video-dialog .ts-control>input{padding:0!important;margin:0!important;border:0!important;box-shadow:none!important;min-height:0}.rfc-video-dialog .ts-wrapper{margin-top:4px}.rfc-video-dialog .ts-control{min-height:42px;border-radius:8px}.rfc-video-dialog .ts-dropdown{font-size:14px}
 
 </style>
+<style>/* Keep the manager title/season bar visible during mobile navigation. */
+body.rfc-ux-admin #rfcAdminHeader{position:sticky;top:0;z-index:40;flex-shrink:0;background:#fff}
+#rfcAdminWorkPanel,#rfcAdminRankPanel,#adminMatchListContainer{overscroll-behavior-y:contain;scroll-behavior:auto}
+</style><style>#rfcIntegrityChanges table{width:100%;border-collapse:collapse;font-size:12px}#rfcIntegrityChanges th,#rfcIntegrityChanges td{padding:10px;text-align:left;vertical-align:top;border-bottom:1px solid #e2e8f0}#rfcIntegrityChanges th{background:#f1f5f9}#rfcIntegrityWarnings li{margin-bottom:8px}</style><style id="rfcDesignSystem">
+/* RFC visual system — presentation only; original state and event handlers are retained. */
+body.rfc-design{--rfc-ink:#142238;--rfc-muted:#607087;--rfc-line:#dce4ed;--rfc-blue:#245cdb;--rfc-navy:#111e32;--rfc-surface:#fff;font-family:'Pretendard',-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;color:var(--rfc-ink);background:#edf1f6;font-feature-settings:'ss01';letter-spacing:-.015em}
+.rfc-design button,.rfc-design input,.rfc-design select,.rfc-design textarea{font-family:inherit;letter-spacing:inherit}
+.rfc-design button{transition:background-color .16s,border-color .16s,box-shadow .16s,color .16s}
+.rfc-design button:disabled{opacity:.5}.rfc-design input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=hidden]),.rfc-design textarea,.rfc-design select{border-color:#d3dce8;border-radius:10px}
+.rfc-design input:not([type=checkbox]):not([type=radio]):not([type=color]):focus,.rfc-design textarea:focus,.rfc-design select:focus{border-color:#7399ef;box-shadow:0 0 0 3px #245cdb12}
+.rfc-design .rfc-brand{display:flex;align-items:center;gap:12px;min-width:0}
+.rfc-design .rfc-brand-symbol{display:grid;place-items:center;flex-shrink:0;width:42px;height:42px;border-radius:11px;background:#2b64e5;color:#fff;font-size:13px;font-weight:900;letter-spacing:-.07em;transform:skew(-7deg);border:1px solid #5c89ef}
+.rfc-design .rfc-brand-symbol span{transform:skew(7deg)}
+.rfc-design .rfc-brand-kicker{display:block;font-size:9px;line-height:1.4;font-weight:700;letter-spacing:.18em;color:#9bb5dc;margin-bottom:3px}
+.rfc-design .rfc-brand-title{margin:0;font-size:21px;line-height:1.2;font-weight:900;color:#fff;letter-spacing:-.045em}
+.rfc-design .rfc-section-intro{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin:0 0 18px;padding:8px 2px 0}
+.rfc-design .rfc-section-intro h2{font-size:25px;font-weight:850;letter-spacing:-.055em;line-height:1.25;color:#142238;margin:5px 0 7px}
+.rfc-design .rfc-section-intro p{font-size:12px;line-height:1.7;color:#607087;margin:0}
+.rfc-design .rfc-section-eyebrow{font-size:10px;font-weight:800;color:#245cdb;letter-spacing:.16em}
+.rfc-design .rfc-season-mark{flex-shrink:0;display:inline-flex;align-items:center;gap:7px;padding:7px 10px;border-radius:7px;border:1px solid #d9e3f3;background:#e9effa;font-size:10px;font-weight:800;letter-spacing:.08em;color:#315b9f}
+.rfc-design .rfc-season-mark::before{content:'';width:5px;height:5px;border-radius:50%;background:#245cdb}
+.rfc-design .rfc-ux-button,.rfc-design .rfc-video-edit{font-size:12px;border-color:#d3deeb;border-radius:9px;box-shadow:0 1px 2px #14223804;font-weight:700}
+.rfc-design .rfc-ux-button:hover,.rfc-design .rfc-video-edit:hover{border-color:#9ab6e9;background:#edf3ff;color:#214d9f}
+.rfc-design .rfc-video-link{padding:7px 12px;font-size:11px;border-radius:8px;border-color:#f3d3d6;background:#fff3f3;color:#b32b38;min-height:36px;font-weight:800}
+.rfc-design .rfc-video-link:hover{background:#b32b38;color:#fff;border-color:#b32b38}
+.rfc-design #rankingList{font-variant-numeric:tabular-nums}
+.rfc-design #rankingList .rank-card{border:1px solid #dce4ed;border-radius:13px;margin-bottom:8px;box-shadow:0 2px 3px #17264003;transition:border-color .16s,box-shadow .16s;min-height:76px}
+.rfc-design #rankingList .rank-card:hover{transform:none;border-color:#95b4e8;box-shadow:0 5px 16px #1d3b660b}
+.rfc-design #rankingList .rank-card img{border-radius:10px}
+.rfc-design #rankingList .rank-1-glow{box-shadow:inset 3px 0 0 #d0a13b,0 2px 4px #17264004}
+.rfc-design #rankingList .rank-2-glow{box-shadow:inset 3px 0 0 #9caec1}
+.rfc-design #rankingList .rank-3-glow{box-shadow:inset 3px 0 0 #bb8f71}
+.rfc-design #rankingList .inferno-card{border-color:#a33e36;box-shadow:0 3px 9px #6f251b14}
+.rfc-design #matchList>.bg-white,.rfc-design #adminMatchListContainer>.bg-white{border-radius:13px;border:1px solid #dce4ed;box-shadow:0 2px 4px #17264004;padding:16px;background-image:linear-gradient(to right,#3e76df 0%,#3e76df 48%,#e6ebf2 48%,#e6ebf2 52%,#d55c68 52%,#d55c68 100%);background-size:100% 2px;background-repeat:no-repeat}
+.rfc-design .rfc-video-footer{padding-top:9px;border-top:1px solid #edf0f4;margin-top:6px}
+.rfc-design .rfc-ux-history{border-radius:13px;padding:15px;border-color:#dce4ed;background:#fff;box-shadow:0 2px 3px #17264003}
+.rfc-design .rfc-ux-history label{font-size:11px;font-weight:750;color:#53647a}
+.rfc-design .rfc-ux-history input:not([type=checkbox]){background:#f8fafd;border-color:#d7e1ed;min-height:42px}
+.rfc-design .rfc-ux-history input:focus{background:#fff}
+.rfc-design #rfcHistoryCount,.rfc-design #rfcRankingCount{font-size:11px;font-weight:650;color:#566b85}
+.rfc-design .rfc-ux-rank-summary{padding:6px 4px;background:transparent;border-radius:0}
+.rfc-design .rfc-ux-rank-summary .rfc-ux-button{min-height:32px;font-size:10px;padding:5px 9px;background:transparent;border-color:transparent;color:#65768c;box-shadow:none}
+.rfc-design .rfc-ux-rank-summary .rfc-ux-button:hover{background:#e3eaf4;color:#245cdb}
+.rfc-design .rfc-video-dialog{border-radius:19px;padding:24px;box-shadow:0 32px 100px #09182c55;border:1px solid #e3eaf3}
+.rfc-design .rfc-video-dialog::backdrop{background:#0c1b30ad;backdrop-filter:blur(3px)}
+.rfc-design .rfc-video-heading{padding-bottom:16px;border-bottom:1px solid #e4eaf2;margin-bottom:18px}
+.rfc-design .rfc-video-heading h2{font-size:20px;letter-spacing:-.04em}
+.rfc-design .rfc-video-ui .rfc-primary{background:#245cdb;border-color:#245cdb;box-shadow:0 3px 8px #245cdb24;border-radius:10px}
+.rfc-design .rfc-video-ui .rfc-primary:hover{background:#194cc0}
+.rfc-design .rfc-batch-row{border-color:#dce5ef;border-radius:13px;background:#f7f9fc;padding:16px}
+.rfc-design .rfc-batch-row header strong{font-size:13px;color:#254b82}
+.rfc-design .rfc-batch-preview-item{font-variant-numeric:tabular-nums}
+.rfc-design #rfcIntegritySummary{display:block;padding:13px 15px;border-radius:10px;color:#1e4d99;background:#edf3ff;font-size:13px}
+.rfc-design #rfcIntegrityChanges th{background:#f1f5fa;color:#435c7b;font-size:11px;white-space:nowrap}
+.rfc-design #rfcIntegrityChanges td{padding-top:13px;padding-bottom:13px;font-variant-numeric:tabular-nums}
+.rfc-design #rfcIntegrityChanges tbody tr:nth-child(even){background:#fafbfd}
+.rfc-design #profileModal .shadow-2xl{box-shadow:0 28px 90px #07132740}
+.rfc-design #pModalMatchList>div{border-radius:11px}
+.rfc-design #pModalElo,.rfc-design #pModalHighElo,.rfc-design #pModalHighRank{font-variant-numeric:tabular-nums;letter-spacing:-.03em}
+.rfc-design #rfcCareerNote{line-height:1.4}
+.rfc-design .rfc-ux-top{border-color:#d3deec;background:#fff;box-shadow:0 4px 20px #172b4812;font-size:11px;border-radius:10px}
+/* User site */
+body.rfc-design-public>#rfcDesignPublicHeader{background:#111e32;border:0;box-shadow:0 4px 18px #09192f12}
+.rfc-design-public #rfcDesignPublicHeader>.rfc-design-masthead{max-width:940px;min-height:83px;padding:17px 22px;margin:auto}
+.rfc-design-public #currentDate,.rfc-design-public #headerVersion{color:#a7b8d1;font-size:10px}
+.rfc-design-public #rfcDesignPublicHeader .rfc-design-brand-date{margin:5px 0 0 54px;line-height:1.2}
+.rfc-design-public #rfcDesignPublicHeader button[onclick="openRules()"]{background:#20324c;color:#d8e5fa;border-color:#354c69;border-radius:9px;min-height:36px}
+.rfc-design-public #btnInspector{color:#bdd0eb}
+.rfc-design-public #headerSeasonSelect{background:#f0f5ff;color:#1a3a6e;border:1px solid #f0f5ff;border-radius:9px;box-shadow:none;min-height:36px}
+.rfc-design-public #headerSeasonSelect+div{color:#335586}
+.rfc-design-public #rfcPublicNav{max-width:940px;padding:0 20px;gap:8px;border-top:1px solid #29394e;background:#111e32}
+.rfc-design-public #rfcPublicNav button{font-size:12px;letter-spacing:-.02em;border-bottom:3px solid transparent;color:#9cafc9;min-height:49px;font-weight:650}
+.rfc-design-public #rfcPublicNav button:hover{background:#1c2d46;color:#fff}
+.rfc-design-public #rfcPublicNav button.tab-active{color:#fff;background:#1d304d;border-bottom-color:#6c9dff;font-weight:800}
+.rfc-design-public>main{max-width:940px;padding:24px 22px 40px}
+.rfc-design-public #rfcPublicRankHeader{position:static;margin:0;padding:14px;background:#fff;border:1px solid #dce4ed;border-radius:13px;gap:12px}
+.rfc-design-public #rankingSeasonTitle{font-size:13px;font-weight:800}
+.rfc-design-public #rankingSeasonStartDate{color:#697b91;font-size:10px}
+.rfc-design-public #rfcPublicRankHeader>div:last-child{gap:9px}
+.rfc-design-public #playerSearchInput{background:#f8fafd;border-color:#d7e1ed;padding-right:10px}
+.rfc-design-public #carrierFilterTags{gap:3px}
+.rfc-design-public #carrierFilterTags button{min-height:33px;border-radius:7px;font-size:10px;padding:5px 8px}
+.rfc-design-public #carrierFilterTags button.bg-slate-800{background:#274e8d;border-color:#274e8d}
+.rfc-design-public #matchesSection>.sticky-sub-header,.rfc-design-public #hofSection>.sticky-sub-header,.rfc-design-public #patchSection>.sticky-sub-header{border-radius:13px;border-color:#dce4ed;box-shadow:0 2px 4px #17264004}
+/* Admin site: retain the established fixed-height desktop panes and mobile scroll behavior. */
+body.rfc-design-admin #mainContent{max-width:1440px;padding:18px}
+body.rfc-design-admin #rfcAdminHeader{background:#111e32;border:1px solid #111e32;border-radius:15px;box-shadow:0 4px 15px #0a1b3210;padding:14px 18px;gap:8px}
+.rfc-design-admin #rfcAdminHeader .rfc-brand-title{font-size:21px}
+.rfc-design-admin #rfcAdminHeader>div:last-child{color:#a7bad7;font-size:10px;line-height:1.5}
+.rfc-design-admin #rfcAdminHeader #currentSeasonBadge{background:#2a4163;color:#e5eeff;border:0}
+.rfc-design-admin #rfcAdminHeader #currentSeasonDateRange{background:#1a2c45;color:#afc5e4}
+.rfc-design-admin #rfcAdminHeader .rounded-lg.overflow-hidden{border-color:#354862;box-shadow:none}
+.rfc-design-admin #saveStatus{color:#89e3b4;font-size:11px}
+.rfc-design-admin #rfcAdminToolbar{border:1px solid #dce4ed;border-radius:13px;box-shadow:0 2px 4px #17264003;padding:0 14px;margin-bottom:10px}
+.rfc-design-admin #rfcAdminTabs{gap:8px}
+.rfc-design-admin #rfcAdminTabs button{padding:13px 14px;border-radius:8px 8px 0 0;font-size:12px;letter-spacing:-.02em;color:#607087}
+.rfc-design-admin #rfcAdminTabs button.active{background:#edf3ff;border-bottom-color:#245cdb;color:#194db8}
+.rfc-design-admin #rfcAdminTabs button:hover{background:#f1f5fb;color:#245cdb}
+.rfc-design-admin #rfcAdminFilters{border-color:#e7edf4;padding:10px 0;gap:10px}
+.rfc-design-admin #searchInput{background:#f8fafd;font-size:12px;min-height:39px}
+.rfc-design-admin #carrierFilterBar button{border-radius:7px;min-height:36px;font-size:11px;padding:6px 11px}
+.rfc-design-admin #rfcAdminFilters button[onclick="rfcSaveNow()"]{background:#245cdb;border-radius:9px;box-shadow:0 2px 6px #245cdb20;padding:8px 16px}
+.rfc-design-admin .rfc-ux-shortcuts{flex-shrink:0;gap:7px;margin:0 0 12px}
+.rfc-design-admin .rfc-ux-shortcuts .rfc-ux-button{min-height:34px;padding:6px 11px;font-size:11px;background:transparent;border-color:#d6e0eb}
+.rfc-design-admin .rfc-ux-shortcuts button[onclick="rfcOpenBatch()"]{background:#e6eefc;color:#1d50ab;border-color:#d4e1fa}
+.rfc-design-admin #rfcAdminLayout{gap:20px}
+.rfc-design-admin #rfcAdminWorkPanel{padding-right:3px}
+.rfc-design-admin #mainSection>.bg-white,.rfc-design-admin #seasonSection .bg-white,.rfc-design-admin #toolsSection>.bg-white{border-color:#dce4ed;border-radius:14px;box-shadow:0 2px 4px #17264003}
+.rfc-design-admin #mainSection>.bg-white>div:first-child.bg-slate-50{background:#f7f9fc;border-color:#e1e8f1;border-radius:14px 14px 0 0;padding:14px 17px}
+.rfc-design-admin #mainSection h3,.rfc-design-admin #historySection h3{font-size:14px;letter-spacing:-.03em}
+.rfc-design-admin #mainSection button[onclick="applyMatch()"]{background:#245cdb;background-image:none;border-radius:10px;box-shadow:0 3px 9px #245cdb24;font-size:13px;transform:none}
+.rfc-design-admin #mainSection button[onclick="applyMatch()"]:hover{background:#194dc0}
+.rfc-design-admin #mainSection .rfc-video-ui{border-top:1px solid #e4eaf2;padding-top:14px}
+.rfc-design-admin #mainSection .rfc-video-ui p{font-size:11px;line-height:1.7}
+.rfc-design-admin #mainSection .rfc-video-help{background:#f8fafd;border:1px solid #e2e9f1;border-radius:9px;padding:10px}
+.rfc-design-admin #mainSection .rfc-video-help summary{color:#486181;font-size:11px}
+.rfc-design-admin #rfcAdminRankPanel{border:1px solid #dce4ed;border-radius:14px;box-shadow:0 2px 4px #17264003}
+.rfc-design-admin #rfcAdminRankPanel>.rfc-ux-rank-summary{background:#fff;padding:10px 14px;border-bottom:1px solid #e1e8f1}
+.rfc-design-admin #rankingList{padding:12px;background:#f5f7fb;border-radius:0}
+.rfc-design-admin #rankingList .rank-card{min-height:72px;margin-bottom:7px}
+.rfc-design-admin #rfcAdminHistoryCard{border-color:#dce4ed;border-radius:14px;box-shadow:none}
+.rfc-design-admin #rfcAdminHistoryCard>div:first-child{background:#f7f9fc}
+.rfc-design-admin #adminMatchListContainer{background:#f5f7fb}
+.rfc-design-admin #toolsSection details.rfc-help{background:#f7f9fc;border:1px solid #e0e7f0;padding:12px;border-radius:10px;font-size:12px}
+.rfc-design-admin #toolsSection details.rfc-help p{line-height:1.75;color:#607087;margin-top:8px}
+.rfc-design-admin #loginOverlay{background:#111e32}
+.rfc-design-admin #loginOverlay>.bg-white{border-radius:20px;box-shadow:0 30px 80px #0004}
+@media(min-width:1024px){.rfc-design-admin #mainSection .p-5{padding:18px}.rfc-design-admin #rfcAdminHistoryCard{min-height:420px}}
+@media(max-width:1023px){body.rfc-design-admin #mainContent{padding:12px}.rfc-design-admin #rfcAdminHeader{padding:12px 15px}.rfc-design-admin #rfcAdminRankPanel{margin-top:18px}.rfc-design-admin #rfcAdminWorkPanel{padding-right:0}.rfc-design-admin #rfcAdminHistoryCard{min-height:0}}
+@media(max-width:640px){
+ .rfc-design-public #rfcDesignPublicHeader>.rfc-design-masthead{min-height:72px;padding:12px;gap:8px;align-items:center}
+ .rfc-design .rfc-brand{gap:8px}.rfc-design .rfc-brand-symbol{width:32px;height:34px;font-size:11px;border-radius:8px}.rfc-design .rfc-brand-title{font-size:16px}.rfc-design .rfc-brand-kicker{font-size:7px;letter-spacing:.09em}
+ .rfc-design-public #rfcDesignPublicHeader .rfc-design-brand-date{margin:5px 0 0 40px;gap:4px;flex-wrap:wrap}.rfc-design-public #currentDate,.rfc-design-public #headerVersion{font-size:8px}
+ .rfc-design-public #rfcDesignPublicHeader button[onclick="openRules()"]{padding:6px 8px;font-size:10px}.rfc-design-public #headerSeasonSelect{max-width:115px;font-size:13px!important;padding-left:8px;padding-right:20px}.rfc-design-public #rfcDesignPublicHeader>.rfc-design-masthead>div:last-child{gap:5px}
+ .rfc-design-public #btnInspector{padding:5px;font-size:9px}
+ .rfc-design-public #rfcPublicNav{padding:0 6px;gap:0}.rfc-design-public #rfcPublicNav button{padding:10px 6px;font-size:11px;min-height:44px}
+ .rfc-design-public>main{padding:18px 12px 36px}.rfc-design .rfc-section-intro{margin-bottom:14px;padding:0 2px}.rfc-design .rfc-section-intro h2{font-size:22px;margin:4px 0 6px}.rfc-design .rfc-section-intro p{font-size:11px}.rfc-design .rfc-section-eyebrow{font-size:9px}.rfc-design .rfc-season-mark{font-size:8px;padding:5px 7px}
+ .rfc-design-public #rfcPublicRankHeader{padding:12px;gap:10px}.rfc-design-public #rankingSeasonTitle{font-size:12px}.rfc-design #rankingList .rank-card{min-height:70px;padding:10px;border-radius:11px}
+ .rfc-design #matchList>.bg-white,.rfc-design #adminMatchListContainer>.bg-white{padding:13px}.rfc-design .rfc-ux-history{padding:12px}.rfc-design .rfc-video-dialog{padding:18px 14px;border-radius:15px}.rfc-design .rfc-video-heading{padding-bottom:12px}.rfc-design .rfc-video-heading h2{font-size:18px}
+ .rfc-design-admin #rfcAdminHeader .rfc-brand-title{font-size:18px}.rfc-design-admin #rfcAdminHeader>div:first-child{gap:9px;justify-content:flex-start;width:100%}.rfc-design-admin #rfcAdminHeader>div:last-child{width:100%;margin-top:0;text-align:left;font-size:9px}.rfc-design-admin #rfcAdminHeader #currentSeasonDateRange{font-size:9px;padding:4px 7px}
+ .rfc-design-admin #rfcAdminTabs{gap:3px}.rfc-design-admin #rfcAdminTabs button{padding:11px 10px;font-size:11px;min-height:44px}.rfc-design-admin #rfcAdminToolbar{padding:0 10px}.rfc-design-admin #rankingList{padding:9px}.rfc-design-admin #rfcAdminRankPanel>.rfc-ux-rank-summary{padding:9px 12px}.rfc-design-admin #mainSection>.bg-white>div:first-child.bg-slate-50{padding:13px 15px}
+}
+@media(max-width:370px){.rfc-design-public #rfcDesignPublicHeader>.rfc-design-masthead{flex-wrap:wrap}.rfc-design-public #rfcDesignPublicHeader>.rfc-design-masthead>div:last-child{margin-left:auto}.rfc-design .rfc-season-mark{display:none}}
+@media(prefers-reduced-motion:reduce){.rfc-design *,.rfc-design *::before,.rfc-design *::after{transition-duration:.01ms!important;animation-duration:.01ms!important}}
+
+</style>
 </head>
-<body class="rfc-ux-admin text-slate-800 relative h-screen overflow-hidden">
+<body class="rfc-design rfc-design-admin rfc-ux-admin text-slate-800 relative h-screen overflow-hidden">
 <div id="rfcConnectionStatus" role="status" aria-live="polite" hidden style="padding:12px 16px;background:#fff7df;border-bottom:1px solid #e2d1a0;white-space:pre-wrap"></div>
 
     <div id="inspector-tooltip">
@@ -285,7 +430,7 @@ img{max-width:100%} .rfc-help{margin:12px 0;padding:14px;border:1px solid #cbd5e
     <div id="mainContent" class="max-w-6xl mx-auto p-4 hidden h-full flex flex-col">
         <header id="rfcAdminHeader" class="shrink-0 flex flex-col md:flex-row justify-between items-center mb-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
             <div class="flex items-center gap-3">
-                <h1 class="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">RFC 매니저</h1>
+                <div class="rfc-brand"><span class="rfc-brand-symbol" aria-hidden="true"><span>RFC</span></span><div><span class="rfc-brand-kicker">LEAGUE MANAGEMENT</span><h1 class="rfc-brand-title">RFC 매니저</h1></div></div>
                 
                 <div class="flex items-center rounded-lg overflow-hidden border border-slate-200 shadow-sm">
                     <span id="currentSeasonBadge" class="bg-slate-700 text-white text-[11px] font-bold px-2.5 py-1">Loading...</span>
@@ -301,11 +446,11 @@ img{max-width:100%} .rfc-help{margin:12px 0;padding:14px;border:1px solid #cbd5e
 
         <div id="rfcAdminToolbar" class="shrink-0 bg-white rounded-t-2xl border-b border-slate-200 px-4 flex justify-between items-center mb-4 shadow-sm overflow-x-auto">
             <div id="rfcAdminTabs" role="tablist" aria-label="관리자 메뉴" class="flex gap-6">
-                <button onclick="switchTab('main')" id="tabMain" class="tab-btn active py-4 whitespace-nowrap">🔥 랭킹/경기</button>
-                <button onclick="switchTab('history')" id="tabHistory" class="tab-btn py-4 whitespace-nowrap">⚔️ 경기 기록</button>
-                <button onclick="switchTab('season')" id="tabSeason" class="tab-btn py-4 whitespace-nowrap">📅 시즌 관리</button>
-                <button onclick="switchTab('tools')" id="tabTools" class="tab-btn py-4 whitespace-nowrap">🛠️ 데이터/백업</button>
-                <button onclick="switchTab('settings')" id="tabSettings" class="tab-btn py-4 whitespace-nowrap">⚙️ 설정/메모</button>
+                <button onclick="switchTab('main')" id="tabMain" class="tab-btn active py-4 whitespace-nowrap">랭킹 / 경기</button>
+                <button onclick="switchTab('history')" id="tabHistory" class="tab-btn py-4 whitespace-nowrap">경기 기록</button>
+                <button onclick="switchTab('season')" id="tabSeason" class="tab-btn py-4 whitespace-nowrap">시즌 관리</button>
+                <button onclick="switchTab('tools')" id="tabTools" class="tab-btn py-4 whitespace-nowrap">데이터 / 백업</button>
+                <button onclick="switchTab('settings')" id="tabSettings" class="tab-btn py-4 whitespace-nowrap">설정 / 메모</button>
             </div>
             
             <div id="rfcAdminFilters" class="flex items-center gap-2 py-2 shrink-0 pl-4 border-l border-slate-100 ml-4">
@@ -321,11 +466,11 @@ img{max-width:100%} .rfc-help{margin:12px 0;padding:14px;border:1px solid #cbd5e
         </div>
 
         <div class="rfc-ux-shortcuts"><button type="button" class="rfc-ux-button" onclick="rfcUxJump('entry')">경기 입력으로</button><button type="button" class="rfc-ux-button" onclick="rfcUxJump('ranking')">선수 목록으로</button><button type="button" class="rfc-ux-button" onclick="rfcOpenBatch()">여러 경기 등록</button></div><div id="rfcAdminLayout" class="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-grow min-h-0 pb-2">
-            <div class="lg:col-span-4 space-y-6 h-full overflow-y-auto pb-4 pr-1 sticky-left-panel">
+            <div id="rfcAdminWorkPanel" class="lg:col-span-4 space-y-6 h-full overflow-y-auto pb-4 pr-1 sticky-left-panel">
                 <div id="mainSection" class="tab-content">
                     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 mb-6 relative z-30">
                         <div class="bg-slate-50 p-4 border-b border-slate-100 flex justify-between items-center rounded-t-2xl">
-                            <h3 class="font-bold text-slate-700">⚔️ 경기 결과 입력</h3>
+                            <h3 class="font-bold text-slate-700">경기 결과 입력</h3>
                             <button onclick="resetMatchInputs()" class="text-xs bg-white border border-slate-200 text-slate-500 hover:text-blue-600 hover:border-blue-200 px-2.5 py-1.5 rounded-lg font-bold transition flex items-center gap-1 shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg> 초기화</button>
                         </div>
                         <div class="p-5">
@@ -375,7 +520,7 @@ img{max-width:100%} .rfc-help{margin:12px 0;padding:14px;border:1px solid #cbd5e
                     </div>
                     
                     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden p-5">
-                        <h3 class="font-bold text-slate-700 mb-3 border-b pb-2">👤 선수 관리 도구 <span id="totalPlayerCount" class="font-normal ml-1 text-xs">(0명)</span></h3>
+                        <h3 class="font-bold text-slate-700 mb-3 border-b pb-2">선수 관리 <span id="totalPlayerCount" class="font-normal ml-1 text-xs">(0명)</span></h3>
                         
                         <div class="flex gap-2 mb-3">
                             <button onclick="openNewPlayerModal()" class="flex-1 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 font-bold py-2.5 rounded-xl border border-emerald-100 transition text-xs">+ 선수 등록</button>
@@ -417,7 +562,7 @@ img{max-width:100%} .rfc-help{margin:12px 0;padding:14px;border:1px solid #cbd5e
                 </div>
 
                 <div id="historySection" class="tab-content hidden">
-                    <div id="rfcAdminHistoryCard" class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col h-[calc(100vh-180px)]"><div class="bg-slate-50 p-4 border-b border-slate-100 flex justify-between items-center"><h3 class="font-bold text-slate-700">⚔️ 경기 기록 Log</h3><button onclick="openMatchExportModal()" class="bg-white border border-slate-200 text-slate-600 hover:text-blue-600 text-xs font-bold px-3 py-1.5 rounded-lg transition shadow-sm flex items-center gap-1"><span>📤</span> 텍스트 내보내기</button></div><div class="p-3 border-b border-slate-100"><select id="adminHistorySeason" aria-label="경기 기록 시즌 선택" class="w-full text-sm font-bold text-slate-700 bg-white border border-slate-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500"></select></div><div class="rfc-ux-history" role="search" aria-label="경기 기록 검색">
+                    <div id="rfcAdminHistoryCard" class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col h-[calc(100vh-180px)]"><div class="bg-slate-50 p-4 border-b border-slate-100 flex justify-between items-center"><h3 class="font-bold text-slate-700">경기 기록</h3><button onclick="openMatchExportModal()" class="bg-white border border-slate-200 text-slate-600 hover:text-blue-600 text-xs font-bold px-3 py-1.5 rounded-lg transition shadow-sm flex items-center gap-1"><span>📤</span> 텍스트 내보내기</button></div><div class="p-3 border-b border-slate-100"><select id="adminHistorySeason" aria-label="경기 기록 시즌 선택" class="w-full text-sm font-bold text-slate-700 bg-white border border-slate-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500"></select></div><div class="rfc-ux-history" role="search" aria-label="경기 기록 검색">
   <label for="rfcHistorySearch">선수·초성·Game ID 검색<input type="search" id="rfcHistorySearch" placeholder="선수 이름 또는 ID" autocomplete="off" oninput="rfcUxFilterHistory()"></label>
   <div class="rfc-ux-filter-row"><label for="rfcHistoryDateFilter">경기 날짜<input type="date" id="rfcHistoryDateFilter" onchange="rfcUxFilterHistory()"></label><label class="rfc-ux-check"><input type="checkbox" id="rfcHistoryVideoFilter" onchange="rfcUxFilterHistory()"> 영상 있는 경기만</label></div>
   <div class="rfc-ux-filter-row"><span id="rfcHistoryCount" role="status" aria-live="polite"></span><button type="button" class="rfc-ux-button" onclick="rfcUxClearHistory()">검색 초기화</button></div>
@@ -435,13 +580,13 @@ img{max-width:100%} .rfc-help{margin:12px 0;padding:14px;border:1px solid #cbd5e
 
                 <div id="toolsSection" class="tab-content hidden">
                     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden p-5 space-y-4">
-                        <h3 class="font-bold text-slate-700">🛠️ 데이터 도구</h3>
+                        <h3 class="font-bold text-slate-700">데이터 관리</h3>
                         <details class="rfc-help"><summary style="cursor:pointer;font-weight:700">운영 도움말 · 저장과 백업</summary>
 <p>경기를 등록한 뒤 ‘저장 완료’를 확인하세요. 저장 중에는 중복 입력을 막으며, 실패하면 입력을 유지합니다. 다른 변경과 충돌하면 작성 내용을 복사한 후 새로고침하여 최신 데이터에서 다시 입력하세요.</p>
 <p>타이틀 자격은 경기 전 점수를 기준으로 계산합니다. 경기 기록 삭제는 점수·승패 취소가 아닙니다. 점수 정정은 기존 선수 수정 기능에서 실제 기록을 확인한 뒤 처리하세요.</p>
 <p>백업에는 선수·경기·시즌뿐 아니라 규칙·공지·운영 메모도 포함됩니다. 백업 파일을 공개 저장소에 올리지 마세요. 로그인 계정과 Firebase 보안 규칙은 백업에 포함되지 않습니다.</p>
 <p>기존 Firebase 연결과 데이터 형식을 사용합니다. 관리자 메모의 서버 비공개 처리 및 PIN의 서버 권한 검증은 이번 HTML 개선에 포함되지 않습니다.</p></details><div class="grid grid-cols-2 gap-2"><input type="file" id="importFile" accept=".json" class="hidden"><button onclick="alert('이 원본의 자동 복원 기능은 구현되어 있지 않습니다. 백업을 보관하고 복원 전 별도 검토해주세요.')" class="bg-slate-700 hover:bg-slate-800 text-white font-bold py-3 rounded-lg text-xs">📂 복원 안내</button><button onclick="backupData()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3 rounded-lg text-xs">💾 데이터 백업</button></div>
-                        <div class="pt-4 border-t border-slate-100 space-y-2"><h4 class="text-xs font-bold text-indigo-600">🔧 데이터 보정</h4><div class="bg-indigo-50 border border-indigo-100 rounded-lg p-3"><div class="flex justify-between items-center mb-1"><span class="text-xs font-bold text-indigo-800">데이터 무결성 검사 및 수정</span></div><p class="text-[10px] text-indigo-600 mb-2 leading-snug">1. 과도한 순위 변동폭(예: +34) 초기화<br>2. 3전 선수들의 누락된 '진입 날짜' 복구<br><span class="text-emerald-600">3. 베테랑 달성 시 현상금 자동 부여 (10점)<br>4. 11위 이하 현상금 제거</span></p><button onclick="fixDataIntegrity()" class="w-full bg-white text-indigo-600 hover:bg-indigo-100 font-bold py-2 rounded-lg text-xs border border-indigo-200 shadow-sm transition">✨ 데이터 진단 및 복구 실행</button></div></div>
+                        <div class="pt-4 border-t border-slate-100 space-y-2"><h4 class="text-xs font-bold text-indigo-600">🔧 데이터 보정</h4><div class="bg-indigo-50 border border-indigo-100 rounded-lg p-3"><div class="flex justify-between items-center mb-1"><span class="text-xs font-bold text-indigo-800">데이터 무결성 검사 및 수정</span></div><p class="text-[10px] text-indigo-600 mb-2 leading-snug">현재 시즌 연승·현상금·최고 점수·최고 순위·경기 날짜를 점검합니다.<br>수정 전·후를 확인한 뒤 한 번에 적용합니다. 기록이 부족한 항목은 확인 필요로 표시합니다.</p><button onclick="fixDataIntegrity()" class="w-full bg-white text-indigo-600 hover:bg-indigo-100 font-bold py-2 rounded-lg text-xs border border-indigo-200 shadow-sm transition">✨ 데이터 진단 / 수정 미리보기</button></div></div>
                         <div class="pt-4 border-t border-slate-100 space-y-2"><h4 class="text-xs font-bold text-blue-600">👥 선수 명단 추출</h4><div class="grid grid-cols-1 gap-2"><button onclick="copyRankerList()" class="bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold py-3 rounded-lg text-xs border border-blue-100">🏆 랭커 명단</button><button onclick="copyAllPlayerList()" class="bg-slate-50 text-slate-600 hover:bg-slate-100 font-bold py-3 rounded-lg text-xs border border-slate-200">📋 전체 선수 명단</button></div></div>
                         <div class="pt-4 border-t border-slate-100 space-y-2"><h4 class="text-xs font-bold text-red-500">초기화 (주의)</h4><button onclick="resetAllStats()" class="w-full bg-gray-50 text-gray-500 hover:bg-gray-100 font-bold py-2 rounded-lg text-xs border border-gray-200">📊 현재 시즌 전적 초기화</button><button onclick="resetAllElo()" class="w-full bg-gray-50 text-gray-500 hover:bg-gray-100 font-bold py-2 rounded-lg text-xs border border-gray-200 mt-2">⚡ 현재 시즌 ELO 초기화</button><button onclick="resetStreakAndBounty()" class="w-full bg-amber-50 text-amber-600 hover:bg-amber-100 font-bold py-2 rounded-lg text-xs border border-amber-200 mt-2">🔥 현재 시즌 연승/현상금 초기화</button><button onclick="resetAllPasswords()" class="w-full bg-orange-50 text-orange-600 hover:bg-orange-100 font-bold py-3 rounded-lg text-xs border border-orange-200 mt-2">🔑 전체 비밀번호 재발급 (명단 복사)</button><button onclick="resetEverything()" class="w-full bg-red-50 text-red-600 hover:bg-red-100 font-bold py-3 rounded-lg text-xs border border-red-200 mt-2">🧨 시스템 전체 리셋</button></div>
                     </div>
@@ -868,7 +1013,7 @@ img{max-width:100%} .rfc-help{margin:12px 0;padding:14px;border:1px solid #cbd5e
                                 <div class="text-[10px] font-bold opacity-80 uppercase tracking-widest mt-1">Draws</div>
                             </div>
                         </div>
-                        <div class="flex bg-slate-50 border border-slate-200 border-t-0 rounded-b-lg divide-x divide-slate-200 text-center py-2 shadow-sm"><div class="flex-1"><div class="text-[10px] text-slate-400 font-bold uppercase">Win Rate</div><div class="text-sm font-black text-slate-700" id="pModalWinRate">0%</div></div><div class="flex-1"><div class="text-[10px] text-slate-400 font-bold uppercase">Elo Rating</div><div class="text-sm font-black text-amber-600" id="pModalElo">1000</div></div><div class="flex-1"><div class="text-[10px] text-slate-400 font-bold uppercase">Career High</div><div class="text-sm font-black text-slate-700" id="pModalHighElo">1000</div></div><div class="flex-1"><div class="text-[10px] text-slate-400 font-bold uppercase">최고 순위</div><div class="text-sm font-black text-blue-600" id="pModalHighRank">-</div></div></div>
+                        <div class="flex bg-slate-50 border border-slate-200 border-t-0 rounded-b-lg divide-x divide-slate-200 text-center py-2 shadow-sm"><div class="flex-1"><div class="text-[10px] text-slate-400 font-bold uppercase">Win Rate</div><div class="text-sm font-black text-slate-700" id="pModalWinRate">0%</div></div><div class="flex-1"><div class="text-[10px] text-slate-400 font-bold uppercase">Elo Rating</div><div class="text-sm font-black text-amber-600" id="pModalElo">1000</div></div><div class="flex-1"><div class="text-[10px] text-slate-400 font-bold uppercase">Career High</div><div class="text-sm font-black text-slate-700" id="pModalHighElo">1000</div></div><div class="flex-1"><div class="text-[10px] text-slate-400 font-bold uppercase">최고 순위</div><div class="text-sm font-black text-blue-600" id="pModalHighRank">-</div><div id="rfcCareerNote" style="font-size:9px;color:#64748b;margin-top:2px"></div></div></div>
                     </div>
                     <div class="w-full space-y-6"><div class="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm"><div class="grid grid-cols-3 gap-4 text-center"><div><div class="text-[10px] text-slate-400 font-bold uppercase mb-1">Height</div><div id="pModalHeight" class="font-bold text-slate-700 text-sm">-</div></div><div class="border-x border-slate-100"><div class="text-[10px] text-slate-400 font-bold uppercase mb-1">Reach</div><div id="pModalReach" class="font-bold text-slate-700 text-sm">-</div></div><div><div class="text-[10px] text-slate-400 font-bold uppercase mb-1">Stance</div><div id="pModalStance" class="font-bold text-slate-700 text-sm">-</div></div></div><div id="pModalTags" class="flex flex-wrap gap-1.5 justify-center mt-3"></div></div><div class="mb-2"><div class="flex p-1 bg-slate-100 rounded-lg mb-3"><button id="btnTabChrono" onclick="switchProfileTab('chrono')" class="flex-1 py-1.5 text-[11px] font-bold text-blue-600 bg-white shadow-sm rounded-md transition-all">📅 날짜별 기록</button><button id="btnTabH2H" onclick="switchProfileTab('h2h')" class="flex-1 py-1.5 text-[11px] font-bold text-slate-500 rounded-md transition-all hover:bg-slate-200/50">⚔️ 상대별 전적</button></div><div id="pModalMatchList" class="space-y-2 pb-10"></div></div></div>
                 </div>
@@ -898,6 +1043,17 @@ img{max-width:100%} .rfc-help{margin:12px 0;padding:14px;border:1px solid #cbd5e
   <p>링크를 비우고 저장하면 영상 연결만 삭제됩니다. 점수와 경기 결과는 바뀌지 않습니다.</p>
   <div id="rfcVideoMessage" role="status" aria-live="polite"></div>
   <div class="rfc-video-actions"><button type="button" class="rfc-primary" onclick="rfcSaveMatchVideo()">영상 연결 저장</button></div>
+</dialog>
+
+<dialog id="rfcIntegrityDialog" class="rfc-video-dialog rfc-video-ui" aria-labelledby="rfcIntegrityTitle">
+<div class="rfc-video-heading"><h2 id="rfcIntegrityTitle">데이터 진단 및 복구</h2><button type="button" onclick="rfcCloseIntegrity()">닫기</button></div>
+<p>연승은 현재 시즌 기준입니다. 최고 순위는 기존 규칙인 ‘시즌 10경기 이상’을 적용하며, 챔피언 경력은 순위와 별도로 표시합니다. 점수·승패·경기 기록 자체는 변경하지 않습니다.</p>
+<p>경기 기록과 전적 수가 맞지 않으면 연승을 확정하지 않습니다. 최고 점수는 확인 가능한 기록으로 보완하며, 근거 없이 기존 최고값을 낮추지 않습니다. 과거 기록이 부족한 경우 완전한 복원은 불가능합니다.</p>
+<strong id="rfcIntegritySummary"></strong>
+<div id="rfcIntegrityChanges" style="overflow-x:auto;margin:12px 0"></div>
+<details><summary style="cursor:pointer;font-weight:700">확인 필요 항목 (자동 수정에서 제외)</summary><ul id="rfcIntegrityWarnings" style="list-style:disc;padding-left:20px;margin-top:12px"></ul></details>
+<div class="rfc-video-actions"><button type="button" onclick="backupData()">전체 데이터 백업</button><button type="button" onclick="rfcDownloadIntegrity()">진단 결과 다운로드</button><button type="button" id="rfcIntegrityApply" class="rfc-primary" onclick="rfcApplyIntegrity()" disabled>확인한 수정 적용</button></div>
+<p id="rfcIntegrityStatus" role="status" aria-live="polite"></p>
 </dialog>
 
 <script type="module">
@@ -971,7 +1127,7 @@ window.rfcUxClearRankSearch = () => {
 };
 window.rfcUxFocusSearch = () => {
     const input = document.getElementById('searchInput');
-    document.getElementById('rfcAdminToolbar').scrollIntoView({block:'start'});
+    rfcUxResetPageScroll();
     input.focus();
 };
 
@@ -1406,7 +1562,7 @@ function rfcTitleWinner(winner, loser) {
             return Math.floor((today - rankIn) / (1000 * 60 * 60 * 24)) <= 2; 
         }
         
-        window.scrollToTarget = (id) => { setTimeout(() => { const el = document.getElementById(`rank-card-${id}`); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.add('highlight-slow'); } }, 100); };
+        window.scrollToTarget = (id) => { setTimeout(() => { const el = document.getElementById(`rank-card-${id}`); if (el) { rfcUxScrollRankPanel(el); el.classList.add('highlight-slow'); } }, 100); };
         window.toggleAccordion = (id) => { const el = document.getElementById(id); if(!el) return; el.classList.toggle('open'); const btn = document.getElementById('btn-' + id); if(btn) { const span = btn.querySelector('span'); if(el.classList.contains('open')) span.textContent = '🔼 접기'; else span.textContent = '🔽 상세 계산식 보기'; } };
         window.setMatchDate = (type) => { const input = document.getElementById('matchDateInput'); const today = new Date(getKSTDate()); if(type === 'today') { input.value = today.toISOString().split('T')[0]; } else if(type === 'yesterday') { const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1); input.value = yesterday.toISOString().split('T')[0]; } };
 
@@ -1586,7 +1742,7 @@ function rfcTitleWinner(winner, loser) {
                     } 
                     if(document.getElementById('adminGlobalNoteInput')) { document.getElementById('adminGlobalNoteInput').value = data.adminGlobalNote || ""; }
                     rankingsData.forEach((p, i) => { 
-                        if(p.defenseCount === undefined) p.defenseCount = 0; if(p.previousRank === undefined) p.previousRank = i + 1; if(p.careerHighRank === undefined) p.careerHighRank = i + 1; if(p.elo === undefined) p.elo = 1000; if(p.careerHighElo === undefined) p.careerHighElo = p.elo; if(!p.trunkColor) p.trunkColor = '#1f2937'; if(p.bounty === undefined) p.bounty = 0; if(p.currentStreak === undefined) p.currentStreak = 0;
+                        if(p.defenseCount === undefined) p.defenseCount = 0; if(p.previousRank === undefined) p.previousRank = i + 1; if(p.careerHighRank === undefined) p.careerHighRank = null; if(p.elo === undefined) p.elo = 1000; if(p.careerHighElo === undefined) p.careerHighElo = p.elo; if(!p.trunkColor) p.trunkColor = '#1f2937'; if(p.bounty === undefined) p.bounty = 0; if(p.currentStreak === undefined) p.currentStreak = 0;
                         if(p.draws === undefined) p.draws = 0; // 무승부 초기화
                         if(!p.subGameIds) p.subGameIds = []; // [NEW] 다중 ID 배열 초기화
                         p.choseong = Hangul.getCho(p.name); p.jamo = Hangul.disassemble(p.name);
@@ -2512,7 +2668,7 @@ window.saveRankings = async function(isUndo = false) {
         window.openNewPlayerModal = () => { const modal = document.getElementById('newPlayerModal'); if (modal) { modal.classList.remove('hidden'); setTimeout(() => document.getElementById('newPlayerNameInput').focus(), 50); } };
         window.showCustomAlert = (message) => { document.getElementById('alertMessage').innerText = message; document.getElementById('customAlertModal').classList.remove('hidden'); };
         window.closeAlertModal = () => { document.getElementById('customAlertModal').classList.add('hidden'); };
-        window.confirmNewPlayer = async () => { const input = document.getElementById('newPlayerNameInput'); const name = input.value.trim(); if (!name) return; if (rankingsData.some(p => p.name === name)) { showCustomAlert("존재하는 닉네임"); return; } const randomPin = Math.floor(1000 + Math.random() * 9000).toString(); const hashedPin = await hashPin(randomPin); captureState(); const today = getKSTDate(); const newId = generateUUID(); rankingsData.push({ id: newId, name, wins: 0, losses: 0, draws: 0, defenseCount: 0, previousRank: rankingsData.length + 1, careerHighRank: rankingsData.length + 1, elo: 1000, careerHighElo: 1000, lastMatchDate: today, password: hashedPin, trunkColor: '#1f2937', bounty: 0, currentStreak: 0, subGameIds: [] }); await saveRankings(); renderRankings(); document.getElementById('newPlayerModal').classList.add('hidden'); input.value = ''; showCustomAlert(`✅ [${name}] 등록됨. 비번: ${randomPin}`); };
+        window.confirmNewPlayer = async () => { const input = document.getElementById('newPlayerNameInput'); const name = input.value.trim(); if (!name) return; if (rankingsData.some(p => p.name === name)) { showCustomAlert("존재하는 닉네임"); return; } const randomPin = Math.floor(1000 + Math.random() * 9000).toString(); const hashedPin = await hashPin(randomPin); captureState(); const today = getKSTDate(); const newId = generateUUID(); rankingsData.push({ id: newId, name, wins: 0, losses: 0, draws: 0, defenseCount: 0, previousRank: rankingsData.length + 1, careerHighRank: null, elo: 1000, careerHighElo: 1000, lastMatchDate: today, password: hashedPin, trunkColor: '#1f2937', bounty: 0, currentStreak: 0, subGameIds: [] }); await saveRankings(); renderRankings(); document.getElementById('newPlayerModal').classList.add('hidden'); input.value = ''; showCustomAlert(`✅ [${name}] 등록됨. 비번: ${randomPin}`); };
         
         window.updateRankBaseline = () => { 
             showConfirmModal("📉 순위 변동폭(▲▼)을 리셋하시겠습니까?\n현재 순위가 기준이 되어 변동폭이 0으로 초기화됩니다.", async () => { 
@@ -2599,33 +2755,106 @@ window.saveRankings = async function(isUndo = false) {
         };
 window.confirmBatchPenalty = (days, score) => { if(batchPenaltyTargets.length === 0) return; showConfirmModal(`패널티 실행?`, async () => { captureState(); const targetIds = new Set(batchPenaltyTargets.map(t => t.id)); const penaltyDate = getKSTDate(); rankingsData.forEach(p => { if(targetIds.has(p.id)) { p.elo -= score; if (!Array.isArray(p.penaltyHistory)) p.penaltyHistory = []; p.penaltyHistory.push({ date: penaltyDate, points: -Math.abs(score), reason: `${days}일 미참여 패널티`, season: activeSeason }); } }); rankingsData.sort((a, b) => b.elo - a.elo); await saveRankings(); renderRankings(); document.getElementById('inactiveListArea').classList.add('hidden'); batchPenaltyTargets = []; showCustomAlert(`적용됨. (${penaltyDate} / -${Math.abs(score)}점 기록 저장)`); }); };
         
-        window.fixDataIntegrity = async () => {
-            captureState(); 
-            const chronologicalHistory = [...matchHistoryData].reverse(); const streakMap = {}; 
-            rankingsData.forEach(p => { streakMap[p.name] = 0; });
-            chronologicalHistory.forEach(m => { 
-                if (m.isDraw || m.type === 'draw') {
-                    streakMap[m.winner] = 0; streakMap[m.loser] = 0;
-                } else {
-                    streakMap[m.winner] = (streakMap[m.winner] || 0) + 1; streakMap[m.loser] = 0; 
-                }
-            });
-            let fixedCount = 0; rankingsData.forEach(p => { const calStreak = streakMap[p.name] || 0; if (p.currentStreak !== calStreak) { p.currentStreak = calStreak; fixedCount++; } });
-            const rankedPlayers = rankingsData.filter(p => !p.isChampion && (Number(p.wins || 0) + Number(p.losses || 0) + Number(p.draws || 0)) >= 3).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
-            const top10Ids = new Set(rankedPlayers.slice(0, 10).map(p => p.id));
-            rankingsData.forEach(p => { 
-                if (!p.isChampion) { const total = (p.wins || 0) + (p.losses || 0) + (p.draws || 0); if (total >= 3) { const realRank = rankedPlayers.findIndex(rp => rp.id === p.id) + 1; const prev = p.previousRank || 999; if (Math.abs(prev - realRank) >= 15 || prev > rankedPlayers.length + 5) { p.previousRank = realRank; fixedCount++; } } }
-                if (p.isChampion) { const calcBounty = (p.defenseCount || 0) * 20; if ((p.bounty || 0) !== calcBounty) { p.bounty = calcBounty; fixedCount++; } } 
-                else if (top10Ids.has(p.id) && (p.currentStreak || 0) >= 3) { const calculatedBounty = (p.currentStreak - 2) * 10; if ((p.bounty || 0) !== calculatedBounty) { p.bounty = calculatedBounty; fixedCount++; } } 
-                else if (!top10Ids.has(p.id) && (p.bounty || 0) > 0) { p.bounty = 0; fixedCount++; }
-            }); 
-            if (fixedCount > 0) { await saveRankings(); renderRankings(); showCustomAlert(`✅ 데이터 보정 완료`); } else { undoStack.pop(); updateUndoUI(); showCustomAlert("데이터 정상입니다."); } 
-        };        
-        
-        window.resetAllStats = () => { showConfirmModal("현재 시즌의 경기 기록과 전체 선수의 승·무·패를 초기화합니다. 점수는 유지됩니다. 계속할까요?", async () => { captureState(); rankingsData.forEach(p => { p.wins = 0; p.losses = 0; p.draws = 0; p.defenseCount = 0; }); matchHistoryData = matchHistoryData.filter(m => m.season !== activeSeason); await saveRankings(); renderRankings(); showCustomAlert("초기화됨."); }); };
-        window.resetAllElo = () => { showConfirmModal("점수 1000점 초기화?", async () => { captureState(); rankingsData.forEach(p => { p.elo = 1000; p.careerHighElo = 1000; }); await saveRankings(); renderRankings(); }); };
+let rfcIntegrityPlan=null;
+function rfcIntegrityContext() {return {rankings:rankingsData,history:matchHistoryData,archives:seasonArchives,activeSeason};}
+function rfcBuildIntegrityPlan(context) {
+    const changes=[],warnings=[],rosters=rfcStatRosters(context);
+    const labels={currentStreak:'현재 시즌 연승',bounty:'현상금',careerHighElo:'최고 점수',careerHighRank:'최고 순위',rankInDate:'배치 완료일',lastMatchDate:'최근 경기일'};
+    for (const player of context.rankings) {
+        const warn=message=>warnings.push({id:player.id,name:player.name,message});
+        if (!player.id || context.rankings.filter(p=>p.id===player.id).length!==1) {warn('선수 ID가 없거나 중복되어 자동 수정을 건너뜁니다.');continue;}
+        const next={...player};
+        const change=(field,to,reason)=>{if (next[field]===to)return;changes.push({id:player.id,name:player.name,field,label:labels[field],before:next[field] ?? null,after:to,reason});next[field]=to;};
+        const evidence=rfcStatSeasonEvidence(player,context.activeSeason,context);
+        if (evidence.complete) {
+            change('currentStreak',evidence.streak,'현재 시즌 경기만 시간순으로 계산. 패배·무승부에서 연승 종료.');
+            if (evidence.rows.length) change('lastMatchDate',evidence.rows.at(-1).match.date,'전적 수와 일치하는 현재 시즌의 마지막 경기 날짜.');
+            if (evidence.rows.length>=3) change('rankInDate',evidence.rows[2].match.date,'현재 시즌 세 번째 경기 날짜.');
+        } else warn(`현재 시즌 기록 ${evidence.wins}승 ${evidence.losses}패 ${evidence.draws}무와 저장 전적 ${player.wins || 0}승 ${player.losses || 0}패 ${player.draws || 0}무를 확인하세요. 기록 누락·이름 중복·형식 오류 가능성이 있어 연승/날짜를 자동 수정하지 않습니다.`);
+        const currentRank=rfcStatRank(context.rankings,player);
+        if (player.isChampion) {
+            const defenses=rfcStatNumber(player.defenseCount);
+            if (Number.isInteger(defenses) && defenses>=0) change('bounty',defenses*20,'저장된 챔피언 방어 횟수 × 20.');
+            else warn('챔피언 방어 횟수가 올바른 정수가 아닙니다. 현상금 계산을 보류합니다.');
+        } else if (currentRank===0 || currentRank>10) change('bounty',0,'배치 중이거나 공식 순위 10위 밖이면 현상금 0.');
+        else if (evidence.complete) change('bounty',Math.max(0,next.currentStreak-2)*10,'상위 10위: 3연승부터 (연승−2) × 10, 0~2연승은 0.');
+        else warn('상위 10위 현상금은 연승을 확정할 수 없어 유지합니다.');
+        const previous=rfcStatNumber(player.previousRank);
+        if (typeof currentRank==='number' && currentRank>0 && previous!==null && Math.abs(previous-currentRank)>=15) warn('이전 순위와 현재 순위의 차이가 큽니다. 실제 순위 변동일 수 있어 자동 초기화하지 않습니다.');
+        const identity=rfcStatIdentity(player,rosters);
+        if (identity.ambiguous) {warn('다른 선수와 과거 이름이 겹칩니다. 최고 기록의 자동 복구를 건너뜁니다.');continue;}
+        let peak=rfcStatNumber(player.elo), snapshots=0;
+        const addPeak=value=>{const n=rfcStatNumber(value);if(n!==null)peak=peak===null?n:Math.max(peak,n);};
+        addPeak(player.careerHighElo);
+        for (const {players} of rosters) {
+            const stored=players.find(p=>p.id===player.id);
+            if (stored) {addPeak(stored.elo);addPeak(stored.careerHighElo);}
+        }
+        for (const match of context.history) {
+            const side=identity.side(match);if(!side)continue;
+            for (const suffix of ['EloBefore','EloAfter']) if (rfcStatNumber(match[side+suffix])!==null) {addPeak(match[side+suffix]);snapshots++;}
+        }
+        if (peak!==null) change('careerHighElo',peak,'현재 점수·보관 시즌·경기 전후 점수·기존 최고값 중 확인 가능한 최댓값.');
+        warn(snapshots ? '최고 점수는 확인 가능한 기록으로만 보완합니다. 기록되지 않은 수동 점수 변경이나 삭제된 기록은 검증할 수 없어 기존 높은 값은 유지합니다.' : '과거 경기 전후 점수가 없어 과거 최고 점수 전체를 재계산할 수 없습니다. 현재/보관 시즌의 확인 가능한 값만 반영하고 기존 높은 값은 유지합니다.');
+        const career=rfcStatCareer(player,context),oldRank=rfcStatNumber(player.careerHighRank);
+        if (career.rank!==null) {
+            if (oldRank===null || oldRank<=0 || !Number.isInteger(oldRank) || career.rank<=oldRank) change('careerHighRank',career.rank,'시즌 10경기 이상 조건을 만족하는 경기 전후/시즌 최종 공식 순위.');
+            else warn(`최고 순위 저장값 ${oldRank}위 / 확인 가능한 순위 ${career.rank}위. 누락된 과거 기록 가능성이 있어 저장값을 자동으로 낮추지 않습니다.`);
+        } else if (oldRank>0) warn(`최고 순위 ${oldRank}위를 뒷받침할 10경기 이후 순위 기록이 없습니다. 저장값은 유지하고 프로필에는 확인 가능한 순위만 표시합니다.`);
+        if (career.incomplete) warn('최고 순위: 일부 시즌의 전적·경기 후 순위 기록이 부족합니다. 프로필의 순위는 확인 가능한 기록 기준입니다.');
+    }
+    return {changes,warnings};
+}
+function rfcIntegrityText(value) {return value===null || value===undefined ? '없음' : String(value);}
+window.fixDataIntegrity = () => {
+    if(rfcOperationBusy || !rfcBaseDocument) return;
+    const context=rfcIntegrityContext();
+    const result=rfcBuildIntegrityPlan(context);
+    rfcIntegrityPlan={...result,fingerprint:rfcFingerprint(context)};
+    rfcConfirmOpen=true;
+    document.getElementById('rfcIntegritySummary').textContent=`자동 수정 가능 ${result.changes.length}항목 · 확인 필요 ${result.warnings.length}항목`;
+    document.getElementById('rfcIntegrityChanges').innerHTML=result.changes.length ? '<table><thead><tr><th>선수 / 항목</th><th>현재 → 수정</th><th>근거</th></tr></thead><tbody>'+result.changes.map(c=>`<tr><td>${rfcHTML(c.name)}<br><strong>${rfcHTML(c.label)}</strong></td><td>${rfcHTML(rfcIntegrityText(c.before))} → <strong>${rfcHTML(rfcIntegrityText(c.after))}</strong></td><td>${rfcHTML(c.reason)}</td></tr>`).join('')+'</tbody></table>' : '<p>자동으로 수정할 항목이 없습니다. 아래 확인 필요 항목도 확인해주세요.</p>';
+    document.getElementById('rfcIntegrityWarnings').innerHTML=result.warnings.map(w=>`<li><strong>${rfcHTML(w.name)}</strong>: ${rfcHTML(w.message)}</li>`).join('') || '<li>추가 확인 항목이 없습니다.</li>';
+    document.getElementById('rfcIntegrityApply').textContent=`확인한 수정 ${result.changes.length}개 적용`;
+    document.getElementById('rfcIntegrityApply').disabled=!result.changes.length;
+    document.getElementById('rfcIntegrityStatus').textContent='아직 저장하지 않았습니다.';
+    document.getElementById('rfcIntegrityDialog').showModal();
+};
+window.rfcCloseIntegrity = () => {
+    if(rfcOperationBusy)return;
+    document.getElementById('rfcIntegrityDialog').close();rfcConfirmOpen=false;rfcIntegrityPlan=null;
+};
+document.getElementById('rfcIntegrityDialog').addEventListener('cancel',event=>{event.preventDefault();rfcCloseIntegrity();});
+window.rfcDownloadIntegrity = () => {
+    if(rfcIntegrityPlan) rfcDownload('RFC-진단결과-'+getKSTDate()+'.json',{date:new Date().toISOString(),season:activeSeason,changes:rfcIntegrityPlan.changes,warnings:rfcIntegrityPlan.warnings});
+};
+window.rfcApplyIntegrity = async () => {
+    if(rfcOperationBusy || !rfcIntegrityPlan?.changes.length)return false;
+    const saved=await rfcRunOperation(async()=>{
+        if(rfcIntegrityPlan.fingerprint!==rfcFingerprint(rfcIntegrityContext()))throw new Error('진단 이후 데이터가 변경되었습니다. 닫고 다시 진단해주세요.');
+        captureState();
+        for(const c of rfcIntegrityPlan.changes){
+            const player=rankingsData.find(p=>p.id===c.id);
+            if(!player)throw new Error('대상 선수가 변경되었습니다. 다시 진단해주세요.');
+            player[c.field]=c.after;
+        }
+        await saveRankings();
+        const count=rfcIntegrityPlan.changes.length;
+        rfcIntegrityPlan=null;rfcConfirmOpen=false;
+        document.getElementById('rfcIntegrityDialog').close();
+        renderRankings();renderAdminMatches();
+        if(currentProfileId)updateProfileStats(currentProfileId,document.getElementById('pModalSeason').value);
+        rfcStatus(`${count}개 항목 복구 완료. ‘작업 취소’로 이번 복구를 되돌릴 수 있습니다.`);
+        return true;
+    },'rfcApplyIntegrity');
+    if(!saved)document.getElementById('rfcIntegrityStatus').textContent='저장하지 못했습니다. 변경은 복구되었으며 진단 결과는 유지됩니다. 오류 안내를 확인해주세요.';
+    return saved;
+};
+
+        window.resetAllStats = () => { showConfirmModal("현재 시즌의 경기 기록과 전체 선수의 승·무·패를 초기화합니다. 점수는 유지됩니다. 계속할까요?", async () => { captureState(); rankingsData.forEach(p => { p.wins = 0; p.losses = 0; p.draws = 0; p.defenseCount = 0; p.currentStreak = 0; p.bounty = 0; }); matchHistoryData = matchHistoryData.filter(m => m.season !== activeSeason); await saveRankings(); renderRankings(); showCustomAlert("초기화됨."); }); };
+        window.resetAllElo = () => { showConfirmModal("점수 1000점 초기화?", async () => { captureState(); rankingsData.forEach(p => { p.careerHighElo = Math.max(rfcStatNumber(p.careerHighElo) ?? p.elo,p.elo,1000); p.elo = 1000; }); await saveRankings(); renderRankings(); }); };
         window.resetStreakAndBounty = () => { showConfirmModal("🔥 모든 선수의 연승과 현상금을 0으로 초기화하시겠습니까?", async () => { captureState(); rankingsData.forEach(p => { p.currentStreak = 0; p.bounty = 0; }); await saveRankings(); renderRankings(); showCustomAlert("✅ 연승 및 현상금이 0으로 초기화되었습니다."); }); };
-        window.resetEverything = () => { showConfirmModal("전체 경기 기록과 시즌 보관 기록을 지우고 선수 점수·전적을 초기화합니다. 먼저 백업했는지 확인하세요. 계속할까요?", async () => { captureState(); matchHistoryData = []; seasonArchives = {}; activeSeason = "시즌 1"; rankingsData.forEach(p => { p.wins=0; p.losses=0; p.draws=0; p.defenseCount=0; p.elo=1000; p.careerHighElo=1000; }); await saveRankings(); location.reload(); }); };
+        window.resetEverything = () => { showConfirmModal("전체 경기 기록과 시즌 보관 기록을 지우고 선수 점수·전적을 초기화합니다. 먼저 백업했는지 확인하세요. 계속할까요?", async () => { captureState(); matchHistoryData = []; seasonArchives = {}; activeSeason = "시즌 1"; rankingsData.forEach(p => { p.wins=0; p.losses=0; p.draws=0; p.defenseCount=0; p.elo=1000; p.careerHighElo=1000; p.careerHighRank=null; p.currentStreak=0; p.bounty=0; }); await saveRankings(); location.reload(); }); };
         window.resetAllPasswords = async () => { if (!confirm("전체 비밀번호 랜덤 리셋?")) return; captureState(); let reportList = "📢 명단\n"; const updatePromises = rankingsData.map(async (p) => { const plainPin = Math.floor(1000 + Math.random() * 9000).toString(); reportList += `${p.name}: ${plainPin}\n`; p.password = await hashPin(plainPin); }); await Promise.all(updatePromises); await saveRankings(); try { await navigator.clipboard.writeText(reportList); alert("✅ 복사됨."); } catch (err) { alert("복사 실패."); } };
         window.resetIndividualPassword = async () => { const randomPin = Math.floor(1000 + Math.random() * 9000).toString(); document.getElementById('editPassword').value = randomPin; try { await navigator.clipboard.writeText(randomPin); alert(`[${randomPin}] 복사됨.`); } catch (err) {} };
         function checkSeasonInactive() { const list = document.getElementById('seasonInactiveList'); list.innerHTML = ''; const m = matchHistoryData.filter(m => m.season === activeSeason); const an = new Set(); m.forEach(m => { an.add(m.winner); an.add(m.loser); }); const inact = rankingsData.filter(p => !an.has(p.name)); document.getElementById('seasonInactiveCount').textContent = inact.length + "명"; inact.forEach(p => { list.insertAdjacentHTML('beforeend', `<li>${rfcHTML(p.name)}</li>`); }); }
@@ -2882,7 +3111,9 @@ window.confirmBatchPenalty = (days, score) => { if(batchPenaltyTargets.length ==
         p.gameId = mainId; 
         p.subGameIds = subIds;
         
-        p.elo = Number(document.getElementById('editElo').value); 
+        const previousElo=p.elo;
+        p.elo = Number(document.getElementById('editElo').value);
+        p.careerHighElo=Math.max(rfcStatNumber(p.careerHighElo) ?? previousElo,previousElo,p.elo); 
         p.wins = parseInt(document.getElementById('editWins').value) || 0; 
         p.draws = parseInt(document.getElementById('editDraws').value) || 0; 
         p.losses = parseInt(document.getElementById('editLosses').value) || 0; 
@@ -2993,121 +3224,85 @@ window.confirmBatchPenalty = (days, score) => { if(batchPenaltyTargets.length ==
     };
     window.closeProfile = () => { document.getElementById('profileModal').classList.add('hidden'); currentProfileId = null; };
     
-    function getCareerHighRank(playerName) {
-        let bestRank = null;
-        let hasChampionExperience = false;
-        const seasonMatchCounts = {};
-
-        const considerRank = (rankValue) => {
-            const numericRank = Number(rankValue);
-            if (Number.isFinite(numericRank) && numericRank > 0) {
-                if (bestRank === null || numericRank < bestRank) {
-                    bestRank = numericRank;
-                }
-            }
-        };
-
-        // 전체 경기 기록을 오래된 순서로 보면서 시즌별 경기 수를 계산합니다.
-        const chronologicalMatches = [...enrichedHistory].sort(
-            (a, b) => new Date(a.date) - new Date(b.date)
-        );
-
-        chronologicalMatches.forEach(m => {
-            if (m.winner !== playerName && m.loser !== playerName) return;
-
-            const season = m.season || "시즌 1";
-            seasonMatchCounts[season] = (seasonMatchCounts[season] || 0) + 1;
-
-            // 배치 3판을 포함한 시즌 총 10경기 완료 후부터 최고 순위를 인정합니다.
-            // 1~9번째 경기는 최고 순위 계산에서 제외합니다.
-            // 10번째 경기부터 경기 전/후 순위를 모두 최고 순위 후보로 인정합니다.
-            if (seasonMatchCounts[season] < 10) return;
-
-            let rankBefore;
-            let rankAfter;
-            let wasChampion = false;
-
-            if (m.winner === playerName) {
-                rankBefore = m.winnerRankBefore;
-                rankAfter = m.winnerRankAfter;
-                wasChampion = rankBefore === 'C';
-            } else {
-                rankBefore = m.loserRankBefore;
-                rankAfter = m.loserRankAfter;
-                wasChampion = rankBefore === 'C';
-            }
-
-            // 챔피언은 경기 당시 랭킹 후보에서는 제외하되, 챔피언 경험은 보존합니다.
-            if (wasChampion) {
-                hasChampionExperience = true;
-                return;
-            }
-
-            // 10번째 경기부터는 경기 전/후 순위를 모두 최고 순위 후보로 반영합니다.
-            considerRank(rankBefore);
-            considerRank(rankAfter);
-        });
-
-        // 현 시즌에 10경기 이상 진행한 선수는 현재 공식 순위도 최고 순위 후보에 포함합니다.
-        // 경기 당시 순위 스냅샷이 누락되었더라도 현재 순위보다 최고 순위가 낮게 표시되지 않도록 합니다.
-        const currentSeasonMatches = seasonMatchCounts[activeSeason] || 0;
-        if (currentSeasonMatches >= 10) {
-            const currentPlayer = (rankingsData || []).find(p => p && p.name === playerName);
-            if (currentPlayer && currentPlayer.isChampion !== true) {
-                const currentRankedPlayers = [...(rankingsData || [])]
-                    .filter(p => {
-                        if (!p || p.isChampion === true) return false;
-                        const totalMatches = Number(p.wins || 0)
-                            + Number(p.losses || 0)
-                            + Number(p.draws || 0);
-                        return totalMatches >= 3;
-                    })
-                    .sort((a, b) => (Number(b.elo) || 1000) - (Number(a.elo) || 1000));
-                const currentRank = currentRankedPlayers.findIndex(p => p && p.name === playerName) + 1;
-                if (currentRank > 0) considerRank(currentRank);
-            }
-        }
-
-        // [FIX] 시즌 종료 후 새 시즌을 시작하면 마지막 경기 이후의 최종 ELO 순위가
-        // winnerRankBefore / loserRankBefore에 기록되지 않습니다.
-        // 따라서 보관된 시즌의 최종 rankings를 이용해 시즌 종료 순위도 최고 순위 후보에 포함합니다.
-        // 챔피언 역시 시즌 종료 당시 ELO 순위를 그대로 계산해 반영합니다.
-        Object.keys(seasonArchives || {}).forEach(seasonName => {
-            const archive = seasonArchives[seasonName];
-            const archivedRankings = Array.isArray(archive)
-                ? archive
-                : (Array.isArray(archive?.rankings) ? archive.rankings : []);
-            if (archivedRankings.length === 0) return;
-
-            const archivedPlayer = archivedRankings.find(p => p && p.name === playerName);
-            if (!archivedPlayer) return;
-
-            if (archivedPlayer.isChampion === true) {
-                hasChampionExperience = true;
-            }
-
-            // 시즌 최종 순위는 실제 시즌 랭킹 화면과 동일한 기준으로 계산합니다.
-            // 일반 선수는 시즌 3경기 이상 + 비챔피언 선수만 순위에 포함합니다.
-            // 챔피언인 경우에는 챔피언의 시즌 종료 ELO 순위도 별도로 계산할 수 있도록
-            // 챔피언을 포함한 3경기 이상 선수 전체를 기준으로 계산합니다.
-            const targetIsChampion = archivedPlayer.isChampion === true;
-            const finalRankedPlayers = archivedRankings
-                .filter(p => {
-                    if (!p) return false;
-                    const totalMatches = Number(p.wins || 0)
-                        + Number(p.losses || 0)
-                        + Number(p.draws || 0);
-                    if (totalMatches < 3) return false;
-                    return targetIsChampion ? true : p.isChampion !== true;
-                })
-                .sort((a, b) => (Number(b.elo) || 1000) - (Number(a.elo) || 1000));
-
-            const finalRank = finalRankedPlayers.findIndex(p => p && p.name === playerName) + 1;
-            if (finalRank > 0) considerRank(finalRank);
-        });
-
-        return { rank: bestRank, hasChampionExperience };
+// Shared, read-only evidence calculations for both entry pages.
+function rfcStatNumber(value) { return value !== null && value !== '' && value !== undefined && Number.isFinite(Number(value)) ? Number(value) : null; }
+function rfcStatCount(player) {
+    const counts = ['wins','losses','draws'].map(key => rfcStatNumber(player[key] ?? 0));
+    return counts.every(n => Number.isInteger(n) && n >= 0) ? counts.reduce((a,b) => a+b,0) : null;
+}
+function rfcStatRosters(context) {
+    return [{season:context.activeSeason, players:context.rankings}, ...Object.entries(context.archives || {}).filter(([season]) => season !== context.activeSeason).map(([season, value]) => ({season,players:Array.isArray(value) ? value : value?.rankings || []}))];
+}
+function rfcStatChronology(history) {
+    // Storage is newest first, including repeated bouts on the same day.
+    return history.map((match,index) => ({match,index})).sort((a,b) => String(a.match.date || '').localeCompare(String(b.match.date || '')) || b.index-a.index);
+}
+function rfcStatIdentity(player, rosters) {
+    const names = new Set([player.name]), owners = new Map();
+    for (const {players} of rosters) for (const p of players) {
+        if (p.id === player.id) names.add(p.name);
+        if (!owners.has(p.name)) owners.set(p.name,new Set());
+        owners.get(p.name).add(p.id);
     }
+    return {names, side(match) {
+        for (const side of ['winner','loser']) {
+            const id = match[side+'Id'];
+            if (id != null) { if (id === player.id) return side; }
+            else if (names.has(match[side]) && owners.get(match[side])?.size === 1) return side;
+        }
+        return null;
+    }, ambiguous: [...names].some(name => (owners.get(name)?.size || 0) > 1)};
+}
+function rfcStatSeasonEvidence(player, season, context) {
+    const rosters = rfcStatRosters(context), identity = rfcStatIdentity(player,rosters);
+    const rows = rfcStatChronology(context.history).filter(({match}) => (match.season || '시즌 1') === season).map(row => ({...row,side:identity.side(row.match)})).filter(row => row.side);
+    let wins=0,losses=0,draws=0,streak=0,valid=true;
+    for (const {match,side} of rows) {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(match.date || '') || !Number.isFinite(Date.parse(match.date+'T00:00:00Z')) || (Number.isFinite(Date.parse(match.date+'T00:00:00Z')) && new Date(match.date+'T00:00:00Z').toISOString().slice(0,10)!==match.date) || match.winner === match.loser || ![undefined,'ranking','draw'].includes(match.type)) valid=false;
+        if (match.isDraw || match.type === 'draw') {draws++;streak=0;}
+        else if (side === 'winner') {wins++;streak++;} else {losses++;streak=0;}
+    }
+    const roster = rosters.find(r => r.season === season)?.players || [];
+    const stored = roster.find(p => p.id === player.id);
+    const complete = Boolean(stored) && valid && !identity.ambiguous && ['wins','losses','draws'].every(key => Number(stored[key] || 0) === ({wins,losses,draws})[key]);
+    return {rows, wins,losses,draws,streak,complete,ambiguous:identity.ambiguous};
+}
+function rfcStatRank(players, player) {
+    if (player.isChampion === true) return 'C';
+    if (rfcStatCount(player)===null) return null;
+    if (rfcStatCount(player) < 3) return 0;
+    const ranked = players.filter(p => !p.isChampion && (rfcStatCount(p) ?? 0) >= 3).slice().sort((a,b) => (rfcStatNumber(b.elo) ?? 1000) - (rfcStatNumber(a.elo) ?? 1000));
+    return ranked.findIndex(p => p.id === player.id)+1;
+}
+function rfcStatCareer(player, context) {
+    let rank=null, hasChampionExperience=false, incomplete=false;
+    const candidates=[];
+    const consider = value => { const n=rfcStatNumber(value); if (Number.isInteger(n) && n>0) {candidates.push(n);rank=rank===null?n:Math.min(rank,n);} };
+    for (const {season,players} of rfcStatRosters(context)) {
+        const stored=players.find(p=>p.id===player.id);
+        if (!stored) continue;
+        if (stored.isChampion === true) hasChampionExperience=true;
+        const evidence=rfcStatSeasonEvidence(player,season,context);
+        if (!evidence.complete) incomplete=true;
+        evidence.rows.forEach(({match,side},index) => {
+            const before=match[side+'RankBefore'],after=match[side+'RankAfter'];
+            if (match[side+'WasChampion'] === true || before==='C' || after==='C') hasChampionExperience=true;
+            const savedCount=rfcStatNumber(match[side+'MatchesAfter']);
+            const count=Number.isInteger(savedCount) && savedCount>0 ? savedCount : evidence.complete ? index+1 : null;
+            if (count===null || count<10) return;
+            if (before!=='C' && match[side+'WasChampion']!==true) consider(before);
+            if (after!=='C') consider(after);
+            if (after===undefined) incomplete=true;
+        });
+        if ((rfcStatCount(stored) ?? 0)>=10 && !stored.isChampion) consider(rfcStatRank(players,stored));
+    }
+    return {rank,hasChampionExperience,incomplete};
+}
+function getCareerHighRank(playerName) {
+    const player=rankingsData.find(p=>p.name===playerName);
+    if (!player) return {rank:null,hasChampionExperience:false,incomplete:true};
+    return rfcStatCareer(player,{rankings:rankingsData,history:matchHistoryData,archives:seasonArchives,activeSeason});
+}
 
     // [v5.83] 프로필의 날짜별 기록에서 개별 경기 타이틀 매치 지정/해제
     window.toggleProfileTitleMatch = async (encodedKey) => {
@@ -3162,13 +3357,12 @@ window.confirmBatchPenalty = (days, score) => { if(batchPenaltyTargets.length ==
         document.getElementById('pModalElo').textContent = p.elo || 1000; 
         document.getElementById('pModalHighElo').textContent = p.careerHighElo || p.elo || 1000;
         const careerHighRankInfo = getCareerHighRank(p.name);
+        document.getElementById('rfcCareerNote').textContent = careerHighRankInfo.incomplete ? '일부 기록 미확인' : '시즌 10경기 기준';
         const highRankText = careerHighRankInfo.rank ? `${careerHighRankInfo.rank}위` : '-';
         const highRankEl = document.getElementById('pModalHighRank');
         if (highRankEl) {
             highRankEl.textContent =
-                careerHighRankInfo.hasChampionExperience && careerHighRankInfo.rank
-                    ? `${highRankText} 🏆`
-                    : highRankText;
+                careerHighRankInfo.hasChampionExperience ? (careerHighRankInfo.rank ? `${highRankText} 🏆` : '🏆 챔피언') : highRankText;
         } 
         
         const container = document.getElementById('pModalMatchList'); container.innerHTML = ''; 
@@ -3543,7 +3737,8 @@ function rfcApplyMatchToState(state, entry) {
             const isBlueWin = winnerVal === 'blue'; 
             const isDraw = winnerVal === 'draw';
             const winner = isDraw ? p1 : (isBlueWin ? p1 : p2); 
-            const loser = isDraw ? p2 : (isBlueWin ? p2 : p1); 
+            const loser = isDraw ? p2 : (isBlueWin ? p2 : p1);
+            const winnerEloBefore=winner.elo, loserEloBefore=loser.elo; 
             
  
 
@@ -3585,7 +3780,7 @@ function rfcApplyMatchToState(state, entry) {
                 winner.draws++; loser.draws++;
                 winner.currentStreak = 0; loser.currentStreak = 0;
             } else {
-                winner.currentStreak = (winner.currentStreak || 0) + 1;
+                winner.currentStreak = (Number(winner.currentStreak) || 0) + 1;
                 if (!winner.isChampion && winner.currentStreak >= 3 && winnerRankBefore > 0 && winnerRankBefore <= 10) { winner.bounty = (winner.currentStreak - 2) * 10; }
                 loser.currentStreak = 0;
                 if (loserBountyVal > 0) { const penalty = Math.floor(loserBountyVal / 2); loseCalc.change -= penalty; loser.bounty = 0; } else { loser.bounty = 0; }
@@ -3594,8 +3789,8 @@ function rfcApplyMatchToState(state, entry) {
             }
             
             winner.elo += winCalc.change; loser.elo += loseCalc.change; 
-            if (winner.elo > (winner.careerHighElo || 0)) winner.careerHighElo = winner.elo; 
-            if (loser.elo > (loser.careerHighElo || 0)) loser.careerHighElo = loser.elo; 
+            winner.careerHighElo = Math.max(rfcStatNumber(winner.careerHighElo) ?? winnerEloBefore, winnerEloBefore, winner.elo); 
+            loser.careerHighElo = Math.max(rfcStatNumber(loser.careerHighElo) ?? loserEloBefore, loserEloBefore, loser.elo); 
             
             let type = 'ranking'; 
 
@@ -3612,7 +3807,19 @@ function rfcApplyMatchToState(state, entry) {
                 if (rank <= 10) { if ((p.currentStreak || 0) >= 3) { p.bounty = (p.currentStreak - 2) * 10; } else { p.bounty = 0; } } else { p.bounty = 0; }
             });
 
+            const winnerRankAfter=rfcStatRank(state.rankings,winner), loserRankAfter=rfcStatRank(state.rankings,loser);
+            for (const player of [winner,loser]) {
+                const rank=rfcStatRank(state.rankings,player);
+                if ((rfcStatCount(player) ?? 0)>=10 && typeof rank==='number' && rank>0) {
+                    const old=rfcStatNumber(player.careerHighRank);
+                    player.careerHighRank=old!==null && old>0 ? Math.min(old,rank) : rank;
+                }
+            }
             state.matchHistory.unshift({
+                winnerId:winner.id, loserId:loser.id,
+                winnerEloBefore, loserEloBefore, winnerEloAfter:winner.elo, loserEloAfter:loser.elo,
+                winnerRankAfter, loserRankAfter,
+                winnerMatchesAfter:rfcStatCount(winner), loserMatchesAfter:rfcStatCount(loser),
                 date: matchDate,
                 ...(videoUrl ? {videoUrl} : {}),
                 winner: isDraw ? p1.name : (isBlueWin ? p1.name : p2.name),
@@ -3798,7 +4005,7 @@ window.resetMatchInputs = (...args) => {
 };
 
 // Single-operation guard for original event handlers.
-for (const name of ["executeUndo","saveSeasonDates","applyMatch","applyBatchIdUpdate","deleteMatchLog","saveNoticeSettings","saveAdminGlobalNote","saveRules","addPatchNote","deletePatchNote","saveInlineTag","deleteInlineTag","saveAddTag","deleteSeason","switchActiveSeason","confirmRenameSeason","finishAndStartNewSeason","confirmChampionVacate","confirmDeletePlayers","confirmNewPlayer","updateRankBaseline","applyManualPenalty","confirmBatchPenalty","fixDataIntegrity","resetAllStats","resetAllElo","resetStreakAndBounty","resetEverything","resetAllPasswords","savePlayerDetails","tryDeletePlayer","toggleProfileTitleMatch","deletePlayer"]) {
+for (const name of ["executeUndo","saveSeasonDates","applyMatch","applyBatchIdUpdate","deleteMatchLog","saveNoticeSettings","saveAdminGlobalNote","saveRules","addPatchNote","deletePatchNote","saveInlineTag","deleteInlineTag","saveAddTag","deleteSeason","switchActiveSeason","confirmRenameSeason","finishAndStartNewSeason","confirmChampionVacate","confirmDeletePlayers","confirmNewPlayer","updateRankBaseline","applyManualPenalty","confirmBatchPenalty","resetAllStats","resetAllElo","resetStreakAndBounty","resetEverything","resetAllPasswords","savePlayerDetails","tryDeletePlayer","toggleProfileTitleMatch","deletePlayer"]) {
  const original = window[name]; if(typeof original === 'function') window[name] = (...args) => rfcRunOperation(() => original(...args), name);
 }
 window.rfcSaveNow = () => rfcRunOperation(() => saveRankings());
@@ -3816,7 +4023,7 @@ const rfcUxOriginalTab = window.switchTab;
 window.switchTab = tab => {
     if (!rfcUxTabs.includes(tab)) return;
     rfcUxOriginalTab(tab); rfcUxSelectTab(tab);
-    document.getElementById(tab + 'Section').scrollIntoView({block:'start'});
+    rfcUxShowAdminTab();
 };
 rfcUxSelectTab(rfcUxTabs[0]);
 for (const name of rfcUxTabs) {
@@ -3843,10 +4050,40 @@ for (const id of ['searchInput','rfcHistorySearch']) {
     });
 }
 
+// Scroll a specific pane instead of scrollIntoView, which also scrolls ancestors.
+function rfcUxDesktopLayout() {
+    return typeof window.matchMedia !== 'function' || window.matchMedia('(min-width: 1024px)').matches;
+}
+function rfcUxResetPageScroll() {
+    if (document.scrollingElement) document.scrollingElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    document.getElementById('mainContent').scrollTop = 0;
+    window.scrollTo({top:0, left:0, behavior:'auto'});
+}
+function rfcUxShowAdminTab() {
+    document.getElementById('rfcAdminWorkPanel').scrollTop = 0;
+    document.getElementById('adminMatchListContainer').scrollTop = 0;
+    rfcUxResetPageScroll();
+}
+function rfcUxScrollRankPanel(target = null) {
+    const panel = document.getElementById('rfcAdminRankPanel');
+    if (rfcUxDesktopLayout()) {
+        rfcUxResetPageScroll();
+        if (!target) { panel.scrollTop = 0; return; }
+        const top = panel.scrollTop + target.getBoundingClientRect().top - panel.getBoundingClientRect().top;
+        panel.scrollTop = Math.max(0, top - Math.max(0, (panel.clientHeight - target.getBoundingClientRect().height) / 2));
+    } else {
+        const element = target || panel;
+        const headerHeight = document.getElementById('rfcAdminHeader').getBoundingClientRect().height;
+        const top = window.scrollY + element.getBoundingClientRect().top - headerHeight - 12;
+        window.scrollTo({top:Math.max(0, top), behavior:'auto'});
+    }
+}
 window.rfcUxJump = target => {
-    if (target === 'entry') { switchTab('main'); document.getElementById('mainSection').scrollIntoView({block:'start'}); }
-    else if (target === 'ranking') { document.getElementById('rfcAdminRankPanel').scrollIntoView({block:'start'}); }
+    if (target === 'entry') switchTab('main');
+    else if (target === 'ranking') rfcUxScrollRankPanel();
 };
+
 for (const id of ['adminEmail','adminPw']) document.getElementById(id).addEventListener('keydown', event => {
     if (event.key === 'Enter' && !event.isComposing && !document.getElementById('btnLogin').disabled) { event.preventDefault(); document.getElementById('btnLogin').click(); }
 });

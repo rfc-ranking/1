@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RFC 복싱 랭킹 · 경기 기록</title> 
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Pretendard', sans-serif; background-color: #f1f5f9; -webkit-tap-highlight-color: transparent; }
         
@@ -271,8 +270,151 @@ img{max-width:100%} .rfc-help{margin:12px 0;padding:14px;border:1px solid #cbd5e
 .rfc-video-dialog .ts-control>input{padding:0!important;margin:0!important;border:0!important;box-shadow:none!important;min-height:0}.rfc-video-dialog .ts-wrapper{margin-top:4px}.rfc-video-dialog .ts-control{min-height:42px;border-radius:8px}.rfc-video-dialog .ts-dropdown{font-size:14px}
 
 </style>
+<style id="rfcDesignSystem">
+/* RFC visual system — presentation only; original state and event handlers are retained. */
+body.rfc-design{--rfc-ink:#142238;--rfc-muted:#607087;--rfc-line:#dce4ed;--rfc-blue:#245cdb;--rfc-navy:#111e32;--rfc-surface:#fff;font-family:'Pretendard',-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;color:var(--rfc-ink);background:#edf1f6;font-feature-settings:'ss01';letter-spacing:-.015em}
+.rfc-design button,.rfc-design input,.rfc-design select,.rfc-design textarea{font-family:inherit;letter-spacing:inherit}
+.rfc-design button{transition:background-color .16s,border-color .16s,box-shadow .16s,color .16s}
+.rfc-design button:disabled{opacity:.5}.rfc-design input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=hidden]),.rfc-design textarea,.rfc-design select{border-color:#d3dce8;border-radius:10px}
+.rfc-design input:not([type=checkbox]):not([type=radio]):not([type=color]):focus,.rfc-design textarea:focus,.rfc-design select:focus{border-color:#7399ef;box-shadow:0 0 0 3px #245cdb12}
+.rfc-design .rfc-brand{display:flex;align-items:center;gap:12px;min-width:0}
+.rfc-design .rfc-brand-symbol{display:grid;place-items:center;flex-shrink:0;width:42px;height:42px;border-radius:11px;background:#2b64e5;color:#fff;font-size:13px;font-weight:900;letter-spacing:-.07em;transform:skew(-7deg);border:1px solid #5c89ef}
+.rfc-design .rfc-brand-symbol span{transform:skew(7deg)}
+.rfc-design .rfc-brand-kicker{display:block;font-size:9px;line-height:1.4;font-weight:700;letter-spacing:.18em;color:#9bb5dc;margin-bottom:3px}
+.rfc-design .rfc-brand-title{margin:0;font-size:21px;line-height:1.2;font-weight:900;color:#fff;letter-spacing:-.045em}
+.rfc-design .rfc-section-intro{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin:0 0 18px;padding:8px 2px 0}
+.rfc-design .rfc-section-intro h2{font-size:25px;font-weight:850;letter-spacing:-.055em;line-height:1.25;color:#142238;margin:5px 0 7px}
+.rfc-design .rfc-section-intro p{font-size:12px;line-height:1.7;color:#607087;margin:0}
+.rfc-design .rfc-section-eyebrow{font-size:10px;font-weight:800;color:#245cdb;letter-spacing:.16em}
+.rfc-design .rfc-season-mark{flex-shrink:0;display:inline-flex;align-items:center;gap:7px;padding:7px 10px;border-radius:7px;border:1px solid #d9e3f3;background:#e9effa;font-size:10px;font-weight:800;letter-spacing:.08em;color:#315b9f}
+.rfc-design .rfc-season-mark::before{content:'';width:5px;height:5px;border-radius:50%;background:#245cdb}
+.rfc-design .rfc-ux-button,.rfc-design .rfc-video-edit{font-size:12px;border-color:#d3deeb;border-radius:9px;box-shadow:0 1px 2px #14223804;font-weight:700}
+.rfc-design .rfc-ux-button:hover,.rfc-design .rfc-video-edit:hover{border-color:#9ab6e9;background:#edf3ff;color:#214d9f}
+.rfc-design .rfc-video-link{padding:7px 12px;font-size:11px;border-radius:8px;border-color:#f3d3d6;background:#fff3f3;color:#b32b38;min-height:36px;font-weight:800}
+.rfc-design .rfc-video-link:hover{background:#b32b38;color:#fff;border-color:#b32b38}
+.rfc-design #rankingList{font-variant-numeric:tabular-nums}
+.rfc-design #rankingList .rank-card{border:1px solid #dce4ed;border-radius:13px;margin-bottom:8px;box-shadow:0 2px 3px #17264003;transition:border-color .16s,box-shadow .16s;min-height:76px}
+.rfc-design #rankingList .rank-card:hover{transform:none;border-color:#95b4e8;box-shadow:0 5px 16px #1d3b660b}
+.rfc-design #rankingList .rank-card img{border-radius:10px}
+.rfc-design #rankingList .rank-1-glow{box-shadow:inset 3px 0 0 #d0a13b,0 2px 4px #17264004}
+.rfc-design #rankingList .rank-2-glow{box-shadow:inset 3px 0 0 #9caec1}
+.rfc-design #rankingList .rank-3-glow{box-shadow:inset 3px 0 0 #bb8f71}
+.rfc-design #rankingList .inferno-card{border-color:#a33e36;box-shadow:0 3px 9px #6f251b14}
+.rfc-design #matchList>.bg-white,.rfc-design #adminMatchListContainer>.bg-white{border-radius:13px;border:1px solid #dce4ed;box-shadow:0 2px 4px #17264004;padding:16px;background-image:linear-gradient(to right,#3e76df 0%,#3e76df 48%,#e6ebf2 48%,#e6ebf2 52%,#d55c68 52%,#d55c68 100%);background-size:100% 2px;background-repeat:no-repeat}
+.rfc-design .rfc-video-footer{padding-top:9px;border-top:1px solid #edf0f4;margin-top:6px}
+.rfc-design .rfc-ux-history{border-radius:13px;padding:15px;border-color:#dce4ed;background:#fff;box-shadow:0 2px 3px #17264003}
+.rfc-design .rfc-ux-history label{font-size:11px;font-weight:750;color:#53647a}
+.rfc-design .rfc-ux-history input:not([type=checkbox]){background:#f8fafd;border-color:#d7e1ed;min-height:42px}
+.rfc-design .rfc-ux-history input:focus{background:#fff}
+.rfc-design #rfcHistoryCount,.rfc-design #rfcRankingCount{font-size:11px;font-weight:650;color:#566b85}
+.rfc-design .rfc-ux-rank-summary{padding:6px 4px;background:transparent;border-radius:0}
+.rfc-design .rfc-ux-rank-summary .rfc-ux-button{min-height:32px;font-size:10px;padding:5px 9px;background:transparent;border-color:transparent;color:#65768c;box-shadow:none}
+.rfc-design .rfc-ux-rank-summary .rfc-ux-button:hover{background:#e3eaf4;color:#245cdb}
+.rfc-design .rfc-video-dialog{border-radius:19px;padding:24px;box-shadow:0 32px 100px #09182c55;border:1px solid #e3eaf3}
+.rfc-design .rfc-video-dialog::backdrop{background:#0c1b30ad;backdrop-filter:blur(3px)}
+.rfc-design .rfc-video-heading{padding-bottom:16px;border-bottom:1px solid #e4eaf2;margin-bottom:18px}
+.rfc-design .rfc-video-heading h2{font-size:20px;letter-spacing:-.04em}
+.rfc-design .rfc-video-ui .rfc-primary{background:#245cdb;border-color:#245cdb;box-shadow:0 3px 8px #245cdb24;border-radius:10px}
+.rfc-design .rfc-video-ui .rfc-primary:hover{background:#194cc0}
+.rfc-design .rfc-batch-row{border-color:#dce5ef;border-radius:13px;background:#f7f9fc;padding:16px}
+.rfc-design .rfc-batch-row header strong{font-size:13px;color:#254b82}
+.rfc-design .rfc-batch-preview-item{font-variant-numeric:tabular-nums}
+.rfc-design #rfcIntegritySummary{display:block;padding:13px 15px;border-radius:10px;color:#1e4d99;background:#edf3ff;font-size:13px}
+.rfc-design #rfcIntegrityChanges th{background:#f1f5fa;color:#435c7b;font-size:11px;white-space:nowrap}
+.rfc-design #rfcIntegrityChanges td{padding-top:13px;padding-bottom:13px;font-variant-numeric:tabular-nums}
+.rfc-design #rfcIntegrityChanges tbody tr:nth-child(even){background:#fafbfd}
+.rfc-design #profileModal .shadow-2xl{box-shadow:0 28px 90px #07132740}
+.rfc-design #pModalMatchList>div{border-radius:11px}
+.rfc-design #pModalElo,.rfc-design #pModalHighElo,.rfc-design #pModalHighRank{font-variant-numeric:tabular-nums;letter-spacing:-.03em}
+.rfc-design #rfcCareerNote{line-height:1.4}
+.rfc-design .rfc-ux-top{border-color:#d3deec;background:#fff;box-shadow:0 4px 20px #172b4812;font-size:11px;border-radius:10px}
+/* User site */
+body.rfc-design-public>#rfcDesignPublicHeader{background:#111e32;border:0;box-shadow:0 4px 18px #09192f12}
+.rfc-design-public #rfcDesignPublicHeader>.rfc-design-masthead{max-width:940px;min-height:83px;padding:17px 22px;margin:auto}
+.rfc-design-public #currentDate,.rfc-design-public #headerVersion{color:#a7b8d1;font-size:10px}
+.rfc-design-public #rfcDesignPublicHeader .rfc-design-brand-date{margin:5px 0 0 54px;line-height:1.2}
+.rfc-design-public #rfcDesignPublicHeader button[onclick="openRules()"]{background:#20324c;color:#d8e5fa;border-color:#354c69;border-radius:9px;min-height:36px}
+.rfc-design-public #btnInspector{color:#bdd0eb}
+.rfc-design-public #headerSeasonSelect{background:#f0f5ff;color:#1a3a6e;border:1px solid #f0f5ff;border-radius:9px;box-shadow:none;min-height:36px}
+.rfc-design-public #headerSeasonSelect+div{color:#335586}
+.rfc-design-public #rfcPublicNav{max-width:940px;padding:0 20px;gap:8px;border-top:1px solid #29394e;background:#111e32}
+.rfc-design-public #rfcPublicNav button{font-size:12px;letter-spacing:-.02em;border-bottom:3px solid transparent;color:#9cafc9;min-height:49px;font-weight:650}
+.rfc-design-public #rfcPublicNav button:hover{background:#1c2d46;color:#fff}
+.rfc-design-public #rfcPublicNav button.tab-active{color:#fff;background:#1d304d;border-bottom-color:#6c9dff;font-weight:800}
+.rfc-design-public>main{max-width:940px;padding:24px 22px 40px}
+.rfc-design-public #rfcPublicRankHeader{position:static;margin:0;padding:14px;background:#fff;border:1px solid #dce4ed;border-radius:13px;gap:12px}
+.rfc-design-public #rankingSeasonTitle{font-size:13px;font-weight:800}
+.rfc-design-public #rankingSeasonStartDate{color:#697b91;font-size:10px}
+.rfc-design-public #rfcPublicRankHeader>div:last-child{gap:9px}
+.rfc-design-public #playerSearchInput{background:#f8fafd;border-color:#d7e1ed;padding-right:10px}
+.rfc-design-public #carrierFilterTags{gap:3px}
+.rfc-design-public #carrierFilterTags button{min-height:33px;border-radius:7px;font-size:10px;padding:5px 8px}
+.rfc-design-public #carrierFilterTags button.bg-slate-800{background:#274e8d;border-color:#274e8d}
+.rfc-design-public #matchesSection>.sticky-sub-header,.rfc-design-public #hofSection>.sticky-sub-header,.rfc-design-public #patchSection>.sticky-sub-header{border-radius:13px;border-color:#dce4ed;box-shadow:0 2px 4px #17264004}
+/* Admin site: retain the established fixed-height desktop panes and mobile scroll behavior. */
+body.rfc-design-admin #mainContent{max-width:1440px;padding:18px}
+body.rfc-design-admin #rfcAdminHeader{background:#111e32;border:1px solid #111e32;border-radius:15px;box-shadow:0 4px 15px #0a1b3210;padding:14px 18px;gap:8px}
+.rfc-design-admin #rfcAdminHeader .rfc-brand-title{font-size:21px}
+.rfc-design-admin #rfcAdminHeader>div:last-child{color:#a7bad7;font-size:10px;line-height:1.5}
+.rfc-design-admin #rfcAdminHeader #currentSeasonBadge{background:#2a4163;color:#e5eeff;border:0}
+.rfc-design-admin #rfcAdminHeader #currentSeasonDateRange{background:#1a2c45;color:#afc5e4}
+.rfc-design-admin #rfcAdminHeader .rounded-lg.overflow-hidden{border-color:#354862;box-shadow:none}
+.rfc-design-admin #saveStatus{color:#89e3b4;font-size:11px}
+.rfc-design-admin #rfcAdminToolbar{border:1px solid #dce4ed;border-radius:13px;box-shadow:0 2px 4px #17264003;padding:0 14px;margin-bottom:10px}
+.rfc-design-admin #rfcAdminTabs{gap:8px}
+.rfc-design-admin #rfcAdminTabs button{padding:13px 14px;border-radius:8px 8px 0 0;font-size:12px;letter-spacing:-.02em;color:#607087}
+.rfc-design-admin #rfcAdminTabs button.active{background:#edf3ff;border-bottom-color:#245cdb;color:#194db8}
+.rfc-design-admin #rfcAdminTabs button:hover{background:#f1f5fb;color:#245cdb}
+.rfc-design-admin #rfcAdminFilters{border-color:#e7edf4;padding:10px 0;gap:10px}
+.rfc-design-admin #searchInput{background:#f8fafd;font-size:12px;min-height:39px}
+.rfc-design-admin #carrierFilterBar button{border-radius:7px;min-height:36px;font-size:11px;padding:6px 11px}
+.rfc-design-admin #rfcAdminFilters button[onclick="rfcSaveNow()"]{background:#245cdb;border-radius:9px;box-shadow:0 2px 6px #245cdb20;padding:8px 16px}
+.rfc-design-admin .rfc-ux-shortcuts{flex-shrink:0;gap:7px;margin:0 0 12px}
+.rfc-design-admin .rfc-ux-shortcuts .rfc-ux-button{min-height:34px;padding:6px 11px;font-size:11px;background:transparent;border-color:#d6e0eb}
+.rfc-design-admin .rfc-ux-shortcuts button[onclick="rfcOpenBatch()"]{background:#e6eefc;color:#1d50ab;border-color:#d4e1fa}
+.rfc-design-admin #rfcAdminLayout{gap:20px}
+.rfc-design-admin #rfcAdminWorkPanel{padding-right:3px}
+.rfc-design-admin #mainSection>.bg-white,.rfc-design-admin #seasonSection .bg-white,.rfc-design-admin #toolsSection>.bg-white{border-color:#dce4ed;border-radius:14px;box-shadow:0 2px 4px #17264003}
+.rfc-design-admin #mainSection>.bg-white>div:first-child.bg-slate-50{background:#f7f9fc;border-color:#e1e8f1;border-radius:14px 14px 0 0;padding:14px 17px}
+.rfc-design-admin #mainSection h3,.rfc-design-admin #historySection h3{font-size:14px;letter-spacing:-.03em}
+.rfc-design-admin #mainSection button[onclick="applyMatch()"]{background:#245cdb;background-image:none;border-radius:10px;box-shadow:0 3px 9px #245cdb24;font-size:13px;transform:none}
+.rfc-design-admin #mainSection button[onclick="applyMatch()"]:hover{background:#194dc0}
+.rfc-design-admin #mainSection .rfc-video-ui{border-top:1px solid #e4eaf2;padding-top:14px}
+.rfc-design-admin #mainSection .rfc-video-ui p{font-size:11px;line-height:1.7}
+.rfc-design-admin #mainSection .rfc-video-help{background:#f8fafd;border:1px solid #e2e9f1;border-radius:9px;padding:10px}
+.rfc-design-admin #mainSection .rfc-video-help summary{color:#486181;font-size:11px}
+.rfc-design-admin #rfcAdminRankPanel{border:1px solid #dce4ed;border-radius:14px;box-shadow:0 2px 4px #17264003}
+.rfc-design-admin #rfcAdminRankPanel>.rfc-ux-rank-summary{background:#fff;padding:10px 14px;border-bottom:1px solid #e1e8f1}
+.rfc-design-admin #rankingList{padding:12px;background:#f5f7fb;border-radius:0}
+.rfc-design-admin #rankingList .rank-card{min-height:72px;margin-bottom:7px}
+.rfc-design-admin #rfcAdminHistoryCard{border-color:#dce4ed;border-radius:14px;box-shadow:none}
+.rfc-design-admin #rfcAdminHistoryCard>div:first-child{background:#f7f9fc}
+.rfc-design-admin #adminMatchListContainer{background:#f5f7fb}
+.rfc-design-admin #toolsSection details.rfc-help{background:#f7f9fc;border:1px solid #e0e7f0;padding:12px;border-radius:10px;font-size:12px}
+.rfc-design-admin #toolsSection details.rfc-help p{line-height:1.75;color:#607087;margin-top:8px}
+.rfc-design-admin #loginOverlay{background:#111e32}
+.rfc-design-admin #loginOverlay>.bg-white{border-radius:20px;box-shadow:0 30px 80px #0004}
+@media(min-width:1024px){.rfc-design-admin #mainSection .p-5{padding:18px}.rfc-design-admin #rfcAdminHistoryCard{min-height:420px}}
+@media(max-width:1023px){body.rfc-design-admin #mainContent{padding:12px}.rfc-design-admin #rfcAdminHeader{padding:12px 15px}.rfc-design-admin #rfcAdminRankPanel{margin-top:18px}.rfc-design-admin #rfcAdminWorkPanel{padding-right:0}.rfc-design-admin #rfcAdminHistoryCard{min-height:0}}
+@media(max-width:640px){
+ .rfc-design-public #rfcDesignPublicHeader>.rfc-design-masthead{min-height:72px;padding:12px;gap:8px;align-items:center}
+ .rfc-design .rfc-brand{gap:8px}.rfc-design .rfc-brand-symbol{width:32px;height:34px;font-size:11px;border-radius:8px}.rfc-design .rfc-brand-title{font-size:16px}.rfc-design .rfc-brand-kicker{font-size:7px;letter-spacing:.09em}
+ .rfc-design-public #rfcDesignPublicHeader .rfc-design-brand-date{margin:5px 0 0 40px;gap:4px;flex-wrap:wrap}.rfc-design-public #currentDate,.rfc-design-public #headerVersion{font-size:8px}
+ .rfc-design-public #rfcDesignPublicHeader button[onclick="openRules()"]{padding:6px 8px;font-size:10px}.rfc-design-public #headerSeasonSelect{max-width:115px;font-size:13px!important;padding-left:8px;padding-right:20px}.rfc-design-public #rfcDesignPublicHeader>.rfc-design-masthead>div:last-child{gap:5px}
+ .rfc-design-public #btnInspector{padding:5px;font-size:9px}
+ .rfc-design-public #rfcPublicNav{padding:0 6px;gap:0}.rfc-design-public #rfcPublicNav button{padding:10px 6px;font-size:11px;min-height:44px}
+ .rfc-design-public>main{padding:18px 12px 36px}.rfc-design .rfc-section-intro{margin-bottom:14px;padding:0 2px}.rfc-design .rfc-section-intro h2{font-size:22px;margin:4px 0 6px}.rfc-design .rfc-section-intro p{font-size:11px}.rfc-design .rfc-section-eyebrow{font-size:9px}.rfc-design .rfc-season-mark{font-size:8px;padding:5px 7px}
+ .rfc-design-public #rfcPublicRankHeader{padding:12px;gap:10px}.rfc-design-public #rankingSeasonTitle{font-size:12px}.rfc-design #rankingList .rank-card{min-height:70px;padding:10px;border-radius:11px}
+ .rfc-design #matchList>.bg-white,.rfc-design #adminMatchListContainer>.bg-white{padding:13px}.rfc-design .rfc-ux-history{padding:12px}.rfc-design .rfc-video-dialog{padding:18px 14px;border-radius:15px}.rfc-design .rfc-video-heading{padding-bottom:12px}.rfc-design .rfc-video-heading h2{font-size:18px}
+ .rfc-design-admin #rfcAdminHeader .rfc-brand-title{font-size:18px}.rfc-design-admin #rfcAdminHeader>div:first-child{gap:9px;justify-content:flex-start;width:100%}.rfc-design-admin #rfcAdminHeader>div:last-child{width:100%;margin-top:0;text-align:left;font-size:9px}.rfc-design-admin #rfcAdminHeader #currentSeasonDateRange{font-size:9px;padding:4px 7px}
+ .rfc-design-admin #rfcAdminTabs{gap:3px}.rfc-design-admin #rfcAdminTabs button{padding:11px 10px;font-size:11px;min-height:44px}.rfc-design-admin #rfcAdminToolbar{padding:0 10px}.rfc-design-admin #rankingList{padding:9px}.rfc-design-admin #rfcAdminRankPanel>.rfc-ux-rank-summary{padding:9px 12px}.rfc-design-admin #mainSection>.bg-white>div:first-child.bg-slate-50{padding:13px 15px}
+}
+@media(max-width:370px){.rfc-design-public #rfcDesignPublicHeader>.rfc-design-masthead{flex-wrap:wrap}.rfc-design-public #rfcDesignPublicHeader>.rfc-design-masthead>div:last-child{margin-left:auto}.rfc-design .rfc-season-mark{display:none}}
+@media(prefers-reduced-motion:reduce){.rfc-design *,.rfc-design *::before,.rfc-design *::after{transition-duration:.01ms!important;animation-duration:.01ms!important}}
+
+</style>
 </head>
-<body class="bg-slate-100 text-slate-800 pb-10 flex flex-col min-h-screen">
+<body class="rfc-design rfc-design-public bg-slate-100 text-slate-800 pb-10 flex flex-col min-h-screen">
 <div id="rfcConnectionStatus" role="status" aria-live="polite" hidden style="padding:12px 16px;background:#fff7df;border-bottom:1px solid #e2d1a0;white-space:pre-wrap"></div>
 
     <div id="inspector-tooltip">
@@ -283,13 +425,11 @@ img{max-width:100%} .rfc-help{margin:12px 0;padding:14px;border:1px solid #cbd5e
     </div>
 
     <!-- 상단 헤더 -->
-    <header class="bg-white sticky top-0 z-40 shadow-sm border-b border-slate-200">
-        <div class="max-w-3xl mx-auto px-4 py-3 flex justify-between items-center">
+    <header id="rfcDesignPublicHeader" class="bg-white sticky top-0 z-40 shadow-sm border-b border-slate-200">
+        <div class="rfc-design-masthead max-w-3xl mx-auto px-4 py-3 flex justify-between items-center">
             <div class="inline-flex flex-col">
-                <h1 class="text-xl font-black italic tracking-tighter text-slate-900 leading-none">
-                    <span class="text-blue-600">RFC</span> RANKING
-                </h1>
-                <p class="text-xs text-slate-400 font-medium mt-1 flex gap-2">
+<div class="rfc-brand"><span class="rfc-brand-symbol" aria-hidden="true"><span>RFC</span></span><div><span class="rfc-brand-kicker">VR BOXING COMMUNITY</span><h1 class="rfc-brand-title">RANKING</h1></div></div>
+                <p class="rfc-design-brand-date text-xs text-slate-400 font-medium mt-1 flex gap-2">
                     <span id="currentDate">Loading...</span>
                     <span class="text-slate-300">|</span>
                     <span id="headerVersion">v?.??</span>
@@ -297,7 +437,7 @@ img{max-width:100%} .rfc-help{margin:12px 0;padding:14px;border:1px solid #cbd5e
             </div>
             <div class="flex gap-2 items-center">
                 <button onclick="toggleInspector()" id="btnInspector" class="opacity-30 hover:opacity-100 transition-all text-xs font-bold px-2 py-1.5 rounded-lg" title="스타일 인스펙터">🛠️</button>
-                <button onclick="openRules()" class="bg-slate-100 text-slate-600 text-xs font-bold px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-200 transition">📜 규칙</button>
+                <button onclick="openRules()" class="bg-slate-100 text-slate-600 text-xs font-bold px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-200 transition">경기 규칙</button>
                 <div class="relative group">
                     <select id="headerSeasonSelect" class="appearance-none bg-slate-900 text-white text-xs font-bold pl-3 pr-6 py-1.5 rounded-full shadow-lg shadow-slate-500/20 outline-none text-center cursor-pointer transition hover:bg-slate-800">
                         <option value="">Loading...</option>
@@ -308,12 +448,12 @@ img{max-width:100%} .rfc-help{margin:12px 0;padding:14px;border:1px solid #cbd5e
                 </div>
             </div>
         </div>
-        <nav id="rfcPublicNav" role="tablist" aria-label="사이트 메뉴" class="flex border-t border-slate-100 max-w-3xl mx-auto"><button onclick="switchTab('ranking')" id="tabRanking" class="tab-active flex-1 py-2.5 text-[11px] sm:text-sm font-bold transition-colors text-center tracking-tighter">🔥 랭킹</button><button onclick="switchTab('matches')" id="tabMatches" class="tab-inactive flex-1 py-2.5 text-[11px] sm:text-sm font-bold transition-colors text-center tracking-tighter">⚔️ 경기 기록</button><button onclick="switchTab('hof')" id="tabHof" class="tab-inactive flex-1 py-2.5 text-[11px] sm:text-sm font-bold transition-colors text-center tracking-tighter">🏛️ 명예의 전당</button><button onclick="switchTab('tournament')" id="tabTournament" class="tab-inactive flex-1 py-2.5 text-[11px] sm:text-sm font-bold transition-colors text-center tracking-tighter">🏆 대진표</button><button onclick="switchTab('patch')" id="tabPatch" class="tab-inactive flex-1 py-2.5 text-[11px] sm:text-sm font-bold transition-colors text-center tracking-tighter">💡 정보</button></nav>
+        <nav id="rfcPublicNav" role="tablist" aria-label="사이트 메뉴" class="flex border-t border-slate-100 max-w-3xl mx-auto"><button onclick="switchTab('ranking')" id="tabRanking" class="tab-active flex-1 py-2.5 text-[11px] sm:text-sm font-bold transition-colors text-center tracking-tighter">랭킹</button><button onclick="switchTab('matches')" id="tabMatches" class="tab-inactive flex-1 py-2.5 text-[11px] sm:text-sm font-bold transition-colors text-center tracking-tighter">경기 기록</button><button onclick="switchTab('hof')" id="tabHof" class="tab-inactive flex-1 py-2.5 text-[11px] sm:text-sm font-bold transition-colors text-center tracking-tighter">명예의 전당</button><button onclick="switchTab('tournament')" id="tabTournament" class="tab-inactive flex-1 py-2.5 text-[11px] sm:text-sm font-bold transition-colors text-center tracking-tighter">대진표</button><button onclick="switchTab('patch')" id="tabPatch" class="tab-inactive flex-1 py-2.5 text-[11px] sm:text-sm font-bold transition-colors text-center tracking-tighter">커뮤니티</button></nav>
     </header>
 
     <main class="max-w-3xl mx-auto p-3 flex-grow w-full">
         <!-- 랭킹 탭 -->
-        <div id="rankingSection" class="fade-in space-y-3">
+        <div id="rankingSection" class="fade-in space-y-3"><div class="rfc-section-intro"><div><span class="rfc-section-eyebrow">THE RANKINGS</span><h2>선수 랭킹</h2><p>시즌 순위부터 선수별 전적까지, 한눈에 확인하세요.</p></div><span class="rfc-season-mark">RFC LEAGUE</span></div>
             <div id="rfcPublicRankHeader" class="sticky-sub-header sticky z-30 bg-slate-100/95 backdrop-blur-sm pt-2 pb-2 -mt-2 flex justify-between items-center px-1 gap-2 border-b border-transparent transition-all">
                 <div class="flex flex-col min-w-0 shrink">
                     <span id="rankingSeasonTitle" class="text-[11px] sm:text-xs font-bold text-slate-700 truncate"></span>
@@ -344,7 +484,7 @@ img{max-width:100%} .rfc-help{margin:12px 0;padding:14px;border:1px solid #cbd5e
         </div>
 
         <!-- 기록 탭 -->
-        <div id="matchesSection" class="hidden fade-in">
+        <div id="matchesSection" class="hidden fade-in"><div class="rfc-section-intro"><div><span class="rfc-section-eyebrow">MATCH RECORDS</span><h2>경기 기록</h2><p>결과를 확인하고, 영상으로 경기를 다시 만나보세요.</p></div></div>
             <div class="sticky-sub-header sticky z-30 bg-white/95 backdrop-blur-sm p-3 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between mb-4 gap-2 transition-all">
                 <div class="flex flex-col min-w-0 shrink">
                     <span id="matchesSeasonTitle" class="text-[13px] font-black text-slate-700 truncate tracking-tight"></span>
@@ -516,7 +656,7 @@ img{max-width:100%} .rfc-help{margin:12px 0;padding:14px;border:1px solid #cbd5e
                             </div>
                         </div>
                         
-                        <div class="flex bg-slate-50 border border-slate-200 border-t-0 rounded-b-lg divide-x divide-slate-200 text-center py-2 shadow-sm"><div class="flex-1"><div class="text-[10px] text-slate-400 font-bold uppercase">Win Rate</div><div class="text-sm font-black text-slate-700" id="pModalWinRate">0%</div></div><div class="flex-1"><div class="text-[10px] text-slate-400 font-bold uppercase">Elo Rating</div><div class="text-sm font-black text-amber-600" id="pModalElo">1000</div></div><div class="flex-1"><div class="text-[10px] text-slate-400 font-bold uppercase">Career High</div><div class="text-sm font-black text-slate-700" id="pModalHighElo">1000</div></div><div class="flex-1"><div class="text-[10px] text-slate-400 font-bold uppercase">최고 순위</div><div class="text-sm font-black text-blue-600" id="pModalHighRank">-</div></div></div>
+                        <div class="flex bg-slate-50 border border-slate-200 border-t-0 rounded-b-lg divide-x divide-slate-200 text-center py-2 shadow-sm"><div class="flex-1"><div class="text-[10px] text-slate-400 font-bold uppercase">Win Rate</div><div class="text-sm font-black text-slate-700" id="pModalWinRate">0%</div></div><div class="flex-1"><div class="text-[10px] text-slate-400 font-bold uppercase">Elo Rating</div><div class="text-sm font-black text-amber-600" id="pModalElo">1000</div></div><div class="flex-1"><div class="text-[10px] text-slate-400 font-bold uppercase">Career High</div><div class="text-sm font-black text-slate-700" id="pModalHighElo">1000</div></div><div class="flex-1"><div class="text-[10px] text-slate-400 font-bold uppercase">최고 순위</div><div class="text-sm font-black text-blue-600" id="pModalHighRank">-</div><div id="rfcCareerNote" style="font-size:9px;color:#64748b;margin-top:2px"></div></div></div>
                     </div>
                     <div class="w-full space-y-6"><div class="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm"><div class="grid grid-cols-3 gap-4 text-center"><div><div class="text-[10px] text-slate-400 font-bold uppercase mb-1">Height</div><div id="pModalHeight" class="font-bold text-slate-700 text-sm">-</div></div><div class="border-x border-slate-100"><div class="text-[10px] text-slate-400 font-bold uppercase mb-1">Reach</div><div id="pModalReach" class="font-bold text-slate-700 text-sm">-</div></div><div><div class="text-[10px] text-slate-400 font-bold uppercase mb-1">Stance</div><div id="pModalStance" class="font-bold text-slate-700 text-sm">-</div></div></div><div id="pModalTags" class="flex flex-wrap gap-1.5 justify-center mt-3"></div><div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-center gap-2"><span class="text-[10px] text-slate-400 font-bold">📡 인터넷 통신사</span><span id="pModalCarrier" class="text-xs font-black text-slate-700 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-full">미입력</span></div></div><div class="mb-2"><div class="flex p-1 bg-slate-100 rounded-lg mb-3"><button id="btnTabChrono" onclick="switchProfileTab('chrono')" class="flex-1 py-1.5 text-[11px] font-bold text-blue-600 bg-white shadow-sm rounded-md transition-all">📅 날짜별 기록</button><button id="btnTabH2H" onclick="switchProfileTab('h2h')" class="flex-1 py-1.5 text-[11px] font-bold text-slate-500 rounded-md transition-all hover:bg-slate-200/50">⚔️ 상대별 전적</button></div><div id="pModalMatchList" class="space-y-2 pb-10"></div></div></div>
                 </div>
@@ -2439,123 +2579,85 @@ window.addEventListener('online', () => rfcStatus('인터넷이 연결되었습�
         // - 배치 이후 정상 경기 2판까지 완료한 뒤(시즌 총 5판 완료),
         //   그 다음 경기부터 기록되는 경기 당시 순위를 최고 순위 후보로 인정합니다.
         // - 기존 경기 데이터의 winnerRankBefore / loserRankBefore를 사용합니다.
-        function getCareerHighRank(playerName) {
-            let bestRank = null;
-            let hasChampionExperience = false;
-            const seasonMatchCounts = {};
-
-            const considerRank = (rankValue) => {
-                const numericRank = Number(rankValue);
-                if (Number.isFinite(numericRank) && numericRank > 0) {
-                    if (bestRank === null || numericRank < bestRank) {
-                        bestRank = numericRank;
-                    }
-                }
-            };
-
-            // 오래된 경기부터 순서대로 선수의 시즌별 경기 수를 계산합니다.
-            const chronologicalMatches = [...enrichedMatchHistory].sort(
-                (a, b) => new Date(a.date) - new Date(b.date)
-            );
-
-            chronologicalMatches.forEach(m => {
-                if (m.winner !== playerName && m.loser !== playerName) return;
-
-                const season = m.season || "시즌 1";
-                seasonMatchCounts[season] = (seasonMatchCounts[season] || 0) + 1;
-
-                // 1~9번째 경기는 최고 순위 계산에서 제외합니다.
-                // 10번째 경기부터 경기 전/후 순위를 모두 최고 순위 후보로 인정합니다.
-                if (seasonMatchCounts[season] < 10) return;
-
-                let rankBefore;
-                let rankAfter;
-                let wasChampion = false;
-
-                if (m.winner === playerName) {
-                    rankBefore = m.winnerRankBefore;
-                    rankAfter = m.winnerRankAfter;
-                    wasChampion = m.winnerWasChampion === true || rankBefore === 'C';
-                } else {
-                    rankBefore = m.loserRankBefore;
-                    rankAfter = m.loserRankAfter;
-                    wasChampion = m.loserWasChampion === true || rankBefore === 'C';
-                }
-
-                // 챔피언은 경기 당시 랭킹 후보에서는 제외하되, 챔피언 경험은 보존합니다.
-                if (wasChampion) {
-                    hasChampionExperience = true;
-                    return;
-                }
-
-                // 10번째 경기부터는 경기 전/후 순위를 모두 최고 순위 후보로 반영합니다.
-                considerRank(rankBefore);
-                considerRank(rankAfter);
-            });
-
-            // 현 시즌에 10경기 이상 진행한 선수는 현재 공식 순위도 최고 순위 후보에 포함합니다.
-            // 경기 당시 순위 스냅샷이 누락되었더라도 현재 순위보다 최고 순위가 낮게 표시되지 않도록 합니다.
-            const currentSeasonMatches = seasonMatchCounts[activeSeason] || 0;
-            if (currentSeasonMatches >= 10) {
-                const currentPlayer = (rankingsData || []).find(p => p && p.name === playerName);
-                if (currentPlayer && currentPlayer.isChampion !== true) {
-                    const currentRankedPlayers = [...(rankingsData || [])]
-                        .filter(p => {
-                            if (!p || p.isChampion === true) return false;
-                            const totalMatches = Number(p.wins || 0)
-                                + Number(p.losses || 0)
-                                + Number(p.draws || 0);
-                            return totalMatches >= 3;
-                        })
-                        .sort((a, b) => (Number(b.elo) || 1000) - (Number(a.elo) || 1000));
-                    const currentRank = currentRankedPlayers.findIndex(p => p && p.name === playerName) + 1;
-                    if (currentRank > 0) considerRank(currentRank);
-                }
-            }
-
-            // [FIX] 시즌 종료 후 새 시즌을 시작하면 마지막 경기 이후의 최종 ELO 순위가
-            // winnerRankBefore / loserRankBefore에 기록되지 않습니다.
-            // 따라서 보관된 시즌의 최종 rankings를 이용해 시즌 종료 순위도 최고 순위 후보에 포함합니다.
-            // 챔피언 역시 시즌 종료 당시 ELO 순위를 그대로 계산해 반영합니다.
-            Object.keys(seasonArchives || {}).forEach(seasonName => {
-                const archive = seasonArchives[seasonName];
-                const archivedRankings = Array.isArray(archive)
-                    ? archive
-                    : (Array.isArray(archive?.rankings) ? archive.rankings : []);
-                if (archivedRankings.length === 0) return;
-
-                const archivedPlayer = archivedRankings.find(p => p && p.name === playerName);
-                if (!archivedPlayer) return;
-
-                if (archivedPlayer.isChampion === true) {
-                    hasChampionExperience = true;
-                }
-
-                // 시즌 최종 순위는 실제 시즌 랭킹 화면과 동일한 기준으로 계산합니다.
-                // 일반 선수는 시즌 3경기 이상 + 비챔피언 선수만 순위에 포함합니다.
-                // 챔피언인 경우에는 챔피언의 시즌 종료 ELO 순위도 별도로 계산할 수 있도록
-                // 챔피언을 포함한 3경기 이상 선수 전체를 기준으로 계산합니다.
-                const targetIsChampion = archivedPlayer.isChampion === true;
-                const finalRankedPlayers = archivedRankings
-                    .filter(p => {
-                        if (!p) return false;
-                        const totalMatches = Number(p.wins || 0)
-                            + Number(p.losses || 0)
-                            + Number(p.draws || 0);
-                        if (totalMatches < 3) return false;
-                        return targetIsChampion ? true : p.isChampion !== true;
-                    })
-                    .sort((a, b) => (Number(b.elo) || 1000) - (Number(a.elo) || 1000));
-
-                const finalRank = finalRankedPlayers.findIndex(p => p && p.name === playerName) + 1;
-                if (finalRank > 0) considerRank(finalRank);
-            });
-
-            return {
-                rank: bestRank,
-                hasChampionExperience
-            };
+// Shared, read-only evidence calculations for both entry pages.
+function rfcStatNumber(value) { return value !== null && value !== '' && value !== undefined && Number.isFinite(Number(value)) ? Number(value) : null; }
+function rfcStatCount(player) {
+    const counts = ['wins','losses','draws'].map(key => rfcStatNumber(player[key] ?? 0));
+    return counts.every(n => Number.isInteger(n) && n >= 0) ? counts.reduce((a,b) => a+b,0) : null;
+}
+function rfcStatRosters(context) {
+    return [{season:context.activeSeason, players:context.rankings}, ...Object.entries(context.archives || {}).filter(([season]) => season !== context.activeSeason).map(([season, value]) => ({season,players:Array.isArray(value) ? value : value?.rankings || []}))];
+}
+function rfcStatChronology(history) {
+    // Storage is newest first, including repeated bouts on the same day.
+    return history.map((match,index) => ({match,index})).sort((a,b) => String(a.match.date || '').localeCompare(String(b.match.date || '')) || b.index-a.index);
+}
+function rfcStatIdentity(player, rosters) {
+    const names = new Set([player.name]), owners = new Map();
+    for (const {players} of rosters) for (const p of players) {
+        if (p.id === player.id) names.add(p.name);
+        if (!owners.has(p.name)) owners.set(p.name,new Set());
+        owners.get(p.name).add(p.id);
+    }
+    return {names, side(match) {
+        for (const side of ['winner','loser']) {
+            const id = match[side+'Id'];
+            if (id != null) { if (id === player.id) return side; }
+            else if (names.has(match[side]) && owners.get(match[side])?.size === 1) return side;
         }
+        return null;
+    }, ambiguous: [...names].some(name => (owners.get(name)?.size || 0) > 1)};
+}
+function rfcStatSeasonEvidence(player, season, context) {
+    const rosters = rfcStatRosters(context), identity = rfcStatIdentity(player,rosters);
+    const rows = rfcStatChronology(context.history).filter(({match}) => (match.season || '시즌 1') === season).map(row => ({...row,side:identity.side(row.match)})).filter(row => row.side);
+    let wins=0,losses=0,draws=0,streak=0,valid=true;
+    for (const {match,side} of rows) {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(match.date || '') || !Number.isFinite(Date.parse(match.date+'T00:00:00Z')) || (Number.isFinite(Date.parse(match.date+'T00:00:00Z')) && new Date(match.date+'T00:00:00Z').toISOString().slice(0,10)!==match.date) || match.winner === match.loser || ![undefined,'ranking','draw'].includes(match.type)) valid=false;
+        if (match.isDraw || match.type === 'draw') {draws++;streak=0;}
+        else if (side === 'winner') {wins++;streak++;} else {losses++;streak=0;}
+    }
+    const roster = rosters.find(r => r.season === season)?.players || [];
+    const stored = roster.find(p => p.id === player.id);
+    const complete = Boolean(stored) && valid && !identity.ambiguous && ['wins','losses','draws'].every(key => Number(stored[key] || 0) === ({wins,losses,draws})[key]);
+    return {rows, wins,losses,draws,streak,complete,ambiguous:identity.ambiguous};
+}
+function rfcStatRank(players, player) {
+    if (player.isChampion === true) return 'C';
+    if (rfcStatCount(player)===null) return null;
+    if (rfcStatCount(player) < 3) return 0;
+    const ranked = players.filter(p => !p.isChampion && (rfcStatCount(p) ?? 0) >= 3).slice().sort((a,b) => (rfcStatNumber(b.elo) ?? 1000) - (rfcStatNumber(a.elo) ?? 1000));
+    return ranked.findIndex(p => p.id === player.id)+1;
+}
+function rfcStatCareer(player, context) {
+    let rank=null, hasChampionExperience=false, incomplete=false;
+    const candidates=[];
+    const consider = value => { const n=rfcStatNumber(value); if (Number.isInteger(n) && n>0) {candidates.push(n);rank=rank===null?n:Math.min(rank,n);} };
+    for (const {season,players} of rfcStatRosters(context)) {
+        const stored=players.find(p=>p.id===player.id);
+        if (!stored) continue;
+        if (stored.isChampion === true) hasChampionExperience=true;
+        const evidence=rfcStatSeasonEvidence(player,season,context);
+        if (!evidence.complete) incomplete=true;
+        evidence.rows.forEach(({match,side},index) => {
+            const before=match[side+'RankBefore'],after=match[side+'RankAfter'];
+            if (match[side+'WasChampion'] === true || before==='C' || after==='C') hasChampionExperience=true;
+            const savedCount=rfcStatNumber(match[side+'MatchesAfter']);
+            const count=Number.isInteger(savedCount) && savedCount>0 ? savedCount : evidence.complete ? index+1 : null;
+            if (count===null || count<10) return;
+            if (before!=='C' && match[side+'WasChampion']!==true) consider(before);
+            if (after!=='C') consider(after);
+            if (after===undefined) incomplete=true;
+        });
+        if ((rfcStatCount(stored) ?? 0)>=10 && !stored.isChampion) consider(rfcStatRank(players,stored));
+    }
+    return {rank,hasChampionExperience,incomplete};
+}
+function getCareerHighRank(playerName) {
+    const player=rankingsData.find(p=>p.name===playerName);
+    if (!player) return {rank:null,hasChampionExperience:false,incomplete:true};
+    return rfcStatCareer(player,{rankings:rankingsData,history:matchHistoryData,archives:seasonArchives,activeSeason});
+}
 
         window.updateProfileStats = (id, filter) => { 
             const p = rankingsData.find(x => x.id === id); 
@@ -2612,11 +2714,10 @@ window.addEventListener('online', () => rfcStatus('인터넷이 연결되었습�
             document.getElementById('pModalElo').textContent = p.elo || 1000; 
             document.getElementById('pModalHighElo').textContent = p.careerHighElo || p.elo || 1000;
             const careerHighRankInfo = getCareerHighRank(p.name);
+        document.getElementById('rfcCareerNote').textContent = careerHighRankInfo.incomplete ? '일부 기록 미확인' : '시즌 10경기 기준';
             const highRankText = careerHighRankInfo.rank ? `${careerHighRankInfo.rank}위` : '-';
             document.getElementById('pModalHighRank').textContent =
-                careerHighRankInfo.hasChampionExperience && careerHighRankInfo.rank
-                    ? `${highRankText} 🏆`
-                    : highRankText; 
+                careerHighRankInfo.hasChampionExperience ? (careerHighRankInfo.rank ? `${highRankText} 🏆` : '🏆 챔피언') : highRankText; 
             
             const container = document.getElementById('pModalMatchList'); 
             container.innerHTML = ''; 
