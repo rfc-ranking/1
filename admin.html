@@ -399,7 +399,7 @@ body.rfc-design-admin #rfcAdminHeader{background:#111e32;border:1px solid #111e3
 
 </style>
 <style>.rfc-load-panel{position:fixed;bottom:18px;left:18px;z-index:60;display:flex;align-items:center;gap:12px;flex-wrap:wrap;max-width:min(640px,calc(100vw - 36px));padding:13px 16px;border:1px solid #cbdcf7;border-radius:12px;background:#f0f6ff;color:#234772;box-shadow:0 8px 28px #14223820;font-size:12px;line-height:1.6}.rfc-load-panel[hidden],.rfc-load-panel button[hidden]{display:none}.rfc-load-panel button{flex-shrink:0;min-height:36px;padding:6px 11px;border-radius:8px;border:1px solid #acc5ec;background:#fff;color:#204f99;font-weight:700}.rfc-load-panel[data-kind=error],.rfc-load-panel[data-kind=offline],.rfc-load-panel[data-kind=partial]{background:#fff8ed;border-color:#ecd4ad;color:#794c16}.rfc-loading-placeholder{padding:30px 12px;text-align:center;color:#64748b;font-size:13px}.rfc-list-actions{display:flex;gap:4px;flex-shrink:0}@media(max-width:640px){.rfc-load-panel{left:12px;bottom:12px;max-width:calc(100vw - 24px);padding:12px;font-size:11px}.rfc-ux-rank-summary{flex-wrap:wrap}.rfc-list-actions .rfc-ux-button{font-size:10px}}
-</style></head>
+</style><style>.rfc-repeat-rule{margin:12px 0;padding:12px 14px;border:1px solid #c7d2fe;border-radius:12px;background:#eef2ff;color:#3730a3;font-size:12px;line-height:1.7}.rfc-repeat-rule p{margin:5px 0 0}.rfc-repeat-badge{display:inline-block;max-width:100%;margin:4px 0;padding:3px 8px;border-radius:6px;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;font-size:11px;line-height:1.5;font-weight:700;overflow-wrap:anywhere}</style></head>
 <body class="rfc-design rfc-design-admin rfc-ux-admin text-slate-800 relative h-screen overflow-hidden">
 <div id="rfcConnectionStatus" role="status" aria-live="polite" hidden style="padding:12px 16px;background:#fff7df;border-bottom:1px solid #e2d1a0;white-space:pre-wrap"></div>
 
@@ -511,7 +511,7 @@ body.rfc-design-admin #rfcAdminHeader{background:#111e32;border:1px solid #111e3
   </details>
 </div>
 
-<div id="matchPreview" class="bg-gray-50 rounded-lg p-3 text-xs text-gray-600 border border-gray-200 hidden"><div id="previewContent" class="space-y-1"></div></div>
+<aside class="rfc-repeat-rule"><strong>상대별 시즌 누적 승리 점수</strong><p>1·2승 100% → 3승 80% → 4승 60% → 5승 40% → 6승부터 20%</p><p>승자가 같은 상대에게 거둔 시즌 누적 승수로 계산합니다. 해당 경기의 승점과 패점 모두 현상금을 포함한 최종 계산값에 같은 배율을 적용하고 반올림합니다. 패배·무승부로 횟수는 초기화되지 않으며, 무승부 점수는 기존 계산을 유지합니다.</p><p>기존 시즌 승수도 포함하며 새로 기록하는 경기부터 적용합니다. 누적 승수는 기록 입력 시점을 기준으로 계산합니다. 과거 점수와 승·패·무 기록은 그대로 유지됩니다.</p></aside><div id="matchPreview" class="bg-gray-50 rounded-lg p-3 text-xs text-gray-600 border border-gray-200 hidden"><div id="previewContent" class="space-y-1"></div></div>
                                 <div class="flex gap-2">
                                     <button onclick="applyMatch()" class="flex-1 bg-gradient-to-r from-slate-800 to-slate-900 hover:from-black text-white font-bold py-3 rounded-xl shadow-lg transition transform active:scale-95">경기 확정</button>
                                     <button onclick="updateRankBaseline()" class="flex-1 bg-slate-100 text-slate-600 hover:bg-slate-200 font-bold py-3 rounded-xl text-xs transition border border-slate-200 shadow-sm whitespace-nowrap" title="순위 변동(▲▼) 리셋">📉 순위 변동 리셋</button>
@@ -639,7 +639,7 @@ body.rfc-design-admin #rfcAdminHeader{background:#111e32;border:1px solid #111e3
                             <div id="rulesAccordion" class="memo-acc-content">
                                 <div class="p-4 pt-0">
                                     <div class="bg-white rounded-xl p-3 border border-slate-100 flex flex-col">
-                                        <textarea id="ruleHtmlInput" class="w-full h-48 p-3 text-xs font-mono border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 resize-none mb-3" placeholder="HTML 코드를 입력하세요..."></textarea>
+                                        <aside class="rfc-repeat-rule"><strong>상대별 시즌 누적 승리 점수</strong><p>1·2승 100% → 3승 80% → 4승 60% → 5승 40% → 6승부터 20%</p><p>승자가 같은 상대에게 거둔 시즌 누적 승수로 계산합니다. 해당 경기의 승점과 패점 모두 현상금을 포함한 최종 계산값에 같은 배율을 적용하고 반올림합니다. 패배·무승부로 횟수는 초기화되지 않으며, 무승부 점수는 기존 계산을 유지합니다.</p><p>기존 시즌 승수도 포함하며 새로 기록하는 경기부터 적용합니다. 누적 승수는 기록 입력 시점을 기준으로 계산합니다. 과거 점수와 승·패·무 기록은 그대로 유지됩니다.</p></aside><p class="text-xs text-slate-500">상대별 점수 규칙은 사용자 규칙 화면 상단에도 표시됩니다. 아래 기존 설명과 다르면 상대별 배율을 마지막에 적용합니다.</p><textarea id="ruleHtmlInput" class="w-full h-48 p-3 text-xs font-mono border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 resize-none mb-3" placeholder="HTML 코드를 입력하세요..."></textarea>
                                         <div class="flex gap-2"><button onclick="loadDefaultRuleHtml()" class="flex-1 bg-slate-100 text-slate-600 font-bold py-2.5 rounded-lg text-xs hover:bg-slate-200 transition">↺ 기본 디자인 불러오기</button><button onclick="saveRules()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-lg text-xs transition">규칙 저장하기</button></div>
                                     </div>
                                 </div>
@@ -1030,7 +1030,7 @@ body.rfc-design-admin #rfcAdminHeader{background:#111e32;border:1px solid #111e3
   </div>
   <p>공통 링크가 모든 경기에 연결됩니다. 실제 경기 순서대로 위에서 아래로 입력하세요 (최대 50경기). 먼저 치른 경기의 결과가 다음 경기의 점수 계산에 반영됩니다.</p>
   <p>시작 시각은 선택 사항입니다. 비워두면 공통 링크에 포함된 시각을 사용합니다. 자동 타이틀은 각 경기 직전의 챔피언·점수 상태를 기준으로 판단합니다.</p>
-  <div id="rfcBatchRows"></div>
+  <aside class="rfc-repeat-rule"><strong>상대별 시즌 누적 승리 점수</strong><p>1·2승 100% → 3승 80% → 4승 60% → 5승 40% → 6승부터 20%</p><p>승자가 같은 상대에게 거둔 시즌 누적 승수로 계산합니다. 해당 경기의 승점과 패점 모두 현상금을 포함한 최종 계산값에 같은 배율을 적용하고 반올림합니다. 패배·무승부로 횟수는 초기화되지 않으며, 무승부 점수는 기존 계산을 유지합니다.</p><p>기존 시즌 승수도 포함하며 새로 기록하는 경기부터 적용합니다. 누적 승수는 기록 입력 시점을 기준으로 계산합니다. 과거 점수와 승·패·무 기록은 그대로 유지됩니다.</p></aside><p class="rfc-repeat-rule">위에서 아래로 입력된 경기 순서대로 누적 승수를 반영합니다. 과거 날짜로 추가하는 경기도 현재 저장된 시즌 승수를 기준으로 계산하며, 기존 경기 점수는 재계산하지 않습니다.</p><div id="rfcBatchRows"></div>
   <button type="button" onclick="rfcAddBatchRow()">＋ 경기 추가</button>
   <div id="rfcBatchMessage" role="status" aria-live="polite"></div>
   <div id="rfcBatchPreview" aria-live="polite"></div>
@@ -1063,6 +1063,13 @@ body.rfc-design-admin #rfcAdminHeader{background:#111e32;border:1px solid #111e3
 </div>
 
 <script type="module">
+function rfcRepeatBadge(match) {
+    const r=match.repeatScore;
+    if(!r || r.version!==1 || !Number.isInteger(r.winNumber) || r.winNumber<1 || ![20,40,60,80,100].includes(r.percent) || !Number.isFinite(r.winnerBase) || !Number.isFinite(r.loserBase))return '';
+    const fmt=n=>(n>0?'+':'')+n;
+    return `<span class="rfc-repeat-badge" title="${rfcHTML(`승자 기준 같은 상대 시즌 ${r.winNumber}번째 승리. 현상금 포함 승점 ${fmt(r.winnerBase)}, 패점 ${fmt(r.loserBase)}에 ${r.percent}% 적용 후 반올림.`)}">승자 상대별 ${r.winNumber}승째 · 점수 ${r.percent}%</span>`;
+}
+
 // Read-only, single-listener connection management. No reload or browser data cache.
 let rfcLoadRenderIssues=[], rfcLoadNeedsRender=false;
 function rfcRenderOptional(name, render) {
@@ -1719,6 +1726,39 @@ function rfcTitleWinner(winner, loser) {
         }
 
         // matchResult: 'win', 'loss', 'draw'
+// Directional season wins; old scores remain immutable. A loss/draw never resets the count.
+function rfcRepeatRule(state, winner, loser) {
+    const rosters=rfcStatRosters({activeSeason:state.activeSeason,rankings:state.rankings,archives:seasonArchives});
+    const w=rfcStatIdentity(winner,rosters), l=rfcStatIdentity(loser,rosters);
+    const priorWins=state.matchHistory.filter(m => (m.season || '시즌 1')===state.activeSeason &&
+        !m.isDraw && m.type!=='draw' && [undefined,'ranking'].includes(m.type) &&
+        w.side(m)==='winner' && l.side(m)==='loser').length;
+    const winNumber=priorWins+1;
+    return {version:1,winNumber,percent:Math.max(20,100-20*Math.max(0,winNumber-2))};
+}
+function rfcRepeatChange(change, percent) {
+    // Round magnitudes equally for wins and losses; apply no second minimum-penalty floor.
+    return Math.sign(change)*Math.round(Math.abs(change)*percent/100);
+}
+function rfcScoreMatch(state,winner,loser,isDraw,loserBounty) {
+    const win=calculateHybridEloChange(winner.elo,loser.elo,isDraw?'draw':'win',winner,loserBounty);
+    const loss=calculateHybridEloChange(loser.elo,winner.elo,isDraw?'draw':'loss',loser,0);
+    if(isDraw)return {win,loss,repeatScore:null};
+    if(loserBounty>0) {
+        const penalty=Math.floor(loserBounty/2);
+        loss.change-=penalty;
+        loss.details.push({label:'💸 현상금 패널티 (50%)',value:`-${penalty}`,colorClass:'text-rose-600 font-bold',valueClass:''});
+    }
+    const repeatScore={...rfcRepeatRule(state,winner,loser),winnerBase:win.change,loserBase:loss.change};
+    for(const calc of [win,loss]) {
+        const before=calc.change;
+        calc.change=rfcRepeatChange(before,repeatScore.percent);
+        calc.details.push({label:`승자 기준 상대별 시즌 ${repeatScore.winNumber}번째 승리 · ${repeatScore.percent}% 적용`,
+            value:`${before>0?'+':''}${before} → ${calc.change>0?'+':''}${calc.change}`,colorClass:'text-indigo-700 font-bold',valueClass:''});
+    }
+    return {win,loss,repeatScore};
+}
+
         function calculateHybridEloChange(p1Elo, p2Elo, matchResult, p1Stats, opponentBounty = 0) { 
             const matchCount = (p1Stats.wins || 0) + (p1Stats.losses || 0) + (p1Stats.draws || 0); 
             let K = 60; let isPlacement = false;
@@ -1924,22 +1964,15 @@ function rfcTitleWinner(winner, loser) {
             let p1Bounty = simP1.isChampion ? (simP1.defenseCount || 0) * 20 : parseInt(simP1.bounty || 0, 10);
             let p2Bounty = simP2.isChampion ? (simP2.defenseCount || 0) * 20 : parseInt(simP2.bounty || 0, 10);
 
-            if (winnerVal === 'blue') { 
-                const w = calculateHybridEloChange(simP1.elo, simP2.elo, 'win', simP1, p2Bounty); const l = calculateHybridEloChange(simP2.elo, simP1.elo, 'loss', simP2, 0); 
-                p1Change = w.change; p1Details = w.details; p2Change = l.change; p2Details = l.details;
-                if (p2Bounty > 0) { const penalty = Math.floor(p2Bounty / 2); p2Change -= penalty; p2Details.push({ label: "💸 현상금 패널티 (50%)", value: `-${penalty}`, colorClass: "text-rose-600 font-bold bg-rose-50/50 -mx-1 px-1 rounded py-0.5", valueClass: "" }); }
-                simP1.elo += p1Change; simP1.wins++; simP2.elo += p2Change; simP2.losses++; 
-            } else if (winnerVal === 'red') { 
-                const w = calculateHybridEloChange(simP2.elo, simP1.elo, 'win', simP2, p1Bounty); const l = calculateHybridEloChange(simP1.elo, simP2.elo, 'loss', simP1, 0); 
-                p2Change = w.change; p2Details = w.details; p1Change = l.change; p1Details = l.details;
-                if (p1Bounty > 0) { const penalty = Math.floor(p1Bounty / 2); p1Change -= penalty; p1Details.push({ label: "💸 현상금 패널티 (50%)", value: `-${penalty}`, colorClass: "text-rose-600 font-bold bg-rose-50/50 -mx-1 px-1 rounded py-0.5", valueClass: "" }); }
-                simP2.elo += p2Change; simP2.wins++; simP1.elo += p1Change; simP1.losses++; 
-            } else if (winnerVal === 'draw') {
-                const w = calculateHybridEloChange(simP1.elo, simP2.elo, 'draw', simP1, 0); const l = calculateHybridEloChange(simP2.elo, simP1.elo, 'draw', simP2, 0); 
-                p1Change = w.change; p1Details = w.details; p2Change = l.change; p2Details = l.details;
-                simP1.elo += p1Change; simP1.draws++; simP2.elo += p2Change; simP2.draws++;
-            }
-            
+            const score=rfcScoreMatch({rankings:rankingsData,matchHistory:matchHistoryData,activeSeason},
+                winnerVal==='red'?p2:p1,winnerVal==='red'?p1:p2,winnerVal==='draw',winnerVal==='draw'?0:winnerVal==='red'?p1Bounty:p2Bounty);
+            const first=winnerVal==='red'?score.loss:score.win, second=winnerVal==='red'?score.win:score.loss;
+            p1Change=first.change;p1Details=first.details;p2Change=second.change;p2Details=second.details;
+            simP1.elo+=p1Change;simP2.elo+=p2Change;
+            if(winnerVal==='draw'){simP1.draws++;simP2.draws++;}
+            else if(winnerVal==='blue'){simP1.wins++;simP2.losses++;}
+            else {simP2.wins++;simP1.losses++;}
+
             const isTitleMatch = document.getElementById('isTitleMatch').checked;
             if (isTitleMatch && winnerVal !== 'draw') {
                 const winnerObj = winnerVal === 'blue' ? simP1 : simP2; const loserObj = winnerVal === 'blue' ? simP2 : simP1;
@@ -2101,7 +2134,7 @@ function rfcTitleWinner(winner, loser) {
 
                 if (m.date !== lastDate) { const count = dateCounts[m.date]; const dateHeader = document.createElement('div'); dateHeader.className = "text-xs font-bold text-slate-500 mt-4 mb-2 px-1 flex items-center gap-1 sticky top-0 bg-f8fafc/90 backdrop-blur-sm z-10 py-1"; dateHeader.style.cssText = "background-color: rgba(248, 250, 252, 0.95); backdrop-filter: blur(2px);"; dateHeader.innerHTML = `<span>📅</span> ${rfcHTML(m.date)} <span class="text-slate-400 font-normal text-[11px] ml-1">(총 ${count}경기)</span>`; container.appendChild(dateHeader); lastDate = m.date; }
                 const div = document.createElement('div'); div.className = "bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-2 relative group hover:border-blue-300 transition-colors"; 
-                div.innerHTML = `<div class="absolute top-2 right-2 flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition"><button onclick="deleteMatchLog(${rfcArg(rawIndex)})" class="text-slate-300 hover:text-red-500 transition p-1" title="기록 삭제"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a1.995 1.995 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button></div><div class="flex items-center justify-between text-xs mt-1 pr-2"><div class="flex flex-col items-start w-[45%]"><div class="flex items-center gap-1.5"><span class="text-[10px] text-blue-500 font-bold mr-0.5">B</span><span class="text-xs ${leftNameClass} truncate">${rfcHTML(leftName)}</span><span class="${leftBadgeClass} text-[9px] px-1 py-0.5 rounded font-bold">${leftResult}</span></div><div class="flex items-center gap-2 mt-1"><span class="text-[9px] text-slate-400 font-medium bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">${rfcHTML(leftStats.w)}승 ${rfcHTML(leftStats.l)}패 ${leftStats.d > 0 ? leftStats.d+'무' : ''}</span><div class="flex gap-0.5">${leftDots}</div></div></div><div class="text-[10px] font-bold text-slate-300">VS</div><div class="flex flex-col items-end w-[45%]"><div class="flex items-center gap-1.5"><span class="${rightBadgeClass} text-[9px] px-1 py-0.5 rounded font-bold">${rightResult}</span><span class="text-xs ${rightNameClass} truncate">${rfcHTML(rightName)}</span><span class="text-[10px] text-red-500 font-bold ml-0.5">R</span></div><div class="flex items-center gap-2 mt-1"><div class="flex gap-0.5">${rightDots}</div><span class="text-[9px] text-slate-400 font-medium bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">${rfcHTML(rightStats.w)}승 ${rfcHTML(rightStats.l)}패 ${rightStats.d > 0 ? rightStats.d+'무' : ''}</span></div></div></div>`; div.insertAdjacentHTML('beforeend', `<div class="rfc-video-footer">${rfcVideoButton(m)}<button type="button" class="rfc-video-edit" onclick="rfcEditMatchVideo(${rfcArg(rawIndex)})">${m.videoUrl ? '영상 수정' : '영상 연결'}</button></div>`); container.appendChild(div); 
+                div.innerHTML = `<div class="absolute top-2 right-2 flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition"><button onclick="deleteMatchLog(${rfcArg(rawIndex)})" class="text-slate-300 hover:text-red-500 transition p-1" title="기록 삭제"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a1.995 1.995 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button></div><div class="flex items-center justify-between text-xs mt-1 pr-2"><div class="flex flex-col items-start w-[45%]"><div class="flex items-center gap-1.5"><span class="text-[10px] text-blue-500 font-bold mr-0.5">B</span><span class="text-xs ${leftNameClass} truncate">${rfcHTML(leftName)}</span><span class="${leftBadgeClass} text-[9px] px-1 py-0.5 rounded font-bold">${leftResult}</span></div><div class="flex items-center gap-2 mt-1"><span class="text-[9px] text-slate-400 font-medium bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">${rfcHTML(leftStats.w)}승 ${rfcHTML(leftStats.l)}패 ${leftStats.d > 0 ? leftStats.d+'무' : ''}</span><div class="flex gap-0.5">${leftDots}</div></div></div><div class="text-[10px] font-bold text-slate-300">VS</div><div class="flex flex-col items-end w-[45%]"><div class="flex items-center gap-1.5"><span class="${rightBadgeClass} text-[9px] px-1 py-0.5 rounded font-bold">${rightResult}</span><span class="text-xs ${rightNameClass} truncate">${rfcHTML(rightName)}</span><span class="text-[10px] text-red-500 font-bold ml-0.5">R</span></div><div class="flex items-center gap-2 mt-1"><div class="flex gap-0.5">${rightDots}</div><span class="text-[9px] text-slate-400 font-medium bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">${rfcHTML(rightStats.w)}승 ${rfcHTML(rightStats.l)}패 ${rightStats.d > 0 ? rightStats.d+'무' : ''}</span></div></div></div>`; div.insertAdjacentHTML('beforeend', `<div class="rfc-video-footer">${rfcVideoButton(m)}${rfcRepeatBadge(m)}<button type="button" class="rfc-video-edit" onclick="rfcEditMatchVideo(${rfcArg(rawIndex)})">${m.videoUrl ? '영상 수정' : '영상 연결'}</button></div>`); container.appendChild(div); 
             }); 
         }
 
@@ -3652,7 +3685,7 @@ function getCareerHighRank(playerName) {
                         <div class="flex items-center gap-2 mt-0.5"><span class="text-[11px] text-slate-400 font-medium bg-white px-1.5 py-0.5 rounded border border-slate-100">당시: ${oppRecordStr}</span><div class="flex gap-0.5">${oppDots}</div></div>
                     </div>
                 </div>`; 
-            const videoButton = rfcVideoButton(m); if (videoButton) { div.style.flexWrap = 'wrap'; div.insertAdjacentHTML('beforeend', '<div class="rfc-video-footer">' + videoButton + '</div>'); }
+            const videoButton = rfcVideoButton(m) + rfcRepeatBadge(m); if (videoButton) { div.style.flexWrap = 'wrap'; div.insertAdjacentHTML('beforeend', '<div class="rfc-video-footer">' + videoButton + '</div>'); }
                 container.appendChild(div); 
         }); 
     };
@@ -3892,9 +3925,8 @@ function rfcApplyMatchToState(state, entry) {
             
 
 
-            const winCalc = calculateHybridEloChange(winner.elo, loser.elo, isDraw ? 'draw' : 'win', winner, loserBountyVal); 
-            const loseCalc = calculateHybridEloChange(loser.elo, winner.elo, isDraw ? 'draw' : 'loss', loser, 0); 
-            
+            const {win:winCalc,loss:loseCalc,repeatScore}=rfcScoreMatch(state,winner,loser,isDraw,loserBountyVal);
+
             if (isDraw) {
                 winner.draws++; loser.draws++;
                 winner.currentStreak = 0; loser.currentStreak = 0;
@@ -3902,7 +3934,7 @@ function rfcApplyMatchToState(state, entry) {
                 winner.currentStreak = (Number(winner.currentStreak) || 0) + 1;
                 if (!winner.isChampion && winner.currentStreak >= 3 && winnerRankBefore > 0 && winnerRankBefore <= 10) { winner.bounty = (winner.currentStreak - 2) * 10; }
                 loser.currentStreak = 0;
-                if (loserBountyVal > 0) { const penalty = Math.floor(loserBountyVal / 2); loseCalc.change -= penalty; loser.bounty = 0; } else { loser.bounty = 0; }
+                loser.bounty = 0;
                 
                 winner.wins++; loser.wins = loser.wins || 0; loser.losses++; 
             }
@@ -3935,6 +3967,7 @@ function rfcApplyMatchToState(state, entry) {
                 }
             }
             state.matchHistory.unshift({
+                ...(repeatScore ? {repeatScore} : {}),
                 winnerId:winner.id, loserId:loser.id,
                 winnerEloBefore, loserEloBefore, winnerEloAfter:winner.elo, loserEloAfter:loser.elo,
                 winnerRankAfter, loserRankAfter,
@@ -3958,7 +3991,7 @@ function rfcApplyMatchToState(state, entry) {
             }); 
             state.matchHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-    return {blue: p1.name, red: p2.name, beforeBlue, beforeRed, afterBlue: p1.elo, afterRed: p2.elo, isTitleMatch, result: winnerVal, videoUrl, winnerId: winner.id};
+    return {blue: p1.name, red: p2.name, beforeBlue, beforeRed, afterBlue: p1.elo, afterRed: p2.elo, isTitleMatch, result: winnerVal, videoUrl, winnerId: winner.id, repeatScore};
 }
 function rfcSimulateMatches(entries) {
     if (!Array.isArray(entries) || !entries.length || entries.length > 50) throw new Error('1~50경기를 입력해주세요.');
@@ -4054,7 +4087,7 @@ window.rfcPreviewBatch = () => {
     try {
         const entries = rfcReadBatchEntries(), simulation = rfcSimulateMatches(entries);
         rfcBatchReview = rfcBatchSignature(entries);
-        rfcEl('rfcBatchPreview').innerHTML = '<h3 style="font-weight:800;margin-top:18px">저장 전 결과 확인</h3>' + simulation.results.map((result, i) => `<div class="rfc-batch-preview-item"><strong>${i + 1}. ${rfcHTML(result.blue)} vs ${rfcHTML(result.red)}</strong><p>${result.result === 'draw' ? '무승부' : result.result === 'blue' ? 'Blue 승' : 'Red 승'} · ${result.isTitleMatch ? '👑 타이틀 매치' : '일반 경기'}</p><p>🔵 ${rfcHTML(result.blue)}: ${result.beforeBlue} → ${result.afterBlue}<br>🔴 ${rfcHTML(result.red)}: ${result.beforeRed} → ${result.afterRed}</p>${rfcVideoButton(result) || '<p>영상 연결 없음</p>'}</div>`).join('') + `<p>${entries.length}경기를 위 순서대로 한 번에 저장합니다. 입력을 바꾸면 다시 미리보기를 확인해주세요.</p>`;
+        rfcEl('rfcBatchPreview').innerHTML = '<h3 style="font-weight:800;margin-top:18px">저장 전 결과 확인</h3>' + simulation.results.map((result, i) => `<div class="rfc-batch-preview-item"><strong>${i + 1}. ${rfcHTML(result.blue)} vs ${rfcHTML(result.red)}</strong><p>${result.result === 'draw' ? '무승부' : result.result === 'blue' ? 'Blue 승' : 'Red 승'} · ${result.isTitleMatch ? '👑 타이틀 매치' : '일반 경기'}</p><p>🔵 ${rfcHTML(result.blue)}: ${result.beforeBlue} → ${result.afterBlue}<br>🔴 ${rfcHTML(result.red)}: ${result.beforeRed} → ${result.afterRed}</p>${rfcRepeatBadge(result)}${rfcVideoButton(result) || '<p>영상 연결 없음</p>'}</div>`).join('') + `<p>${entries.length}경기를 위 순서대로 한 번에 저장합니다. 입력을 바꾸면 다시 미리보기를 확인해주세요.</p>`;
         rfcEl('rfcBatchSave').disabled = false;
         return true;
     } catch (error) { rfcEl('rfcBatchMessage').textContent = error.message; return false; }

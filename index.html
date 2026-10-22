@@ -414,7 +414,7 @@ body.rfc-design-admin #rfcAdminHeader{background:#111e32;border:1px solid #111e3
 
 </style>
 <style>.rfc-load-panel{position:fixed;bottom:18px;left:18px;z-index:60;display:flex;align-items:center;gap:12px;flex-wrap:wrap;max-width:min(640px,calc(100vw - 36px));padding:13px 16px;border:1px solid #cbdcf7;border-radius:12px;background:#f0f6ff;color:#234772;box-shadow:0 8px 28px #14223820;font-size:12px;line-height:1.6}.rfc-load-panel[hidden],.rfc-load-panel button[hidden]{display:none}.rfc-load-panel button{flex-shrink:0;min-height:36px;padding:6px 11px;border-radius:8px;border:1px solid #acc5ec;background:#fff;color:#204f99;font-weight:700}.rfc-load-panel[data-kind=error],.rfc-load-panel[data-kind=offline],.rfc-load-panel[data-kind=partial]{background:#fff8ed;border-color:#ecd4ad;color:#794c16}.rfc-loading-placeholder{padding:30px 12px;text-align:center;color:#64748b;font-size:13px}.rfc-list-actions{display:flex;gap:4px;flex-shrink:0}@media(max-width:640px){.rfc-load-panel{left:12px;bottom:12px;max-width:calc(100vw - 24px);padding:12px;font-size:11px}.rfc-ux-rank-summary{flex-wrap:wrap}.rfc-list-actions .rfc-ux-button{font-size:10px}}
-</style></head>
+</style><style>.rfc-repeat-rule{margin:12px 0;padding:12px 14px;border:1px solid #c7d2fe;border-radius:12px;background:#eef2ff;color:#3730a3;font-size:12px;line-height:1.7}.rfc-repeat-rule p{margin:5px 0 0}.rfc-repeat-badge{display:inline-block;max-width:100%;margin:4px 0;padding:3px 8px;border-radius:6px;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;font-size:11px;line-height:1.5;font-weight:700;overflow-wrap:anywhere}</style></head>
 <body class="rfc-design rfc-design-public bg-slate-100 text-slate-800 pb-10 flex flex-col min-h-screen">
 <div id="rfcConnectionStatus" role="status" aria-live="polite" hidden style="padding:12px 16px;background:#fff7df;border-bottom:1px solid #e2d1a0;white-space:pre-wrap"></div>
 
@@ -735,7 +735,7 @@ body.rfc-design-admin #rfcAdminHeader{background:#111e32;border:1px solid #111e3
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeRules()"></div>
         <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl shadow-2xl w-11/12 max-w-md p-6 max-h-[80vh] overflow-y-auto">
             <h2 class="text-xl font-black text-slate-800 mb-4 border-b pb-2">📜 RFC 점수 산정 방식</h2>
-            <div id="ruleContentArea" class="space-y-5 text-sm text-slate-600">Loading...</div>
+            <aside class="rfc-repeat-rule"><strong>상대별 시즌 누적 승리 점수</strong><p>1·2승 100% → 3승 80% → 4승 60% → 5승 40% → 6승부터 20%</p><p>승자가 같은 상대에게 거둔 시즌 누적 승수로 계산합니다. 해당 경기의 승점과 패점 모두 현상금을 포함한 최종 계산값에 같은 배율을 적용하고 반올림합니다. 패배·무승부로 횟수는 초기화되지 않으며, 무승부 점수는 기존 계산을 유지합니다.</p><p>기존 시즌 승수도 포함하며 새로 기록하는 경기부터 적용합니다. 누적 승수는 기록 입력 시점을 기준으로 계산합니다. 과거 점수와 승·패·무 기록은 그대로 유지됩니다.</p></aside><div id="ruleContentArea" class="space-y-5 text-sm text-slate-600">Loading...</div>
             <button onclick="closeRules()" class="w-full mt-6 bg-slate-800 text-white font-bold py-3 rounded-xl hover:bg-slate-900 transition">확인했습니다</button>
         </div>
     </div>
@@ -746,6 +746,13 @@ body.rfc-design-admin #rfcAdminHeader{background:#111e32;border:1px solid #111e3
 </div>
 
 <script type="module">
+function rfcRepeatBadge(match) {
+    const r=match.repeatScore;
+    if(!r || r.version!==1 || !Number.isInteger(r.winNumber) || r.winNumber<1 || ![20,40,60,80,100].includes(r.percent) || !Number.isFinite(r.winnerBase) || !Number.isFinite(r.loserBase))return '';
+    const fmt=n=>(n>0?'+':'')+n;
+    return `<span class="rfc-repeat-badge" title="${rfcHTML(`승자 기준 같은 상대 시즌 ${r.winNumber}번째 승리. 현상금 포함 승점 ${fmt(r.winnerBase)}, 패점 ${fmt(r.loserBase)}에 ${r.percent}% 적용 후 반올림.`)}">승자 상대별 ${r.winNumber}승째 · 점수 ${r.percent}%</span>`;
+}
+
 // Read-only, single-listener connection management. No reload or browser data cache.
 let rfcLoadRenderIssues=[], rfcLoadNeedsRender=false;
 function rfcRenderOptional(name, render) {
@@ -2123,7 +2130,7 @@ window.addEventListener('online', () => rfcStatus('인터넷이 연결되었습�
                             </div>
                         </div>
                     </div>`; 
-                div.insertAdjacentHTML('beforeend', rfcVideoButton(m)); container.appendChild(div); 
+                div.insertAdjacentHTML('beforeend', rfcVideoButton(m) + rfcRepeatBadge(m)); container.appendChild(div); 
             }); 
         }
 
@@ -2997,7 +3004,7 @@ function getCareerHighRank(playerName) {
                 const div = document.createElement('div'); 
                 div.className = "flex items-center justify-between text-xs p-3 bg-slate-50 rounded-xl border border-slate-100"; 
                 div.innerHTML = `<div class="flex items-center gap-3 w-full"><div class="flex items-center gap-1.5 shrink-0"><span class="font-bold ${resultColor} w-8 h-8 flex items-center justify-center rounded-lg text-sm shadow-sm">${resultText}</span>${scoreBadge}</div><div class="flex flex-col w-full overflow-hidden"><div class="flex justify-between items-center w-full gap-1"><span class="font-bold text-slate-700 text-sm truncate flex items-center gap-1.5 ${oppCursor}" ${oppLink}>vs ${rfcHTML(oppName)}${oppRankBadge}</span><span class="flex items-center gap-1.5 shrink-0">${titleMatchBadge}${seasonBadgeHtml}<span class="text-slate-500 font-medium text-[11px]">${rfcHTML(m.date)}</span></span></div><div class="flex items-center gap-2 mt-0.5"><span class="text-[11px] text-slate-400 font-medium bg-white px-1.5 py-0.5 rounded border border-slate-100">당시: ${oppRecordStrFull}</span><div class="flex gap-0.5 md:gap-1">${oppDots}</div></div></div></div>`; 
-                const videoButton = rfcVideoButton(m); if (videoButton) { div.style.flexWrap = 'wrap'; div.insertAdjacentHTML('beforeend', '<div class="rfc-video-footer">' + videoButton + '</div>'); }
+                const videoButton = rfcVideoButton(m) + rfcRepeatBadge(m); if (videoButton) { div.style.flexWrap = 'wrap'; div.insertAdjacentHTML('beforeend', '<div class="rfc-video-footer">' + videoButton + '</div>'); }
                 container.appendChild(div); 
             }); 
         };
