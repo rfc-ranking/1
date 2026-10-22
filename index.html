@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RFC 랭킹전 (User)</title> 
+    <title>RFC 복싱 랭킹 · 경기 기록</title> 
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <style>
@@ -248,8 +248,32 @@
         .animate-promote { animation: promoteHighlight 0.4s ease-out; }
         .id-row { transition: all 0.3s ease; }
     </style>
+<style>
+button:disabled{opacity:.55;cursor:wait} :focus-visible{outline:3px solid #2563eb;outline-offset:3px}
+img{max-width:100%} .rfc-help{margin:12px 0;padding:14px;border:1px solid #cbd5e1;border-radius:12px;background:white;color:#334155;font-size:13px;line-height:1.8}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
+<style>
+.rfc-video-link{display:inline-flex;align-items:center;justify-content:center;gap:4px;align-self:flex-start;padding:6px 10px;border:1px solid #fecaca;border-radius:8px;color:#b91c1c;background:#fff1f2;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap}
+.rfc-video-link:hover{background:#ffe4e6}.rfc-video-link:focus-visible,.rfc-video-ui :focus-visible{outline:3px solid #2563eb;outline-offset:2px}
+.rfc-video-footer{display:flex;gap:8px;align-items:center;flex-wrap:wrap;width:100%;margin-top:8px}
+.rfc-video-ui{color:#1e293b;font-size:14px;line-height:1.5}.rfc-video-ui label{display:block;font-weight:700;font-size:12px}.rfc-video-ui input,.rfc-video-ui select{display:block;width:100%;min-width:0;margin-top:4px;padding:9px;border:1px solid #cbd5e1;border-radius:8px;background:white;color:#0f172a;font-size:14px}
+.rfc-video-ui button,.rfc-video-edit{padding:8px 12px;border:1px solid #cbd5e1;border-radius:8px;background:#f8fafc;color:#334155;font-size:12px;font-weight:700;cursor:pointer}.rfc-video-ui button:hover,.rfc-video-edit:hover{background:#e2e8f0}.rfc-video-ui button:disabled{opacity:.45;cursor:not-allowed}.rfc-video-ui .rfc-primary{background:#1d4ed8;color:white;border-color:#1d4ed8}.rfc-video-ui .rfc-primary:hover{background:#1e40af}
+.rfc-video-ui p{margin:8px 0;color:#475569;font-size:12px}.rfc-video-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.rfc-video-dialog{border:0;border-radius:18px;padding:22px;width:calc(100% - 24px);max-width:860px;max-height:90vh;max-height:90dvh;overflow:auto;margin:auto;box-shadow:0 24px 80px #0f172a66;background:#fff}.rfc-video-dialog::backdrop{background:#0f172a99}.rfc-video-heading,.rfc-video-actions{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px}.rfc-video-heading h2{font-size:20px;font-weight:800}.rfc-video-actions{margin-top:14px}.rfc-batch-row{margin:12px 0;padding:14px;border:1px solid #cbd5e1;border-radius:12px;background:#f8fafc}.rfc-batch-row header{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:12px}.rfc-batch-row header button{padding:4px 9px}.rfc-batch-preview-item{padding:12px 0;border-bottom:1px solid #e2e8f0}.rfc-video-ui [role="status"]{white-space:pre-wrap;color:#b91c1c}.rfc-video-help{margin-top:12px;border-top:1px solid #e2e8f0;padding-top:10px}.rfc-video-help summary{font-size:12px;font-weight:700;cursor:pointer}
+@media(max-width:540px){.rfc-video-grid{grid-template-columns:1fr}.rfc-video-dialog{padding:16px}.rfc-batch-row{padding:12px}}
+
+</style>
+<style>
+:root{color-scheme:light}button,a,input,select,textarea{-webkit-tap-highlight-color:transparent}button,a,input,select,textarea,[tabindex]{scroll-margin-top:150px}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:3px solid #2563eb!important;outline-offset:3px}button:disabled{cursor:not-allowed}button{touch-action:manipulation}.rfc-ux-button{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:8px 12px;border:1px solid #cbd5e1;border-radius:9px;background:#fff;color:#334155;font-size:12px;font-weight:700;cursor:pointer}.rfc-ux-button:hover{background:#eff6ff;border-color:#93c5fd}.rfc-ux-history{background:white;border:1px solid #e2e8f0;border-radius:12px;padding:12px;margin-bottom:12px;flex-shrink:0}.rfc-ux-history label{display:block;font-size:12px;font-weight:700;color:#475569}.rfc-ux-history input:not([type=checkbox]){display:block;width:100%;min-width:0;margin-top:5px;background:#fff;padding:9px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;color:#0f172a}.rfc-ux-filter-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:10px}.rfc-ux-history .rfc-ux-check{display:flex;align-items:center;gap:8px;min-height:44px;cursor:pointer}.rfc-ux-check input{width:18px;height:18px;accent-color:#2563eb}#rfcHistoryCount,#rfcRankingCount{font-size:12px;color:#475569}#rfcHistoryMore{width:100%;margin:12px 0;flex-shrink:0}#rfcHistoryMore[hidden]{display:none}.rfc-ux-rank-summary{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px;background:#f8fafc;border-radius:10px;margin-bottom:8px}.rfc-ux-shortcuts{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.rfc-ux-empty{padding:24px 12px;text-align:center;color:#64748b;font-size:13px}.rfc-ux-empty p{margin:0 0 12px}#rfcAdminToolbar{display:block;overflow:visible;padding:0 12px;border-radius:14px}#rfcAdminTabs{display:flex;gap:24px;overflow-x:auto;scrollbar-width:thin}#rfcAdminFilters{display:flex;flex-wrap:wrap;gap:10px;border-left:0;border-top:1px solid #e2e8f0;padding:10px 0;margin:0}#rfcAdminFilters>div:first-child{flex:1;min-width:180px}#searchInput{width:100%;min-height:42px}#rfcAdminTabs button{border-bottom:3px solid transparent;color:#64748b;font-size:13px}#rfcAdminTabs button.active{border-bottom-color:#2563eb;color:#1d4ed8;font-weight:800}#rfcAdminRankPanel{min-width:0}#rfcAdminRankPanel>.rfc-ux-rank-summary{position:sticky;top:0;z-index:20;border-radius:0;background:#fff;border-bottom:1px solid #e2e8f0;padding:10px;margin:0}#rfcAdminHistoryCard{height:100%;min-height:480px}#rfcAdminHistoryCard .rfc-ux-history{margin:8px 10px}#rfcAdminHistoryCard #rfcHistoryMore{width:calc(100% - 20px);margin:8px 10px}#saveStatus{white-space:nowrap}#rfcAdminHeader>div:first-child{flex-wrap:wrap}#rfcAdminHeader{gap:8px}#rfcAdminRankPanel #rankingList{min-height:0}#rfcPublicRankHeader{flex-wrap:wrap}#rfcPublicRankHeader>div:last-child{flex-wrap:wrap;flex-shrink:1;justify-content:flex-end}#playerSearchInput{min-height:40px}#carrierFilterTags button,#carrierFilterBar button{min-height:36px}#rfcPublicNav button{min-height:48px;font-size:12px}#rfcPublicNav{overflow-x:auto}#rfcPublicNav button{white-space:nowrap;padding-left:6px;padding-right:6px}.rfc-video-link{min-height:40px}.rfc-ux-top{position:fixed;right:16px;bottom:16px;z-index:35;box-shadow:0 4px 16px #0f172a22}
+@media(max-width:1023px){body.rfc-ux-admin{height:auto;min-height:100dvh;overflow-y:auto}body.rfc-ux-admin #mainContent{height:auto;min-height:100dvh;padding:12px}#rfcAdminLayout{display:block}#rfcAdminLayout>.sticky-left-panel{height:auto;overflow:visible;padding-right:0}#rfcAdminRankPanel{height:auto;overflow:visible;margin-top:20px}#rfcAdminHistoryCard{height:auto;min-height:0}#adminMatchListContainer{overflow:visible}#rfcAdminTabs{gap:18px}#rfcAdminTabs button{min-height:48px}#rfcAdminHeader h1{font-size:22px}#rfcAdminHeader>div:first-child{justify-content:center}#rfcAdminRankPanel>.rfc-ux-rank-summary{position:static}}
+@media(max-width:640px){#rfcPublicRankHeader>div{width:100%}#rfcPublicRankHeader>div:last-child{justify-content:flex-start;gap:8px}#rfcPublicRankHeader>div:last-child>div:first-child{flex:1;min-width:160px}#rfcPublicRankHeader{position:static}input:not([type=checkbox]):not([type=radio]):not([type=color]),select,textarea{font-size:16px!important}#rfcAdminFilters{gap:8px}#rfcAdminFilters>div:first-child{flex-basis:100%}#rfcAdminFilters button{min-height:42px}.rfc-video-ui button,.rfc-video-edit{min-height:42px}.rfc-video-grid{gap:10px}#rfcPublicNav button{font-size:11px}#rfcHistoryCount{flex:1;min-width:120px}.rfc-ux-top{right:12px;bottom:12px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+.rfc-video-dialog .ts-control>input{padding:0!important;margin:0!important;border:0!important;box-shadow:none!important;min-height:0}.rfc-video-dialog .ts-wrapper{margin-top:4px}.rfc-video-dialog .ts-control{min-height:42px;border-radius:8px}.rfc-video-dialog .ts-dropdown{font-size:14px}
+
+</style>
 </head>
 <body class="bg-slate-100 text-slate-800 pb-10 flex flex-col min-h-screen">
+<div id="rfcConnectionStatus" role="status" aria-live="polite" hidden style="padding:12px 16px;background:#fff7df;border-bottom:1px solid #e2d1a0;white-space:pre-wrap"></div>
 
     <div id="inspector-tooltip">
         <div class="tooltip-row"><span class="tooltip-label">Tag</span><span class="tooltip-value" id="tt-tag">DIV</span></div>
@@ -284,13 +308,13 @@
                 </div>
             </div>
         </div>
-        <nav class="flex border-t border-slate-100 max-w-3xl mx-auto"><button onclick="switchTab('ranking')" id="tabRanking" class="tab-active flex-1 py-2.5 text-[11px] sm:text-sm font-bold transition-colors text-center tracking-tighter">🔥랭킹</button><button onclick="switchTab('matches')" id="tabMatches" class="tab-inactive flex-1 py-2.5 text-[11px] sm:text-sm font-bold transition-colors text-center tracking-tighter">⚔️기록</button><button onclick="switchTab('hof')" id="tabHof" class="tab-inactive flex-1 py-2.5 text-[11px] sm:text-sm font-bold transition-colors text-center tracking-tighter">🏛️전당</button><button onclick="switchTab('tournament')" id="tabTournament" class="tab-inactive flex-1 py-2.5 text-[11px] sm:text-sm font-bold transition-colors text-center tracking-tighter">🏆대진</button><button onclick="switchTab('patch')" id="tabPatch" class="tab-inactive flex-1 py-2.5 text-[11px] sm:text-sm font-bold transition-colors text-center tracking-tighter">💡정보</button></nav>
+        <nav id="rfcPublicNav" role="tablist" aria-label="사이트 메뉴" class="flex border-t border-slate-100 max-w-3xl mx-auto"><button onclick="switchTab('ranking')" id="tabRanking" class="tab-active flex-1 py-2.5 text-[11px] sm:text-sm font-bold transition-colors text-center tracking-tighter">🔥 랭킹</button><button onclick="switchTab('matches')" id="tabMatches" class="tab-inactive flex-1 py-2.5 text-[11px] sm:text-sm font-bold transition-colors text-center tracking-tighter">⚔️ 경기 기록</button><button onclick="switchTab('hof')" id="tabHof" class="tab-inactive flex-1 py-2.5 text-[11px] sm:text-sm font-bold transition-colors text-center tracking-tighter">🏛️ 명예의 전당</button><button onclick="switchTab('tournament')" id="tabTournament" class="tab-inactive flex-1 py-2.5 text-[11px] sm:text-sm font-bold transition-colors text-center tracking-tighter">🏆 대진표</button><button onclick="switchTab('patch')" id="tabPatch" class="tab-inactive flex-1 py-2.5 text-[11px] sm:text-sm font-bold transition-colors text-center tracking-tighter">💡 정보</button></nav>
     </header>
 
     <main class="max-w-3xl mx-auto p-3 flex-grow w-full">
         <!-- 랭킹 탭 -->
         <div id="rankingSection" class="fade-in space-y-3">
-            <div class="sticky-sub-header sticky z-30 bg-slate-100/95 backdrop-blur-sm pt-2 pb-2 -mt-2 flex justify-between items-center px-1 gap-2 border-b border-transparent transition-all">
+            <div id="rfcPublicRankHeader" class="sticky-sub-header sticky z-30 bg-slate-100/95 backdrop-blur-sm pt-2 pb-2 -mt-2 flex justify-between items-center px-1 gap-2 border-b border-transparent transition-all">
                 <div class="flex flex-col min-w-0 shrink">
                     <span id="rankingSeasonTitle" class="text-[11px] sm:text-xs font-bold text-slate-700 truncate"></span>
                     <span id="rankingSeasonStartDate" class="text-[9px] sm:text-[10px] text-slate-400 mt-0.5 truncate"></span>
@@ -298,7 +322,7 @@
                 
                 <div class="flex items-center gap-1.5 sm:gap-3 shrink-0">
                     <div class="relative w-[105px] sm:w-[150px]">
-                        <input type="search" id="playerSearchInput" name="q_search_dummy" autocomplete="nope" spellcheck="false" placeholder="이름/초성/ID" class="w-full bg-white border border-slate-200 rounded-lg pl-6 sm:pl-8 pr-1 sm:pr-2 py-1 sm:py-1.5 text-[11px] sm:text-xs outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors shadow-sm" oninput="handleSearch(this.value)">
+                        <input type="search" id="playerSearchInput" aria-label="선수 이름·초성·Game ID 검색" name="q_search_dummy" autocomplete="nope" spellcheck="false" placeholder="이름/초성/ID" class="w-full bg-white border border-slate-200 rounded-lg pl-6 sm:pl-8 pr-1 sm:pr-2 py-1 sm:py-1.5 text-[11px] sm:text-xs outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors shadow-sm" oninput="handleSearch(this.value)">
                         <span class="absolute left-1.5 sm:left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] sm:text-xs pointer-events-none">🔍</span>
                     </div>
                     <div id="carrierFilterTags" class="flex gap-1 items-center shrink-0">
@@ -316,7 +340,7 @@
                 </div>
             </div>
 
-            <div id="rankingList"></div>
+            <div class="rfc-ux-rank-summary"><span id="rfcRankingCount" role="status" aria-live="polite">선수 불러오는 중…</span><button type="button" class="rfc-ux-button" onclick="rfcUxClearRankSearch()">검색 초기화</button></div><div id="rankingList"></div>
         </div>
 
         <!-- 기록 탭 -->
@@ -326,9 +350,14 @@
                     <span id="matchesSeasonTitle" class="text-[13px] font-black text-slate-700 truncate tracking-tight"></span>
                     <span id="matchesSeasonStartDate" class="text-[10px] text-slate-400 mt-0.5 truncate"></span>
                 </div>
-                <select id="seasonSelector" class="text-xs font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded-lg p-2 outline-none focus:ring-2 focus:ring-blue-500 shrink-0"></select>
+                <select id="seasonSelector" aria-label="경기 기록 시즌 선택" class="text-xs font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded-lg p-2 outline-none focus:ring-2 focus:ring-blue-500 shrink-0"></select>
             </div>
-            <div id="matchList" class="space-y-3 pb-6"></div>
+            <div class="rfc-ux-history" role="search" aria-label="경기 기록 검색">
+  <label for="rfcHistorySearch">선수·초성·Game ID 검색<input type="search" id="rfcHistorySearch" placeholder="선수 이름 또는 ID" autocomplete="off" oninput="rfcUxFilterHistory()"></label>
+  <div class="rfc-ux-filter-row"><label for="rfcHistoryDateFilter">경기 날짜<input type="date" id="rfcHistoryDateFilter" onchange="rfcUxFilterHistory()"></label><label class="rfc-ux-check"><input type="checkbox" id="rfcHistoryVideoFilter" onchange="rfcUxFilterHistory()"> 영상 있는 경기만</label></div>
+  <div class="rfc-ux-filter-row"><span id="rfcHistoryCount" role="status" aria-live="polite"></span><button type="button" class="rfc-ux-button" onclick="rfcUxClearHistory()">검색 초기화</button></div>
+</div>
+<div id="matchList" class="space-y-3 pb-6"></div><button type="button" id="rfcHistoryMore" class="rfc-ux-button" hidden onclick="rfcUxMoreHistory()">경기 더 보기</button>
         </div>
 
         <!-- 전당 탭 -->
@@ -338,7 +367,7 @@
                     <span id="hofSeasonTitle" class="text-[13px] font-black text-slate-700 truncate tracking-tight"></span>
                     <span id="hofSeasonStartDate" class="text-[10px] text-slate-400 mt-0.5 truncate"></span>
                 </div>
-                <select id="hofSeasonSelector" class="text-xs font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded-lg p-2 outline-none focus:ring-2 focus:ring-blue-500 shrink-0"></select>
+                <select id="hofSeasonSelector" aria-label="명예의 전당 시즌 선택" class="text-xs font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded-lg p-2 outline-none focus:ring-2 focus:ring-blue-500 shrink-0"></select>
             </div>
             <div id="hofContent" class="space-y-6"></div>
         </div>
@@ -406,7 +435,7 @@
                 </div>
             </div>
         </div>
-    </main>
+    </main><button type="button" class="rfc-ux-button rfc-ux-top" onclick="window.scrollTo({top:0,behavior:'auto'})" aria-label="페이지 맨 위로">↑ 맨 위</button>
 
     <footer class="text-center py-8 mt-4 border-t border-slate-200 bg-slate-50">
         <div class="mb-3">
@@ -499,7 +528,7 @@
         <div class="bg-white p-6 rounded-2xl shadow-xl w-80 text-center">
             <h3 class="text-lg font-bold text-slate-800 mb-2">🔒 본인 인증</h3>
             <p class="text-xs text-slate-500 mb-4">프로필 수정을 위해 4자리 비밀번호를 입력하세요.<br><span class="text-blue-500 font-bold mt-1 inline-block">(초기 비번은 관리자에게 문의)</span></p>
-            <input type="password" id="inputPin" autocomplete="new-password" maxlength="4" class="w-full text-center text-2xl font-bold tracking-[0.5em] border-b-2 border-slate-300 focus:border-blue-500 outline-none pb-2 mb-6" placeholder="••••">
+            <input type="password" id="inputPin" inputmode="numeric" autocomplete="new-password" maxlength="4" class="w-full text-center text-2xl font-bold tracking-[0.5em] border-b-2 border-slate-300 focus:border-blue-500 outline-none pb-2 mb-6" placeholder="••••">
             <div class="flex gap-2">
                 <button onclick="closePinModal()" class="flex-1 bg-slate-100 text-slate-600 font-bold py-3 rounded-xl text-sm">취소</button>
                 <button onclick="checkPin()" class="flex-1 bg-blue-600 text-white font-bold py-3 rounded-xl text-sm">확인</button>
@@ -554,7 +583,7 @@
                     </button>
                 </div>
 
-                <div><label class="text-xs font-bold text-slate-500 mb-1 block">비밀번호 변경 (선택)</label><input type="password" id="userEditPin" autocomplete="new-password" maxlength="4" class="w-full border p-3 rounded-xl text-sm font-bold bg-slate-50" placeholder="변경할 경우에만 입력 (4자리)"></div>
+                <div><label class="text-xs font-bold text-slate-500 mb-1 block">비밀번호 변경 (선택)</label><input type="password" id="userEditPin" inputmode="numeric" autocomplete="new-password" maxlength="4" class="w-full border p-3 rounded-xl text-sm font-bold bg-slate-50" placeholder="변경할 경우에만 입력 (4자리)"></div>
                 <div class="p-4 bg-slate-50 rounded-xl border border-slate-100"><label class="text-xs font-bold text-slate-500 mb-2 block">파이팅 스타일 (최대 3개)</label><div id="userStyleTags" class="flex flex-wrap gap-2"></div></div>
             </div>
             <div class="flex gap-3 mt-8"><button onclick="closeUserEdit()" class="flex-1 bg-slate-100 text-slate-600 font-bold py-3.5 rounded-xl text-sm">취소</button><button onclick="saveUserProfile()" class="flex-1 bg-blue-600 text-white font-bold py-3.5 rounded-xl text-sm shadow-lg shadow-blue-500/30">저장하기</button></div>
@@ -571,6 +600,167 @@
     </div>
 
     <script type="module">
+// View-only helpers: filters and navigation never write ranking data.
+let rfcUxMatchLimit = 50;
+function rfcUxNormalize(value) { return String(value ?? '').replace(/\s/g, '').toLowerCase(); }
+function rfcUxMatchFilter(matches) {
+    const query = document.getElementById('rfcHistorySearch').value.trim().toLowerCase();
+    const date = document.getElementById('rfcHistoryDateFilter').value;
+    const videoOnly = document.getElementById('rfcHistoryVideoFilter').checked;
+    const tokens = query.split(/\s+/).filter(Boolean);
+    const identities = new Map();
+    for (const player of rankingsData) {
+        const values = identities.get(player.name) || [];
+        values.push(player.gameId, ...(Array.isArray(player.subGameIds) ? player.subGameIds : []));
+        identities.set(player.name, values);
+    }
+    return matches.filter(match => {
+        if (date && match.date !== date) return false;
+        if (videoOnly) { try { if (!rfcYouTubeURL(match.videoUrl)) return false; } catch { return false; } }
+        if (!tokens.length) return true;
+        const names = [match.winner, match.loser].filter(Boolean);
+        const text = rfcUxNormalize([...names, match.date, ...names.flatMap(name => identities.get(name) || [])].join(' '));
+        const cho = rfcUxNormalize(names.map(name => Hangul.getCho(name)).join(''));
+        const jamo = rfcUxNormalize(names.map(name => Hangul.disassemble(name)).join(''));
+        return tokens.every(token => { const q = rfcUxNormalize(token); return text.includes(q) || cho.includes(q) || jamo.includes(Hangul.disassemble(q)); });
+    });
+}
+function rfcUxMatchesForDisplay(matches) {
+    const filtered = rfcUxMatchFilter(matches);
+    document.getElementById('rfcHistoryCount').textContent = `${filtered.length}경기 검색됨 · 선택 시즌 ${matches.length}경기 중`;
+    const more = document.getElementById('rfcHistoryMore');
+    more.hidden = filtered.length <= rfcUxMatchLimit;
+    more.textContent = `다음 ${Math.min(50, Math.max(0, filtered.length - rfcUxMatchLimit))}경기 더 보기 (${Math.min(filtered.length, rfcUxMatchLimit)} / ${filtered.length})`;
+    return filtered.slice(0, rfcUxMatchLimit);
+}
+window.rfcUxFilterHistory = () => { rfcUxMatchLimit = 50; renderMatches(); };
+window.rfcUxClearHistory = () => {
+    document.getElementById('rfcHistorySearch').value = '';
+    document.getElementById('rfcHistoryDateFilter').value = '';
+    document.getElementById('rfcHistoryVideoFilter').checked = false;
+    rfcUxFilterHistory();
+};
+window.rfcUxMoreHistory = () => { rfcUxMatchLimit += 50; renderMatches(); };
+function rfcUxRankingCount(shown, total) {
+    document.getElementById('rfcRankingCount').textContent = `선수 ${shown}명 / 전체 ${total}명`;
+}
+function rfcUxPreserveMatchSelection(task) {
+    // ADMIN_PRESERVE
+    return task();
+}
+window.rfcUxClearRankSearch = () => {
+    rfcUxPreserveMatchSelection(() => {
+        document.getElementById('playerSearchInput').value = '';
+        searchQuery = '';
+        setCarrierFilter('all');
+    });
+};
+window.rfcUxFocusSearch = () => {
+    const input = document.getElementById('playerSearchInput');
+    switchTab('ranking');
+    input.focus();
+};
+
+// YouTube links are normalized locally; no API key or embed is required.
+function rfcVideoSeconds(value) {
+    const text = String(value ?? '').trim();
+    if (!text) return 0;
+    let seconds;
+    if (/^\d+$/.test(text)) seconds = Number(text);
+    else if (/^\d+:\d{1,2}(?::\d{1,2})?$/.test(text)) {
+        const parts = text.split(':').map(Number);
+        if (parts.slice(1).some(n => n > 59)) throw new Error('시작 시각은 초 또는 분:초 / 시:분:초로 입력해주세요.');
+        seconds = parts.reduce((sum, n) => sum * 60 + n, 0);
+    } else {
+        const units = text.match(/^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?$/i);
+        if (!units || !units[0]) throw new Error('시작 시각은 초 또는 분:초 / 시:분:초로 입력해주세요.');
+        seconds = Number(units[1] || 0) * 3600 + Number(units[2] || 0) * 60 + Number(units[3] || 0);
+    }
+    if (!Number.isSafeInteger(seconds) || seconds < 0 || seconds > 31536000) throw new Error('시작 시각을 확인해주세요.');
+    return seconds;
+}
+function rfcYouTubeURL(value, start) {
+    let raw = String(value ?? '').trim();
+    if (!raw) {
+        if (String(start ?? '').trim()) throw new Error('시작 시각을 사용하려면 유튜브 링크도 입력해주세요.');
+        return '';
+    }
+    if (!/^[a-z][a-z\d+.-]*:/i.test(raw)) raw = 'https://' + raw;
+    let url;
+    try { url = new URL(raw); } catch { throw new Error('올바른 유튜브 영상 링크를 입력해주세요.'); }
+    if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password || url.port) throw new Error('올바른 유튜브 영상 링크를 입력해주세요.');
+    const host = url.hostname.toLowerCase();
+    const path = url.pathname.split('/').filter(Boolean);
+    let id = '';
+    if (['youtu.be', 'www.youtu.be'].includes(host) && path.length === 1) id = path[0];
+    else if (['youtube.com', 'www.youtube.com', 'm.youtube.com', 'music.youtube.com'].includes(host)) {
+        if (url.pathname === '/watch') id = url.searchParams.get('v') || '';
+        else if (path.length === 2 && ['live', 'shorts', 'embed'].includes(path[0])) id = path[1];
+    } else if (['youtube-nocookie.com', 'www.youtube-nocookie.com'].includes(host) && path.length === 2 && path[0] === 'embed') id = path[1];
+    if (!/^[A-Za-z0-9_-]{11}$/.test(id)) throw new Error('유튜브 영상 링크를 입력해주세요. 채널·재생목록 링크는 사용할 수 없습니다.');
+    const time = start === undefined ? (url.searchParams.get('t') ?? url.searchParams.get('start') ?? new URLSearchParams(url.hash.slice(1)).get('t') ?? '') : start;
+    const seconds = rfcVideoSeconds(time);
+    return 'https://www.youtube.com/watch?v=' + id + (seconds ? '&t=' + seconds + 's' : '');
+}
+function rfcVideoButton(match) {
+    let href;
+    try { href = rfcYouTubeURL(match?.videoUrl); } catch { return ''; }
+    if (!href) return '';
+    return `<a class="rfc-video-link" href="${rfcHTML(href)}" target="_blank" rel="noopener noreferrer" aria-label="${rfcHTML((match.winner || '') + ' · ' + (match.loser || '') + ' 경기 영상, 새 탭에서 열기')}">▶ 경기 영상</a>`;
+}
+
+// HTML-only compatibility improvements. Existing Firebase document format is retained.
+function rfcHTML(value) {
+    return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function rfcJS(value) {
+    return rfcHTML(JSON.stringify(String(value ?? '')).slice(1,-1).replace(/'/g, '\\u0027').replace(/</g, '\\u003c'));
+}
+function rfcArg(value) { return rfcHTML(JSON.stringify(value ?? null)); }
+function rfcURL(value) {
+    try { const u = new URL(String(value || '')); return ['https:', 'http:'].includes(u.protocol) && !u.username && !u.password ? u.href : ''; }
+    catch { return ''; }
+}
+function rfcColor(value) {
+    const color = String(value || '');
+    return !/[;<>"'\\]|url\s*\(|expression\s*\(/i.test(color) && CSS.supports('background', color) ? color : '#1f2937';
+}
+function rfcSafeRules(value) {
+    const template = document.createElement('template'); template.innerHTML = String(value || '');
+    const allowed = new Set('DIV SPAN P BR HR H1 H2 H3 H4 H5 H6 STRONG B EM I U S SMALL UL OL LI TABLE THEAD TBODY TFOOT TR TH TD BLOCKQUOTE PRE CODE A IMG'.split(' '));
+    const blocked = new Set('SCRIPT STYLE IFRAME OBJECT EMBED SVG MATH LINK META BASE FORM INPUT BUTTON TEXTAREA SELECT TEMPLATE'.split(' '));
+    function clean(node) {
+        if (node.nodeType === Node.TEXT_NODE) return document.createTextNode(node.textContent);
+        if (node.nodeType !== Node.ELEMENT_NODE || blocked.has(node.tagName)) return document.createDocumentFragment();
+        const out = allowed.has(node.tagName) ? document.createElement(node.tagName.toLowerCase()) : document.createDocumentFragment();
+        if (out.nodeType === Node.ELEMENT_NODE) {
+            for (const name of ['class','title','colspan','rowspan','alt']) if (node.hasAttribute(name)) out.setAttribute(name, node.getAttribute(name));
+            if (node.tagName === 'A') { const url = rfcURL(node.getAttribute('href')); if (url) {out.href = url; out.target = '_blank'; out.rel = 'noopener noreferrer';} }
+            if (node.tagName === 'IMG') { const url = rfcURL(node.getAttribute('src')); if (url) {out.src = url; out.loading = 'lazy';} }
+            for (const property of ['color','background-color','font-size','font-weight','text-align','line-height','padding','margin','border','border-radius']) {
+                const v = node.style.getPropertyValue(property);
+                if (v && !/url\s*\(|expression\s*\(|[<>]/i.test(v)) out.style.setProperty(property, v);
+            }
+        }
+        for (const child of node.childNodes) out.append(clean(child));
+        return out;
+    }
+    const box = document.createElement('div');
+    for (const child of template.content.childNodes) box.append(clean(child));
+    return box.innerHTML;
+}
+function rfcStatus(message, error = false) {
+    const box = document.getElementById('rfcConnectionStatus');
+    if (box) {box.textContent = message; box.hidden = !message; box.style.color = error ? '#991b1b' : '#334155';}
+}
+function rfcDownload(name, data) {
+    const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], {type:'application/json;charset=utf-8'}));
+    const a = document.createElement('a'); a.href = url; a.download = name; document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+window.addEventListener('offline', () => rfcStatus('인터넷 연결이 끊겼습니다. 입력 내용은 유지됩니다. 연결 후 다시 저장하세요.', true));
+window.addEventListener('online', () => rfcStatus('인터넷이 연결되었습니다. 저장에 실패한 작업은 확인 후 다시 시도하세요.'));
+
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
@@ -749,32 +939,10 @@
 
         function getKSTDate() { return new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Seoul" }); }
 
-        let measurementCleanupStarted = false;
         onSnapshot(docRef, (docSnapshot) => {
             if (docSnapshot.exists()) {
                 const data = docSnapshot.data(); 
                 rankingsData = data.rankings || []; 
-                // 키/리치가 220cm를 초과한 기존 값은 공란으로 초기화해 DB에도 저장합니다.
-                if (!measurementCleanupStarted && rankingsData.some(p => {
-                    const h = Number(p.height), r = Number(p.reach);
-                    return (p.height !== '' && p.height != null && Number.isFinite(h) && h > 220) ||
-                           (p.reach !== '' && p.reach != null && Number.isFinite(r) && r > 220);
-                })) {
-                    measurementCleanupStarted = true;
-                    runTransaction(db, async (transaction) => {
-                        const snap = await transaction.get(docRef);
-                        if (!snap.exists()) return;
-                        const latest = snap.data();
-                        const allRankings = latest.rankings || [];
-                        let changed = false;
-                        allRankings.forEach(p => {
-                            const h = Number(p.height), r = Number(p.reach);
-                            if (p.height !== '' && p.height != null && Number.isFinite(h) && h > 220) { p.height = ''; changed = true; }
-                            if (p.reach !== '' && p.reach != null && Number.isFinite(r) && r > 220) { p.reach = ''; changed = true; }
-                        });
-                        if (changed) transaction.update(docRef, { rankings: allRankings });
-                    }).catch(err => { console.error('키/리치 초과값 초기화 실패:', err); measurementCleanupStarted = false; });
-                }
                 matchHistoryData = data.matchHistory || []; 
                 patchNotesData = data.patchNotes || [];
                 
@@ -784,7 +952,7 @@
                 seasonArchives = data.seasonArchives || {}; seasonDates = data.seasonDates || {};
                 
                 const ruleArea = document.getElementById('ruleContentArea'); 
-                if(ruleArea) { if(data.ruleHtml) ruleArea.innerHTML = data.ruleHtml; else ruleArea.innerHTML = "규칙 데이터가 없습니다."; }
+                if(ruleArea) { if(data.ruleHtml) ruleArea.innerHTML = rfcSafeRules(data.ruleHtml); else ruleArea.innerHTML = "규칙 데이터가 없습니다."; }
                 
                 if (!viewSeason) viewSeason = activeSeason;
                 if (!viewHofSeason) viewHofSeason = activeSeason;
@@ -805,8 +973,9 @@
                 checkNotice(data.noticeData);
 
                 if (currentProfileId) updateProfileStats(currentProfileId, document.getElementById('pModalSeason').value);
-            }
-        });
+                rfcStatus('');
+            } else {rfcStatus('랭킹 데이터가 아직 없거나 연결된 문서를 찾을 수 없습니다.', true);}
+        }, error => rfcStatus('랭킹을 불러오지 못했습니다. 연결과 접근 권한을 확인해주세요. ' + error.message, true));
 
         // [v5.33] 공지 버전이 바뀌면 기존 "오늘 하루 보지 않기" 기록을 무시합니다.
         // 관리자에서 공지를 수정/활성화 상태 변경할 때 noticeVersion이 증가하며,
@@ -935,7 +1104,7 @@
                         if (!detail.trim().startsWith('-') && !detail.trim().startsWith('•') && !detail.trim().startsWith('*')) {
                             prefix = '<span class="mr-1.5 opacity-60 flex-shrink-0">•</span>';
                         }
-                        detailsHtml += `<div class="flex items-start">${prefix}<span class="flex-1 whitespace-pre-wrap break-words">${detail}</span></div>`;
+                        detailsHtml += `<div class="flex items-start">${prefix}<span class="flex-1 whitespace-pre-wrap break-words">${rfcHTML(detail)}</span></div>`;
                     }
                 });
 
@@ -968,14 +1137,14 @@
                     if (shortUrl.length > 35) shortUrl = shortUrl.substring(0, 32) + '...';
 
                     linkHtml = `
-                        <a href="${url}" target="_blank" class="block mt-4 border border-slate-200 rounded-xl overflow-hidden ${hoverBorder} hover:shadow-md transition-all group bg-white no-underline">
+                        <a href="${rfcHTML(rfcURL(url))}" target="_blank" rel="noopener noreferrer" class="block mt-4 border border-slate-200 rounded-xl overflow-hidden ${hoverBorder} hover:shadow-md transition-all group bg-white no-underline">
                             <div class="flex items-stretch h-[65px]">
                                 <div class="w-[65px] ${bgColor} flex items-center justify-center shrink-0 border-r border-slate-100">
                                     <span class="text-2xl drop-shadow-sm">${icon}</span>
                                 </div>
                                 <div class="flex flex-col justify-center px-3 flex-grow min-w-0 bg-slate-50 ${hoverBg} transition-colors">
                                     <div class="text-[13px] font-bold text-slate-800 truncate mb-0.5">${platformName}</div>
-                                    <div class="text-[11px] text-slate-500 truncate mb-1">${shortUrl}</div>
+                                    <div class="text-[11px] text-slate-500 truncate mb-1">${rfcHTML(shortUrl)}</div>
                                     <div class="text-[10px] text-blue-500 font-bold flex items-center gap-1">
                                         링크 열기 <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                                     </div>
@@ -990,14 +1159,14 @@
                 if (note.tags && note.tags.length > 0) {
                     note.tags.forEach(tag => {
                         if(tag.includes('개발중')) {
-                            tagsHtml += `<span class="bg-amber-100 text-amber-700 border border-amber-200 text-[13px] px-2 py-0.5 rounded-md font-bold shadow-sm whitespace-nowrap">${tag}</span>`;
+                            tagsHtml += `<span class="bg-amber-100 text-amber-700 border border-amber-200 text-[13px] px-2 py-0.5 rounded-md font-bold shadow-sm whitespace-nowrap">${rfcHTML(tag)}</span>`;
                         } else if(tag.includes('적용완료')) {
-                            tagsHtml += `<span class="bg-emerald-100 text-emerald-700 border border-emerald-200 text-[13px] px-2 py-0.5 rounded-md font-bold shadow-sm whitespace-nowrap">${tag}</span>`;
+                            tagsHtml += `<span class="bg-emerald-100 text-emerald-700 border border-emerald-200 text-[13px] px-2 py-0.5 rounded-md font-bold shadow-sm whitespace-nowrap">${rfcHTML(tag)}</span>`;
                         } else {
                             if (isCommunity) {
-                                tagsHtml += `<span class="bg-white text-indigo-600 border border-indigo-200 text-[13px] px-2 py-0.5 rounded-md font-bold shadow-sm whitespace-nowrap">${tag}</span>`;
+                                tagsHtml += `<span class="bg-white text-indigo-600 border border-indigo-200 text-[13px] px-2 py-0.5 rounded-md font-bold shadow-sm whitespace-nowrap">${rfcHTML(tag)}</span>`;
                             } else {
-                                tagsHtml += `<span class="bg-white text-blue-600 border border-blue-200 text-[13px] px-2 py-0.5 rounded-md font-bold shadow-sm whitespace-nowrap">${tag}</span>`;
+                                tagsHtml += `<span class="bg-white text-blue-600 border border-blue-200 text-[13px] px-2 py-0.5 rounded-md font-bold shadow-sm whitespace-nowrap">${rfcHTML(tag)}</span>`;
                             }
                         }
                     });
@@ -1006,21 +1175,21 @@
                 if (isCommunity) {
                     communityCount++;
                     if (communityContainer) {
-                        communityContainer.innerHTML += `
+                        communityContainer.insertAdjacentHTML('beforeend', `
                             <div class="bg-indigo-50 rounded-xl p-4 border border-indigo-100 relative shadow-sm">
                                 <div class="flex justify-between items-start mb-2 border-b border-indigo-100/50 pb-2">
-                                    <div class="text-[13px] font-bold text-indigo-400 mt-0.5">${note.version} (${note.date})</div>
+                                    <div class="text-[13px] font-bold text-indigo-400 mt-0.5">${rfcHTML(note.version)} (${rfcHTML(note.date)})</div>
                                     <div class="flex flex-wrap gap-1.5 justify-end max-w-[70%]">
                                         ${tagsHtml}
                                     </div>
                                 </div>
-                                <h4 class="text-[15px] font-bold text-indigo-900 mb-2">${note.title}</h4>
+                                <h4 class="text-[15px] font-bold text-indigo-900 mb-2">${rfcHTML(note.title)}</h4>
                                 <div class="text-[14px] text-indigo-700 leading-relaxed space-y-0.5">
                                     ${detailsHtml}
                                 </div>
                                 ${linkHtml}
                             </div>
-                        `;
+                        `);
                     }
                 } else {
                     const isLatest = officialCount === 0;
@@ -1034,22 +1203,22 @@
                     const tagLabel = isLatest ? '최신 업데이트' : '이전 업데이트';
 
                     if (officialContainer) {
-                        officialContainer.innerHTML += `
+                        officialContainer.insertAdjacentHTML('beforeend', `
                             <div class="relative pl-4 border-l-2 ${borderColor}">
                                 <div class="absolute -left-[5px] top-1 w-2 h-2 rounded-full ${dotColor} ring-4 ring-white"></div>
                                 <div class="flex justify-between items-start mb-2">
-                                    <div class="text-[13px] font-bold ${versionColor} mt-0.5">${note.version} 업데이트 (${note.date}) <span class="ml-2 text-[9px] font-normal opacity-70 px-1.5 py-0.5 bg-slate-100 rounded border border-slate-200">${tagLabel}</span></div>
+                                    <div class="text-[13px] font-bold ${versionColor} mt-0.5">${rfcHTML(note.version)} 업데이트 (${rfcHTML(note.date)}) <span class="ml-2 text-[9px] font-normal opacity-70 px-1.5 py-0.5 bg-slate-100 rounded border border-slate-200">${tagLabel}</span></div>
                                     <div class="flex flex-wrap gap-1.5 justify-end max-w-[60%]">
                                         ${tagsHtml}
                                     </div>
                                 </div>
-                                <h4 class="text-[15px] font-bold ${titleColor} mb-2">${note.title}</h4>
+                                <h4 class="text-[15px] font-bold ${titleColor} mb-2">${rfcHTML(note.title)}</h4>
                                 <div class="text-[14px] ${textColor} leading-relaxed space-y-0.5">
                                     ${detailsHtml}
                                 </div>
                                 ${linkHtml}
                             </div>
-                        `;
+                        `);
                     }
                 }
             });
@@ -1189,7 +1358,7 @@
             else if (carrier === 'KT') cc = 'bg-blue-50 text-blue-700 border border-blue-200';
             else if (carrier === 'LG') cc = 'bg-yellow-50 text-yellow-700 border border-yellow-200';
             else return '';
-            return `<span class="${cc} px-1.5 py-0.5 rounded text-[10px] font-bold ml-1 shadow-sm">${carrier}</span>`;
+            return `<span class="${cc} px-1.5 py-0.5 rounded text-[10px] font-bold ml-1 shadow-sm">${rfcHTML(carrier)}</span>`;
         };
 
         function renderRankings() { 
@@ -1242,7 +1411,7 @@
             if (searchQuery) {
                 const queryJamo = Hangul.disassemble(searchQuery.replace(/\s/g, ""));
                 const qClean = searchQuery.replace(/\s/g, "");
-                displayList = fullData.filter(p => {
+                displayList = displayList.filter(p => {
                     const name = p.name || "";
                     const nameClean = name.replace(/\s/g, "").toLowerCase();
                     if (nameClean.includes(qClean)) return true;
@@ -1257,6 +1426,7 @@
                 });
             }
 
+            rfcUxRankingCount(displayList.length, fullData.length);
             const showChampion = champion && displayList.find(p => p.id === champion.id);
             const ranked = displayList.filter(p => !p.isChampion && (Number(p.wins||0)+Number(p.losses||0)+Number(p.draws||0)) >= 3)
                                     .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
@@ -1271,7 +1441,7 @@
             const shouldHighlight = (id) => activeHighlight.ids.includes(id) && now < activeHighlight.endTime;
 
             if (displayList.length === 0) {
-                container.innerHTML = `<div class="text-center py-10 text-slate-400 text-sm">검색 결과가 없습니다.</div>`;
+                container.innerHTML = `<div class="rfc-ux-empty"><p>조건에 맞는 선수가 없습니다.</p><button type="button" class="rfc-ux-button" onclick="rfcUxClearRankSearch()">전체 선수 보기</button></div>`;
                 return;
             }
 
@@ -1289,8 +1459,8 @@
                 let recordStr = `${p.wins}승 ${p.losses}패`;
                 if ((p.draws || 0) > 0) recordStr += ` ${p.draws}무`;
 
-                container.innerHTML += `
-                <div class="rank-card flex items-center p-3 md:p-4 rounded-xl mb-2 inferno-card relative group cursor-pointer" onclick="openProfile('${p.id}')">
+                container.insertAdjacentHTML('beforeend', `
+                <div class="rank-card flex items-center p-3 md:p-4 rounded-xl mb-2 inferno-card relative group cursor-pointer" onclick="openProfile('${rfcJS(p.id)}')">
                     <div class="absolute inset-0 overflow-hidden rounded-xl">
                          <div class="ember-mini" style="left: 20%; animation-delay: 0s;"></div>
                          <div class="ember-mini" style="left: 80%; animation-delay: 1.5s;"></div>
@@ -1302,7 +1472,7 @@
                     </div>
 
                     <div class="shrink-0 relative mr-3 -my-2 md:-my-4 relative z-10">
-                        <img src="${p.imageUrl || 'https://placehold.co/150/f59e0b/white?text=C'}" 
+                        <img src="${rfcHTML(rfcURL(p.imageUrl || 'https://placehold.co/150/f59e0b/white?text=C'))}" 
                              class="w-[60px] h-[60px] md:w-[90px] md:h-[90px] rounded-2xl bg-slate-900 object-cover border-2 border-orange-300/30 shadow-lg"
                              onerror="this.src='https://placehold.co/150/f59e0b/white?text=C'">
                     </div>
@@ -1315,10 +1485,10 @@
 
                         <div class="flex items-center gap-1.5 md:gap-2 mb-0.5 md:mb-1.5">
                             <div class="w-1.5 h-4 rounded-sm shadow-sm ring-1 ring-inset ring-white/20" style="background: #fbbf24;"></div>
-                            <span class="font-bold text-white truncate text-sm md:text-lg">${p.name}</span>
+                            <span class="font-bold text-white truncate text-sm md:text-lg">${rfcHTML(p.name)}</span>
                         </div>
                         <div class="flex items-center gap-1.5 mt-0.5">
-                            <span class="bg-black/40 text-orange-300 text-[10px] px-1.5 py-0.5 rounded border border-orange-500/30 font-bold">⚡${p.elo}</span>
+                            <span class="bg-black/40 text-orange-300 text-[10px] px-1.5 py-0.5 rounded border border-orange-500/30 font-bold">⚡${rfcHTML(p.elo)}</span>
                             <span class="text-xs text-slate-300">| ${recordStr}</span>
                             ${bountyHtml}
                         </div>
@@ -1329,9 +1499,9 @@
                             ${formHtml}
                         </div>
                     </div>
-                </div>`;
+                </div>`);
             } else {
-                container.innerHTML += `
+                container.insertAdjacentHTML('beforeend', `
                 <div class="rank-card flex items-center p-3 md:p-4 rounded-xl mb-2 bg-slate-900/90 border border-slate-700 relative overflow-hidden opacity-90">
                     <div class="w-8 text-center mr-2 flex flex-col items-center justify-center shrink-0 opacity-50">
                         <div class="text-xl grayscale">👑</div>
@@ -1354,7 +1524,7 @@
                             <span class="text-xs text-slate-600">새로운 챔피언을 기다립니다.</span>
                         </div>
                     </div>
-                </div>`;
+                </div>`);
             }
 
             ranked.forEach((item) => { 
@@ -1386,7 +1556,7 @@
                 // [v5.53] 랭킹 카드 정보 배치 개선: 현상금을 티어 오른쪽(1행)으로 이동
                 let bountyStatHtml = '';
                 if (item.bounty && item.bounty > 0 && realRank <= 10) {
-                      bountyStatHtml = `<span class="bounty-pill-dark ml-1" title="현상금">💰+${item.bounty}</span>`;
+                      bountyStatHtml = `<span class="bounty-pill-dark ml-1" title="현상금">💰+${rfcHTML(item.bounty)}</span>`;
                 }
 
                 const prevRank = item.previousRank || realRank; 
@@ -1404,21 +1574,21 @@
                 if ((item.draws || 0) > 0) recordStr += ` ${item.draws}무`;
                 const carrierHtml = getCarrierBadge(item.carrier);
 
-                container.innerHTML += `
-                    <div id="rank-card-${item.id}" class="rank-card flex items-center p-3 md:p-4 border rounded-xl mb-2 bg-white hover:shadow-md ${cardClass}" onclick="openProfile('${item.id}')">
+                container.insertAdjacentHTML('beforeend', `
+                    <div id="rank-card-${rfcHTML(item.id)}" class="rank-card flex items-center p-3 md:p-4 border rounded-xl mb-2 bg-white hover:shadow-md ${cardClass}" onclick="openProfile('${rfcJS(item.id)}')">
                         <div class="w-8 text-center mr-2"><span class="${rankNumClass}">${realRank}</span><div class="text-[10px]">${diffHtml}</div></div>
                         <div class="shrink-0 relative mr-3 -my-2 md:-my-4">
-                            <img src="${item.imageUrl || 'https://placehold.co/150?text=No+Img'}" class="w-[60px] h-[60px] md:w-[90px] md:h-[90px] rounded-2xl bg-slate-100 object-cover border border-slate-100" onerror="this.src='https://placehold.co/150?text=No+Img'">
+                            <img src="${rfcHTML(rfcURL(item.imageUrl || 'https://placehold.co/150?text=No+Img'))}" class="w-[60px] h-[60px] md:w-[90px] md:h-[90px] rounded-2xl bg-slate-100 object-cover border border-slate-100" onerror="this.src='https://placehold.co/150?text=No+Img'">
                         </div>
                         <div class="flex-grow min-w-0 flex flex-col justify-center py-1">
                             <div class="flex items-center gap-1.5 md:gap-2 mb-0.5 md:mb-1.5">
-                                <div class="w-1.5 h-4 rounded-sm shadow-sm ring-1 ring-inset ring-black/10" style="background: ${item.trunkColor || '#1f2937'};" title="트렁크 색상"></div>
-                                <span class="font-bold text-slate-800 truncate text-sm md:text-lg">${item.name}</span>
-                                <span class="text-[9px] px-1.5 py-0.5 rounded-full ${tier.color} font-bold tracking-wide uppercase shadow-sm">${tier.name}</span>
+                                <div class="w-1.5 h-4 rounded-sm shadow-sm ring-1 ring-inset ring-black/10" style="background: ${rfcHTML(rfcColor(item.trunkColor || '#1f2937'))};" title="트렁크 색상"></div>
+                                <span class="font-bold text-slate-800 truncate text-sm md:text-lg">${rfcHTML(item.name)}</span>
+                                <span class="text-[9px] px-1.5 py-0.5 rounded-full ${rfcHTML(tier.color)} font-bold tracking-wide uppercase shadow-sm">${rfcHTML(tier.name)}</span>
                                 ${bountyStatHtml}
                             </div>
                             <div class="flex items-center gap-1.5 mt-0.5">
-                                <span class="bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded border border-amber-200 font-bold">⚡${item.elo}</span>
+                                <span class="bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded border border-amber-200 font-bold">⚡${rfcHTML(item.elo)}</span>
                                 <span class="text-xs text-slate-400">| ${recordStr}</span>
                                 ${carrierHtml}
                             </div>
@@ -1428,11 +1598,11 @@
                                 ${formHtml}
                             </div>
                         </div>
-                    </div>`; 
+                    </div>`); 
             }); 
 
             if (placement.length > 0) {
-                container.innerHTML += `
+                container.insertAdjacentHTML('beforeend', `
                     <div class="relative py-4">
                         <div class="absolute inset-0 flex items-center" aria-hidden="true">
                             <div class="w-full border-t border-slate-200"></div>
@@ -1440,7 +1610,7 @@
                         <div class="relative flex justify-center">
                             <span class="bg-[#f8fafc] px-3 text-xs font-bold text-slate-400">🐣 배치고사 진행중 (3경기)</span>
                         </div>
-                    </div>`;
+                    </div>`);
 
                 placement.forEach((p) => {
                     const highlightClass = shouldHighlight(p.id) ? 'highlight-slow' : '';
@@ -1449,18 +1619,18 @@
                     if ((p.draws || 0) > 0) recordStr += ` ${p.draws}무`;
                     const carrierHtml = getCarrierBadge(p.carrier);
                     
-                    container.innerHTML += `
-                        <div id="rank-card-${p.id}" class="rank-card flex items-center p-3 md:p-4 border rounded-xl mb-2 bg-slate-50 opacity-90 hover:opacity-100 ${highlightClass}" onclick="openProfile('${p.id}')">
+                    container.insertAdjacentHTML('beforeend', `
+                        <div id="rank-card-${rfcHTML(p.id)}" class="rank-card flex items-center p-3 md:p-4 border rounded-xl mb-2 bg-slate-50 opacity-90 hover:opacity-100 ${highlightClass}" onclick="openProfile('${rfcJS(p.id)}')">
                             <div class="w-8 text-center mr-2"><span class="text-lg md:text-xl">🐣</span></div>
                             <div class="shrink-0 relative mr-3 -my-2 md:-my-4">
-                                <img src="${p.imageUrl ? p.imageUrl : 'https://placehold.co/150?text=No+Img'}" 
+                                <img src="${rfcHTML(rfcURL(p.imageUrl ? p.imageUrl : 'https://placehold.co/150?text=No+Img'))}" 
                                      class="w-[60px] h-[60px] md:w-[90px] md:h-[90px] rounded-2xl bg-slate-100 object-cover border border-slate-100 md:border-2 md:border-slate-50 shadow-sm transition-all duration-300" 
                                      onerror="this.src='https://placehold.co/150?text=No+Img'">
                             </div>
                             <div class="flex-grow min-w-0 flex flex-col justify-center py-1">
                                 <div class="flex items-center gap-1.5 md:gap-2 mb-0.5 md:mb-1.5">
-                                    <div class="w-1.5 h-4 rounded-sm shadow-sm ring-1 ring-inset ring-black/10" style="background: ${p.trunkColor || '#1f2937'};" title="트렁크 색상"></div>
-                                    <span class="font-bold text-slate-600 truncate text-sm md:text-lg">${p.name}</span>
+                                    <div class="w-1.5 h-4 rounded-sm shadow-sm ring-1 ring-inset ring-black/10" style="background: ${rfcHTML(rfcColor(p.trunkColor || '#1f2937'))};" title="트렁크 색상"></div>
+                                    <span class="font-bold text-slate-600 truncate text-sm md:text-lg">${rfcHTML(p.name)}</span>
                                     <span class="text-[9px] px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500 border border-slate-200 font-bold tracking-wide uppercase shadow-sm">Placement</span>
                                 </div>
                                 <div class="flex items-center gap-1.5 mt-0.5">
@@ -1469,12 +1639,12 @@
                                 </div>
                             </div>
                             <div class="flex flex-col items-end justify-center shrink-0 md:h-full"></div>
-                        </div>`;
+                        </div>`);
                 });
             }
 
             if(unranked.length > 0) {
-                container.innerHTML += `
+                container.insertAdjacentHTML('beforeend', `
                     <div class="relative py-4">
                         <div class="absolute inset-0 flex items-center" aria-hidden="true">
                             <div class="w-full border-t border-slate-200"></div>
@@ -1482,31 +1652,31 @@
                         <div class="relative flex justify-center">
                             <span class="bg-[#f8fafc] px-3 text-xs font-bold text-slate-300">- Unranked Players -</span>
                         </div>
-                    </div>`;
+                    </div>`);
 
                 unranked.forEach((p) => {
                     const highlightClass = shouldHighlight(p.id) ? 'highlight-slow' : '';
                     const carrierHtml = getCarrierBadge(p.carrier);
                     
-                    container.innerHTML += `
-                        <div class="bg-white rounded-2xl p-3 md:p-4 shadow-sm border border-slate-100 flex items-center gap-3 relative overflow-hidden transition-transform active:scale-[0.99] cursor-pointer opacity-80 ${highlightClass}" onclick="openProfile('${p.id}')">
+                    container.insertAdjacentHTML('beforeend', `
+                        <div class="bg-white rounded-2xl p-3 md:p-4 shadow-sm border border-slate-100 flex items-center gap-3 relative overflow-hidden transition-transform active:scale-[0.99] cursor-pointer opacity-80 ${highlightClass}" onclick="openProfile('${rfcJS(p.id)}')">
                             <div class="flex flex-col items-center justify-center w-6 md:w-8 shrink-0"><span class="rank-unranked">-</span></div>
                             <div class="shrink-0 relative mr-3 -my-2 md:-my-4">
-                                <img src="${p.imageUrl ? p.imageUrl : 'https://placehold.co/150?text=No+Img'}" 
+                                <img src="${rfcHTML(rfcURL(p.imageUrl ? p.imageUrl : 'https://placehold.co/150?text=No+Img'))}" 
                                      class="w-[60px] h-[60px] md:w-[90px] md:h-[90px] rounded-2xl bg-slate-100 object-cover border border-slate-100 md:border-2 md:border-slate-50 grayscale shadow-sm transition-all duration-300" 
                                      onerror="this.src='https://placehold.co/150?text=No+Img'">
                             </div>
                             <div class="flex-grow min-w-0 flex flex-col justify-center py-1">
                                 <div class="flex items-center gap-1.5 md:gap-2 mb-0.5 md:mb-1.5">
-                                    <div class="w-1.5 h-4 rounded-sm shadow-sm ring-1 ring-inset ring-black/10" style="background: ${p.trunkColor || '#1f2937'};" title="트렁크 색상"></div>
-                                    <span class="font-bold text-slate-500 truncate text-sm md:text-lg">${p.name}</span>
+                                    <div class="w-1.5 h-4 rounded-sm shadow-sm ring-1 ring-inset ring-black/10" style="background: ${rfcHTML(rfcColor(p.trunkColor || '#1f2937'))};" title="트렁크 색상"></div>
+                                    <span class="font-bold text-slate-500 truncate text-sm md:text-lg">${rfcHTML(p.name)}</span>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <span class="bg-slate-100 text-slate-400 text-[10px] px-1.5 md:px-2 py-0.5 rounded border border-slate-200 font-bold">New Challenger</span>${carrierHtml}
                                 </div>
                             </div>
                             <div class="flex flex-col items-end justify-center shrink-0 md:h-full"></div>
-                        </div>`;
+                        </div>`);
                 });
             }
         }
@@ -1590,14 +1760,15 @@
                 }
             }
 
-            const filtered = enrichedMatchHistory.filter(m => (m.season || "시즌 1") === viewSeason); 
+            const seasonMatches = enrichedMatchHistory.filter(m => (m.season || "시즌 1") === viewSeason);
+            const filtered = rfcUxMatchesForDisplay(seasonMatches); 
             
             if (filtered.length === 0) { 
-                container.innerHTML = `<div class="text-center py-10 text-slate-400 text-sm">기록된 경기가 없습니다.</div>`; 
+                container.innerHTML = `<div class="rfc-ux-empty"><p>조건에 맞는 기록이 없습니다. 시즌이나 검색 조건을 확인해주세요.</p><button type="button" class="rfc-ux-button" onclick="rfcUxClearHistory()">검색 초기화</button></div>`; 
                 return; 
             } 
 
-            const dateCounts = filtered.reduce((acc, m) => {
+            const dateCounts = rfcUxMatchFilter(seasonMatches).reduce((acc, m) => {
                 acc[m.date] = (acc[m.date] || 0) + 1;
                 return acc;
             }, {});
@@ -1637,8 +1808,8 @@
                 
                 const leftProfile = rankingsData.find(p => p.name === leftName);
                 const rightProfile = rankingsData.find(p => p.name === rightName);
-                const leftClick = leftProfile ? `onclick="openProfile('${leftProfile.id}')"` : '';
-                const rightClick = rightProfile ? `onclick="openProfile('${rightProfile.id}')"` : '';
+                const leftClick = leftProfile ? `onclick="openProfile('${rfcJS(leftProfile.id)}')"` : '';
+                const rightClick = rightProfile ? `onclick="openProfile('${rfcJS(rightProfile.id)}')"` : '';
                 const cursorStyle = (profile) => profile ? "cursor-pointer hover:underline hover:text-blue-700" : "";
                 
                 const generateDots = (stats) => {
@@ -1660,7 +1831,7 @@
                     const count = dateCounts[m.date];
                     const dateHeader = document.createElement('div');
                     dateHeader.className = "text-sm font-bold text-slate-500 mt-6 mb-2 px-1 flex items-center gap-1";
-                    dateHeader.innerHTML = `<span>📅</span> ${m.date} <span class="text-slate-400 font-normal text-xs ml-1">(총 ${count}경기)</span>`;
+                    dateHeader.innerHTML = `<span>📅</span> ${rfcHTML(m.date)} <span class="text-slate-400 font-normal text-xs ml-1">(총 ${count}경기)</span>`;
                     container.appendChild(dateHeader);
                     lastDate = m.date;
                 }
@@ -1673,11 +1844,11 @@
                         <div class="flex flex-col items-start w-[45%] ${cursorStyle(leftProfile)}" ${leftClick}>
                             <div class="flex items-center gap-1.5">
                                 <span class="text-[10px] text-blue-500 font-bold mr-0.5">B</span>
-                                <span class="text-sm ${leftNameClass} truncate">${leftName}</span>
+                                <span class="text-sm ${leftNameClass} truncate">${rfcHTML(leftName)}</span>
                                 <span class="${leftBadgeClass} text-[9px] px-1 py-0.5 rounded font-bold">${leftResult}</span>
                             </div>
                             <div class="flex items-center gap-2 mt-1">
-                                <span class="text-[9px] text-slate-400 font-medium bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">${leftStats.w}승 ${leftStats.l}패</span>
+                                <span class="text-[9px] text-slate-400 font-medium bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">${rfcHTML(leftStats.w)}승 ${rfcHTML(leftStats.l)}패</span>
                                 <div class="flex gap-0.5 md:gap-1">${leftDots}</div>
                             </div>
                         </div>
@@ -1688,16 +1859,16 @@
                         <div class="flex flex-col items-end w-[45%] ${cursorStyle(rightProfile)}" ${rightClick}>
                             <div class="flex items-center gap-1.5">
                                 <span class="${rightBadgeClass} text-[9px] px-1 py-0.5 rounded font-bold">${rightResult}</span>
-                                <span class="text-sm ${rightNameClass} truncate">${rightName}</span>
+                                <span class="text-sm ${rightNameClass} truncate">${rfcHTML(rightName)}</span>
                                 <span class="text-[10px] text-red-500 font-bold ml-0.5">R</span>
                             </div>
                              <div class="flex items-center gap-2 mt-1">
                                 <div class="flex gap-0.5 md:gap-1">${rightDots}</div>
-                                <span class="text-[9px] text-slate-400 font-medium bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">${rightStats.w}승 ${rightStats.l}패</span>
+                                <span class="text-[9px] text-slate-400 font-medium bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">${rfcHTML(rightStats.w)}승 ${rfcHTML(rightStats.l)}패</span>
                             </div>
                         </div>
                     </div>`; 
-                container.appendChild(div); 
+                div.insertAdjacentHTML('beforeend', rfcVideoButton(m)); container.appendChild(div); 
             }); 
         }
 
@@ -1971,14 +2142,14 @@
                         </div>
                     </div>
 
-                    <div class="w-full flex justify-center pb-4 pt-2 group cursor-pointer relative z-10" onclick="openProfile('${champ.id}')">
+                    <div class="w-full flex justify-center pb-4 pt-2 group cursor-pointer relative z-10" onclick="openProfile('${rfcJS(champ.id)}')">
                         <div class="relative flex flex-col items-center w-full max-w-[200px] transition-transform duration-300 hover:scale-105">
                             
                             <div class="relative z-20 flex justify-center mb-1 mt-4">
                                 <div class="absolute -top-12 text-[40px] drop-shadow-xl z-40 animate-float">👑</div>
                                 <!-- [해결] wrapper 없이 이미지를 직접 배치하고, 빛 반사 효과를 별도 오버레이로 분리 -->
                                 <div class="relative">
-                                    <img src="${imageUrl}" 
+                                    <img src="${rfcHTML(rfcURL(imageUrl))}" 
                                          class="w-[110px] h-[110px] rounded-[1.5rem] object-cover border-4 border-yellow-400 champ-glow bg-slate-200 relative z-10" 
                                          onerror="this.src='https://placehold.co/150?text=No+Img'">
                                     
@@ -1990,7 +2161,7 @@
                             </div>
                             
                             <div class="py-3 min-h-[70px] w-full bg-gradient-to-b from-amber-50 to-orange-50 border border-amber-200 text-amber-900 rounded-xl flex flex-col items-center justify-center shadow-md mt-2 relative overflow-hidden">
-                                <div class="font-black text-lg truncate w-full text-center px-1 leading-tight drop-shadow-sm relative z-10">${champ.name}</div>
+                                <div class="font-black text-lg truncate w-full text-center px-1 leading-tight drop-shadow-sm relative z-10">${rfcHTML(champ.name)}</div>
                                 <div class="flex items-center gap-1.5 mt-0.5 relative z-10">
                                     <span class="text-amber-600 text-[11px] font-black">⚡${champ.elo || 1000}</span>
                                     <span class="text-slate-400 text-[10px] font-bold">| 🛡️ ${defCount}차 방어</span>
@@ -2059,14 +2230,14 @@
 
                     return `
                         <div class="flex-1 w-full flex flex-col items-center justify-end ${order}">
-                             <div class="relative flex flex-col items-center cursor-pointer group w-full" onclick="openProfile('${p.id}')">
+                             <div class="relative flex flex-col items-center cursor-pointer group w-full" onclick="openProfile('${rfcJS(p.id)}')">
                                 <div class="relative z-20 mb-2 transition-transform group-hover:scale-110 flex justify-center">
                                     ${crown}
-                                    <img src="${getHOFImageUrl(p)}" class="${imgSizeClass} rounded-2xl object-cover ${imgBorder} bg-slate-200" onerror="this.src='https://placehold.co/150?text=No+Img'">
+                                    <img src="${rfcHTML(rfcURL(getHOFImageUrl(p)))}" class="${imgSizeClass} rounded-2xl object-cover ${imgBorder} bg-slate-200" onerror="this.src='https://placehold.co/150?text=No+Img'">
                                     <div class="absolute -top-2 -left-2 ${badgeSize} shadow-sm ${badgeClass} font-bold rounded-lg px-2 py-0.5 border border-white z-30">${badgeText}</div>
                                 </div>
                                 <div class="${plateHeight} w-full ${plateBg} rounded-lg flex flex-col items-center justify-center shadow-sm">
-                                    <div class="font-black ${nameSize} truncate w-full text-center px-1 leading-tight">${p.name}</div>
+                                    <div class="font-black ${nameSize} truncate w-full text-center px-1 leading-tight">${rfcHTML(p.name)}</div>
                                     <div class="${statColor} ${statSize} font-bold mt-0.5 sm:mt-1">${getValue(p)}</div>
                                 </div>
                             </div>
@@ -2080,7 +2251,7 @@
                             <span class="text-xl sm:text-2xl">${icon}</span>
                             <div>
                                 <div class="text-sm sm:text-base font-black text-slate-800 tracking-tight leading-none">${title}</div>
-                                <div class="text-[10px] sm:text-xs text-slate-400 font-medium mt-0.5 sm:mt-1">${sub}</div>
+                                <div class="text-[10px] sm:text-xs text-slate-400 font-medium mt-0.5 sm:mt-1">${rfcHTML(sub)}</div>
                             </div>
                         </div>
                         <div class="flex justify-center items-end gap-2 px-2 h-auto pt-4 pb-2">
@@ -2094,7 +2265,7 @@
 
             container.innerHTML = `
                 <div class="text-center mb-6">
-                    <h3 class="text-xl font-black text-slate-800 tracking-tight">${seasonName}</h3>
+                    <h3 class="text-xl font-black text-slate-800 tracking-tight">${rfcHTML(seasonName)}</h3>
                     <p class="text-xs text-slate-400 mt-1 uppercase tracking-widest">Season Awards Podium</p>
                 </div>
                 
@@ -2204,9 +2375,9 @@
                 const mainId = p.gameId || "-";
                 const subIds = p.subGameIds || [];
                 
-                gameIdContainer.innerHTML += `<span class="text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded shadow-sm">ID: ${mainId}</span>`;
+                gameIdContainer.insertAdjacentHTML('beforeend', `<span class="text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded shadow-sm">ID: ${rfcHTML(mainId)}</span>`);
                 subIds.forEach(sub => {
-                    if (sub) gameIdContainer.innerHTML += `<span class="text-[10px] font-bold text-slate-500 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded">ID: ${sub}</span>`;
+                    if (sub) gameIdContainer.insertAdjacentHTML('beforeend', `<span class="text-[10px] font-bold text-slate-500 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded">ID: ${rfcHTML(sub)}</span>`);
                 });
             }
 
@@ -2219,24 +2390,24 @@
             const displayBounty = isChamp ? (p.defenseCount || 0) * 20 : (p.bounty || 0);
             
             if ((p.currentStreak || 0) >= 3) {
-                badgeContainer.innerHTML += `
+                badgeContainer.insertAdjacentHTML('beforeend', `
                     <div class="flex items-center gap-1 bg-orange-50 text-orange-600 border border-orange-100 px-2 py-0.5 rounded-md shadow-sm">
                         <span class="text-[10px] md:text-[12px]">🔥</span>
-                        <span class="text-[10px] md:text-[12px] font-bold tracking-tight">${p.currentStreak}연승</span>
-                    </div>`;
+                        <span class="text-[10px] md:text-[12px] font-bold tracking-tight">${rfcHTML(p.currentStreak)}연승</span>
+                    </div>`);
             }
             
             if (displayBounty > 0) {
-                badgeContainer.innerHTML += `
+                badgeContainer.insertAdjacentHTML('beforeend', `
                     <div class="flex items-center gap-1 bg-amber-50 text-amber-600 border border-amber-200 px-2 py-0.5 rounded-md shadow-sm">
                         <span class="text-[10px] md:text-[12px]">💰</span>
                         <span class="text-[10px] md:text-[12px] font-bold tracking-tight">+${displayBounty}</span>
-                    </div>`;
+                    </div>`);
             }
 
             const filterEl = document.getElementById('pModalSeason'); 
             filterEl.innerHTML = '<option value="all">전체 기록 (All Time)</option><option value="current">현재 시즌 (Current)</option>'; 
-            Object.keys(seasonArchives).sort().reverse().forEach(s => { filterEl.innerHTML += `<option value="${s}">${s}</option>`; }); 
+            Object.keys(seasonArchives).sort().reverse().forEach(s => { filterEl.insertAdjacentHTML('beforeend', `<option value="${rfcHTML(s)}">${rfcHTML(s)}</option>`); }); 
             
             filterEl.value = 'all'; 
             filterEl.onchange = (e) => updateProfileStats(id, e.target.value); 
@@ -2253,7 +2424,7 @@
             
             const tagsContainer = document.getElementById('pModalTags'); 
             tagsContainer.innerHTML = ''; 
-            (p.tags || []).forEach(tag => { tagsContainer.innerHTML += `<span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">#${tag}</span>`; }); 
+            (p.tags || []).forEach(tag => { tagsContainer.insertAdjacentHTML('beforeend', `<span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">#${rfcHTML(tag)}</span>`); }); 
             
             updateProfileStats(id, 'all'); 
             document.getElementById('profileModal').classList.remove('hidden'); 
@@ -2507,10 +2678,10 @@
                     
                     div.innerHTML = `
                         <div class="flex items-center gap-3 md:gap-4">
-                            <img src="${oppImg}" class="w-10 h-10 md:w-12 md:h-12 rounded-full border border-slate-200 object-cover bg-slate-100" onerror="this.src='https://placehold.co/100?text=No+Img'">
+                            <img src="${rfcHTML(rfcURL(oppImg))}" class="w-10 h-10 md:w-12 md:h-12 rounded-full border border-slate-200 object-cover bg-slate-100" onerror="this.src='https://placehold.co/100?text=No+Img'">
                             <div>
-                                <div class="font-bold text-slate-700 text-sm md:text-base">vs ${opp.name}</div>
-                                <div class="text-[11px] md:text-xs text-slate-500 mt-0.5">총 <span class="font-bold text-slate-700">${total}전 ${opp.w}승 ${opp.l}패${opp.d>0?' '+opp.d+'무':''}</span> (승률 <span class="font-bold ${winRateColor}">${winRate}%</span>)</div>
+                                <div class="font-bold text-slate-700 text-sm md:text-base">vs ${rfcHTML(opp.name)}</div>
+                                <div class="text-[11px] md:text-xs text-slate-500 mt-0.5">총 <span class="font-bold text-slate-700">${total}전 ${rfcHTML(opp.w)}승 ${rfcHTML(opp.l)}패${opp.d>0?' '+opp.d+'무':''}</span> (승률 <span class="font-bold ${winRateColor}">${winRate}%</span>)</div>
                             </div>
                         </div>
                         <div class="flex flex-col items-end gap-1.5 shrink-0">
@@ -2537,7 +2708,7 @@
 
                     const div = document.createElement('div'); 
                     div.className = "flex items-center justify-between text-xs p-3 bg-rose-50 rounded-xl border border-rose-100"; 
-                    div.innerHTML = `<div class="flex items-center gap-3 w-full"><div class="flex items-center gap-1.5 shrink-0"><span class="font-bold text-rose-600 w-8 h-8 flex items-center justify-center rounded-lg text-sm shadow-sm bg-white border border-rose-100">💀</span><span class="text-[13px] font-black text-rose-600 shrink-0">${penaltyText}</span></div><div class="flex flex-col w-full overflow-hidden"><div class="flex justify-between items-center w-full"><span class="font-bold text-rose-700 text-sm truncate flex items-center gap-1.5">패널티</span><span class="flex items-center gap-1.5 shrink-0">${seasonBadgeHtml}<span class="text-rose-500 font-medium text-[11px]">${m.date || '-'}</span></span></div><div class="flex items-center gap-2 mt-0.5"><span class="text-[11px] text-rose-500 font-medium bg-white px-1.5 py-0.5 rounded border border-rose-100">${reason}</span></div></div></div>`;
+                    div.innerHTML = `<div class="flex items-center gap-3 w-full"><div class="flex items-center gap-1.5 shrink-0"><span class="font-bold text-rose-600 w-8 h-8 flex items-center justify-center rounded-lg text-sm shadow-sm bg-white border border-rose-100">💀</span><span class="text-[13px] font-black text-rose-600 shrink-0">${rfcHTML(penaltyText)}</span></div><div class="flex flex-col w-full overflow-hidden"><div class="flex justify-between items-center w-full"><span class="font-bold text-rose-700 text-sm truncate flex items-center gap-1.5">패널티</span><span class="flex items-center gap-1.5 shrink-0">${seasonBadgeHtml}<span class="text-rose-500 font-medium text-[11px]">${m.date || '-'}</span></span></div><div class="flex items-center gap-2 mt-0.5"><span class="text-[11px] text-rose-500 font-medium bg-white px-1.5 py-0.5 rounded border border-rose-100">${rfcHTML(reason)}</span></div></div></div>`;
                     container.appendChild(div);
                     return;
                 }
@@ -2569,9 +2740,9 @@
                         scoreBadge = `<span class="text-[13px] font-black ${textColor} shrink-0">${sign}${myChange}</span>`;
                     }
                 } else if (isWin && m.winnerChange !== undefined) { 
-                    scoreBadge = `<span class="text-[13px] font-black text-emerald-600 shrink-0">+${m.winnerChange}</span>`; 
+                    scoreBadge = `<span class="text-[13px] font-black text-emerald-600 shrink-0">+${rfcHTML(m.winnerChange)}</span>`; 
                 } else if (!isWin && m.loserChange !== undefined) { 
-                    scoreBadge = `<span class="text-[13px] font-black text-rose-600 shrink-0">${m.loserChange}</span>`; 
+                    scoreBadge = `<span class="text-[13px] font-black text-rose-600 shrink-0">${rfcHTML(m.loserChange)}</span>`; 
                 } 
 
                 let oppRankBadge = '';
@@ -2593,7 +2764,7 @@
                 }
 
                 const oppProfile = rankingsData.find(u => u.name === oppName);
-                const oppLink = oppProfile ? `onclick="openProfile('${oppProfile.id}')"` : '';
+                const oppLink = oppProfile ? `onclick="openProfile('${rfcJS(oppProfile.id)}')"` : '';
                 const oppCursor = oppProfile ? 'cursor-pointer hover:underline hover:text-blue-600' : '';
 
                 let seasonBadgeHtml = '';
@@ -2609,7 +2780,8 @@
                     : '';
                 const div = document.createElement('div'); 
                 div.className = "flex items-center justify-between text-xs p-3 bg-slate-50 rounded-xl border border-slate-100"; 
-                div.innerHTML = `<div class="flex items-center gap-3 w-full"><div class="flex items-center gap-1.5 shrink-0"><span class="font-bold ${resultColor} w-8 h-8 flex items-center justify-center rounded-lg text-sm shadow-sm">${resultText}</span>${scoreBadge}</div><div class="flex flex-col w-full overflow-hidden"><div class="flex justify-between items-center w-full gap-1"><span class="font-bold text-slate-700 text-sm truncate flex items-center gap-1.5 ${oppCursor}" ${oppLink}>vs ${oppName}${oppRankBadge}</span><span class="flex items-center gap-1.5 shrink-0">${titleMatchBadge}${seasonBadgeHtml}<span class="text-slate-500 font-medium text-[11px]">${m.date}</span></span></div><div class="flex items-center gap-2 mt-0.5"><span class="text-[11px] text-slate-400 font-medium bg-white px-1.5 py-0.5 rounded border border-slate-100">당시: ${oppRecordStrFull}</span><div class="flex gap-0.5 md:gap-1">${oppDots}</div></div></div></div>`; 
+                div.innerHTML = `<div class="flex items-center gap-3 w-full"><div class="flex items-center gap-1.5 shrink-0"><span class="font-bold ${resultColor} w-8 h-8 flex items-center justify-center rounded-lg text-sm shadow-sm">${resultText}</span>${scoreBadge}</div><div class="flex flex-col w-full overflow-hidden"><div class="flex justify-between items-center w-full gap-1"><span class="font-bold text-slate-700 text-sm truncate flex items-center gap-1.5 ${oppCursor}" ${oppLink}>vs ${rfcHTML(oppName)}${oppRankBadge}</span><span class="flex items-center gap-1.5 shrink-0">${titleMatchBadge}${seasonBadgeHtml}<span class="text-slate-500 font-medium text-[11px]">${rfcHTML(m.date)}</span></span></div><div class="flex items-center gap-2 mt-0.5"><span class="text-[11px] text-slate-400 font-medium bg-white px-1.5 py-0.5 rounded border border-slate-100">당시: ${oppRecordStrFull}</span><div class="flex gap-0.5 md:gap-1">${oppDots}</div></div></div></div>`; 
+                const videoButton = rfcVideoButton(m); if (videoButton) { div.style.flexWrap = 'wrap'; div.insertAdjacentHTML('beforeend', '<div class="rfc-video-footer">' + videoButton + '</div>'); }
                 container.appendChild(div); 
             }); 
         };
@@ -2681,17 +2853,18 @@
             targetRow.classList.add('animate-promote');
         };
 
-        let editTargetId = null;
-        window.requestEdit = () => { if (!currentProfileId) return; editTargetId = currentProfileId; document.getElementById('inputPin').value = ''; document.getElementById('pinModal').classList.remove('hidden'); document.getElementById('inputPin').focus(); };
+        let editTargetId = null; let rfcProfileCredential = null; let rfcProfileBusy = false;
+        window.requestEdit = () => { rfcProfileCredential = null; if (!currentProfileId) return; editTargetId = currentProfileId; document.getElementById('inputPin').value = ''; document.getElementById('pinModal').classList.remove('hidden'); document.getElementById('inputPin').focus(); };
         window.closePinModal = () => document.getElementById('pinModal').classList.add('hidden');
         window.checkPin = async () => { 
             const input = document.getElementById('inputPin').value; 
             const p = rankingsData.find(x => x.id === editTargetId); 
-            const userPin = p.password || "0000"; 
+            if (!p || !p.password) return alert('등록된 PIN이 없습니다. 관리자에게 문의해주세요.');
+            const userPin = p.password; 
             let isMatch = false;
             if (userPin.length === 4) { if (input === userPin) isMatch = true; } 
             else { const inputHash = await hashPin(input); if (inputHash === userPin) isMatch = true; }
-            if (isMatch) { closePinModal(); openUserEditModal(p); } 
+            if (isMatch) { rfcProfileCredential = userPin; closePinModal(); openUserEditModal(p); } 
             else { alert("비밀번호가 일치하지 않습니다."); document.getElementById('inputPin').value = ''; } 
         };
 
@@ -2708,21 +2881,21 @@
             const subIds = p.subGameIds || [];
             
             // 메인 ID 렌더링
-            idContainer.innerHTML += `
+            idContainer.insertAdjacentHTML('beforeend', `
                 <div class="flex items-center gap-2 id-row is-main relative">
                     <div class="relative w-full">
                         <div class="badge absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-indigo-600 bg-indigo-100 px-1.5 py-0.5 rounded transition-colors">Main</div>
-                        <input type="text" class="id-input w-full border border-indigo-300 pl-12 pr-3 py-2.5 rounded-lg text-sm font-bold text-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition shadow-sm bg-white" placeholder="메인 Game ID 입력" value="${mainId}">
+                        <input type="text" class="id-input w-full border border-indigo-300 pl-12 pr-3 py-2.5 rounded-lg text-sm font-bold text-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition shadow-sm bg-white" placeholder="메인 Game ID 입력" value="${rfcHTML(mainId)}">
                     </div>
                     <div class="action-area w-16 shrink-0 flex justify-end gap-1">
                         <div class="w-8 h-8 flex items-center justify-center text-indigo-300 text-xs bg-indigo-50 rounded-lg border border-indigo-100" title="메인 ID는 삭제 불가">🔒</div> 
                     </div>
-                </div>`;
+                </div>`);
             
             // 서브 ID 렌더링
             subIds.forEach(subId => {
                 if(!subId) return;
-                idContainer.innerHTML += `
+                idContainer.insertAdjacentHTML('beforeend', `
                 <div class="flex items-center gap-2 id-row is-sub relative">
                     <div class="relative w-full">
                         <div class="badge absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 transition-colors">Sub</div>
@@ -2732,7 +2905,7 @@
                         <button type="button" onclick="setAsMain(this)" class="w-8 h-8 flex items-center justify-center rounded-lg bg-amber-50 text-amber-500 hover:bg-amber-100 hover:text-amber-600 border border-amber-200 transition" title="메인 ID로 승격">⭐</button>
                         <button type="button" onclick="this.closest('.id-row').remove()" class="w-8 h-8 flex items-center justify-center rounded-lg bg-rose-50 text-rose-500 hover:bg-rose-100 hover:text-rose-600 border border-rose-100 transition" title="삭제"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
                     </div>
-                </div>`;
+                </div>`);
             });
 
             const tc = p.trunkColor || '#1f2937';
@@ -2743,12 +2916,12 @@
                 else { el.classList.remove('active'); }
             });
             const container = document.getElementById('userStyleTags'); container.innerHTML = ''; 
-            STYLE_OPTIONS.forEach(s => { const safeId = `u-style-${s.replace(/\s+/g, '-')}`; const checked = (p.tags || []).includes(s); container.innerHTML += `<div><input type="checkbox" id="${safeId}" value="${s}" class="style-checkbox absolute opacity-0 w-0 h-0" ${checked ? 'checked' : ''}><label for="${safeId}" class="inline-block px-3 py-1 text-xs font-bold border border-slate-300 rounded-full cursor-pointer text-slate-500 hover:bg-slate-100 transition select-none">${s}</label></div>`; });
+            STYLE_OPTIONS.forEach(s => { const safeId = `u-style-${s.replace(/\s+/g, '-')}`; const checked = (p.tags || []).includes(s); container.insertAdjacentHTML('beforeend', `<div><input type="checkbox" id="${safeId}" value="${rfcHTML(s)}" class="style-checkbox absolute opacity-0 w-0 h-0" ${checked ? 'checked' : ''}><label for="${safeId}" class="inline-block px-3 py-1 text-xs font-bold border border-slate-300 rounded-full cursor-pointer text-slate-500 hover:bg-slate-100 transition select-none">${rfcHTML(s)}</label></div>`); });
             document.getElementById('userEditModal').classList.remove('hidden');
         }
 
         window.closeUserEdit = () => document.getElementById('userEditModal').classList.add('hidden');
-        window.updateUserPreview = (url) => { document.getElementById('userEditPreview').src = url || 'https://placehold.co/150?text=No+Img'; };
+        window.updateUserPreview = (url) => { document.getElementById('userEditPreview').src = rfcURL(url) || 'https://placehold.co/150?text=No+Img'; };
         
         window.saveUserProfile = async () => {
             if (!editTargetId) return;
@@ -2764,6 +2937,8 @@
             const newImageUrl = document.getElementById('userImageUrlInput').value.trim().replace(/</g, "&lt;");
             const newTrunkColor = document.getElementById('userEditTrunkColor').value;
             const inputPin = document.getElementById('userEditPin').value;
+            if (inputPin && !/^\d{4}$/.test(inputPin)) return alert('새 PIN은 숫자 4자리로 입력해주세요.');
+            if (newImageUrl && !rfcURL(newImageUrl)) return alert('이미지는 http 또는 https 주소로 입력해주세요.');
             const checkedTags = document.querySelectorAll('#userStyleTags .style-checkbox:checked'); 
             const newTags = Array.from(checkedTags).map(cb => cb.value).slice(0, 3);
             let newPassword = null;
@@ -2786,25 +2961,69 @@
                     const data = sfDoc.data();
                     const rankings = data.rankings || [];
                     const idx = rankings.findIndex(r => r.id === editTargetId);
-                    if (idx === -1) throw "User not found";
+                    if (idx === -1) throw new Error('선수를 찾을 수 없습니다.');
+                    if (!rfcProfileCredential || rankings[idx].password !== rfcProfileCredential) throw new Error('PIN이 변경되었거나 확인되지 않았습니다. PIN을 다시 확인해주세요.');
                     
                     rankings[idx].height = newHeight; rankings[idx].reach = newReach; rankings[idx].stance = newStance; rankings[idx].carrier = newCarrier; rankings[idx].gameId = mainId; rankings[idx].subGameIds = subIds; rankings[idx].imageUrl = newImageUrl; rankings[idx].trunkColor = newTrunkColor; rankings[idx].tags = newTags;
                     if (newPassword) rankings[idx].password = newPassword;
 
-                    const challengers = rankings.filter(p => !p.isChampion && (Number(p.wins||0) + Number(p.losses||0) + Number(p.draws||0)) >= 3)
-                                                .sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
-                    
-                    const myRank = challengers.findIndex(p => p.id === editTargetId) + 1;
-                    
-                    if (!rankings[idx].isChampion && myRank > 10 && (rankings[idx].bounty || 0) > 0) {
-                        rankings[idx].bounty = 0;
-                    }
-
                     transaction.update(docRef, { rankings: rankings });
                 });
                 alert("정보가 수정되었습니다."); closeUserEdit(); if (currentProfileId === editTargetId) openProfile(currentProfileId);
-            } catch (e) { console.error(e); alert("저장 중 오류가 발생했습니다. 다시 시도해주세요."); }
+            } catch (e) { console.error(e); alert("저장에 실패했습니다. 입력은 유지됩니다.\n" + (e.message || e)); }
         };
-    </script>
+    
+const rfcOriginalProfileSave = window.saveUserProfile;
+window.saveUserProfile = async () => {
+    if (rfcProfileBusy) return;
+    rfcProfileBusy = true;
+    const controls = [...document.querySelectorAll('#userEditModal button,#userEditModal input,#userEditModal select')].map(el=>[el,el.disabled]);
+    controls.forEach(([el])=>{el.disabled=true;});
+    try {await rfcOriginalProfileSave();} catch (error) {alert('입력은 유지됩니다. ' + (error.message || error));}
+    finally {controls.forEach(([el,disabled])=>{el.disabled=disabled;});rfcProfileBusy=false;}
+};
+window.addEventListener('beforeunload', event => {if(rfcProfileBusy){event.preventDefault();event.returnValue='';}});
+const rfcUxTabs = ["ranking", "matches", "hof", "tournament", "patch"];
+function rfcUxSelectTab(tab) {
+    for (const name of rfcUxTabs) {
+        const button = document.getElementById('tab' + name[0].toUpperCase() + name.slice(1));
+        button.setAttribute('role', 'tab'); button.setAttribute('aria-controls', name + 'Section');
+        button.setAttribute('aria-selected', String(name === tab)); button.tabIndex = name === tab ? 0 : -1;
+        const panel = document.getElementById(name + 'Section');
+        panel.setAttribute('role', 'tabpanel'); panel.setAttribute('aria-labelledby', button.id);
+    }
+}
+const rfcUxOriginalTab = window.switchTab;
+window.switchTab = tab => {
+    if (!rfcUxTabs.includes(tab)) return;
+    rfcUxOriginalTab(tab); rfcUxSelectTab(tab);
+    window.scrollTo({top:0,behavior:'auto'});
+};
+rfcUxSelectTab(rfcUxTabs[0]);
+for (const name of rfcUxTabs) {
+    document.getElementById('tab' + name[0].toUpperCase() + name.slice(1)).addEventListener('keydown', event => {
+        if (!['ArrowLeft','ArrowRight','Home','End'].includes(event.key)) return;
+        event.preventDefault();
+        const index = rfcUxTabs.indexOf(name);
+        const next = event.key === 'Home' ? 0 : event.key === 'End' ? rfcUxTabs.length - 1 : (index + (event.key === 'ArrowRight' ? 1 : -1) + rfcUxTabs.length) % rfcUxTabs.length;
+        switchTab(rfcUxTabs[next]);
+        document.getElementById('tab' + rfcUxTabs[next][0].toUpperCase() + rfcUxTabs[next].slice(1)).focus();
+    });
+}
+const rfcUxCarrierOriginal = window.setCarrierFilter;
+window.setCarrierFilter = carrier => rfcUxPreserveMatchSelection(() => {
+    rfcUxCarrierOriginal(carrier);
+    document.querySelectorAll('[data-carrier-filter]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.carrierFilter === carrier)));
+});
+for (const id of ['playerSearchInput','rfcHistorySearch']) {
+    document.getElementById(id).addEventListener('keydown', event => {
+        if (event.key !== 'Escape' || event.isComposing) return;
+        event.preventDefault(); event.stopPropagation();
+        if (id === 'rfcHistorySearch') { document.getElementById(id).value = ''; rfcUxFilterHistory(); }
+        else rfcUxClearRankSearch();
+    });
+}
+
+</script>
 </body>
 </html>
