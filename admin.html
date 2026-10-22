@@ -398,7 +398,8 @@ body.rfc-design-admin #rfcAdminHeader{background:#111e32;border:1px solid #111e3
 @media(prefers-reduced-motion:reduce){.rfc-design *,.rfc-design *::before,.rfc-design *::after{transition-duration:.01ms!important;animation-duration:.01ms!important}}
 
 </style>
-</head>
+<style>.rfc-load-panel{position:fixed;bottom:18px;left:18px;z-index:60;display:flex;align-items:center;gap:12px;flex-wrap:wrap;max-width:min(640px,calc(100vw - 36px));padding:13px 16px;border:1px solid #cbdcf7;border-radius:12px;background:#f0f6ff;color:#234772;box-shadow:0 8px 28px #14223820;font-size:12px;line-height:1.6}.rfc-load-panel[hidden],.rfc-load-panel button[hidden]{display:none}.rfc-load-panel button{flex-shrink:0;min-height:36px;padding:6px 11px;border-radius:8px;border:1px solid #acc5ec;background:#fff;color:#204f99;font-weight:700}.rfc-load-panel[data-kind=error],.rfc-load-panel[data-kind=offline],.rfc-load-panel[data-kind=partial]{background:#fff8ed;border-color:#ecd4ad;color:#794c16}.rfc-loading-placeholder{padding:30px 12px;text-align:center;color:#64748b;font-size:13px}.rfc-list-actions{display:flex;gap:4px;flex-shrink:0}@media(max-width:640px){.rfc-load-panel{left:12px;bottom:12px;max-width:calc(100vw - 24px);padding:12px;font-size:11px}.rfc-ux-rank-summary{flex-wrap:wrap}.rfc-list-actions .rfc-ux-button{font-size:10px}}
+</style></head>
 <body class="rfc-design rfc-design-admin rfc-ux-admin text-slate-800 relative h-screen overflow-hidden">
 <div id="rfcConnectionStatus" role="status" aria-live="polite" hidden style="padding:12px 16px;background:#fff7df;border-bottom:1px solid #e2d1a0;white-space:pre-wrap"></div>
 
@@ -755,7 +756,7 @@ body.rfc-design-admin #rfcAdminHeader{background:#111e32;border:1px solid #111e3
             
             <!-- 삭제되었던 우측 랭킹 리스트 영역 복원 -->
             <div id="rfcAdminRankPanel" class="lg:col-span-8 bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col h-full overflow-y-auto relative">
-                <div class="rfc-ux-rank-summary"><span id="rfcRankingCount" role="status" aria-live="polite">선수 불러오는 중…</span><button type="button" class="rfc-ux-button" onclick="rfcUxClearRankSearch()">검색 초기화</button></div><div id="rankingList" class="p-2 space-y-1.5 bg-slate-50/50 rounded-2xl min-h-full"></div>
+                <div class="rfc-ux-rank-summary"><span id="rfcRankingCount" role="status" aria-live="polite">선수 불러오는 중…</span><span class="rfc-list-actions"><button type="button" class="rfc-ux-button" onclick="rfcReloadRankings()" title="페이지를 새로고침하지 않고 서버 연결을 다시 확인합니다">다시 불러오기</button><button type="button" class="rfc-ux-button" onclick="rfcUxClearRankSearch()">검색 초기화</button></span></div><div id="rankingList" class="p-2 space-y-1.5 bg-slate-50/50 rounded-2xl min-h-full"><div class="rfc-loading-placeholder">선수 목록을 불러오는 중입니다…</div></div>
             </div>
         </div>
     </div> <!-- End of mainContent -->
@@ -1056,7 +1057,119 @@ body.rfc-design-admin #rfcAdminHeader{background:#111e32;border:1px solid #111e3
 <p id="rfcIntegrityStatus" role="status" aria-live="polite"></p>
 </dialog>
 
+<div id="rfcLoadPanel" class="rfc-load-panel" role="status" aria-live="polite" hidden>
+  <span id="rfcLoadMessage"></span>
+  <button type="button" id="rfcLoadRetry" onclick="rfcReloadRankings()">다시 불러오기</button>
+</div>
+
 <script type="module">
+// Read-only, single-listener connection management. No reload or browser data cache.
+let rfcLoadRenderIssues=[], rfcLoadNeedsRender=false;
+function rfcRenderOptional(name, render) {
+    try { render(); } catch(error) { rfcLoadRenderIssues.push(name); console.warn('RFC 표시 오류: '+name, error); }
+}
+function rfcValidateRankingDocument(snapshot) {
+    const data=snapshot.data();
+    if (!data || (data.rankings!==undefined && !Array.isArray(data.rankings)) || (data.matchHistory!==undefined && !Array.isArray(data.matchHistory))) {
+        const error=new Error('선수 또는 경기 데이터 형식을 확인해주세요.');error.code='rfc-invalid-data';throw error;
+    }
+    if ((data.rankings || []).some(player=>!player || typeof player.name!=='string') || (data.matchHistory || []).some(match=>!match || typeof match.winner!=='string' || typeof match.loser!=='string')) {
+        const error=new Error('이름이 없는 선수/경기 기록이 있어 목록을 표시할 수 없습니다.');error.code='rfc-invalid-data';throw error;
+    }
+}
+function rfcLoadNotice(message, kind='loading') {
+    const panel=document.getElementById('rfcLoadPanel');
+    panel.hidden=!message;
+    panel.dataset.kind=kind;
+    document.getElementById('rfcLoadMessage').textContent=message;
+    document.getElementById('rfcLoadRetry').hidden=kind==='loading';
+    document.getElementById('rankingList').setAttribute('aria-busy',String(kind==='loading' && Boolean(message)));
+}
+function rfcCreateRankingFeed(reference, apply, canConnect=()=>true) {
+    let unsubscribe=null, retryTimer=null, watchdog=null, probeTimer=null;
+    let generation=0, revision=0, probeId=0, attempts=0, running=false, healthy=false, terminal=false;
+    let lastStarted=0, hiddenAt=0;
+    const maxRetries=5;
+    const clearTimers=()=>{clearTimeout(retryTimer);clearTimeout(watchdog);clearTimeout(probeTimer);retryTimer=watchdog=probeTimer=null;};
+    function detach() {generation++;probeId++;clearTimers();if(unsubscribe){unsubscribe();unsubscribe=null;}}
+    function stop() {running=false;healthy=false;detach();rfcLoadNotice('');}
+    function fail(error) {
+        if(!running)return;
+        healthy=false;detach();
+        const code=String(error?.code || '').replace('firestore/','');
+        terminal=['permission-denied','unauthenticated','rfc-invalid-data'].includes(code);
+        if(navigator.onLine===false) {rfcLoadNotice('인터넷 연결이 끊겼습니다. 표시 중인 목록과 입력은 유지됩니다. 연결되면 자동으로 다시 불러옵니다.','offline');return;}
+        if(terminal) {
+            const message=code==='permission-denied'?'선수 목록 읽기 권한을 확인해주세요.':code==='unauthenticated'?'로그인 상태를 확인한 뒤 다시 불러와주세요.':error.message;
+            rfcLoadNotice(message,'error');return;
+        }
+        if(attempts>=maxRetries) {rfcLoadNotice('자동 재연결에 응답이 없습니다. 연결 상태를 확인하고 다시 불러오기를 눌러주세요.','error');return;}
+        const wait=Math.min(30000,2000*2**attempts++);
+        rfcLoadNotice(`목록 연결을 복구하고 있습니다. ${wait/1000}초 후 다시 시도합니다 (${attempts}/${maxRetries}).`,'retry');
+        retryTimer=setTimeout(()=>connect(),wait);
+    }
+    function receive(snapshot, token, serverRead=false) {
+        if(!running || token!==generation || !canConnect())return;
+        if(snapshot.metadata?.hasPendingWrites)return;
+        const fromCache=!serverRead && snapshot.metadata?.fromCache===true;
+        if(!snapshot.exists()) {
+            if(fromCache) {rfcLoadNotice('서버의 선수 목록을 기다리고 있습니다…','loading');return;}
+            fail({code:'not-found'});return;
+        }
+        try {
+            rfcValidateRankingDocument(snapshot);
+            rfcLoadRenderIssues=[];
+            const outcome=apply(snapshot);
+            if(outcome!=='deferred') rfcLoadNeedsRender=rfcLoadRenderIssues.length>0;
+            if(!fromCache)revision++;
+            if(!fromCache) {
+                healthy=true;terminal=false;attempts=0;probeId++;clearTimers();
+                rfcLoadNotice(rfcLoadRenderIssues.length ? '선수 목록은 불러왔지만 일부 화면('+rfcLoadRenderIssues.join(', ')+')을 표시하지 못했습니다. 다시 불러오기로 재시도할 수 있습니다.' : '',rfcLoadRenderIssues.length?'partial':'ready');
+            } else {
+                healthy=false;
+                if(watchdog===null)watchdog=setTimeout(()=>probe(token),12000);
+                rfcLoadNotice('이전에 받은 목록을 표시 중입니다. 서버의 최신 기록을 확인하고 있습니다.','cached');
+            }
+        } catch(error) { rfcLoadNeedsRender=true;fail(error); }
+    }
+    function probe(token) {
+        if(!running || token!==generation || healthy || !canConnect())return;
+        if(navigator.onLine===false){fail({code:'unavailable'});return;}
+        rfcLoadNotice('응답이 지연되어 서버에서 선수 목록을 다시 조회하고 있습니다…','loading');
+        const id=++probeId, before=revision;
+        probeTimer=setTimeout(()=>{if(id===probeId && token===generation)fail({code:'deadline-exceeded'});},12000);
+        Promise.resolve().then(()=>getDocFromServer(reference)).then(snapshot=>{
+            if(id!==probeId || token!==generation || before!==revision)return;
+            receive(snapshot,token,true);
+        }).catch(error=>{if(id===probeId && token===generation)fail(error);});
+    }
+    function connect() {
+        if(!running || !canConnect())return;
+        detach();healthy=false;lastStarted=Date.now();
+        if(navigator.onLine===false){fail({code:'unavailable'});return;}
+        const token=generation;
+        rfcLoadNotice('선수 목록을 불러오는 중입니다…','loading');
+        watchdog=setTimeout(()=>probe(token),12000);
+        try {unsubscribe=onSnapshot(reference,{includeMetadataChanges:true},snapshot=>receive(snapshot,token),error=>{if(token===generation)fail(error);});}
+        catch(error){fail(error);}
+    }
+    function start() {if(!canConnect())return;running=true;attempts=0;terminal=false;connect();}
+    function resume(force=false) {
+        if(!running || !canConnect() || terminal || navigator.onLine===false)return;
+        if((force || !healthy) && Date.now()-lastStarted>1000) {attempts=0;connect();}
+    }
+    window.addEventListener('online',()=>{if(running && !terminal){attempts=0;connect();}});
+    window.addEventListener('offline',()=>{if(running && !terminal)fail({code:'unavailable'});});
+    window.addEventListener('pageshow',event=>{if(event.persisted)resume(true);});
+    document.addEventListener('visibilitychange',()=>{
+        if(document.visibilityState==='hidden')hiddenAt=Date.now();
+        else if(document.visibilityState==='visible'){resume(Boolean(hiddenAt && Date.now()-hiddenAt>60000));hiddenAt=0;}
+    });
+    return {start,stop,retry:start};
+}
+
+let rfcRankingFeed=null;
+
 // View-only helpers: filters and navigation never write ranking data.
 let rfcUxMatchLimit = 50;
 function rfcUxNormalize(value) { return String(value ?? '').replace(/\s/g, '').toLowerCase(); }
@@ -1232,7 +1345,7 @@ window.addEventListener('offline', () => rfcStatus('인터넷 연결이 끊겼�
 window.addEventListener('online', () => rfcStatus('인터넷이 연결되었습니다. 저장에 실패한 작업은 확인 후 다시 시도하세요.'));
 
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, setDoc, getDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, getDocFromServer, setDoc, getDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         
 
@@ -1706,28 +1819,33 @@ function rfcTitleWinner(winner, loser) {
         window.closeSeasonDateModal = () => document.getElementById('seasonDateModal')?.classList.add('hidden');
         window.saveSeasonDates = async () => { const seasonName = document.getElementById('seasonDateTarget').value; const startDate = document.getElementById('seasonStartDateInput').value; const endDate = document.getElementById('seasonEndDateInput').value; if (!startDate) return showCustomAlert('시작일을 입력해주세요.'); if (endDate && endDate < startDate) return showCustomAlert('종료일은 시작일보다 빠를 수 없습니다.'); captureState(); seasonDates[seasonName] = { startDate, endDate: endDate || '' }; await saveRankings(); renderSeasonList(); updateSeasonUI(); closeSeasonDateModal(); showCustomAlert('시즌 기간이 저장되었습니다.'); };
 
-        function loadData() { 
-            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'rankings', 'main'); 
-            if (rfcUnsubscribe) rfcUnsubscribe();
-            rfcUnsubscribe = onSnapshot(docRef, (doc) => { 
-                if (doc.exists()) { 
+        function loadData() {
+            if(!rfcRankingFeed) rfcRankingFeed=rfcCreateRankingFeed(doc(db,'artifacts',appId,'public','data','rankings','main'),rfcApplyAdminSnapshot,()=>Boolean(auth.currentUser));
+            rfcRankingFeed.start();
+            rfcUnsubscribe=()=>rfcRankingFeed.stop();
+        }
+        function rfcApplyAdminSnapshot(doc) {
+            const before=rfcMemory(), beforeDraft=rfcDraft, beforeQueued=rfcQueuedDocument;
+            try {
                     if (doc.metadata?.hasPendingWrites) return;
                     const data = doc.data();
-                    if (rfcBaseDocument && rfcFingerprint(data) === rfcFingerprint(rfcBaseDocument)) return;
+                    const same = rfcBaseDocument && rfcFingerprint(data) === rfcFingerprint(rfcBaseDocument);
+                    if (same && !rfcLoadNeedsRender) return;
                     if (rfcOperationBusy || rfcSaveBusy || (rfcBaseDocument && (rfcDraft || rfcConfirmOpen || document.querySelector('#editModal:not(.hidden),#newPlayerModal:not(.hidden),#seasonDateModal:not(.hidden),#renameModal:not(.hidden)')))) {
+                        if(same)return 'deferred';
                         rfcQueuedDocument = rfcClone(data);
                         rfcStatus('다른 변경이 도착했습니다. 작성 중인 내용은 유지됩니다. 저장 충돌 시 입력을 복사하고 새로고침해주세요.', true);
-                        return;
+                        return 'deferred';
                     }
-                    rfcBaseDocument = rfcClone(data); rfcQueuedDocument = null; rfcDraft = false; rfcStatus(''); 
+                    const nextBaseline = rfcClone(data); rfcQueuedDocument = null; rfcDraft = false; rfcStatus(''); 
                     rankingsData = data.rankings || []; matchHistoryData = data.matchHistory || []; seasonArchives = data.seasonArchives || {}; seasonDates = data.seasonDates || {}; activeSeason = data.activeSeason || "시즌 1"; championVacant = data.championVacant !== undefined ? data.championVacant === true : !rankingsData.some(p => p.isChampion === true); ruleHtml = data.ruleHtml ?? DEFAULT_RULE_HTML; patchNotesData = data.patchNotes || [];
                     
                     // [NEW] 태그 리스트 불러오기 (없으면 기본값 할당)
                     availablePatchTags = data.availablePatchTags || ["🚧 개발중/예정", "🟢 적용완료(LIVE)", "⚖️ 밸런스", "⚙️ 시스템", "💡 유저 팁", "🤫 루머/유출"];
-                    renderAvailablePatchTags();
+                    rfcRenderOptional('태그',()=>renderAvailablePatchTags());
 
                     if(!viewHistorySeason) viewHistorySeason = activeSeason; 
-                    updateSeasonUI(); renderSeasonList(); renderAdminPatchNotes();
+                    rfcRenderOptional('시즌 표시',()=>updateSeasonUI()); rfcRenderOptional('시즌 목록',()=>renderSeasonList()); rfcRenderOptional('업데이트 내역',()=>renderAdminPatchNotes());
                     document.getElementById('ruleHtmlInput').value = ruleHtml; 
                     if(data.noticeData) {
                         document.getElementById('noticeContentInput').value = data.noticeData.content || "";
@@ -1747,11 +1865,12 @@ function rfcTitleWinner(winner, loser) {
                         if(!p.subGameIds) p.subGameIds = []; // [NEW] 다중 ID 배열 초기화
                         p.choseong = Hangul.getCho(p.name); p.jamo = Hangul.disassemble(p.name);
                     });
-                    enrichMatchHistory(); renderRankings(); populateMatchSelectors(); checkSeasonInactive(); updateAdminHistorySeasonSelector(); renderAdminMatches(); 
-                    if (currentProfileId) updateProfileStats(currentProfileId, document.getElementById('pModalSeason').value); 
+                    enrichMatchHistory(); renderRankings(); rfcRenderOptional('선수 선택',()=>populateMatchSelectors()); rfcRenderOptional('미참여 선수',()=>checkSeasonInactive()); rfcRenderOptional('경기 시즌',()=>updateAdminHistorySeasonSelector()); rfcRenderOptional('경기 기록',()=>renderAdminMatches()); 
+                    if (currentProfileId) rfcRenderOptional('선수 프로필',()=>updateProfileStats(currentProfileId, document.getElementById('pModalSeason').value)); 
                     if(document.getElementById('totalPlayerCount')) document.getElementById('totalPlayerCount').textContent = `(${rankingsData.length}명)`;
-                } else { rfcStatus('기존 랭킹 문서를 찾을 수 없습니다. Firebase 연결과 읽기 권한을 확인해주세요.', true); }
-            }, error => rfcStatus('랭킹을 불러오지 못했습니다. 연결과 접근 권한을 확인해주세요. ' + error.message, true)); 
+
+                    rfcBaseDocument=nextBaseline;
+            } catch(error) {rfcRestoreMemory(before);rfcDraft=beforeDraft;rfcQueuedDocument=beforeQueued;throw error;}
         }
 
         function updateSeasonUI() { 
@@ -4096,6 +4215,18 @@ rfcRenderBatchRows = () => {
     document.getElementById('rfcBatchRows').querySelectorAll('select[data-rfc-player]').forEach(select => {
         rfcUxBatchSelects.push(new TomSelect(select, {create:false, maxOptions:null, searchField:['text'], placeholder:'선수 이름 또는 ID 검색'}));
     });
+};
+
+
+// Preserve the previous list if rendering new data fails halfway through.
+const rfcOriginalListRender=renderRankings;
+renderRankings=()=>{
+    const list=document.getElementById('rankingList'), previous=list.innerHTML;
+    try {return rfcOriginalListRender();} catch(error){list.innerHTML=previous;throw error;}
+};
+window.rfcReloadRankings=()=>{
+    rfcLoadNeedsRender=true;
+    if(rfcRankingFeed)rfcRankingFeed.retry();
 };
 
 </script>
