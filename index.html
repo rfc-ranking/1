@@ -256,6 +256,12 @@ img{max-width:100%} .rfc-help{margin:12px 0;padding:14px;border:1px solid #cbd5e
 .rfc-video-link{display:inline-flex;align-items:center;justify-content:center;gap:4px;align-self:flex-start;padding:6px 10px;border:1px solid #fecaca;border-radius:8px;color:#b91c1c;background:#fff1f2;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap}
 .rfc-video-link:hover{background:#ffe4e6}.rfc-video-link:focus-visible,.rfc-video-ui :focus-visible{outline:3px solid #2563eb;outline-offset:2px}
 .rfc-video-footer{display:flex;gap:8px;align-items:center;flex-wrap:wrap;width:100%;margin-top:8px}
+/* v5.63: 경기목록 렌더링에도 공통 푸터를 적용하고 PC에서 버튼·배지를 한 줄로 고정 */
+.rfc-video-footer{display:flex;align-items:center;gap:8px;min-width:0}
+.rfc-video-footer .rfc-video-link{flex:0 0 auto}
+.rfc-video-footer .rfc-repeat-badge{display:inline-block;flex:0 0 auto;margin:0;max-width:none;white-space:nowrap;overflow-wrap:normal}
+@media(min-width:1024px){.rfc-video-footer{flex-wrap:nowrap}}
+@media(max-width:1023px){.rfc-video-footer{flex-wrap:wrap}.rfc-video-footer .rfc-repeat-badge{white-space:normal;overflow-wrap:anywhere}}
 .rfc-video-ui{color:#1e293b;font-size:14px;line-height:1.5}.rfc-video-ui label{display:block;font-weight:700;font-size:12px}.rfc-video-ui input,.rfc-video-ui select{display:block;width:100%;min-width:0;margin-top:4px;padding:9px;border:1px solid #cbd5e1;border-radius:8px;background:white;color:#0f172a;font-size:14px}
 .rfc-video-ui button,.rfc-video-edit{padding:8px 12px;border:1px solid #cbd5e1;border-radius:8px;background:#f8fafc;color:#334155;font-size:12px;font-weight:700;cursor:pointer}.rfc-video-ui button:hover,.rfc-video-edit:hover{background:#e2e8f0}.rfc-video-ui button:disabled{opacity:.45;cursor:not-allowed}.rfc-video-ui .rfc-primary{background:#1d4ed8;color:white;border-color:#1d4ed8}.rfc-video-ui .rfc-primary:hover{background:#1e40af}
 .rfc-video-ui p{margin:8px 0;color:#475569;font-size:12px}.rfc-video-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.rfc-video-dialog{border:0;border-radius:18px;padding:22px;width:calc(100% - 24px);max-width:860px;max-height:90vh;max-height:90dvh;overflow:auto;margin:auto;box-shadow:0 24px 80px #0f172a66;background:#fff}.rfc-video-dialog::backdrop{background:#0f172a99}.rfc-video-heading,.rfc-video-actions{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px}.rfc-video-heading h2{font-size:20px;font-weight:800}.rfc-video-actions{margin-top:14px}.rfc-batch-row{margin:12px 0;padding:14px;border:1px solid #cbd5e1;border-radius:12px;background:#f8fafc}.rfc-batch-row header{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:12px}.rfc-batch-row header button{padding:4px 9px}.rfc-batch-preview-item{padding:12px 0;border-bottom:1px solid #e2e8f0}.rfc-video-ui [role="status"]{white-space:pre-wrap;color:#b91c1c}.rfc-video-help{margin-top:12px;border-top:1px solid #e2e8f0;padding-top:10px}.rfc-video-help summary{font-size:12px;font-weight:700;cursor:pointer}
@@ -1025,8 +1031,8 @@ window.addEventListener('online', () => rfcStatus('인터넷이 연결되었습�
         import { getFirestore, doc, getDocFromServer, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v5.61",
-            updateNote: "타이틀 매치 지정 기록 배지 표시 호환",
+            version: "v5.63",
+            updateNote: "경기목록 영상 버튼·승수 배지 실제 한 줄 배치 수정",
             title: "RFC 랭킹전"
         };
 
@@ -2130,7 +2136,9 @@ window.addEventListener('online', () => rfcStatus('인터넷이 연결되었습�
                             </div>
                         </div>
                     </div>`; 
-                div.insertAdjacentHTML('beforeend', rfcVideoButton(m) + rfcRepeatBadge(m)); container.appendChild(div); 
+                const videoFooter = rfcVideoButton(m) + rfcRepeatBadge(m);
+                if (videoFooter) div.insertAdjacentHTML('beforeend', '<div class="rfc-video-footer">' + videoFooter + '</div>');
+                container.appendChild(div); 
             }); 
         }
 
