@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>v5.92 날짜별 경기 영상 일괄 적용</title>
+    <title>v5.96 챕터 랭킹 표기 인식</title>
     <script src="https://cdn.tailwindcss.com"></script>
     
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
@@ -1380,9 +1380,9 @@ window.addEventListener('online', () => rfcStatus('인터넷이 연결되었습�
 
         
         const ADMIN_CONFIG = {
-            version: "v5.92",
-            updateNote: "날짜별 전체 경기 영상 링크 일괄 적용",
-            title: "v5.92 날짜별 경기 영상 일괄 적용"
+            version: "v5.96",
+            updateNote: "챕터 선수 이름의 (1위), (6위) 같은 순위 표기를 제거해 경기 기록과 매칭",
+            title: "v5.96 챕터 랭킹 표기 인식"
         };
 
         function initVersionUI() {
@@ -2154,7 +2154,7 @@ function rfcScoreMatch(state,winner,loser,isDraw,loserBounty) {
                 let leftDots = ''; (leftStats.h || []).forEach(r => leftDots += `<div class="w-1.5 h-1.5 rounded-full ${r==='W'?'bg-emerald-400':(r==='D'?'bg-slate-400':'bg-rose-400')}"></div>`); 
                 let rightDots = ''; (rightStats.h || []).forEach(r => rightDots += `<div class="w-1.5 h-1.5 rounded-full ${r==='W'?'bg-emerald-400':(r==='D'?'bg-slate-400':'bg-rose-400')}"></div>`); 
 
-                if (m.date !== lastDate) { const count = dateCounts[m.date]; const dateHeader = document.createElement('div'); dateHeader.className = "text-xs font-bold text-slate-500 mt-4 mb-2 px-1 flex flex-wrap items-center gap-2 py-2 border-b border-slate-200"; dateHeader.style.cssText = "background-color: rgba(248, 250, 252, 0.96);"; const existingDateVideo = (seasonMatches.find(x => x.date === m.date && x.videoUrl) || {}).videoUrl || ''; const inputId = 'rfcDateVideo_' + m.date; dateHeader.innerHTML = `<div class="flex items-center gap-1 shrink-0"><span>📅</span> <span>${rfcHTML(m.date)}</span> <span class="text-slate-400 font-normal text-[11px] ml-1">(총 ${count}경기)</span></div><div class="flex items-center gap-1 flex-1 min-w-0" style="margin-left:auto;max-width:620px"><input id="${inputId}" type="url" value="${rfcHTML(existingDateVideo)}" placeholder="이 날짜의 YouTube 영상 링크" aria-label="${rfcHTML(m.date)} 날짜별 전체 경기 영상 링크" class="min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs font-normal" style="width:180px"><button type="button" onclick="rfcApplyDateVideo('${m.date}','${inputId}')" class="shrink-0 rounded-md bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 text-xs font-bold">전체 경기 적용</button></div>`; container.appendChild(dateHeader); lastDate = m.date; }
+                if (m.date !== lastDate) { const count = dateCounts[m.date]; const dateHeader = document.createElement('div'); dateHeader.className = "text-xs font-bold text-slate-500 mt-4 mb-2 px-1 flex flex-col items-stretch gap-2 py-2 border-b border-slate-200"; dateHeader.style.cssText = "background-color: rgba(248, 250, 252, 0.96);"; const existingDateVideo = (seasonMatches.find(x => x.date === m.date && x.videoUrl) || {}).videoUrl || ''; const inputId = 'rfcDateVideo_' + m.date; const chaptersId = 'rfcDateChapters_' + m.date; dateHeader.innerHTML = `<div class="flex flex-wrap items-center gap-2 w-full"><div class="flex items-center gap-1 shrink-0"><span>📅</span> <span>${rfcHTML(m.date)}</span> <span class="text-slate-400 font-normal text-[11px] ml-1 whitespace-nowrap">(총 ${count}경기)</span></div><div class="flex items-center gap-1 min-w-0 flex-1" style="max-width:460px"><input id="${inputId}" type="url" value="${rfcHTML(existingDateVideo)}" placeholder="YouTube 영상 링크" aria-label="${rfcHTML(m.date)} 날짜별 전체 경기 영상 링크" class="min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs font-normal" style="width:120px"><button type="button" onclick="rfcApplyDateVideo('${m.date}','${inputId}')" class="shrink-0 rounded-md bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 text-xs font-bold whitespace-nowrap">전체 경기 적용</button></div></div><div class="flex items-center gap-2 w-full min-w-0"><input id="${chaptersId}" type="text" placeholder="유튜브 챕터 목록 붙여넣기 (한 줄 또는 여러 줄)" aria-label="${rfcHTML(m.date)} 날짜별 유튜브 챕터 목록" class="min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs font-normal" style="width:220px"><button type="button" onclick="rfcApplyDateChapters('${m.date}','${inputId}','${chaptersId}')" class="shrink-0 rounded-md bg-violet-600 hover:bg-violet-700 text-white px-2.5 py-1.5 text-xs font-bold whitespace-nowrap">챕터 시간 자동 적용</button></div>`; container.appendChild(dateHeader); lastDate = m.date; }
                 const div = document.createElement('div'); div.className = "bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-2 relative group hover:border-blue-300 transition-colors"; 
                 div.innerHTML = `<div class="absolute top-2 right-2 flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition"><button onclick="deleteMatchLog(${rfcArg(rawIndex)})" class="text-slate-300 hover:text-red-500 transition p-1" title="기록 삭제"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a1.995 1.995 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button></div><div class="flex items-center justify-between text-xs mt-1 pr-2"><div class="flex flex-col items-start w-[45%]"><div class="flex items-center gap-1.5"><span class="text-[10px] text-blue-500 font-bold mr-0.5">B</span><span class="text-xs ${leftNameClass} truncate">${rfcHTML(leftName)}</span><span class="${leftBadgeClass} text-[9px] px-1 py-0.5 rounded font-bold">${leftResult}</span></div><div class="flex items-center gap-2 mt-1"><span class="text-[9px] text-slate-400 font-medium bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">${rfcHTML(leftStats.w)}승 ${rfcHTML(leftStats.l)}패 ${leftStats.d > 0 ? leftStats.d+'무' : ''}</span><div class="flex gap-0.5">${leftDots}</div></div></div><div class="text-[10px] font-bold text-slate-300">VS</div><div class="flex flex-col items-end w-[45%]"><div class="flex items-center gap-1.5"><span class="${rightBadgeClass} text-[9px] px-1 py-0.5 rounded font-bold">${rightResult}</span><span class="text-xs ${rightNameClass} truncate">${rfcHTML(rightName)}</span><span class="text-[10px] text-red-500 font-bold ml-0.5">R</span></div><div class="flex items-center gap-2 mt-1"><div class="flex gap-0.5">${rightDots}</div><span class="text-[9px] text-slate-400 font-medium bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">${rfcHTML(rightStats.w)}승 ${rfcHTML(rightStats.l)}패 ${rightStats.d > 0 ? rightStats.d+'무' : ''}</span></div></div></div>`; div.insertAdjacentHTML('beforeend', `<div class="rfc-video-footer">${rfcVideoButton(m)}${rfcRepeatBadge(m)}<button type="button" class="rfc-video-edit" onclick="rfcEditMatchVideo(${rfcArg(rawIndex)})">${m.videoUrl ? '영상 수정' : '영상 연결'}</button></div>`); container.appendChild(div); 
             }); 
@@ -2185,6 +2185,86 @@ function rfcScoreMatch(state,winner,loser,isDraw,loserBounty) {
                 return true;
             }, 'rfcApplyDateVideo');
             if (!saved) alert('영상 링크를 저장하지 못했습니다. 연결 상태와 오류 메시지를 확인해주세요.');
+        };
+
+        window.rfcApplyDateChapters = async (date, videoInputId, chaptersInputId) => {
+            if (rfcOperationBusy) return;
+            const chapterInput = document.getElementById(chaptersInputId);
+            const videoInput = document.getElementById(videoInputId);
+            if (!chapterInput || !videoInput) return;
+            const rawText = chapterInput.value.trim();
+            if (!rawText) { alert('유튜브 챕터 목록을 먼저 붙여넣어 주세요.'); chapterInput.focus(); return; }
+
+            const chapters = [];
+            let discoveredVideo = '';
+            const normalizeName = value => String(value || '').normalize('NFC').replace(/[\u200B-\u200D\uFEFF]/g, '').replace(/\(\s*\d+\s*위\s*\)/g, '').replace(/\s+/g, '').toLocaleLowerCase('ko-KR');
+            const urlMatch = rawText.match(/https?:\/\/[^\s)]+/i);
+            if (urlMatch) {
+                try { discoveredVideo = rfcYouTubeURL(urlMatch[0].replace(/&amp;/g, '&').replace(/\\&/g, '&')); } catch { /* URL validation happens below */ }
+            }
+            // Markdown 링크를 시간 텍스트로 바꾸고 URL을 제거한 뒤, 한 줄 안의 모든 시간 지점을 분리한다.
+            const plain = rawText.replace(/\[([^\]]+)\]\([^)]*\)/g, '$1').replace(/https?:\/\/\S+/ig, '').replace(/\\&/g, '&').replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ').trim();
+            const timePattern = /(?:^|\s)(\d{1,2}:\d{2}:\d{2}|\d{1,3}:\d{2})(?=\s|$)/g;
+            const timeMatches = [...plain.matchAll(timePattern)];
+            for (let i = 0; i < timeMatches.length; i++) {
+                const timeMatch = timeMatches[i];
+                const seconds = rfcVideoSeconds(timeMatch[1]);
+                const segmentStart = timeMatch.index + timeMatch[0].length;
+                const segmentEnd = i + 1 < timeMatches.length ? timeMatches[i + 1].index : plain.length;
+                const rest = plain.slice(segmentStart, segmentEnd).trim().replace(/^[-–—:|]+\s*/, '');
+                const pair = rest.match(/^(.+?)\s*(?:VS\.?|vs\.?|v\.?|대)\s*(.+?)\s*$/i);
+                if (!pair) continue; // 예: '00:00 시작'은 영상 도입부이므로 경기 매칭에서 제외
+                chapters.push({ seconds, left: pair[1].trim(), right: pair[2].trim(), line: rest });
+            }
+            if (!chapters.length) { alert('경기 이름이 포함된 챕터를 찾지 못했습니다. 예: 15:06 망고링 VS 고도르'); return; }
+
+            let baseVideo = '';
+            try { baseVideo = rfcYouTubeURL(videoInput.value.trim() || discoveredVideo); }
+            catch (error) { alert(error.message || '유튜브 영상 링크를 확인해주세요.'); videoInput.focus(); return; }
+            if (!baseVideo) { alert('날짜별 YouTube 영상 링크를 입력하거나 챕터 안에 유튜브 링크를 포함해주세요.'); videoInput.focus(); return; }
+            baseVideo = rfcYouTubeURL(baseVideo, 0);
+
+            const dateMatches = enrichedHistory.filter(m => m.date === date && (m.season || '시즌 1') === viewHistorySeason && Number.isInteger(m.rfcRawIndex) && matchHistoryData[m.rfcRawIndex]);
+            const matched = [];
+            const unmatched = [];
+            const pairKey = (a, b) => [normalizeName(a), normalizeName(b)].sort().join('::');
+            const chapterGroups = new Map();
+            chapters.forEach(chapter => {
+                const key = pairKey(chapter.left, chapter.right);
+                if (!chapterGroups.has(key)) chapterGroups.set(key, []);
+                chapterGroups.get(key).push(chapter);
+            });
+            const matchGroups = new Map();
+            dateMatches.forEach(match => {
+                const key = pairKey(match.winner, match.loser);
+                if (!matchGroups.has(key)) matchGroups.set(key, []);
+                matchGroups.get(key).push(match);
+            });
+            chapterGroups.forEach((group, key) => {
+                const candidates = matchGroups.get(key) || [];
+                if (candidates.length === group.length) {
+                    // 같은 선수 조합이 반복되면 챕터와 경기 기록의 날짜 내 순서를 기준으로 1:1 연결
+                    group.forEach((chapter, index) => matched.push({ index: candidates[index].rfcRawIndex, chapter, match: candidates[index] }));
+                } else {
+                    const reason = candidates.length === 0 ? '해당 날짜의 경기 기록과 이름 불일치' : `동일 선수 조합의 챕터 ${group.length}개 / 기록 ${candidates.length}개로 개수가 일치하지 않음`;
+                    group.forEach(chapter => unmatched.push(`${chapter.line} (${reason})`));
+                }
+            });
+            matched.sort((a, b) => chapters.indexOf(a.chapter) - chapters.indexOf(b.chapter));
+            if (!matched.length) { alert('챕터와 일치하는 경기 기록을 찾지 못했습니다. 선수 이름과 선택된 날짜/시즌을 확인해주세요.'); return; }
+            const summary = matched.map(({chapter, match}) => `${chapter.seconds}s · ${match.winner} vs ${match.loser}`).join('\n');
+            const warning = unmatched.length ? `\n\n자동 적용에서 제외될 챕터 ${unmatched.length}개:\n${unmatched.slice(0, 8).join('\n')}${unmatched.length > 8 ? '\n…' : ''}` : '';
+            if (!confirm(`${date} 날짜의 ${matched.length}개 경기 영상 시작 시각을 적용할까요?\n\n${summary}${warning}\n\n일치하지 않거나 중복으로 판단되는 챕터는 변경하지 않습니다.`)) return;
+            const saved = await rfcRunOperation(async () => {
+                captureState();
+                matched.forEach(({index, chapter}) => { matchHistoryData[index].videoUrl = rfcYouTubeURL(baseVideo, chapter.seconds); });
+                await saveRankings();
+                renderAdminMatches();
+                rfcStatus(`${date} 날짜: ${matched.length}개 경기의 챕터 시작 시각을 적용했습니다.${unmatched.length ? ` 제외 ${unmatched.length}개.` : ''}`);
+                return true;
+            }, 'rfcApplyDateChapters');
+            if (!saved) alert('챕터 시작 시각을 저장하지 못했습니다. 연결 상태와 오류 메시지를 확인해주세요.');
+            else if (unmatched.length) alert(`일치하는 ${matched.length}개 경기만 적용했습니다.\n제외된 챕터 ${unmatched.length}개는 경기 기록을 확인한 뒤 수동으로 처리해주세요.`);
         };
 
         window.deleteMatchLog = async (idx) => { if (!Number.isInteger(idx) || idx < 0 || idx >= matchHistoryData.length) return; if(!confirm("이 경기의 기록만 삭제합니다. 점수·승패·챔피언 상태는 되돌아가지 않습니다. 계속할까요?")) return; captureState(); matchHistoryData.splice(idx, 1); await saveRankings(); renderAdminMatches(); alert("기록 삭제됨."); };
