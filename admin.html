@@ -397,6 +397,21 @@ body.rfc-design-admin #rfcAdminHeader{background:#111e32;border:1px solid #111e3
 @media(max-width:370px){.rfc-design-public #rfcDesignPublicHeader>.rfc-design-masthead{flex-wrap:wrap}.rfc-design-public #rfcDesignPublicHeader>.rfc-design-masthead>div:last-child{margin-left:auto}.rfc-design .rfc-season-mark{display:none}}
 @media(prefers-reduced-motion:reduce){.rfc-design *,.rfc-design *::before,.rfc-design *::after{transition-duration:.01ms!important;animation-duration:.01ms!important}}
 
+
+/* v5.85: keep shortcuts, search, carrier filters and actions on one horizontal row. */
+#rfcAdminToolbar{display:block;overflow:visible;padding:0 12px;border-radius:14px}
+#rfcAdminTabs{width:100%;gap:24px}
+#rfcAdminFilters{width:100%;display:flex;align-items:center;flex-wrap:nowrap;gap:6px;border-left:0;border-top:1px solid #e2e8f0;padding:8px 0;margin:0;min-width:0;overflow:visible}
+#rfcAdminShortcuts{display:flex;align-items:center;gap:6px;flex:0 0 auto;flex-wrap:nowrap;margin:0}
+#rfcAdminShortcuts .rfc-ux-button{min-height:34px;padding:6px 9px;white-space:nowrap;font-size:11px}
+#rfcAdminSearchWrap{flex:1 1 100px;min-width:76px;max-width:180px}
+#rfcAdminSearchWrap #searchInput{display:block;width:100%;min-width:0;min-height:36px;padding-top:7px;padding-bottom:7px;padding-left:25px;padding-right:5px;font-size:11px}
+#carrierFilterBar{display:flex;align-items:center;gap:4px;flex:0 0 auto;flex-wrap:nowrap}
+#carrierFilterBar button{min-height:34px;padding:5px 8px;white-space:nowrap;font-size:11px}
+#rfcAdminFilters>div:last-child{display:flex;gap:5px;flex:0 0 auto;white-space:nowrap}
+#rfcAdminFilters>div:last-child button{min-height:34px;padding:5px 8px;white-space:nowrap;font-size:11px}
+@media(max-width:1100px){#rfcAdminFilters{gap:4px}#rfcAdminShortcuts{gap:4px}#rfcAdminShortcuts .rfc-ux-button{padding:5px 6px;font-size:10px}#rfcAdminSearchWrap{flex-basis:82px;max-width:125px}#carrierFilterBar{gap:3px}#carrierFilterBar button{padding:4px 6px}#rfcAdminFilters>div:last-child button{padding:4px 6px}}
+@media(max-width:850px){#rfcAdminFilters{overflow-x:auto;justify-content:flex-start}#rfcAdminSearchWrap{flex:0 0 100px}#rfcAdminFilters>*{flex-shrink:0}}
 </style>
 <style>.rfc-load-panel{position:fixed;bottom:18px;left:18px;z-index:60;display:flex;align-items:center;gap:12px;flex-wrap:wrap;max-width:min(640px,calc(100vw - 36px));padding:13px 16px;border:1px solid #cbdcf7;border-radius:12px;background:#f0f6ff;color:#234772;box-shadow:0 8px 28px #14223820;font-size:12px;line-height:1.6}.rfc-load-panel[hidden],.rfc-load-panel button[hidden]{display:none}.rfc-load-panel button{flex-shrink:0;min-height:36px;padding:6px 11px;border-radius:8px;border:1px solid #acc5ec;background:#fff;color:#204f99;font-weight:700}.rfc-load-panel[data-kind=error],.rfc-load-panel[data-kind=offline],.rfc-load-panel[data-kind=partial]{background:#fff8ed;border-color:#ecd4ad;color:#794c16}.rfc-loading-placeholder{padding:30px 12px;text-align:center;color:#64748b;font-size:13px}.rfc-list-actions{display:flex;gap:4px;flex-shrink:0}@media(max-width:640px){.rfc-load-panel{left:12px;bottom:12px;max-width:calc(100vw - 24px);padding:12px;font-size:11px}.rfc-ux-rank-summary{flex-wrap:wrap}.rfc-list-actions .rfc-ux-button{font-size:10px}}
 </style><style>.rfc-repeat-rule{margin:12px 0;padding:12px 14px;border:1px solid #c7d2fe;border-radius:12px;background:#eef2ff;color:#3730a3;font-size:12px;line-height:1.7}.rfc-repeat-rule p{margin:5px 0 0}.rfc-repeat-badge{display:inline-block;max-width:100%;margin:4px 0;padding:3px 8px;border-radius:6px;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;font-size:11px;line-height:1.5;font-weight:700;overflow-wrap:anywhere}</style></head>
@@ -454,8 +469,9 @@ body.rfc-design-admin #rfcAdminHeader{background:#111e32;border:1px solid #111e3
                 <button onclick="switchTab('settings')" id="tabSettings" class="tab-btn py-4 whitespace-nowrap">설정 / 메모</button>
             </div>
             
-            <div id="rfcAdminFilters" class="flex items-center gap-2 py-2 shrink-0 pl-4 border-l border-slate-100 ml-4">
-                <div class="relative"><input type="search" id="searchInput" aria-label="선수 이름·초성·Game ID 검색" placeholder="선수/초성/Game ID 검색" class="w-[155px] text-xs border border-slate-200 rounded-lg pl-8 pr-2 py-2 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"><div class="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs">🔍</div></div>
+            <div id="rfcAdminFilters" class="flex items-center gap-1.5 py-2 shrink-0 pl-3 border-l border-slate-100 ml-3">
+                <div class="rfc-ux-shortcuts" id="rfcAdminShortcuts"><button type="button" class="rfc-ux-button" onclick="rfcUxJump('entry')">경기 입력으로</button><button type="button" class="rfc-ux-button" onclick="rfcUxJump('ranking')">선수 목록으로</button><button type="button" class="rfc-ux-button" onclick="rfcOpenBatch()">여러 경기 등록</button></div>
+                <div class="relative" id="rfcAdminSearchWrap"><input type="search" id="searchInput" aria-label="선수 이름·초성·Game ID 검색" placeholder="선수/초성/Game ID 검색" class="w-[105px] text-xs border border-slate-200 rounded-lg pl-7 pr-1.5 py-2 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"><div class="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs">🔍</div></div>
                 <div id="carrierFilterBar" class="flex items-center gap-1 shrink-0" aria-label="통신사별 선수 필터">
                     <button type="button" data-carrier-filter="" onclick="setCarrierFilter('')" class="carrier-filter-btn bg-slate-800 text-white border border-slate-800 text-xs font-bold px-2.5 py-2 rounded-lg">전체</button>
                     <button type="button" data-carrier-filter="SK" onclick="setCarrierFilter('SK')" class="carrier-filter-btn bg-white text-red-700 border border-red-200 text-xs font-bold px-2.5 py-2 rounded-lg hover:bg-red-50">SK</button>
@@ -466,7 +482,7 @@ body.rfc-design-admin #rfcAdminHeader{background:#111e32;border:1px solid #111e3
             </div>
         </div>
 
-        <div class="rfc-ux-shortcuts"><button type="button" class="rfc-ux-button" onclick="rfcUxJump('entry')">경기 입력으로</button><button type="button" class="rfc-ux-button" onclick="rfcUxJump('ranking')">선수 목록으로</button><button type="button" class="rfc-ux-button" onclick="rfcOpenBatch()">여러 경기 등록</button></div><div id="rfcAdminLayout" class="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-grow min-h-0 pb-2">
+        <div id="rfcAdminLayout" class="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-grow min-h-0 pb-2">
             <div id="rfcAdminWorkPanel" class="lg:col-span-4 space-y-6 h-full overflow-y-auto pb-4 pr-1 sticky-left-panel">
                 <div id="mainSection" class="tab-content">
                     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 mb-6 relative z-30">
@@ -1358,7 +1374,7 @@ window.addEventListener('online', () => rfcStatus('인터넷이 연결되었습�
 
         
         const ADMIN_CONFIG = {
-            version: "v5.84",
+            version: "v5.85",
             updateNote: "기존 DB 호환 · 저장 확인, 입력 보호, 경기 계산 및 백업 보완",
             title: "RFC 매니저"
         };
