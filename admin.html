@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>v5.91 경기 기록 필터 비고정 스크롤</title>
+    <title>v5.92 날짜별 경기 영상 일괄 적용</title>
     <script src="https://cdn.tailwindcss.com"></script>
     
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
@@ -1380,9 +1380,9 @@ window.addEventListener('online', () => rfcStatus('인터넷이 연결되었습�
 
         
         const ADMIN_CONFIG = {
-            version: "v5.91",
-            updateNote: "경기 기록 카드 영역 마우스 휠 스크롤 수정",
-            title: "v5.91 경기 기록 필터 비고정 스크롤"
+            version: "v5.92",
+            updateNote: "날짜별 전체 경기 영상 링크 일괄 적용",
+            title: "v5.92 날짜별 경기 영상 일괄 적용"
         };
 
         function initVersionUI() {
@@ -2154,13 +2154,39 @@ function rfcScoreMatch(state,winner,loser,isDraw,loserBounty) {
                 let leftDots = ''; (leftStats.h || []).forEach(r => leftDots += `<div class="w-1.5 h-1.5 rounded-full ${r==='W'?'bg-emerald-400':(r==='D'?'bg-slate-400':'bg-rose-400')}"></div>`); 
                 let rightDots = ''; (rightStats.h || []).forEach(r => rightDots += `<div class="w-1.5 h-1.5 rounded-full ${r==='W'?'bg-emerald-400':(r==='D'?'bg-slate-400':'bg-rose-400')}"></div>`); 
 
-                if (m.date !== lastDate) { const count = dateCounts[m.date]; const dateHeader = document.createElement('div'); dateHeader.className = "text-xs font-bold text-slate-500 mt-4 mb-2 px-1 flex items-center gap-1 sticky top-0 bg-f8fafc/90 backdrop-blur-sm z-10 py-1"; dateHeader.style.cssText = "background-color: rgba(248, 250, 252, 0.95); backdrop-filter: blur(2px);"; dateHeader.innerHTML = `<span>📅</span> ${rfcHTML(m.date)} <span class="text-slate-400 font-normal text-[11px] ml-1">(총 ${count}경기)</span>`; container.appendChild(dateHeader); lastDate = m.date; }
+                if (m.date !== lastDate) { const count = dateCounts[m.date]; const dateHeader = document.createElement('div'); dateHeader.className = "text-xs font-bold text-slate-500 mt-4 mb-2 px-1 flex flex-wrap items-center gap-2 py-2 border-b border-slate-200"; dateHeader.style.cssText = "background-color: rgba(248, 250, 252, 0.96);"; const existingDateVideo = (seasonMatches.find(x => x.date === m.date && x.videoUrl) || {}).videoUrl || ''; const inputId = 'rfcDateVideo_' + m.date; dateHeader.innerHTML = `<div class="flex items-center gap-1 shrink-0"><span>📅</span> <span>${rfcHTML(m.date)}</span> <span class="text-slate-400 font-normal text-[11px] ml-1">(총 ${count}경기)</span></div><div class="flex items-center gap-1 flex-1 min-w-0" style="margin-left:auto;max-width:620px"><input id="${inputId}" type="url" value="${rfcHTML(existingDateVideo)}" placeholder="이 날짜의 YouTube 영상 링크" aria-label="${rfcHTML(m.date)} 날짜별 전체 경기 영상 링크" class="min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs font-normal" style="width:180px"><button type="button" onclick="rfcApplyDateVideo('${m.date}','${inputId}')" class="shrink-0 rounded-md bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 text-xs font-bold">전체 경기 적용</button></div>`; container.appendChild(dateHeader); lastDate = m.date; }
                 const div = document.createElement('div'); div.className = "bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-2 relative group hover:border-blue-300 transition-colors"; 
                 div.innerHTML = `<div class="absolute top-2 right-2 flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition"><button onclick="deleteMatchLog(${rfcArg(rawIndex)})" class="text-slate-300 hover:text-red-500 transition p-1" title="기록 삭제"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a1.995 1.995 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button></div><div class="flex items-center justify-between text-xs mt-1 pr-2"><div class="flex flex-col items-start w-[45%]"><div class="flex items-center gap-1.5"><span class="text-[10px] text-blue-500 font-bold mr-0.5">B</span><span class="text-xs ${leftNameClass} truncate">${rfcHTML(leftName)}</span><span class="${leftBadgeClass} text-[9px] px-1 py-0.5 rounded font-bold">${leftResult}</span></div><div class="flex items-center gap-2 mt-1"><span class="text-[9px] text-slate-400 font-medium bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">${rfcHTML(leftStats.w)}승 ${rfcHTML(leftStats.l)}패 ${leftStats.d > 0 ? leftStats.d+'무' : ''}</span><div class="flex gap-0.5">${leftDots}</div></div></div><div class="text-[10px] font-bold text-slate-300">VS</div><div class="flex flex-col items-end w-[45%]"><div class="flex items-center gap-1.5"><span class="${rightBadgeClass} text-[9px] px-1 py-0.5 rounded font-bold">${rightResult}</span><span class="text-xs ${rightNameClass} truncate">${rfcHTML(rightName)}</span><span class="text-[10px] text-red-500 font-bold ml-0.5">R</span></div><div class="flex items-center gap-2 mt-1"><div class="flex gap-0.5">${rightDots}</div><span class="text-[9px] text-slate-400 font-medium bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">${rfcHTML(rightStats.w)}승 ${rfcHTML(rightStats.l)}패 ${rightStats.d > 0 ? rightStats.d+'무' : ''}</span></div></div></div>`; div.insertAdjacentHTML('beforeend', `<div class="rfc-video-footer">${rfcVideoButton(m)}${rfcRepeatBadge(m)}<button type="button" class="rfc-video-edit" onclick="rfcEditMatchVideo(${rfcArg(rawIndex)})">${m.videoUrl ? '영상 수정' : '영상 연결'}</button></div>`); container.appendChild(div); 
             }); 
         }
 
         function updateAdminHistorySeasonSelector() { const selector = document.getElementById('adminHistorySeason'); selector.innerHTML = ''; const opts = [activeSeason, ...Object.keys(seasonArchives).sort().reverse().filter(s => s !== activeSeason)]; opts.forEach(s => { const opt = document.createElement('option'); opt.value = s; opt.textContent = s + (s === activeSeason ? " 🟢" : ""); selector.appendChild(opt); }); selector.value = viewHistorySeason; selector.onchange = (e) => { viewHistorySeason = e.target.value; renderAdminMatches(); }; }
+        window.rfcApplyDateVideo = async (date, inputId) => {
+            if (rfcOperationBusy) return;
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            const raw = input.value.trim();
+            let videoUrl = '';
+            try { if (raw) videoUrl = rfcYouTubeURL(raw); }
+            catch (error) { alert(error.message || '올바른 YouTube 영상 링크를 입력해주세요.'); input.focus(); return; }
+            const indices = enrichedHistory
+                .filter(m => m.date === date && (m.season || '시즌 1') === viewHistorySeason)
+                .map(m => m.rfcRawIndex)
+                .filter(i => Number.isInteger(i) && matchHistoryData[i]);
+            if (!indices.length) { alert('해당 날짜의 경기 기록을 찾을 수 없습니다.'); return; }
+            const action = videoUrl ? '입력한 영상 링크를' : '해당 날짜의 영상 링크를';
+            if (!confirm(`${date} 날짜의 ${indices.length}경기에 ${action} ${videoUrl ? '모두 적용' : '모두 삭제'}할까요?`)) return;
+            const saved = await rfcRunOperation(async () => {
+                captureState();
+                indices.forEach(i => { if (videoUrl) matchHistoryData[i].videoUrl = videoUrl; else delete matchHistoryData[i].videoUrl; });
+                await saveRankings();
+                renderAdminMatches();
+                rfcStatus(`${date} 날짜의 ${indices.length}경기에 영상 링크를 ${videoUrl ? '적용' : '삭제'}했습니다.`);
+                return true;
+            }, 'rfcApplyDateVideo');
+            if (!saved) alert('영상 링크를 저장하지 못했습니다. 연결 상태와 오류 메시지를 확인해주세요.');
+        };
+
         window.deleteMatchLog = async (idx) => { if (!Number.isInteger(idx) || idx < 0 || idx >= matchHistoryData.length) return; if(!confirm("이 경기의 기록만 삭제합니다. 점수·승패·챔피언 상태는 되돌아가지 않습니다. 계속할까요?")) return; captureState(); matchHistoryData.splice(idx, 1); await saveRankings(); renderAdminMatches(); alert("기록 삭제됨."); };
 
         window.openMatchExportModal = () => { 
