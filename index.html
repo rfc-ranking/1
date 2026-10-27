@@ -256,7 +256,7 @@ img{max-width:100%} .rfc-help{margin:12px 0;padding:14px;border:1px solid #cbd5e
 .rfc-video-link{display:inline-flex;align-items:center;justify-content:center;gap:4px;align-self:flex-start;padding:6px 10px;border:1px solid #fecaca;border-radius:8px;color:#b91c1c;background:#fff1f2;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap}
 .rfc-video-link:hover{background:#ffe4e6}.rfc-video-link:focus-visible,.rfc-video-ui :focus-visible{outline:3px solid #2563eb;outline-offset:2px}
 .rfc-video-footer{display:flex;gap:8px;align-items:center;flex-wrap:wrap;width:100%;margin-top:8px}
-/* v5.63: 경기목록 렌더링에도 공통 푸터를 적용하고 PC에서 버튼·배지를 한 줄로 고정 */
+/* v5.71: 경기목록 기존 배치 유지, PC에서만 선수 사진을 양 끝에 추가 */
 .rfc-video-footer{display:flex;align-items:center;gap:8px;min-width:0}
 .rfc-video-footer .rfc-video-link{flex:0 0 auto}
 .rfc-video-footer .rfc-repeat-badge{display:inline-block;flex:0 0 auto;margin:0;max-width:none;white-space:nowrap;overflow-wrap:normal}
@@ -1031,7 +1031,7 @@ window.addEventListener('online', () => rfcStatus('인터넷이 연결되었습�
         import { getFirestore, doc, getDocFromServer, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v5.63",
+            version: "v5.71",
             updateNote: "경기목록 영상 버튼·승수 배지 실제 한 줄 배치 수정",
             title: "RFC 랭킹전"
         };
@@ -2109,31 +2109,37 @@ window.addEventListener('online', () => rfcStatus('인터넷이 연결되었습�
                 div.innerHTML = `
                     <div class="flex items-center justify-between text-sm">
                         <!-- Left (Blue) -->
-                        <div class="flex flex-col items-start w-[45%] ${cursorStyle(leftProfile)}" ${leftClick}>
-                            <div class="flex items-center gap-1.5">
-                                <span class="text-[10px] text-blue-500 font-bold mr-0.5">B</span>
-                                <span class="text-sm ${leftNameClass} truncate">${rfcHTML(leftName)}</span>
-                                <span class="${leftBadgeClass} text-[9px] px-1 py-0.5 rounded font-bold">${leftResult}</span>
-                            </div>
-                            <div class="flex items-center gap-2 mt-1">
-                                <span class="text-[9px] text-slate-400 font-medium bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">${rfcHTML(leftStats.w)}승 ${rfcHTML(leftStats.l)}패</span>
-                                <div class="flex gap-0.5 md:gap-1">${leftDots}</div>
+                        <div class="flex flex-col items-start w-[45%] ${cursorStyle(leftProfile)} md:flex-row md:items-center md:gap-3" ${leftClick}>
+                            <img class="hidden md:block w-[56px] h-[56px] object-cover rounded-xl border border-slate-200 shrink-0" src="${rfcHTML(leftProfile?.imageUrl || '')}" alt="${rfcHTML(leftName)} 프로필" loading="lazy" onerror="this.style.display='none'">
+                            <div class="flex flex-col items-start min-w-0">
+                                <div class="flex items-center gap-1.5 max-w-full">
+                                    <span class="text-[10px] text-blue-500 font-bold mr-0.5">B</span>
+                                    <span class="text-sm ${leftNameClass} truncate">${rfcHTML(leftName)}</span>
+                                    <span class="${leftBadgeClass} text-[9px] px-1 py-0.5 rounded font-bold">${leftResult}</span>
+                                </div>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <span class="text-[9px] text-slate-400 font-medium bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">${rfcHTML(leftStats.w)}승 ${rfcHTML(leftStats.l)}패</span>
+                                    <div class="flex gap-0.5 md:gap-1">${leftDots}</div>
+                                </div>
                             </div>
                         </div>
                         
-                        <div class="text-xs font-bold text-slate-300">VS</div>
+                        <div class="text-xs font-bold text-slate-300 shrink-0">VS</div>
                         
                         <!-- Right (Red) -->
-                        <div class="flex flex-col items-end w-[45%] ${cursorStyle(rightProfile)}" ${rightClick}>
-                            <div class="flex items-center gap-1.5">
-                                <span class="${rightBadgeClass} text-[9px] px-1 py-0.5 rounded font-bold">${rightResult}</span>
-                                <span class="text-sm ${rightNameClass} truncate">${rfcHTML(rightName)}</span>
-                                <span class="text-[10px] text-red-500 font-bold ml-0.5">R</span>
+                        <div class="flex flex-col items-end w-[45%] ${cursorStyle(rightProfile)} md:flex-row md:items-center md:justify-end md:gap-3" ${rightClick}>
+                            <div class="flex flex-col items-end min-w-0">
+                                <div class="flex items-center gap-1.5 max-w-full">
+                                    <span class="${rightBadgeClass} text-[9px] px-1 py-0.5 rounded font-bold">${rightResult}</span>
+                                    <span class="text-sm ${rightNameClass} truncate">${rfcHTML(rightName)}</span>
+                                    <span class="text-[10px] text-red-500 font-bold ml-0.5">R</span>
+                                </div>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <div class="flex gap-0.5 md:gap-1">${rightDots}</div>
+                                    <span class="text-[9px] text-slate-400 font-medium bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">${rfcHTML(rightStats.w)}승 ${rfcHTML(rightStats.l)}패</span>
+                                </div>
                             </div>
-                             <div class="flex items-center gap-2 mt-1">
-                                <div class="flex gap-0.5 md:gap-1">${rightDots}</div>
-                                <span class="text-[9px] text-slate-400 font-medium bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">${rfcHTML(rightStats.w)}승 ${rfcHTML(rightStats.l)}패</span>
-                            </div>
+                            <img class="hidden md:block w-[56px] h-[56px] object-cover rounded-xl border border-slate-200 shrink-0" src="${rfcHTML(rightProfile?.imageUrl || '')}" alt="${rfcHTML(rightName)} 프로필" loading="lazy" onerror="this.style.display='none'">
                         </div>
                     </div>`; 
                 const videoFooter = rfcVideoButton(m) + rfcRepeatBadge(m);
