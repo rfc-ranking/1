@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>v6.00 최고 순위 안내 툴팁 · 짧은 통합형</title>
+    <title>v6.02 경기기록 검색창 높이·안내문구 정리</title>
     <script src="https://cdn.tailwindcss.com"></script>
     
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
@@ -247,7 +247,14 @@
         /* [NEW] 기기 선택 라디오 카드 스타일 */
         .radio-card:checked + label { background-color: #f0fdf4 !important; border-color: #10b981 !important; }
         .radio-card:checked + label div { color: #047857 !important; }
-    </style>
+    
+/* v6.01: 경기 기록 시즌 선택 폭 축소 및 검색창 우측 배치 */
+#rfcAdminHistoryToolbar{display:flex;align-items:center;gap:12px;min-width:0}
+#rfcAdminHistoryToolbar #adminHistorySeason{width:max-content;min-width:118px;max-width:180px;height:42px;box-sizing:border-box;flex:0 0 auto;white-space:nowrap}
+#rfcAdminHistoryToolbar #rfcHistorySearch{display:block;box-sizing:border-box;width:100%;height:42px;min-height:42px;min-width:0;flex:1 1 auto;padding:0 10px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;font-size:14px;color:#0f172a}
+#rfcAdminHistoryToolbar #rfcHistorySearch:focus{outline:none;border-color:#3b82f6;box-shadow:0 0 0 2px #3b82f633}
+@media(max-width:520px){#rfcAdminHistoryToolbar{align-items:center;gap:8px;flex-wrap:nowrap}#rfcAdminHistoryToolbar #adminHistorySeason{max-width:100%}}
+</style>
 <style>
 button:disabled{opacity:.55;cursor:wait} :focus-visible{outline:3px solid #2563eb;outline-offset:3px}
 img{max-width:100%} .rfc-help{margin:12px 0;padding:14px;border:1px solid #cbd5e1;border-radius:12px;background:white;color:#334155;font-size:13px;line-height:1.8}
@@ -604,8 +611,10 @@ body.rfc-design-admin #rfcAdminHeader{background:#111e32;border:1px solid #111e3
                 </div>
 
                 <div id="historySection" class="tab-content hidden">
-                    <div id="rfcAdminHistoryCard" class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col h-[calc(100vh-180px)]"><div class="bg-slate-50 p-4 border-b border-slate-100 flex justify-between items-center"><h3 class="font-bold text-slate-700">경기 기록</h3><button onclick="openMatchExportModal()" class="bg-white border border-slate-200 text-slate-600 hover:text-blue-600 text-xs font-bold px-3 py-1.5 rounded-lg transition shadow-sm flex items-center gap-1"><span>📤</span> 텍스트 내보내기</button></div><div class="p-3 border-b border-slate-100"><select id="adminHistorySeason" aria-label="경기 기록 시즌 선택" class="w-full text-sm font-bold text-slate-700 bg-white border border-slate-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500"></select></div><div class="rfc-ux-history" role="search" aria-label="경기 기록 검색">
-  <label for="rfcHistorySearch">선수·초성·Game ID 검색<input type="search" id="rfcHistorySearch" placeholder="선수 이름 또는 ID" autocomplete="off" oninput="rfcUxFilterHistory()"></label>
+                    <div id="rfcAdminHistoryCard" class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col h-[calc(100vh-180px)]"><div class="bg-slate-50 p-4 border-b border-slate-100 flex justify-between items-center"><h3 class="font-bold text-slate-700">경기 기록</h3><button onclick="openMatchExportModal()" class="bg-white border border-slate-200 text-slate-600 hover:text-blue-600 text-xs font-bold px-3 py-1.5 rounded-lg transition shadow-sm flex items-center gap-1"><span>📤</span> 텍스트 내보내기</button></div><div id="rfcAdminHistoryToolbar" class="px-3 py-2.5 border-b border-slate-100 flex items-center gap-3">
+  <select id="adminHistorySeason" aria-label="경기 기록 시즌 선택" class="text-sm font-bold text-slate-700 bg-white border border-slate-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500"></select>
+  <input type="search" id="rfcHistorySearch" aria-label="선수·초성·Game ID 검색" placeholder="선수·초성·Game ID 검색" autocomplete="off" oninput="rfcUxFilterHistory()">
+</div><div class="rfc-ux-history" role="search" aria-label="경기 기록 검색">
   <div class="rfc-ux-filter-row"><label for="rfcHistoryDateFilter">경기 날짜<input type="date" id="rfcHistoryDateFilter" onchange="rfcUxFilterHistory()"></label><label class="rfc-ux-check"><input type="checkbox" id="rfcHistoryVideoFilter" onchange="rfcUxFilterHistory()"> 영상 있는 경기만</label></div>
   <div class="rfc-ux-filter-row"><span id="rfcHistoryCount" role="status" aria-live="polite"></span><button type="button" class="rfc-ux-button" onclick="rfcUxClearHistory()">검색 초기화</button></div>
 </div>
@@ -1404,9 +1413,9 @@ window.addEventListener('online', () => rfcStatus('인터넷이 연결되었습�
 
         
         const ADMIN_CONFIG = {
-            version: "v6.00",
-            updateNote: "최고 순위 툴팁 문구 간결화 · 통합 안내형 적용",
-            title: "v6.00 최고 순위 안내 툴팁 · 짧은 통합형"
+            version: "v6.02",
+            updateNote: "검색 안내문구를 입력창 내부로 이동 · 시즌 탭과 높이 통일",
+            title: "v6.02 경기기록 검색창 높이·안내문구 정리"
         };
 
         function initVersionUI() {
