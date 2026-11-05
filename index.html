@@ -425,19 +425,6 @@ body.rfc-design-admin #rfcAdminHeader{background:#111e32;border:1px solid #111e3
 </style>
 <style>.rfc-load-panel{position:fixed;bottom:18px;left:18px;z-index:60;display:flex;align-items:center;gap:12px;flex-wrap:wrap;max-width:min(640px,calc(100vw - 36px));padding:13px 16px;border:1px solid #cbdcf7;border-radius:12px;background:#f0f6ff;color:#234772;box-shadow:0 8px 28px #14223820;font-size:12px;line-height:1.6}.rfc-load-panel[hidden],.rfc-load-panel button[hidden]{display:none}.rfc-load-panel button{flex-shrink:0;min-height:36px;padding:6px 11px;border-radius:8px;border:1px solid #acc5ec;background:#fff;color:#204f99;font-weight:700}.rfc-load-panel[data-kind=error],.rfc-load-panel[data-kind=offline],.rfc-load-panel[data-kind=partial]{background:#fff8ed;border-color:#ecd4ad;color:#794c16}.rfc-loading-placeholder{padding:30px 12px;text-align:center;color:#64748b;font-size:13px}.rfc-list-actions{display:flex;gap:4px;flex-shrink:0}@media(max-width:640px){.rfc-load-panel{left:12px;bottom:12px;max-width:calc(100vw - 24px);padding:12px;font-size:11px}.rfc-ux-rank-summary{flex-wrap:wrap}.rfc-list-actions .rfc-ux-button{font-size:10px}}
 </style><style>.rfc-repeat-rule{margin:12px 0;padding:12px 14px;border:1px solid #c7d2fe;border-radius:12px;background:#eef2ff;color:#3730a3;font-size:12px;line-height:1.7}.rfc-repeat-rule p{margin:5px 0 0}.rfc-repeat-badge{display:inline-block;max-width:100%;margin:4px 0;padding:3px 8px;border-radius:6px;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;font-size:11px;line-height:1.5;font-weight:700;overflow-wrap:anywhere}</style>
-<style id="rfcMatchPhotosV564">
-/* v5.72: 최고 순위 산정 기준을 PC 호버·키보드 포커스·모바일 터치 포커스 툴팁으로 안내 */
-        /* v5.64: 경기 기록 PC 화면에서만 선수 사진 확대 표시. 모바일 기존 레이아웃 유지 */
-.rfc-match-photo{display:none}
-@media(min-width:768px){
-  .rfc-match-fighter{display:flex;flex-direction:row;align-items:center;gap:12px;min-width:0}
-  .rfc-match-fighter-left{justify-content:flex-start}
-  .rfc-match-fighter-right{justify-content:flex-end}
-  .rfc-match-photo{display:block;flex:0 0 90px;width:90px;height:90px;max-width:90px;object-fit:cover;object-position:center;border-radius:12px;background:#f1f5f9;border:1px solid #e2e8f0;box-shadow:0 2px 6px #0f172a12}
-  .rfc-match-fighter-info{min-width:0;max-width:calc(100% - 102px)}
-  .rfc-match-fighter-info>div:first-child{flex-wrap:wrap}
-}
-</style>
 </head>
 <body class="rfc-design rfc-design-public bg-slate-100 text-slate-800 pb-10 flex flex-col min-h-screen">
 <div id="rfcConnectionStatus" role="status" aria-live="polite" hidden style="padding:12px 16px;background:#fff7df;border-bottom:1px solid #e2d1a0;white-space:pre-wrap"></div>
@@ -1049,8 +1036,8 @@ window.addEventListener('online', () => rfcStatus('인터넷이 연결되었습�
         import { getFirestore, doc, getDocFromServer, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v5.72",
-            updateNote: "최고 순위 산정 기준 안내를 통합형 툴팁으로 표시",
+            version: "v5.73",
+            updateNote: "경기기록 PC 선수 사진 크기 및 배치를 v5.71 기준으로 복원",
             title: "RFC 랭킹전"
         };
 
@@ -2127,10 +2114,10 @@ window.addEventListener('online', () => rfcStatus('인터넷이 연결되었습�
                 div.innerHTML = `
                     <div class="flex items-center justify-between text-sm">
                         <!-- Left (Blue) -->
-                        <div class="rfc-match-fighter rfc-match-fighter-left flex flex-col items-start w-[45%] ${cursorStyle(leftProfile)}" ${leftClick}>
-                            <img class="rfc-match-photo" src="${rfcHTML(rfcURL(leftProfile && leftProfile.imageUrl ? leftProfile.imageUrl : 'https://placehold.co/180x180?text=No+Img'))}" alt="${rfcHTML(leftName)} 프로필 사진" loading="lazy" onerror="this.onerror=null;this.src='https://placehold.co/180x180?text=No+Img'">
-                            <div class="rfc-match-fighter-info">
-                                <div class="flex items-center gap-1.5">
+                        <div class="flex flex-col items-start w-[45%] ${cursorStyle(leftProfile)} md:flex-row md:items-center md:gap-3" ${leftClick}>
+                            <img class="hidden md:block w-[56px] h-[56px] object-cover rounded-xl border border-slate-200 shrink-0" src="${rfcHTML(leftProfile?.imageUrl || '')}" alt="${rfcHTML(leftName)} 프로필" loading="lazy" onerror="this.style.display='none'">
+                            <div class="flex flex-col items-start min-w-0">
+                                <div class="flex items-center gap-1.5 max-w-full">
                                     <span class="text-[10px] text-blue-500 font-bold mr-0.5">B</span>
                                     <span class="text-sm ${leftNameClass} truncate">${rfcHTML(leftName)}</span>
                                     <span class="${leftBadgeClass} text-[9px] px-1 py-0.5 rounded font-bold">${leftResult}</span>
@@ -2142,12 +2129,12 @@ window.addEventListener('online', () => rfcStatus('인터넷이 연결되었습�
                             </div>
                         </div>
                         
-                        <div class="text-xs font-bold text-slate-300">VS</div>
+                        <div class="text-xs font-bold text-slate-300 shrink-0">VS</div>
                         
                         <!-- Right (Red) -->
-                        <div class="rfc-match-fighter rfc-match-fighter-right flex flex-col items-end w-[45%] ${cursorStyle(rightProfile)}" ${rightClick}>
-                            <div class="rfc-match-fighter-info">
-                                <div class="flex items-center gap-1.5">
+                        <div class="flex flex-col items-end w-[45%] ${cursorStyle(rightProfile)} md:flex-row md:items-center md:justify-end md:gap-3" ${rightClick}>
+                            <div class="flex flex-col items-end min-w-0">
+                                <div class="flex items-center gap-1.5 max-w-full">
                                     <span class="${rightBadgeClass} text-[9px] px-1 py-0.5 rounded font-bold">${rightResult}</span>
                                     <span class="text-sm ${rightNameClass} truncate">${rfcHTML(rightName)}</span>
                                     <span class="text-[10px] text-red-500 font-bold ml-0.5">R</span>
@@ -2157,7 +2144,7 @@ window.addEventListener('online', () => rfcStatus('인터넷이 연결되었습�
                                     <span class="text-[9px] text-slate-400 font-medium bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">${rfcHTML(rightStats.w)}승 ${rfcHTML(rightStats.l)}패</span>
                                 </div>
                             </div>
-                            <img class="rfc-match-photo" src="${rfcHTML(rfcURL(rightProfile && rightProfile.imageUrl ? rightProfile.imageUrl : 'https://placehold.co/180x180?text=No+Img'))}" alt="${rfcHTML(rightName)} 프로필 사진" loading="lazy" onerror="this.onerror=null;this.src='https://placehold.co/180x180?text=No+Img'">
+                            <img class="hidden md:block w-[56px] h-[56px] object-cover rounded-xl border border-slate-200 shrink-0" src="${rfcHTML(rightProfile?.imageUrl || '')}" alt="${rfcHTML(rightName)} 프로필" loading="lazy" onerror="this.style.display='none'">
                         </div>
                     </div>`; 
                 const videoFooter = rfcVideoButton(m) + rfcRepeatBadge(m);
