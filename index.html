@@ -514,6 +514,8 @@ body.rfc-design-admin #rfcAdminHeader{background:#111e32;border:1px solid #111e3
 .rfc-tp-block:not([open]){padding:8px 10px}
 .rfc-tp-block[open] .rfc-tp-head{padding-bottom:8px}
 
+.rfc-tb-mlabel{font-size:10px;font-weight:800;color:#245cdb;padding:4px 8px 2px;background:#f8fafc;border-bottom:1px solid #eef2f6}
+
 /* ===== [토너먼트] 사용자 ===== */
 .rfc-tpub-group{font-size:12px;font-weight:800;color:#475569;margin:14px 2px 8px;display:flex;align-items:center;gap:6px}
 .rfc-tpub-group span{background:#e2e8f0;color:#475569;border-radius:999px;padding:1px 7px;font-size:10px}
@@ -1142,7 +1144,7 @@ window.addEventListener('online', () => rfcStatus('인터넷이 연결되었습�
         import { getFirestore, doc, getDocFromServer, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v5.75",
+            version: "v5.76",
             updateNote: "대진표 탭에 토너먼트 대진·지난 기록, 선수 프로필에 토너먼트 전적 추가",
             title: "RFC 랭킹전"
         };
@@ -1324,7 +1326,7 @@ window.addEventListener('online', () => rfcStatus('인터넷이 연결되었습�
                 rankingsData = data.rankings || []; 
                 matchHistoryData = data.matchHistory || []; 
                 patchNotesData = data.patchNotes || [];
-                tournamentsData = Array.isArray(data.tournaments) ? data.tournaments : [];
+                tournamentsData = rfcTFromStore(data.tournaments);
                 
                 matchHistoryData.sort((a, b) => new Date(b.date) - new Date(a.date));
 
@@ -3395,6 +3397,22 @@ rfcRankingFeed.start();
 // ======================================================================
 const RFC_T_STATUS = { draft: '준비 중', ongoing: '진행 중', finished: '종료' };
 
+// Firestore는 배열 안의 배열을 저장할 수 없어서, 저장할 때 rounds를 [{matches:[…]}] 형태로 바꿉니다.
+function rfcTToStore(list) {
+    return (list || []).filter(Boolean).map(t => {
+        const c = JSON.parse(JSON.stringify(t));
+        if (Array.isArray(c.rounds)) c.rounds = c.rounds.map(r => Array.isArray(r) ? { matches: r } : r);
+        return c;
+    });
+}
+function rfcTFromStore(list) {
+    if (!Array.isArray(list)) return [];
+    return list.filter(Boolean).map(t => {
+        const c = JSON.parse(JSON.stringify(t));
+        if (Array.isArray(c.rounds)) c.rounds = c.rounds.map(r => Array.isArray(r) ? r : (r && Array.isArray(r.matches) ? r.matches : []));
+        return c;
+    });
+}
 function rfcTClone(v) { return v == null ? v : JSON.parse(JSON.stringify(v)); }
 function rfcTId(prefix) { return prefix + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
 function rfcTRef(player) { return player ? { id: player.id || null, name: String(player.name || '').trim() } : null; }
@@ -3490,13 +3508,27 @@ function rfcTFirstRoundPairs(players, seeding) {
     }
     return pairs;
 }
+// 준비 단계: 1라운드 칸(slots)에 선수를 직접 배치합니다. slots.length = 대진 크기(4·8·16·32·64)
+function rfcTSizeFor(n) { let size = 4; while (size < n) size *= 2; return size; }
+function rfcTGetSlots(t) {
+    if (Array.isArray(t.slots) && t.slots.length >= 2) return t.slots.map(x => x || null);
+    const players = (t.participants || []).filter(Boolean);
+    const size = rfcTSizeFor(players.length);
+    return rfcTFirstRoundPairs(players, t.seeding).flat().concat(Array(size).fill(null)).slice(0, size);
+}
+function rfcTSyncParticipants(t) { t.participants = (t.slots || []).filter(Boolean).map(rfcTClone); }
 // 대진표 생성: 참가자 순서 = 시드 순서. 2의 거듭제곱이 아니면 상위 시드부터 부전승.
 function rfcTBuild(t) {
-    const players = (t.participants || []).filter(Boolean);
-    const n = players.length;
-    if (n < 2) throw new Error('참가자가 2명 이상이어야 대진표를 만들 수 있습니다.');
-    let size = 2; while (size < n) size *= 2;
-    const first = rfcTFirstRoundPairs(players, t.seeding).map(([a, b], i) => rfcTNewMatch(`0-${i}`, rfcTClone(a), rfcTClone(b)));
+    const slots = rfcTGetSlots(t);
+    const n = slots.filter(Boolean).length;
+    if (n < 2) throw new Error('선수가 2명 이상 배치되어야 대진표를 만들 수 있습니다.');
+    const size = slots.length;
+    const firstLabel = size === 2 ? '결승' : `${size}강`;
+    for (let i = 0; i < size / 2; i++) if (!slots[2 * i] && !slots[2 * i + 1]) throw new Error(`${firstLabel} ${i + 1}경기에 선수가 한 명도 없습니다. 한 명 이상 넣거나 대진 크기를 줄이세요.`);
+    t.slots = slots;
+    rfcTSyncParticipants(t);
+    const first = [];
+    for (let i = 0; i < size / 2; i++) first.push(rfcTNewMatch(`0-${i}`, rfcTClone(slots[2 * i]), rfcTClone(slots[2 * i + 1])));
     const rounds = [first];
     for (let count = size / 4, r = 1; count >= 1; count /= 2, r++) rounds.push(Array.from({ length: count }, (_, i) => rfcTNewMatch(`${r}-${i}`)));
     t.rounds = rounds;
@@ -3619,11 +3651,18 @@ function rfcTPlayerInfo(ref, players) {
     const p = ref.id ? (players || []).find(x => x.id === ref.id) : null;
     return { name: p ? p.name : ref.name, img: p && p.imageUrl ? rfcURL(p.imageUrl) : '', id: p ? p.id : null, guest: !ref.id };
 }
+function rfcTSourceLabel(t, key, side) {
+    if (!t || !key) return '미정';
+    if (key === 'third') return `4강 ${side === 'a' ? 1 : 2}경기 패자`;
+    const [r, i] = key.split('-').map(Number);
+    if (r === 0) return '미정';
+    return `${rfcTMatchLabel(t, `${r - 1}-${i * 2 + (side === 'a' ? 0 : 1)}`)} 승자`;
+}
 function rfcTSlotHTML(m, side, players, opts) {
     const ref = m[side];
     const info = rfcTPlayerInfo(ref, players);
     if (!info) {
-        const placeholder = m.method === 'bye' ? '부전승' : '미정';
+        const placeholder = m.method === 'bye' ? '부전승' : rfcTSourceLabel(opts.t, opts.key, side);
         return `<div class="rfc-tb-slot is-empty"><span class="rfc-tb-av"></span><span class="rfc-tb-name">${placeholder}</span></div>`;
     }
     const state = m.winner ? (m.winner === side ? 'is-win' : 'is-lose') : '';
@@ -3645,12 +3684,12 @@ function rfcTMatchHTML(t, key, m, players, opts) {
     const video = !opts.admin && m.videoUrl ? rfcVideoButton({ videoUrl: m.videoUrl, winner: (m.a || {}).name, loser: (m.b || {}).name }) : (opts.admin && m.videoUrl ? '<span>▶ 영상</span>' : '');
     if (video) meta += video;
     if (opts.admin && !m.winner && m.a && m.b) meta += '<span class="rfc-tb-todo">결과 입력 대기</span>';
-    return `<div class="rfc-tb-match${sel}${bye}" data-key="${rfcHTML(key)}"${click}>${rfcTSlotHTML(m, 'a', players, opts)}${rfcTSlotHTML(m, 'b', players, opts)}${meta ? `<div class="rfc-tb-meta">${meta}</div>` : ''}</div>`;
+    return `<div class="rfc-tb-match${sel}${bye}" data-key="${rfcHTML(key)}"${click}><div class="rfc-tb-mlabel">${rfcHTML(rfcTMatchLabel(t, key))}</div>${rfcTSlotHTML(m, 'a', players, { ...opts, t, key })}${rfcTSlotHTML(m, 'b', players, { ...opts, t, key })}${meta ? `<div class="rfc-tb-meta">${meta}</div>` : ''}</div>`;
 }
 function rfcTBracketHTML(t, players, opts = {}) {
     if (!t.rounds || !t.rounds.length) return '<div class="rfc-t-empty">아직 대진표가 생성되지 않았습니다.</div>';
     const firstCount = t.rounds[0].length;
-    const height = Math.max(1, firstCount) * 104;
+    const height = Math.max(1, firstCount) * 128;
     const cols = t.rounds.map((round, r) => `<div class="rfc-tb-col"><div class="rfc-tb-head">${rfcTRoundLabel(t, r)}</div><div class="rfc-tb-list" style="height:${height}px">${round.map((m, i) => `<div class="rfc-tb-cell${r < t.rounds.length - 1 ? ' has-next' : ''}${r > 0 ? ' has-prev' : ''}">${rfcTMatchHTML(t, `${r}-${i}`, m, players, opts)}</div>`).join('')}</div></div>`).join('');
     const champ = rfcTChampion(t);
     const champInfo = rfcTPlayerInfo(champ, players);
