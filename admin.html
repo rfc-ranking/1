@@ -575,6 +575,17 @@ body.rfc-design-admin #rfcAdminHeader{background:#111e32;border:1px solid #111e3
 .rfc-t-field select{display:block;width:100%;margin-top:4px;border:1px solid #d3dce8;border-radius:10px;padding:6px 8px;font-size:13px;background:#fff}
 .rfc-t-field select[multiple]{min-height:120px}
 
+.rfc-t-seedmode{margin-top:12px;border:1px solid #e2e8f0;border-radius:12px;padding:8px 10px;font-size:12px;color:#334155}
+.rfc-t-seedmode .rfc-t-check{margin-top:6px;font-weight:600}
+.rfc-t-preview{margin-top:10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:8px 10px;font-size:12px;color:#334155}
+.rfc-t-preview ol{margin:6px 0 0;padding-left:0;list-style:none;columns:2;column-gap:16px}
+@media(max-width:640px){.rfc-t-preview ol{columns:1}}
+.rfc-t-preview li{padding:2px 0;break-inside:avoid}
+.rfc-t-preview li b{color:#245cdb;margin-right:4px;font-size:11px}
+.rfc-t-paste{margin-top:10px;border:1px dashed #93b4f5;background:#f5f8ff;border-radius:12px;padding:8px 10px}
+.rfc-t-paste summary{cursor:pointer;font-size:12px;font-weight:800;color:#245cdb}
+.rfc-t-paste textarea{display:block;width:100%;min-height:150px;margin-top:8px;border:1px solid #d3dce8;border-radius:10px;padding:8px 10px;font-size:13px;font-family:inherit}
+
 </style></head>
 <body class="rfc-design rfc-design-admin rfc-ux-admin text-slate-800 relative h-screen overflow-hidden">
 <div id="rfcConnectionStatus" role="status" aria-live="polite" hidden style="padding:12px 16px;background:#fff7df;border-bottom:1px solid #e2d1a0;white-space:pre-wrap"></div>
@@ -4695,18 +4706,34 @@ function rfcTUpdateStatus(t) {
     }
 }
 
+// 1라운드 대진 쌍 만들기
+// seeding 'order' (기본): 입력 순서 그대로 1번 vs 2번, 3번 vs 4번 … (이미 짜 둔 대진표를 옮길 때)
+// seeding 'seed': 1번 시드 vs 꼴찌 시드 방식 (1·2번 시드는 결승에서 만남)
+// 인원이 2의 거듭제곱이 아니면 부전승이 생기고, 한 경기에 두 자리가 모두 비는 일은 없습니다.
+function rfcTFirstRoundPairs(players, seeding) {
+    const n = players.length;
+    let size = 2; while (size < n) size *= 2;
+    const pairs = [];
+    if (seeding === 'seed') {
+        const order = rfcTSeedOrder(size);
+        for (let i = 0; i < size / 2; i++) pairs.push([order[2 * i] <= n ? players[order[2 * i] - 1] : null, order[2 * i + 1] <= n ? players[order[2 * i + 1] - 1] : null]);
+    } else {
+        const full = n - size / 2; // 두 명이 모두 있는 경기 수
+        let k = 0;
+        for (let i = 0; i < size / 2; i++) {
+            if (i < full) { pairs.push([players[k], players[k + 1]]); k += 2; }
+            else { pairs.push([players[k] || null, null]); k += 1; }
+        }
+    }
+    return pairs;
+}
 // 대진표 생성: 참가자 순서 = 시드 순서. 2의 거듭제곱이 아니면 상위 시드부터 부전승.
 function rfcTBuild(t) {
     const players = (t.participants || []).filter(Boolean);
     const n = players.length;
     if (n < 2) throw new Error('참가자가 2명 이상이어야 대진표를 만들 수 있습니다.');
     let size = 2; while (size < n) size *= 2;
-    const order = rfcTSeedOrder(size);
-    const first = [];
-    for (let i = 0; i < size / 2; i++) {
-        const sa = order[2 * i], sb = order[2 * i + 1];
-        first.push(rfcTNewMatch(`0-${i}`, sa <= n ? rfcTClone(players[sa - 1]) : null, sb <= n ? rfcTClone(players[sb - 1]) : null));
-    }
+    const first = rfcTFirstRoundPairs(players, t.seeding).map(([a, b], i) => rfcTNewMatch(`0-${i}`, rfcTClone(a), rfcTClone(b)));
     const rounds = [first];
     for (let count = size / 4, r = 1; count >= 1; count /= 2, r++) rounds.push(Array.from({ length: count }, (_, i) => rfcTNewMatch(`${r}-${i}`)));
     t.rounds = rounds;
@@ -4988,6 +5015,17 @@ function rfcTDraftHTML(t) {
     const n = (t.participants || []).length;
     let size = 2; while (size < n) size *= 2;
     const byes = n >= 2 ? size - n : 0;
+    const seedMode = t.seeding === 'seed' ? 'seed' : 'order';
+    let preview = '';
+    if (n >= 2) {
+        const firstLabel = size === 2 ? '결승' : `${size}강`;
+        const rows = rfcTFirstRoundPairs(t.participants, seedMode).map(([a, b], i) => {
+            const an = a ? rfcHTML(rfcTPlayerInfo(a, rankingsData).name) : '<i>부전승</i>';
+            const bn = b ? rfcHTML(rfcTPlayerInfo(b, rankingsData).name) : '<i>부전승</i>';
+            return `<li><b>${firstLabel}${size > 2 ? ' ' + (i + 1) + '경기' : ''}</b> ${an} <span class="rfc-t-muted">vs</span> ${bn}</li>`;
+        }).join('');
+        preview = `<div class="rfc-t-preview"><b>첫 라운드 미리보기</b><ol>${rows}</ol></div>`;
+    }
     const items = (t.participants || []).map((p, i) => {
         const info = rfcTPlayerInfo(p, rankingsData);
         const reg = p.id ? rankingsData.find(x => x.id === p.id) : null;
@@ -5001,8 +5039,17 @@ function rfcTDraftHTML(t) {
             <label class="rfc-t-field">미등록 선수(게스트) 추가<input type="text" id="rfcTGuestName" maxlength="30" placeholder="이름 입력"></label>
         </div>
         <div class="rfc-t-row" style="margin-top:8px"><button type="button" class="rfc-t-btn blue" onclick="rfcTAddParticipants()">＋ 선택한 선수 추가</button><button type="button" class="rfc-t-btn" onclick="rfcTAddGuest()">＋ 게스트 추가</button></div>
+        <details class="rfc-t-paste"${n ? '' : ' open'}><summary>📋 대진표 한 번에 붙여넣기</summary>
+            <textarea id="rfcTPaste" placeholder="한 줄에 한 경기씩:\n방구석복싱맨 vs 망고링\n게이치 vs 현선호\n…\n\n또는 한 줄에 한 명씩 순서대로 적어도 됩니다."></textarea>
+            <div class="rfc-t-row" style="margin-top:8px"><button type="button" class="rfc-t-btn blue" onclick="rfcTPasteApply()">붙여넣은 순서로 참가자 설정</button></div>
+            <p class="rfc-t-hint">‘vs’, 쉼표, 줄바꿈으로 이름을 나눕니다. 등록된 선수 이름(대소문자·띄어쓰기 무시)과 자동으로 연결하고, 없는 이름은 게스트로 넣을지 물어봅니다. 기존 참가자 목록은 이 순서로 바뀝니다.</p>
+        </details>
         <ol class="rfc-t-plist">${items || '<li style="justify-content:center;color:#94a3b8">아직 참가자가 없습니다.</li>'}</ol>
-        <p class="rfc-t-hint">위에서부터 1번 시드입니다. 1번과 2번 시드는 결승에서야 만나도록 배치됩니다.${n >= 2 && byes ? ` 지금 인원(${n}명)이면 ${size}강 대진표가 되고, 상위 시드 ${byes}명이 부전승으로 다음 라운드에 바로 올라갑니다.` : ''}</p>
+        <div class="rfc-t-seedmode"><b>대진 배치 방식</b>
+            <label class="rfc-t-check"><input type="radio" name="rfcTSeeding" value="order" ${seedMode === 'order' ? 'checked' : ''} onchange="rfcTSetSeeding('order')"> 입력 순서 그대로 — 1번 vs 2번, 3번 vs 4번 … (짜 둔 대진표 옮길 때)</label>
+            <label class="rfc-t-check"><input type="radio" name="rfcTSeeding" value="seed" ${seedMode === 'seed' ? 'checked' : ''} onchange="rfcTSetSeeding('seed')"> 시드 방식 — 1번 vs ${size}번, 1·2번 시드는 결승에서 만남</label></div>
+        ${n >= 2 && byes ? `<p class="rfc-t-hint">지금 인원(${n}명)이면 ${size}강 대진표가 되고 ${byes}명이 부전승으로 다음 라운드에 올라갑니다.</p>` : ''}
+        ${preview}
         <div class="rfc-t-row" style="margin-top:12px"><button type="button" class="rfc-t-btn green" onclick="rfcTStart()" ${n < 2 ? 'disabled' : ''}>🎯 대진표 생성 · 토너먼트 시작</button></div></div>`;
 }
 function rfcTMatchEditorHTML(t) {
@@ -5095,7 +5142,7 @@ window.rfcTCreate = async () => {
     const name = rfcTVal('rfcTNewName');
     if (!name) return showCustomAlert('토너먼트 이름을 입력하세요.');
     const t = { id: rfcTId('t'), name, date: rfcTVal('rfcTNewDate') || rfcTToday(), description: rfcTVal('rfcTNewDesc'), thirdPlace: document.getElementById('rfcTNewThird')?.checked === true,
-        season: activeSeason, status: 'draft', participants: [], rounds: [], third: null, champion: null, createdAt: new Date().toISOString(), finishedAt: '' };
+        season: activeSeason, seeding: 'order', status: 'draft', participants: [], rounds: [], third: null, champion: null, createdAt: new Date().toISOString(), finishedAt: '' };
     const ok = await rfcTCommit(() => { tournamentsData.push(t); });
     if (ok) { rfcTCreating = false; rfcTSel = t.id; rfcTRenderAdmin(); }
 };
@@ -5136,6 +5183,25 @@ window.rfcTSortByElo = () => {
     const id = rfcTSel;
     const elo = ref => { const p = ref.id ? rankingsData.find(x => x.id === ref.id) : null; return p ? Number(p.elo ?? 1000) : -Infinity; };
     return rfcTCommit(() => { rfcTMust(id).participants.sort((a, b) => elo(b) - elo(a)); });
+};
+window.rfcTSetSeeding = mode => { const id = rfcTSel; return rfcTCommit(() => { rfcTMust(id).seeding = mode === 'seed' ? 'seed' : 'order'; }); };
+function rfcTNormName(v) { return String(v || '').replace(/\s+/g, '').toLowerCase(); }
+window.rfcTPasteApply = () => {
+    const raw = (document.getElementById('rfcTPaste') || {}).value || '';
+    const names = raw.split(/\r?\n|,|\s+vs\.?\s+|\s+대\s+/i).map(x => x.replace(/^\s*(?:\d+\s*(?:[.)]|경기\s*[:.]?)\s*|[-•·*]\s+)/, '').trim()).filter(Boolean);
+    if (names.length < 2) return showCustomAlert('이름을 2명 이상 입력하세요.');
+    const seen = new Set(), dup = [];
+    names.forEach(nm => { const k = rfcTNormName(nm); if (seen.has(k)) dup.push(nm); seen.add(k); });
+    if (dup.length) return showCustomAlert('같은 이름이 두 번 들어 있습니다: ' + [...new Set(dup)].join(', '));
+    const refs = [], unknown = [];
+    names.forEach(nm => {
+        const p = rankingsData.find(x => rfcTNormName(x.name) === rfcTNormName(nm)) || rankingsData.find(x => x.gameId && rfcTNormName(x.gameId) === rfcTNormName(nm));
+        if (p) refs.push(rfcTRef(p)); else { refs.push({ id: null, name: nm }); unknown.push(nm); }
+    });
+    const id = rfcTSel;
+    const apply = () => { const t = rfcTMust(id); if (t.status !== 'draft') throw new Error('대진표가 이미 생성된 토너먼트입니다.'); t.participants = refs; if (!t.seeding) t.seeding = 'order'; };
+    const msg = `참가자 ${refs.length}명을 붙여넣은 순서로 설정할까요?` + (unknown.length ? `\n\n⚠️ 랭킹에 없는 이름 ${unknown.length}개는 게스트로 들어갑니다 (오타인지 확인하세요):\n${unknown.join(', ')}` : '');
+    rfcTConfirm(msg, apply);
 };
 window.rfcTStart = () => {
     const t = rfcTFind(rfcTSel);

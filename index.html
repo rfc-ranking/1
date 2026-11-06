@@ -3469,18 +3469,34 @@ function rfcTUpdateStatus(t) {
     }
 }
 
+// 1라운드 대진 쌍 만들기
+// seeding 'order' (기본): 입력 순서 그대로 1번 vs 2번, 3번 vs 4번 … (이미 짜 둔 대진표를 옮길 때)
+// seeding 'seed': 1번 시드 vs 꼴찌 시드 방식 (1·2번 시드는 결승에서 만남)
+// 인원이 2의 거듭제곱이 아니면 부전승이 생기고, 한 경기에 두 자리가 모두 비는 일은 없습니다.
+function rfcTFirstRoundPairs(players, seeding) {
+    const n = players.length;
+    let size = 2; while (size < n) size *= 2;
+    const pairs = [];
+    if (seeding === 'seed') {
+        const order = rfcTSeedOrder(size);
+        for (let i = 0; i < size / 2; i++) pairs.push([order[2 * i] <= n ? players[order[2 * i] - 1] : null, order[2 * i + 1] <= n ? players[order[2 * i + 1] - 1] : null]);
+    } else {
+        const full = n - size / 2; // 두 명이 모두 있는 경기 수
+        let k = 0;
+        for (let i = 0; i < size / 2; i++) {
+            if (i < full) { pairs.push([players[k], players[k + 1]]); k += 2; }
+            else { pairs.push([players[k] || null, null]); k += 1; }
+        }
+    }
+    return pairs;
+}
 // 대진표 생성: 참가자 순서 = 시드 순서. 2의 거듭제곱이 아니면 상위 시드부터 부전승.
 function rfcTBuild(t) {
     const players = (t.participants || []).filter(Boolean);
     const n = players.length;
     if (n < 2) throw new Error('참가자가 2명 이상이어야 대진표를 만들 수 있습니다.');
     let size = 2; while (size < n) size *= 2;
-    const order = rfcTSeedOrder(size);
-    const first = [];
-    for (let i = 0; i < size / 2; i++) {
-        const sa = order[2 * i], sb = order[2 * i + 1];
-        first.push(rfcTNewMatch(`0-${i}`, sa <= n ? rfcTClone(players[sa - 1]) : null, sb <= n ? rfcTClone(players[sb - 1]) : null));
-    }
+    const first = rfcTFirstRoundPairs(players, t.seeding).map(([a, b], i) => rfcTNewMatch(`0-${i}`, rfcTClone(a), rfcTClone(b)));
     const rounds = [first];
     for (let count = size / 4, r = 1; count >= 1; count /= 2, r++) rounds.push(Array.from({ length: count }, (_, i) => rfcTNewMatch(`${r}-${i}`)));
     t.rounds = rounds;
