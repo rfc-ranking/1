@@ -444,7 +444,138 @@ body.rfc-design-admin #rfcAdminHeader{background:#111e32;border:1px solid #111e3
 @media(max-width:850px){#rfcAdminToolbar{display:block;padding:0 10px}#rfcAdminTabs{width:100%;gap:12px}#rfcAdminFilters{width:100%;overflow-x:auto;justify-content:flex-start;border-left:0;border-top:1px solid #e2e8f0;padding:6px 0}#rfcAdminSearchWrap{flex:0 0 100px}#rfcAdminFilters>*{flex-shrink:0}}
 </style>
 <style>.rfc-load-panel{position:fixed;bottom:18px;left:18px;z-index:60;display:flex;align-items:center;gap:12px;flex-wrap:wrap;max-width:min(640px,calc(100vw - 36px));padding:13px 16px;border:1px solid #cbdcf7;border-radius:12px;background:#f0f6ff;color:#234772;box-shadow:0 8px 28px #14223820;font-size:12px;line-height:1.6}.rfc-load-panel[hidden],.rfc-load-panel button[hidden]{display:none}.rfc-load-panel button{flex-shrink:0;min-height:36px;padding:6px 11px;border-radius:8px;border:1px solid #acc5ec;background:#fff;color:#204f99;font-weight:700}.rfc-load-panel[data-kind=error],.rfc-load-panel[data-kind=offline],.rfc-load-panel[data-kind=partial]{background:#fff8ed;border-color:#ecd4ad;color:#794c16}.rfc-loading-placeholder{padding:30px 12px;text-align:center;color:#64748b;font-size:13px}.rfc-list-actions{display:flex;gap:4px;flex-shrink:0}@media(max-width:640px){.rfc-load-panel{left:12px;bottom:12px;max-width:calc(100vw - 24px);padding:12px;font-size:11px}.rfc-ux-rank-summary{flex-wrap:wrap}.rfc-list-actions .rfc-ux-button{font-size:10px}}
-</style><style>.rfc-collapsible-rule>summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px}.rfc-collapsible-rule>summary::-webkit-details-marker{display:none}.rfc-collapsible-rule>summary:after{content:"＋";margin-left:auto;font-weight:800}.rfc-collapsible-rule[open]>summary:after{content:"−"}.rfc-collapsible-rule .rfc-repeat-rule-body{padding-top:6px}</style><style>.rfc-repeat-rule{margin:12px 0;padding:12px 14px;border:1px solid #c7d2fe;border-radius:12px;background:#eef2ff;color:#3730a3;font-size:12px;line-height:1.7}.rfc-repeat-rule p{margin:5px 0 0}.rfc-repeat-badge{display:inline-block;max-width:100%;margin:4px 0;padding:3px 8px;border-radius:6px;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;font-size:11px;line-height:1.5;font-weight:700;overflow-wrap:anywhere}</style></head>
+</style><style>.rfc-collapsible-rule>summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px}.rfc-collapsible-rule>summary::-webkit-details-marker{display:none}.rfc-collapsible-rule>summary:after{content:"＋";margin-left:auto;font-weight:800}.rfc-collapsible-rule[open]>summary:after{content:"−"}.rfc-collapsible-rule .rfc-repeat-rule-body{padding-top:6px}</style><style>.rfc-repeat-rule{margin:12px 0;padding:12px 14px;border:1px solid #c7d2fe;border-radius:12px;background:#eef2ff;color:#3730a3;font-size:12px;line-height:1.7}.rfc-repeat-rule p{margin:5px 0 0}.rfc-repeat-badge{display:inline-block;max-width:100%;margin:4px 0;padding:3px 8px;border-radius:6px;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;font-size:11px;line-height:1.5;font-weight:700;overflow-wrap:anywhere}</style><style id="rfcTournamentStyle">
+/* ===== [토너먼트] 대진표 ===== */
+.rfc-tb-scroll{overflow-x:auto;padding:4px 2px 10px;-webkit-overflow-scrolling:touch}
+.rfc-tb{display:flex;gap:26px;min-width:max-content;align-items:flex-start}
+.rfc-tb-col{display:flex;flex-direction:column;width:188px;flex:0 0 188px}
+.rfc-tb-champcol{width:130px;flex-basis:130px}
+.rfc-tb-head{font-size:11px;font-weight:800;color:#607087;text-align:center;letter-spacing:.02em;padding:4px 0 8px;border-bottom:2px solid #e2e8f0;margin-bottom:6px}
+.rfc-tb-head small{font-weight:600;color:#94a3b8}
+.rfc-tb-list{display:flex;flex-direction:column;justify-content:space-around}
+.rfc-tb-cell{position:relative;display:flex;align-items:center}
+.rfc-tb-cell.has-next:after{content:"";position:absolute;right:-14px;top:50%;width:14px;border-top:2px solid #cbd5e1}
+.rfc-tb-cell.has-prev:before{content:"";position:absolute;left:-12px;top:50%;width:12px;border-top:2px solid #cbd5e1}
+.rfc-tb-match{width:100%;background:#fff;border:1px solid #d9e2ec;border-radius:10px;overflow:hidden;box-shadow:0 1px 2px #0f172a0d}
+.rfc-tb-match[role=button]{cursor:pointer}
+.rfc-tb-match[role=button]:hover{border-color:#93b4f5}
+.rfc-tb-match.is-selected{border-color:#245cdb;box-shadow:0 0 0 3px #245cdb26}
+.rfc-tb-match.is-bye{opacity:.62}
+.rfc-tb-slot{display:flex;align-items:center;gap:6px;padding:6px 8px;font-size:12px;font-weight:700;color:#1e293b;min-height:32px}
+.rfc-tb-slot+.rfc-tb-slot{border-top:1px solid #eef2f6}
+.rfc-tb-slot.is-win{background:#ecfdf5;color:#065f46}
+.rfc-tb-slot.is-lose{color:#94a3b8}
+.rfc-tb-slot.is-lose .rfc-tb-name{text-decoration:line-through;text-decoration-color:#cbd5e1}
+.rfc-tb-slot.is-empty{color:#a3b1c2;font-weight:600}
+.rfc-tb-av{width:20px;height:20px;border-radius:999px;flex:0 0 20px;background:#e2e8f0;color:#475569;font-size:10px;display:inline-flex;align-items:center;justify-content:center;object-fit:cover;overflow:hidden}
+.rfc-tb-slot.is-empty .rfc-tb-av{background:#f1f5f9}
+.rfc-tb-name{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rfc-tb-name.is-link{cursor:pointer}.rfc-tb-name.is-link:hover{color:#245cdb;text-decoration:underline}
+.rfc-tb-tag{flex:0 0 auto;font-size:9.5px;font-weight:800;padding:2px 5px;border-radius:5px;line-height:1.2}
+.rfc-tb-tag.win{background:#10b981;color:#fff}.rfc-tb-tag.lose{background:#fee2e2;color:#b91c1c}
+.rfc-tb-tag.bye{background:#e2e8f0;color:#475569}.rfc-tb-tag.sub{background:#fef3c7;color:#92400e;border:1px solid #fcd34d}
+.rfc-tb-tag.guest{background:#f1f5f9;color:#64748b;border:1px solid #e2e8f0}
+.rfc-tb-meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:space-between;padding:4px 8px;background:#f8fafc;border-top:1px solid #eef2f6;font-size:10px;color:#64748b;font-weight:600}
+.rfc-tb-meta .rfc-video-link{font-size:10px;padding:2px 6px}
+.rfc-tb-todo{color:#b45309;font-weight:800}
+.rfc-tb-champ{width:100%;text-align:center;border:2px dashed #e2e8f0;border-radius:12px;padding:12px 6px;font-size:20px;color:#94a3b8}
+.rfc-tb-champ b{display:block;font-size:13px;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rfc-tb-champ.is-done{border:2px solid #f59e0b;background:linear-gradient(180deg,#fffbeb,#fef3c7);color:#92400e}
+.rfc-tb-third{margin-top:14px;width:220px}
+.rfc-t-empty{padding:40px 10px;text-align:center;color:#94a3b8;font-size:13px}
+.rfc-t-muted{color:#94a3b8;font-size:11px}
+.rfc-t-subs{margin-top:14px;background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:10px 12px;font-size:12px;color:#78350f}
+.rfc-t-subs-title{font-weight:800;margin-bottom:4px}
+.rfc-t-subs ul{margin:0;padding-left:16px;line-height:1.8}
+.rfc-t-subs p{margin:4px 0 0}
+.rfc-t-pill{display:inline-flex;align-items:center;font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:999px;border:1px solid}
+.rfc-t-pill.ongoing{background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe}
+.rfc-t-pill.draft{background:#f8fafc;color:#64748b;border-color:#e2e8f0}
+.rfc-t-pill.finished{background:#f0fdf4;color:#15803d;border-color:#bbf7d0}
+.rfc-t-champbanner{display:flex;align-items:center;gap:12px;background:linear-gradient(90deg,#fffbeb,#fef3c7);border:1px solid #fcd34d;border-radius:14px;padding:12px 14px;margin:0 0 14px;color:#78350f}
+.rfc-t-champbanner .big{font-size:28px}
+.rfc-t-champbanner b{font-size:17px;color:#92400e}
+.rfc-t-champbanner small{display:block;font-size:11px;color:#a16207}
+/* 프로필 토너먼트 블록 */
+.rfc-tp-block{background:#fffdf5;border:1px solid #fde68a;border-radius:14px;padding:10px;margin-bottom:12px}
+.rfc-tp-head{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:800;color:#92400e;padding:2px 4px 8px}
+.rfc-tp-row{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #fef3c7;border-radius:10px;padding:8px;margin-top:6px;font-size:12px}
+.rfc-tp-res{width:28px;height:28px;flex:0 0 28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px}
+.rfc-tp-res.win{background:#d1fae5;color:#059669}.rfc-tp-res.lose{background:#ffe4e6;color:#e11d48}
+.rfc-tp-badge{flex:0 0 auto;font-size:10px;font-weight:800;background:#f59e0b;color:#fff;border-radius:6px;padding:3px 6px}
+.rfc-tp-main{flex:1;min-width:0}
+.rfc-tp-line{display:flex;justify-content:space-between;gap:6px}
+.rfc-tp-opp{font-weight:800;color:#334155;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rfc-tp-opp.is-link{cursor:pointer}.rfc-tp-opp.is-link:hover{color:#245cdb;text-decoration:underline}
+.rfc-tp-date{flex:0 0 auto;color:#64748b;font-size:11px}
+.rfc-tp-sub{font-size:11px;color:#78716c;margin-top:2px}
+.rfc-tp-nopt{margin-left:6px;font-size:10px;color:#a8a29e;background:#f5f5f4;border-radius:5px;padding:1px 5px}
+.rfc-tp-note{margin:8px 4px 0;font-size:10px;color:#a8a29e}
+@media(max-width:640px){.rfc-tb{gap:22px}.rfc-tb-col{width:158px;flex-basis:158px}.rfc-tb-champcol{width:104px;flex-basis:104px}.rfc-tb-slot{font-size:11.5px;padding:5px 7px}}
+
+.rfc-tp-head{cursor:pointer;list-style:none;user-select:none;padding:4px}
+.rfc-tp-head::-webkit-details-marker{display:none}
+.rfc-tp-arrow{display:inline-block;margin-left:8px;font-size:10px;color:#b45309;transition:transform .15s}
+.rfc-tp-block[open] .rfc-tp-arrow{transform:rotate(180deg)}
+.rfc-tp-block:not([open]){padding:8px 10px}
+.rfc-tp-block[open] .rfc-tp-head{padding-bottom:8px}
+
+/* ===== [토너먼트] 관리자 ===== */
+#rfcAdminLayout.rfc-t-wide #rfcAdminWorkPanel{grid-column:1/-1}
+#rfcAdminLayout.rfc-t-wide #rfcAdminRankPanel{display:none}
+.rfc-t-admin{display:grid;grid-template-columns:280px minmax(0,1fr);gap:16px;align-items:start}
+@media(max-width:1023px){.rfc-t-admin{grid-template-columns:1fr}}
+.rfc-t-card{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:14px;box-shadow:0 1px 2px #0f172a08}
+.rfc-t-card+.rfc-t-card{margin-top:12px}
+.rfc-t-card h3{font-size:14px;font-weight:800;color:#1e293b;margin:0 0 10px}
+.rfc-t-card h4{font-size:13px;font-weight:800;color:#334155;margin:0 0 8px}
+.rfc-t-side .rfc-t-group{font-size:11px;font-weight:800;color:#64748b;margin:14px 2px 6px}
+.rfc-t-item{display:block;width:100%;text-align:left;border:1px solid #e2e8f0;border-radius:12px;padding:9px 10px;background:#fff;margin-top:6px;cursor:pointer}
+.rfc-t-item:hover{border-color:#93b4f5}
+.rfc-t-item.is-active{border-color:#245cdb;background:#eff6ff}
+.rfc-t-item b{display:block;font-size:13px;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rfc-t-item span{font-size:11px;color:#64748b}
+.rfc-t-btn{display:inline-flex;align-items:center;justify-content:center;gap:4px;border:1px solid #d3dce8;background:#fff;color:#334155;font-size:12px;font-weight:800;border-radius:10px;padding:8px 12px;cursor:pointer;white-space:nowrap}
+.rfc-t-btn:hover{background:#f8fafc}
+.rfc-t-btn.primary{background:#1e293b;border-color:#1e293b;color:#fff}.rfc-t-btn.primary:hover{background:#0f172a}
+.rfc-t-btn.blue{background:#245cdb;border-color:#245cdb;color:#fff}
+.rfc-t-btn.red{background:#fff;border-color:#fecaca;color:#dc2626}.rfc-t-btn.red:hover{background:#fef2f2}
+.rfc-t-btn.amber{background:#fffbeb;border-color:#fcd34d;color:#92400e}
+.rfc-t-btn.green{background:#059669;border-color:#059669;color:#fff}
+.rfc-t-btn.sm{font-size:11px;padding:5px 8px;border-radius:8px}
+.rfc-t-btn.w-full{width:100%}
+.rfc-t-field{display:block;font-size:11px;font-weight:800;color:#64748b;margin-top:8px}
+.rfc-t-field input[type=text],.rfc-t-field input[type=date],.rfc-t-field input[type=url],.rfc-t-field textarea{display:block;width:100%;margin-top:4px;border:1px solid #d3dce8;border-radius:10px;padding:8px 10px;font-size:13px;font-weight:600;color:#1e293b;background:#fff}
+.rfc-t-field textarea{min-height:56px;resize:vertical}
+.rfc-t-check{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:#334155;margin-top:10px}
+.rfc-t-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.rfc-t-row.between{justify-content:space-between}
+.rfc-t-grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(max-width:640px){.rfc-t-grid2{grid-template-columns:1fr}}
+.rfc-t-plist{list-style:none;margin:10px 0 0;padding:0;max-height:420px;overflow-y:auto}
+.rfc-t-plist li{display:flex;align-items:center;gap:8px;border:1px solid #eef2f6;border-radius:10px;padding:6px 8px;margin-top:5px;font-size:12px;font-weight:700;color:#1e293b}
+.rfc-t-seed{width:24px;height:24px;flex:0 0 24px;border-radius:7px;background:#1e293b;color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center}
+.rfc-t-plist .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rfc-t-plist .elo{font-size:11px;color:#94a3b8;font-weight:600}
+.rfc-t-hint{font-size:11px;color:#64748b;line-height:1.6;margin:8px 0 0}
+.rfc-t-head{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start;justify-content:space-between}
+.rfc-t-head h3{font-size:18px;margin:0}
+.rfc-t-head .meta{font-size:12px;color:#64748b;margin-top:4px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.rfc-t-side-panel{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:12px;align-items:start}
+@media(max-width:1279px){.rfc-t-side-panel{grid-template-columns:1fr}}
+.rfc-t-mslot{display:flex;align-items:center;gap:8px;border:1px solid #e2e8f0;border-radius:12px;padding:8px;margin-top:6px}
+.rfc-t-mslot .nm{flex:1;min-width:0;font-weight:800;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rfc-t-mslot.is-win{border-color:#6ee7b7;background:#ecfdf5}
+.rfc-t-mslot .side{font-size:10px;font-weight:800;color:#94a3b8;width:14px}
+.rfc-t-subform{margin-top:10px;border:1px dashed #fcd34d;background:#fffbeb;border-radius:12px;padding:10px}
+.rfc-t-sublist{margin:8px 0 0;padding:0;list-style:none}
+.rfc-t-sublist li{display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:11px;color:#78350f;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:5px 8px;margin-top:4px}
+.rfc-t-warn{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;border-radius:10px;padding:8px 10px;font-size:11px;margin-top:8px;line-height:1.6}
+.rfc-t-admin .ts-wrapper{margin-top:4px}
+.rfc-t-field select{display:block;width:100%;margin-top:4px;border:1px solid #d3dce8;border-radius:10px;padding:6px 8px;font-size:13px;background:#fff}
+.rfc-t-field select[multiple]{min-height:120px}
+
+</style></head>
 <body class="rfc-design rfc-design-admin rfc-ux-admin text-slate-800 relative h-screen overflow-hidden">
 <div id="rfcConnectionStatus" role="status" aria-live="polite" hidden style="padding:12px 16px;background:#fff7df;border-bottom:1px solid #e2d1a0;white-space:pre-wrap"></div>
 
@@ -494,6 +625,7 @@ body.rfc-design-admin #rfcAdminHeader{background:#111e32;border:1px solid #111e3
             <div id="rfcAdminTabs" role="tablist" aria-label="관리자 메뉴" class="flex gap-6">
                 <button onclick="switchTab('main')" id="tabMain" class="tab-btn active py-4 whitespace-nowrap">랭킹 / 경기</button>
                 <button onclick="switchTab('history')" id="tabHistory" class="tab-btn py-4 whitespace-nowrap">경기 기록</button>
+                <button onclick="switchTab('tournament')" id="tabTournament" class="tab-btn py-4 whitespace-nowrap">🏆 토너먼트</button>
                 <button onclick="switchTab('season')" id="tabSeason" class="tab-btn py-4 whitespace-nowrap">시즌 관리</button>
                 <button onclick="switchTab('tools')" id="tabTools" class="tab-btn py-4 whitespace-nowrap">데이터 / 백업</button>
                 <button onclick="switchTab('settings')" id="tabSettings" class="tab-btn py-4 whitespace-nowrap">설정 / 메모</button>
@@ -620,6 +752,8 @@ body.rfc-design-admin #rfcAdminHeader{background:#111e32;border:1px solid #111e3
 </div>
 <div id="adminMatchListContainer" class="flex-grow overflow-y-auto p-3 space-y-3 bg-slate-50/50"><div class="text-center text-xs text-slate-400 py-10">기록 불러오는 중...</div></div><button type="button" id="rfcHistoryMore" class="rfc-ux-button" hidden onclick="rfcUxMoreHistory()">경기 더 보기</button></div>
                 </div>
+
+                <div id="tournamentSection" class="tab-content hidden"><div id="rfcTAdmin"></div></div>
 
                 <div id="seasonSection" class="tab-content hidden">
                     <div class="space-y-4">
@@ -1413,9 +1547,9 @@ window.addEventListener('online', () => rfcStatus('인터넷이 연결되었습�
 
         
         const ADMIN_CONFIG = {
-            version: "v6.02",
-            updateNote: "검색 안내문구를 입력창 내부로 이동 · 시즌 탭과 높이 통일",
-            title: "v6.02 경기기록 검색창 높이·안내문구 정리"
+            version: "v6.03",
+            updateNote: "토너먼트 관리 탭 추가 (생성·참가자·승패·대타·3·4위전·기록)",
+            title: "v6.03 토너먼트 관리"
         };
 
         function initVersionUI() {
@@ -1435,6 +1569,7 @@ window.addEventListener('online', () => rfcStatus('인터넷이 연결되었습�
         let rankingsData = []; let matchHistoryData = []; let seasonArchives = {}; let seasonDates = {}; let activeSeason = "시즌 1"; let championVacant = false; let ruleHtml = ""; let patchNotesData = [];
         let noticeVersion = 1; // [v5.62] 사용자 공지 변경 식별 버전
         let availablePatchTags = []; // [NEW] 태그 저장용 배열
+        let tournamentsData = []; // [토너먼트] 일반 경기와 별도로 저장
         let undoStack = []; const MAX_UNDO = 10;
         let searchQuery = "";
         let carrierFilter = "";
@@ -1461,14 +1596,14 @@ function rfcFingerprint(value) {
     return JSON.stringify(value);
 }
 function rfcMemory() {
-    return rfcClone({rankingsData, matchHistoryData, seasonArchives, seasonDates, activeSeason, championVacant, ruleHtml, patchNotesData, noticeVersion, availablePatchTags, undoStack, viewHistorySeason});
+    return rfcClone({rankingsData, matchHistoryData, seasonArchives, seasonDates, activeSeason, championVacant, ruleHtml, patchNotesData, noticeVersion, availablePatchTags, undoStack, viewHistorySeason, tournamentsData});
 }
 function rfcRestoreMemory(s) {
-    ({rankingsData, matchHistoryData, seasonArchives, seasonDates, activeSeason, championVacant, ruleHtml, patchNotesData, noticeVersion, availablePatchTags, undoStack, viewHistorySeason} = s);
+    ({rankingsData, matchHistoryData, seasonArchives, seasonDates, activeSeason, championVacant, ruleHtml, patchNotesData, noticeVersion, availablePatchTags, undoStack, viewHistorySeason, tournamentsData} = s);
 }
 function rfcPayload() {
     return rfcClone({rankings:rankingsData, matchHistory:matchHistoryData, seasonArchives, seasonDates, activeSeason, championVacant,
-        ruleHtml, patchNotes:patchNotesData, availablePatchTags,
+        ruleHtml, patchNotes:patchNotesData, availablePatchTags, tournaments:tournamentsData,
         adminGlobalNote:document.getElementById('adminGlobalNoteInput')?.value || '',
         noticeData:{content:document.getElementById('noticeContentInput')?.value || '', active:document.getElementById('noticeActiveToggle')?.checked === true, version:noticeVersion}});
 }
@@ -1572,6 +1707,7 @@ function rfcTitleWinner(winner, loser) {
                 championVacant: championVacant,
                 patchNotes: JSON.stringify(patchNotesData),
                 tags: JSON.stringify(availablePatchTags),
+                tournaments: JSON.stringify(tournamentsData),
                 ruleHtml: rfcBaseDocument?.ruleHtml ?? ruleHtml,
                 noticeData: rfcClone(rfcBaseDocument?.noticeData || {content:'',active:false,version:1}),
                 adminGlobalNote: rfcBaseDocument?.adminGlobalNote || '' 
@@ -1593,6 +1729,7 @@ function rfcTitleWinner(winner, loser) {
                 championVacant = prevState.championVacant === true;
                 if (prevState.patchNotes) patchNotesData = JSON.parse(prevState.patchNotes);
                 if (prevState.tags) availablePatchTags = JSON.parse(prevState.tags);
+                if (prevState.tournaments) tournamentsData = JSON.parse(prevState.tournaments);
                 ruleHtml = prevState.ruleHtml ?? ruleHtml;
                 document.getElementById('ruleHtmlInput').value = ruleHtml;
                 document.getElementById('noticeContentInput').value = prevState.noticeData?.content || '';
@@ -1611,6 +1748,7 @@ function rfcTitleWinner(winner, loser) {
                 renderAdminPatchNotes();
                 renderAvailablePatchTags();
                 
+                if (window.rfcTRenderAdmin) rfcTRenderAdmin();
                 showCustomAlert("↩️ 실행 취소가 완료되었습니다.");
             });
         };
@@ -1960,6 +2098,7 @@ function rfcScoreMatch(state,winner,loser,isDraw,loserBounty) {
                         if(!p.subGameIds) p.subGameIds = []; // [NEW] 다중 ID 배열 초기화
                         p.choseong = Hangul.getCho(p.name); p.jamo = Hangul.disassemble(p.name);
                     });
+                    tournamentsData = Array.isArray(data.tournaments) ? data.tournaments : []; rfcRenderOptional('토너먼트',()=>{ if (window.rfcTRenderAdmin) rfcTRenderAdmin(); });
                     enrichMatchHistory(); renderRankings(); rfcRenderOptional('선수 선택',()=>populateMatchSelectors()); rfcRenderOptional('미참여 선수',()=>checkSeasonInactive()); rfcRenderOptional('경기 시즌',()=>updateAdminHistorySeasonSelector()); rfcRenderOptional('경기 기록',()=>renderAdminMatches()); 
                     if (currentProfileId) rfcRenderOptional('선수 프로필',()=>updateProfileStats(currentProfileId, document.getElementById('pModalSeason').value)); 
                     if(document.getElementById('totalPlayerCount')) document.getElementById('totalPlayerCount').textContent = `(${rankingsData.length}명)`;
@@ -4373,7 +4512,7 @@ for (const name of ["executeUndo","saveSeasonDates","applyMatch","applyBatchIdUp
  const original = window[name]; if(typeof original === 'function') window[name] = (...args) => rfcRunOperation(() => original(...args), name);
 }
 window.rfcSaveNow = () => rfcRunOperation(() => saveRankings());
-const rfcUxTabs = ["main", "history", "season", "tools", "settings"];
+const rfcUxTabs = ["main", "history", "tournament", "season", "tools", "settings"];
 function rfcUxSelectTab(tab) {
     for (const name of rfcUxTabs) {
         const button = document.getElementById('tab' + name[0].toUpperCase() + name.slice(1));
@@ -4473,6 +4612,625 @@ window.rfcReloadRankings=()=>{
     rfcLoadNeedsRender=true;
     if(rfcRankingFeed)rfcRankingFeed.retry();
 };
+
+
+// ======================================================================
+// [토너먼트] 공통 로직 — 관리자/사용자 사이트 동일 코드
+// 저장 위치: 기존 rankings/main 문서의 tournaments 배열 (일반 경기 점수와 완전히 분리)
+// 토너먼트 결과는 ELO·승패·연승·현상금에 영향을 주지 않습니다.
+// ======================================================================
+const RFC_T_STATUS = { draft: '준비 중', ongoing: '진행 중', finished: '종료' };
+
+function rfcTClone(v) { return v == null ? v : JSON.parse(JSON.stringify(v)); }
+function rfcTId(prefix) { return prefix + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+function rfcTRef(player) { return player ? { id: player.id || null, name: String(player.name || '').trim() } : null; }
+function rfcTSameRef(a, b) {
+    if (!a || !b) return false;
+    if (a.id && b.id) return a.id === b.id;
+    if (!a.id && !b.id) return a.name === b.name;
+    return false;
+}
+function rfcTSeedOrder(size) {
+    let order = [1];
+    while (order.length < size) { const n = order.length * 2; order = order.flatMap(s => [s, n + 1 - s]); }
+    return order;
+}
+function rfcTRoundLabel(t, r) {
+    const fromEnd = (t.rounds || []).length - 1 - r;
+    return fromEnd === 0 ? '결승' : `${2 ** (fromEnd + 1)}강`;
+}
+function rfcTMatchLabel(t, key) {
+    if (key === 'third') return '3·4위전';
+    const [r, i] = key.split('-').map(Number);
+    const count = (t.rounds[r] || []).length;
+    return count > 1 ? `${rfcTRoundLabel(t, r)} ${i + 1}경기` : rfcTRoundLabel(t, r);
+}
+function rfcTGet(t, key) {
+    if (key === 'third') return t.third || null;
+    const [r, i] = String(key).split('-').map(Number);
+    return (t.rounds && t.rounds[r] && t.rounds[r][i]) || null;
+}
+function rfcTNewMatch(key, a = null, b = null) {
+    return { key, a, b, winner: null, method: null, date: '', videoUrl: '', subs: [] };
+}
+function rfcTNext(t, key) {
+    if (key === 'third') return null;
+    const [r, i] = key.split('-').map(Number);
+    if (r + 1 >= t.rounds.length) return null;
+    return { key: `${r + 1}-${Math.floor(i / 2)}`, side: i % 2 === 0 ? 'a' : 'b' };
+}
+function rfcTIsSemi(t, key) {
+    if (key === 'third' || !t.rounds || t.rounds.length < 2) return false;
+    return Number(key.split('-')[0]) === t.rounds.length - 2;
+}
+function rfcTAllMatches(t) {
+    const list = [];
+    (t.rounds || []).forEach((round, r) => round.forEach((m, i) => list.push({ key: `${r}-${i}`, m, label: rfcTMatchLabel(t, `${r}-${i}`), roundLabel: rfcTRoundLabel(t, r) })));
+    if (t.third) list.push({ key: 'third', m: t.third, label: '3·4위전', roundLabel: '3·4위전' });
+    return list;
+}
+function rfcTChampion(t) {
+    const final = t.rounds && t.rounds.length ? t.rounds[t.rounds.length - 1][0] : null;
+    return final && final.winner ? final[final.winner] : null;
+}
+function rfcTRunnerUp(t) {
+    const final = t.rounds && t.rounds.length ? t.rounds[t.rounds.length - 1][0] : null;
+    return final && final.winner ? final[final.winner === 'a' ? 'b' : 'a'] : null;
+}
+function rfcTThirdWinner(t) { return t.third && t.third.winner ? t.third[t.third.winner] : null; }
+function rfcTHasResults(t) { return rfcTAllMatches(t).some(({ m }) => (m.winner && m.method !== 'bye') || (m.subs || []).length); }
+
+function rfcTUpdateStatus(t) {
+    if (t.status === 'draft') return;
+    const champ = rfcTChampion(t);
+    const thirdOpen = t.third && !t.third.winner && !t.third.skipped;
+    if (champ && !thirdOpen) {
+        if (t.status !== 'finished') t.finishedAt = t.rounds[t.rounds.length - 1][0].date || '';
+        t.status = 'finished';
+        t.champion = rfcTClone(champ);
+    } else {
+        t.status = 'ongoing';
+        t.champion = null;
+        t.finishedAt = '';
+    }
+}
+
+// 대진표 생성: 참가자 순서 = 시드 순서. 2의 거듭제곱이 아니면 상위 시드부터 부전승.
+function rfcTBuild(t) {
+    const players = (t.participants || []).filter(Boolean);
+    const n = players.length;
+    if (n < 2) throw new Error('참가자가 2명 이상이어야 대진표를 만들 수 있습니다.');
+    let size = 2; while (size < n) size *= 2;
+    const order = rfcTSeedOrder(size);
+    const first = [];
+    for (let i = 0; i < size / 2; i++) {
+        const sa = order[2 * i], sb = order[2 * i + 1];
+        first.push(rfcTNewMatch(`0-${i}`, sa <= n ? rfcTClone(players[sa - 1]) : null, sb <= n ? rfcTClone(players[sb - 1]) : null));
+    }
+    const rounds = [first];
+    for (let count = size / 4, r = 1; count >= 1; count /= 2, r++) rounds.push(Array.from({ length: count }, (_, i) => rfcTNewMatch(`${r}-${i}`)));
+    t.rounds = rounds;
+    const thirdPossible = t.thirdPlace === true && size >= 4 && !(size === 4 && n < 4);
+    t.third = thirdPossible ? rfcTNewMatch('third') : null;
+    first.forEach((m, i) => {
+        const only = m.a && !m.b ? 'a' : (!m.a && m.b ? 'b' : null);
+        if (!only) return;
+        m.winner = only; m.method = 'bye';
+        const nx = rfcTNext(t, `0-${i}`);
+        if (nx) rfcTGet(t, nx.key)[nx.side] = rfcTClone(m[only]);
+    });
+    t.status = 'ongoing'; t.champion = null; t.finishedAt = '';
+    rfcTUpdateStatus(t);
+}
+
+function rfcTCheckDownstream(t, key, verb) {
+    const nx = rfcTNext(t, key);
+    if (nx) {
+        const nm = rfcTGet(t, nx.key);
+        if (nm.winner) throw new Error(`다음 경기(${rfcTMatchLabel(t, nx.key)}) 결과가 이미 입력되어 있어 ${verb} 수 없습니다. 다음 경기 결과를 먼저 취소하세요.`);
+        if ((nm.subs || []).some(s => s.side === nx.side)) throw new Error(`다음 경기(${rfcTMatchLabel(t, nx.key)})에 대타가 지정되어 있어 ${verb} 수 없습니다. 대타를 먼저 취소하세요.`);
+    }
+    if (rfcTIsSemi(t, key) && t.third) {
+        if (t.third.winner) throw new Error(`3·4위전 결과가 이미 입력되어 있어 ${verb} 수 없습니다. 3·4위전 결과를 먼저 취소하세요.`);
+        const side = Number(key.split('-')[1]) % 2 === 0 ? 'a' : 'b';
+        if ((t.third.subs || []).some(s => s.side === side)) throw new Error(`3·4위전에 대타가 지정되어 있어 ${verb} 수 없습니다. 대타를 먼저 취소하세요.`);
+    }
+}
+
+function rfcTSetResult(t, key, side, method, date) {
+    if (t.status === 'draft') throw new Error('대진표를 먼저 생성하세요.');
+    const m = rfcTGet(t, key);
+    if (!m) throw new Error('경기를 찾을 수 없습니다.');
+    if (!m.a || !m.b) throw new Error('양쪽 선수가 모두 정해져야 결과를 입력할 수 있습니다.');
+    if (!['a', 'b'].includes(side)) throw new Error('승자를 선택하세요.');
+    if (m.method === 'bye') throw new Error('부전승 경기는 변경할 수 없습니다.');
+    if (m.winner === side) { m.method = method === 'walkover' ? 'walkover' : 'normal'; if (date) m.date = date; rfcTUpdateStatus(t); return; }
+    if (m.winner) rfcTCheckDownstream(t, key, '결과를 바꿀');
+    else rfcTCheckDownstream(t, key, '결과를 입력할');
+    const other = side === 'a' ? 'b' : 'a';
+    m.winner = side; m.method = method === 'walkover' ? 'walkover' : 'normal';
+    m.date = date || m.date || '';
+    const nx = rfcTNext(t, key);
+    if (nx) rfcTGet(t, nx.key)[nx.side] = rfcTClone(m[side]);
+    if (rfcTIsSemi(t, key) && t.third) t.third[Number(key.split('-')[1]) % 2 === 0 ? 'a' : 'b'] = rfcTClone(m[other]);
+    rfcTUpdateStatus(t);
+}
+
+function rfcTClearResult(t, key) {
+    const m = rfcTGet(t, key);
+    if (!m || !m.winner) throw new Error('취소할 결과가 없습니다.');
+    if (m.method === 'bye') throw new Error('부전승 경기는 취소할 수 없습니다.');
+    rfcTCheckDownstream(t, key, '결과를 취소할');
+    const nx = rfcTNext(t, key);
+    if (nx) rfcTGet(t, nx.key)[nx.side] = null;
+    if (rfcTIsSemi(t, key) && t.third) t.third[Number(key.split('-')[1]) % 2 === 0 ? 'a' : 'b'] = null;
+    m.winner = null; m.method = null;
+    rfcTUpdateStatus(t);
+}
+
+// 대타: 아직 결과가 없는 경기의 한쪽 선수를 교체. 이미 끝난 경기 기록은 그대로 유지됩니다.
+function rfcTSubstitute(t, key, side, toRef, note, date) {
+    const m = rfcTGet(t, key);
+    if (!m) throw new Error('경기를 찾을 수 없습니다.');
+    if (m.winner) throw new Error('결과가 입력된 경기는 대타를 지정할 수 없습니다. 결과를 먼저 취소하세요.');
+    if (!m[side]) throw new Error('아직 정해지지 않은 자리입니다.');
+    if (!toRef || !toRef.name) throw new Error('대타 선수를 선택하거나 이름을 입력하세요.');
+    if (rfcTSameRef(m[side], toRef)) throw new Error('같은 선수로는 교체할 수 없습니다.');
+    if (rfcTSameRef(m[side === 'a' ? 'b' : 'a'], toRef)) throw new Error('상대 선수와 같은 선수로 교체할 수 없습니다.');
+    m.subs = m.subs || [];
+    m.subs.push({ side, from: rfcTClone(m[side]), to: rfcTClone(toRef), date: date || '', note: String(note || '').trim().slice(0, 80) });
+    m[side] = rfcTClone(toRef);
+}
+
+function rfcTUndoSubstitute(t, key, index) {
+    const m = rfcTGet(t, key);
+    if (!m || !m.subs || !m.subs[index]) throw new Error('대타 기록을 찾을 수 없습니다.');
+    if (m.winner) throw new Error('결과가 입력된 경기의 대타는 취소할 수 없습니다. 결과를 먼저 취소하세요.');
+    const sub = m.subs[index];
+    if (m.subs.slice(index + 1).some(s => s.side === sub.side)) throw new Error('같은 자리의 가장 최근 대타부터 취소하세요.');
+    m[sub.side] = rfcTClone(sub.from);
+    m.subs.splice(index, 1);
+}
+
+// 같은 선수가 아직 결과가 없는 다른 경기에 남아 있는지 (대타 경고용)
+function rfcTActiveElsewhere(t, ref, exceptKey) {
+    return rfcTAllMatches(t).some(({ key, m }) => key !== exceptKey && !m.winner && (rfcTSameRef(m.a, ref) || rfcTSameRef(m.b, ref)));
+}
+
+// 선수 프로필용: 해당 선수의 토너먼트 경기 목록 (부전승 제외)
+function rfcTPlayerEntries(tournaments, player, filter, activeSeasonName) {
+    const me = { id: player.id || null, name: player.name };
+    const isMe = ref => ref && (ref.id ? ref.id === me.id : ref.name === me.name);
+    const entries = []; let titles = 0;
+    (tournaments || []).forEach(t => {
+        if (!t || t.status === 'draft') return;
+        const season = t.season || '';
+        if (filter === 'current' && season !== activeSeasonName) return;
+        if (filter && filter !== 'current' && filter !== 'all' && season !== filter) return;
+        if (t.status === 'finished' && isMe(rfcTChampion(t))) titles++;
+        rfcTAllMatches(t).forEach(({ key, m, label }) => {
+            if (!m.winner || m.method === 'bye') return;
+            const side = isMe(m.a) ? 'a' : (isMe(m.b) ? 'b' : null);
+            if (!side) return;
+            const opp = m[side === 'a' ? 'b' : 'a'];
+            const asSub = (m.subs || []).some(s => s.side === side && isMe(s.to));
+            const isFinal = key !== 'third' && Number(key.split('-')[0]) === t.rounds.length - 1;
+            entries.push({ tournamentId: t.id, tournamentName: t.name, season, key, label, date: m.date || t.date || '', win: m.winner === side, method: m.method, opp, asSub, isFinal, videoUrl: m.videoUrl || '' });
+        });
+    });
+    entries.sort((a, b) => String(b.date).localeCompare(String(a.date)));
+    const wins = entries.filter(e => e.win).length;
+    return { entries, wins, losses: entries.length - wins, titles };
+}
+
+// ---------- 렌더링 (문자열) ----------
+function rfcTPlayerInfo(ref, players) {
+    if (!ref) return null;
+    const p = ref.id ? (players || []).find(x => x.id === ref.id) : null;
+    return { name: p ? p.name : ref.name, img: p && p.imageUrl ? rfcURL(p.imageUrl) : '', id: p ? p.id : null, guest: !ref.id };
+}
+function rfcTSlotHTML(m, side, players, opts) {
+    const ref = m[side];
+    const info = rfcTPlayerInfo(ref, players);
+    if (!info) {
+        const placeholder = m.method === 'bye' ? '부전승' : '미정';
+        return `<div class="rfc-tb-slot is-empty"><span class="rfc-tb-av"></span><span class="rfc-tb-name">${placeholder}</span></div>`;
+    }
+    const state = m.winner ? (m.winner === side ? 'is-win' : 'is-lose') : '';
+    const subbed = (m.subs || []).some(s => s.side === side);
+    const initial = rfcHTML(String(info.name).slice(0, 1));
+    const av = info.img ? `<img class="rfc-tb-av" src="${rfcHTML(info.img)}" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'rfc-tb-av',textContent:'${rfcJS(String(info.name).slice(0, 1))}'}))">` : `<span class="rfc-tb-av">${initial}</span>`;
+    const nameClick = !opts.admin && info.id ? ` onclick="event.stopPropagation();openProfile('${rfcJS(info.id)}')" role="button" tabindex="0"` : '';
+    let tag = '';
+    if (m.winner === side) tag = m.method === 'walkover' ? '<span class="rfc-tb-tag win">기권승</span>' : (m.method === 'bye' ? '<span class="rfc-tb-tag bye">부전승</span>' : '<span class="rfc-tb-tag win">승</span>');
+    else if (m.winner && m.method === 'walkover') tag = '<span class="rfc-tb-tag lose">기권</span>';
+    return `<div class="rfc-tb-slot ${state}">${av}<span class="rfc-tb-name${info.id && !opts.admin ? ' is-link' : ''}"${nameClick}>${rfcHTML(info.name)}</span>${subbed ? '<span class="rfc-tb-tag sub" title="대타 출전">대타</span>' : ''}${info.guest ? '<span class="rfc-tb-tag guest" title="미등록 선수">게스트</span>' : ''}${tag}</div>`;
+}
+function rfcTMatchHTML(t, key, m, players, opts) {
+    const sel = opts.selectedKey === key ? ' is-selected' : '';
+    const click = opts.admin ? ` onclick="rfcTSelectMatch('${rfcJS(key)}')" role="button" tabindex="0"` : '';
+    const bye = m.method === 'bye' ? ' is-bye' : '';
+    let meta = '';
+    if (m.date && m.method !== 'bye') meta += `<span>${rfcHTML(m.date)}</span>`;
+    const video = !opts.admin && m.videoUrl ? rfcVideoButton({ videoUrl: m.videoUrl, winner: (m.a || {}).name, loser: (m.b || {}).name }) : (opts.admin && m.videoUrl ? '<span>▶ 영상</span>' : '');
+    if (video) meta += video;
+    if (opts.admin && !m.winner && m.a && m.b) meta += '<span class="rfc-tb-todo">결과 입력 대기</span>';
+    return `<div class="rfc-tb-match${sel}${bye}" data-key="${rfcHTML(key)}"${click}>${rfcTSlotHTML(m, 'a', players, opts)}${rfcTSlotHTML(m, 'b', players, opts)}${meta ? `<div class="rfc-tb-meta">${meta}</div>` : ''}</div>`;
+}
+function rfcTBracketHTML(t, players, opts = {}) {
+    if (!t.rounds || !t.rounds.length) return '<div class="rfc-t-empty">아직 대진표가 생성되지 않았습니다.</div>';
+    const firstCount = t.rounds[0].length;
+    const height = Math.max(1, firstCount) * 104;
+    const cols = t.rounds.map((round, r) => `<div class="rfc-tb-col"><div class="rfc-tb-head">${rfcTRoundLabel(t, r)}</div><div class="rfc-tb-list" style="height:${height}px">${round.map((m, i) => `<div class="rfc-tb-cell${r < t.rounds.length - 1 ? ' has-next' : ''}${r > 0 ? ' has-prev' : ''}">${rfcTMatchHTML(t, `${r}-${i}`, m, players, opts)}</div>`).join('')}</div></div>`).join('');
+    const champ = rfcTChampion(t);
+    const champInfo = rfcTPlayerInfo(champ, players);
+    const champCol = `<div class="rfc-tb-col rfc-tb-champcol"><div class="rfc-tb-head">우승</div><div class="rfc-tb-list" style="height:${height}px"><div class="rfc-tb-cell"><div class="rfc-tb-champ${champInfo ? ' is-done' : ''}">🏆<b>${champInfo ? rfcHTML(champInfo.name) : '?'}</b></div></div></div></div>`;
+    let third = '';
+    if (t.third) {
+        third = `<div class="rfc-tb-third"><div class="rfc-tb-head">3·4위전${t.third.skipped ? ' <small>(생략)</small>' : ''}</div>${rfcTMatchHTML(t, 'third', t.third, players, opts)}</div>`;
+    }
+    return `<div class="rfc-tb-scroll"><div class="rfc-tb">${cols}${champCol}</div></div>${third}`;
+}
+function rfcTSubsLogHTML(t, players) {
+    const rows = [];
+    rfcTAllMatches(t).forEach(({ key, m, label }) => (m.subs || []).forEach(s => {
+        const from = rfcTPlayerInfo(s.from, players), to = rfcTPlayerInfo(s.to, players);
+        rows.push(`<li><b>${rfcHTML(label)}</b> ${rfcHTML(from ? from.name : '?')} → <b>${rfcHTML(to ? to.name : '?')}</b>${s.note ? ` <span class="rfc-t-muted">(${rfcHTML(s.note)})</span>` : ''}${s.date ? ` <span class="rfc-t-muted">${rfcHTML(s.date)}</span>` : ''}</li>`);
+    }));
+    return rows.length ? `<div class="rfc-t-subs"><div class="rfc-t-subs-title">🔁 대타 기록</div><ul>${rows.join('')}</ul><p class="rfc-t-muted">대타 이전 경기의 기록은 원래 선수 이름으로 그대로 남습니다.</p></div>` : '';
+}
+function rfcTProfileBlockHTML(stat, players) {
+    const rows = stat.entries.map(e => {
+        const opp = rfcTPlayerInfo(e.opp, players);
+        const res = e.win ? 'W' : 'L';
+        const method = e.method === 'walkover' ? (e.win ? '기권승' : '기권패') : '';
+        const oppClick = opp && opp.id ? ` onclick="openProfile('${rfcJS(opp.id)}')"` : '';
+        return `<div class="rfc-tp-row"><span class="rfc-tp-res ${e.win ? 'win' : 'lose'}">${res}</span><span class="rfc-tp-badge">🏆 토너먼트</span><div class="rfc-tp-main"><div class="rfc-tp-line"><span class="rfc-tp-opp${oppClick ? ' is-link' : ''}"${oppClick}>vs ${rfcHTML(opp ? opp.name : '?')}</span><span class="rfc-tp-date">${rfcHTML(e.date)}</span></div><div class="rfc-tp-sub">${rfcHTML(e.tournamentName)} · <b>${rfcHTML(e.label)}</b>${e.isFinal && e.win ? ' · 우승 🥇' : ''}${method ? ` · ${method}` : ''}${e.asSub ? ' · 대타 출전' : ''}<span class="rfc-tp-nopt">점수 변동 없음</span></div></div></div>`;
+    }).join('');
+    return `<details class="rfc-tp-block"><summary class="rfc-tp-head"><span>🏆 토너먼트 전적</span><span><b>${stat.wins}승 ${stat.losses}패</b>${stat.titles ? ` · 우승 ${stat.titles}회` : ''}<span class="rfc-tp-arrow">▼</span></span></summary>${rows}<p class="rfc-tp-note">토너먼트 경기는 랭킹 점수·일반 전적과 별도로 집계됩니다.</p></details>`;
+}
+function rfcTSortForList(list) {
+    const rank = { ongoing: 0, draft: 1, finished: 2 };
+    return [...(list || [])].sort((a, b) => (rank[a.status] ?? 3) - (rank[b.status] ?? 3) || String(b.finishedAt || b.date || '').localeCompare(String(a.finishedAt || a.date || '')) || String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
+}
+
+// ======================================================================
+// [토너먼트] 관리자 화면
+// ======================================================================
+let rfcTSel = null, rfcTSelKey = null, rfcTCreating = false, rfcTEditInfo = false, rfcTSubSide = null;
+let rfcTToms = [];
+
+function rfcTFind(id) { return tournamentsData.find(t => t && t.id === id) || null; }
+function rfcTToday() { return getKSTDate(); }
+function rfcTVal(id) { const el = document.getElementById(id); return el ? String(el.value || '').trim() : ''; }
+function rfcTDestroyToms() { rfcTToms.forEach(x => { try { x.destroy(); } catch {} }); rfcTToms = []; }
+function rfcTPlayerOptions(excludeIds = []) {
+    const ex = new Set(excludeIds);
+    return [...rankingsData].filter(p => p && p.id && !ex.has(p.id))
+        .sort((a, b) => String(a.name).localeCompare(String(b.name), 'ko'))
+        .map(p => `<option value="${rfcHTML(p.id)}">${rfcHTML(p.name)}${p.gameId ? ' · ' + rfcHTML(p.gameId) : ''}</option>`).join('');
+}
+function rfcTMakeTom(id, multi) {
+    const el = document.getElementById(id);
+    if (!el || typeof TomSelect === 'undefined') return;
+    rfcTToms.push(new TomSelect(el, {
+        maxItems: multi ? null : 1, maxOptions: null, create: false, plugins: multi ? ['remove_button'] : [],
+        placeholder: '선수 이름 또는 ID 검색', searchField: ['text'],
+        score(search) {
+            const q = String(search || '').toLowerCase();
+            return item => {
+                const text = String(item.text || '').toLowerCase();
+                if (!q) return 1;
+                if (text.includes(q)) return 2;
+                return (typeof Hangul !== 'undefined' && Hangul.getCho(item.text || '').includes(search)) ? 1 : 0;
+            };
+        }
+    }));
+}
+function rfcTSelectedValues(id) {
+    const el = document.getElementById(id);
+    if (!el) return [];
+    if (el.tomselect) { const v = el.tomselect.getValue(); return Array.isArray(v) ? v : (v ? [v] : []); }
+    return [...el.selectedOptions].map(o => o.value).filter(Boolean);
+}
+
+// 저장 흐름: 기존 실행 취소(Undo) + 충돌 방지 트랜잭션(saveRankings)을 그대로 사용
+function rfcTTask(mutate) {
+    return async () => {
+        captureState();
+        mutate();
+        await saveRankings();
+        rfcTRenderAdmin();
+        return true;
+    };
+}
+async function rfcTCommit(mutate, doneMessage) {
+    const ok = await rfcRunOperation(rfcTTask(mutate), 'tournament');
+    rfcTRenderAdmin();
+    if (ok && doneMessage) showCustomAlert(doneMessage);
+    return ok;
+}
+function rfcTConfirm(message, mutate) { showConfirmModal(message, rfcTTask(mutate)); }
+// 저장 전에 복사본으로 먼저 검사해 이해하기 쉬운 안내를 띄웁니다.
+function rfcTDry(id, fn) {
+    const t = rfcTFind(id);
+    if (!t) { showCustomAlert('토너먼트를 찾을 수 없습니다.'); return false; }
+    try { fn(rfcTClone(t)); return true; } catch (e) { showCustomAlert(e.message || String(e)); return false; }
+}
+function rfcTMust(id) { const t = rfcTFind(id); if (!t) throw new Error('토너먼트를 찾을 수 없습니다. 새로고침 후 다시 시도하세요.'); return t; }
+
+// ---------- 렌더 ----------
+function rfcTListItemHTML(t) {
+    const champ = rfcTPlayerInfo(t.champion || rfcTChampion(t), rankingsData);
+    const sub = t.status === 'finished' && champ ? `🏆 ${rfcHTML(champ.name)}` : `${(t.participants || []).length}명`;
+    return `<button type="button" class="rfc-t-item${t.id === rfcTSel ? ' is-active' : ''}" onclick="rfcTSelect('${rfcJS(t.id)}')"><b>${rfcHTML(t.name)}</b><span><span class="rfc-t-pill ${t.status}">${RFC_T_STATUS[t.status] || ''}</span> ${rfcHTML(t.date || '')} · ${sub}</span></button>`;
+}
+function rfcTCreateFormHTML() {
+    return `<div class="rfc-t-card" style="margin-top:10px"><h4>새 토너먼트</h4>
+        <label class="rfc-t-field">토너먼트 이름<input type="text" id="rfcTNewName" maxlength="40" placeholder="예: 제1회 RFC 컵"></label>
+        <label class="rfc-t-field">개최일<input type="date" id="rfcTNewDate" value="${rfcHTML(rfcTToday())}"></label>
+        <label class="rfc-t-field">설명 (선택)<textarea id="rfcTNewDesc" maxlength="300" placeholder="규칙, 상품 등"></textarea></label>
+        <label class="rfc-t-check"><input type="checkbox" id="rfcTNewThird"> 3·4위전 진행</label>
+        <div class="rfc-t-row" style="margin-top:12px"><button type="button" class="rfc-t-btn blue" onclick="rfcTCreate()">만들기</button><button type="button" class="rfc-t-btn" onclick="rfcTToggleCreate(false)">취소</button></div>
+        <p class="rfc-t-hint">현재 시즌(${rfcHTML(activeSeason)})으로 기록됩니다. 만든 뒤 참가자를 추가하고 대진표를 생성하세요. 준비 중인 토너먼트는 사용자 사이트에 보이지 않습니다.</p></div>`;
+}
+function rfcTInfoFormHTML(t) {
+    const draft = t.status === 'draft';
+    return `<div class="rfc-t-card"><h4>토너먼트 정보 수정</h4>
+        <div class="rfc-t-grid2"><label class="rfc-t-field">이름<input type="text" id="rfcTEditName" maxlength="40" value="${rfcHTML(t.name)}"></label>
+        <label class="rfc-t-field">개최일<input type="date" id="rfcTEditDate" value="${rfcHTML(t.date || '')}"></label></div>
+        <label class="rfc-t-field">설명<textarea id="rfcTEditDesc" maxlength="300">${rfcHTML(t.description || '')}</textarea></label>
+        ${draft ? `<label class="rfc-t-check"><input type="checkbox" id="rfcTEditThird" ${t.thirdPlace ? 'checked' : ''}> 3·4위전 진행</label>` : ''}
+        <div class="rfc-t-row" style="margin-top:12px"><button type="button" class="rfc-t-btn blue" onclick="rfcTSaveInfo()">정보 저장</button>${draft ? '' : '<button type="button" class="rfc-t-btn" onclick="rfcTToggleInfo(false)">닫기</button>'}</div></div>`;
+}
+function rfcTDraftHTML(t) {
+    const ids = (t.participants || []).map(p => p.id).filter(Boolean);
+    const n = (t.participants || []).length;
+    let size = 2; while (size < n) size *= 2;
+    const byes = n >= 2 ? size - n : 0;
+    const items = (t.participants || []).map((p, i) => {
+        const info = rfcTPlayerInfo(p, rankingsData);
+        const reg = p.id ? rankingsData.find(x => x.id === p.id) : null;
+        return `<li><span class="rfc-t-seed">${i + 1}</span><span class="nm">${rfcHTML(info.name)}${p.id ? '' : ' <span class="rfc-tb-tag guest">게스트</span>'}</span><span class="elo">${reg ? rfcHTML(reg.elo ?? 1000) + '점' : ''}</span>
+            <button type="button" class="rfc-t-btn sm" ${i === 0 ? 'disabled' : ''} onclick="rfcTMove(${i},-1)" aria-label="위로">▲</button><button type="button" class="rfc-t-btn sm" ${i === n - 1 ? 'disabled' : ''} onclick="rfcTMove(${i},1)" aria-label="아래로">▼</button><button type="button" class="rfc-t-btn sm red" onclick="rfcTRemoveParticipant(${i})" aria-label="삭제">✕</button></li>`;
+    }).join('');
+    return `${rfcTInfoFormHTML(t)}
+    <div class="rfc-t-card"><div class="rfc-t-row between"><h3 style="margin:0">참가자 <span class="rfc-t-muted">${n}명</span></h3><div class="rfc-t-row"><button type="button" class="rfc-t-btn sm" onclick="rfcTShuffle()">🎲 랜덤 섞기</button><button type="button" class="rfc-t-btn sm" onclick="rfcTSortByElo()">📊 랭킹 점수순</button></div></div>
+        <div class="rfc-t-grid2" style="margin-top:6px">
+            <label class="rfc-t-field">등록 선수 추가 (여러 명 선택 가능)<select id="rfcTAddPlayers" multiple>${rfcTPlayerOptions(ids)}</select></label>
+            <label class="rfc-t-field">미등록 선수(게스트) 추가<input type="text" id="rfcTGuestName" maxlength="30" placeholder="이름 입력"></label>
+        </div>
+        <div class="rfc-t-row" style="margin-top:8px"><button type="button" class="rfc-t-btn blue" onclick="rfcTAddParticipants()">＋ 선택한 선수 추가</button><button type="button" class="rfc-t-btn" onclick="rfcTAddGuest()">＋ 게스트 추가</button></div>
+        <ol class="rfc-t-plist">${items || '<li style="justify-content:center;color:#94a3b8">아직 참가자가 없습니다.</li>'}</ol>
+        <p class="rfc-t-hint">위에서부터 1번 시드입니다. 1번과 2번 시드는 결승에서야 만나도록 배치됩니다.${n >= 2 && byes ? ` 지금 인원(${n}명)이면 ${size}강 대진표가 되고, 상위 시드 ${byes}명이 부전승으로 다음 라운드에 바로 올라갑니다.` : ''}</p>
+        <div class="rfc-t-row" style="margin-top:12px"><button type="button" class="rfc-t-btn green" onclick="rfcTStart()" ${n < 2 ? 'disabled' : ''}>🎯 대진표 생성 · 토너먼트 시작</button></div></div>`;
+}
+function rfcTMatchEditorHTML(t) {
+    const m = rfcTSelKey ? rfcTGet(t, rfcTSelKey) : null;
+    if (!m) return `<div class="rfc-t-card"><h4>경기 관리</h4><p class="rfc-t-hint">대진표에서 경기를 누르면 승패 입력, 대타 교체, 날짜·영상 링크를 관리할 수 있습니다.</p></div>`;
+    const label = rfcTMatchLabel(t, rfcTSelKey);
+    const ready = m.a && m.b;
+    const slot = side => {
+        const info = rfcTPlayerInfo(m[side], rankingsData);
+        const isWin = m.winner === side;
+        const btns = m.method === 'bye' ? '' : (ready ? `<button type="button" class="rfc-t-btn sm ${isWin && m.method === 'normal' ? 'green' : ''}" onclick="rfcTResult('${side}','normal')">승리</button><button type="button" class="rfc-t-btn sm ${isWin && m.method === 'walkover' ? 'green' : ''}" onclick="rfcTResult('${side}','walkover')" title="상대 기권·불참">기권승</button>` : '')
+            + (!m.winner && m[side] ? `<button type="button" class="rfc-t-btn sm amber" onclick="rfcTOpenSub('${side}')">🔁 대타</button>` : '');
+        return `<div class="rfc-t-mslot${isWin ? ' is-win' : ''}"><span class="side">${side === 'a' ? '1' : '2'}</span><span class="nm">${info ? rfcHTML(info.name) : '<span class="rfc-t-muted">미정</span>'}${(m.subs || []).some(s => s.side === side) ? ' <span class="rfc-tb-tag sub">대타</span>' : ''}${isWin ? (m.method === 'walkover' ? ' <span class="rfc-tb-tag win">기권승</span>' : m.method === 'bye' ? ' <span class="rfc-tb-tag bye">부전승</span>' : ' <span class="rfc-tb-tag win">승</span>') : ''}</span>${btns}</div>`;
+    };
+    let subForm = '';
+    if (rfcTSubSide && m[rfcTSubSide] && !m.winner) {
+        const cur = rfcTPlayerInfo(m[rfcTSubSide], rankingsData);
+        const otherIds = [m.a, m.b].map(r => r && r.id).filter(Boolean);
+        subForm = `<div class="rfc-t-subform"><b style="font-size:12px;color:#92400e">🔁 대타 교체 — ${rfcHTML(cur.name)} 대신 출전</b>
+            <label class="rfc-t-field">등록 선수에서 선택<select id="rfcTSubPlayer"><option value=""></option>${rfcTPlayerOptions(otherIds)}</select></label>
+            <label class="rfc-t-field">또는 미등록 선수 이름<input type="text" id="rfcTSubGuest" maxlength="30" placeholder="게스트 이름"></label>
+            <label class="rfc-t-field">사유 (선택)<input type="text" id="rfcTSubNote" maxlength="80" placeholder="예: 부상, 개인 사정"></label>
+            <div class="rfc-t-row" style="margin-top:10px"><button type="button" class="rfc-t-btn amber" onclick="rfcTDoSub()">교체 확정</button><button type="button" class="rfc-t-btn" onclick="rfcTOpenSub(null)">닫기</button></div>
+            <p class="rfc-t-hint">이미 끝난 경기의 기록은 바뀌지 않고, 이 경기부터 대타 선수가 출전합니다. 대타가 이기면 그대로 다음 라운드로 올라갑니다.</p></div>`;
+    }
+    const subs = (m.subs || []).map((s, i) => {
+        const from = rfcTPlayerInfo(s.from, rankingsData), to = rfcTPlayerInfo(s.to, rankingsData);
+        return `<li><span>${rfcHTML(from ? from.name : '?')} → <b>${rfcHTML(to ? to.name : '?')}</b>${s.note ? ` (${rfcHTML(s.note)})` : ''}</span>${m.winner ? '' : `<button type="button" class="rfc-t-btn sm" onclick="rfcTUndoSub(${i})">대타 취소</button>`}</li>`;
+    }).join('');
+    let videoValue = '';
+    try { videoValue = m.videoUrl ? rfcYouTubeURL(m.videoUrl) : ''; } catch {}
+    return `<div class="rfc-t-card"><div class="rfc-t-row between"><h4 style="margin:0">${rfcHTML(label)}</h4><button type="button" class="rfc-t-btn sm" onclick="rfcTSelectMatch(null)">닫기</button></div>
+        ${m.method === 'bye' ? '<p class="rfc-t-hint">상대가 없어 자동으로 부전승 처리된 경기입니다. 사용자 프로필 전적에는 표시되지 않습니다.</p>' : ''}
+        ${slot('a')}${slot('b')}
+        ${!ready && m.method !== 'bye' ? '<p class="rfc-t-hint">이전 경기 결과가 나오면 선수가 자동으로 채워집니다.</p>' : ''}
+        ${subs ? `<ul class="rfc-t-sublist">${subs}</ul>` : ''}
+        ${subForm}
+        ${m.method !== 'bye' ? `<label class="rfc-t-field">경기 날짜<input type="date" id="rfcTMDate" value="${rfcHTML(m.date || rfcTToday())}"></label>
+        <label class="rfc-t-field">유튜브 영상 링크 (선택)<input type="url" id="rfcTMVideo" maxlength="2048" value="${rfcHTML(videoValue)}" placeholder="https://www.youtube.com/live/…"></label>
+        <label class="rfc-t-field">경기 시작 시각 (선택)<input type="text" id="rfcTMStart" maxlength="32" placeholder="예: 12:34 또는 1:02:30"></label>
+        <div class="rfc-t-row" style="margin-top:10px"><button type="button" class="rfc-t-btn" onclick="rfcTSaveMatchInfo()">날짜·영상 저장</button>${m.winner ? '<button type="button" class="rfc-t-btn red" onclick="rfcTClear()">결과 취소</button>' : ''}</div>
+        <p class="rfc-t-hint">승패를 누르면 위 날짜로 기록되고 승자가 다음 라운드로 올라갑니다. 토너먼트 결과는 랭킹 점수에 반영되지 않습니다.</p>` : ''}
+    </div>`;
+}
+function rfcTRunningHTML(t) {
+    const champ = rfcTPlayerInfo(t.champion || rfcTChampion(t), rankingsData);
+    const thirdOpen = t.third && !t.third.winner && !t.third.skipped && rfcTChampion(t);
+    const canRebuild = !rfcTHasResults(t);
+    return `${rfcTEditInfo ? rfcTInfoFormHTML(t) : ''}
+    <div class="rfc-t-card">
+        <div class="rfc-t-head"><div><h3>${rfcHTML(t.name)}</h3><div class="meta"><span class="rfc-t-pill ${t.status}">${RFC_T_STATUS[t.status]}</span><span>${rfcHTML(t.season || '')}</span><span>${rfcHTML(t.date || '')}</span><span>${(t.participants || []).length}명</span>${champ ? `<span>🏆 <b>${rfcHTML(champ.name)}</b></span>` : ''}</div>${t.description ? `<p class="rfc-t-hint">${rfcHTML(t.description)}</p>` : ''}</div>
+        <div class="rfc-t-row"><button type="button" class="rfc-t-btn sm" onclick="rfcTToggleInfo(true)">✏️ 정보 수정</button>${canRebuild ? '<button type="button" class="rfc-t-btn sm" onclick="rfcTBackToDraft()">↩️ 대진 다시 짜기</button>' : ''}${thirdOpen ? '<button type="button" class="rfc-t-btn sm amber" onclick="rfcTSkipThird()">3·4위전 생략하고 종료</button>' : ''}${t.third && t.third.skipped ? '<button type="button" class="rfc-t-btn sm" onclick="rfcTUnskipThird()">3·4위전 다시 진행</button>' : ''}<button type="button" class="rfc-t-btn sm red" onclick="rfcTDelete()">🗑️ 삭제</button></div></div>
+        ${thirdOpen ? '<div class="rfc-t-warn">결승이 끝났습니다. 3·4위전 결과를 입력하거나 생략하면 토너먼트가 ‘종료’로 바뀌고 사용자 사이트의 지난 토너먼트 기록으로 이동합니다.</div>' : ''}
+    </div>
+    <div class="rfc-t-side-panel" style="margin-top:12px">
+        <div class="rfc-t-card">${rfcTBracketHTML(t, rankingsData, { admin: true, selectedKey: rfcTSelKey })}${rfcTSubsLogHTML(t, rankingsData)}</div>
+        <div>${rfcTMatchEditorHTML(t)}</div>
+    </div>`;
+}
+window.rfcTRenderAdmin = function () {
+    const root = document.getElementById('rfcTAdmin');
+    if (!root) return;
+    rfcTDestroyToms();
+    const sorted = rfcTSortForList(tournamentsData);
+    if (!rfcTFind(rfcTSel)) { rfcTSel = sorted[0] ? sorted[0].id : null; rfcTSelKey = null; rfcTSubSide = null; }
+    const t = rfcTFind(rfcTSel);
+    const groups = [['ongoing', '진행 중'], ['draft', '준비 중'], ['finished', '종료 (기록)']].map(([st, title]) => {
+        const items = sorted.filter(x => x.status === st);
+        return items.length ? `<div class="rfc-t-group">${title} · ${items.length}</div>${items.map(rfcTListItemHTML).join('')}` : '';
+    }).join('');
+    const scroll = document.getElementById('rfcAdminWorkPanel')?.scrollTop || 0;
+    root.innerHTML = `<div class="rfc-t-admin">
+        <aside class="rfc-t-side"><div class="rfc-t-card"><button type="button" class="rfc-t-btn primary w-full" onclick="rfcTToggleCreate(true)">＋ 새 토너먼트</button>${rfcTCreating ? rfcTCreateFormHTML() : ''}${groups || '<p class="rfc-t-hint" style="text-align:center">아직 만든 토너먼트가 없습니다.</p>'}
+            <p class="rfc-t-hint">여러 토너먼트를 동시에 운영할 수 있습니다. 토너먼트 승패는 일반 경기 점수(ELO)·전적과 별개로 기록됩니다.</p></div></aside>
+        <section class="rfc-t-main">${t ? (t.status === 'draft' ? rfcTDraftHTML(t) : rfcTRunningHTML(t)) : '<div class="rfc-t-card"><div class="rfc-t-empty">왼쪽에서 ‘새 토너먼트’를 눌러 시작하세요.</div></div>'}</section>
+    </div>`;
+    if (t && t.status === 'draft') rfcTMakeTom('rfcTAddPlayers', true);
+    if (t && rfcTSubSide) rfcTMakeTom('rfcTSubPlayer', false);
+    const panel = document.getElementById('rfcAdminWorkPanel'); if (panel) panel.scrollTop = scroll;
+};
+
+// ---------- 동작 ----------
+window.rfcTSelect = id => { rfcTSel = id; rfcTSelKey = null; rfcTSubSide = null; rfcTEditInfo = false; rfcTRenderAdmin(); };
+window.rfcTSelectMatch = key => { rfcTSelKey = key; rfcTSubSide = null; rfcTRenderAdmin(); };
+window.rfcTToggleCreate = on => { rfcTCreating = on; rfcTRenderAdmin(); if (on) setTimeout(() => document.getElementById('rfcTNewName')?.focus(), 30); };
+window.rfcTToggleInfo = on => { rfcTEditInfo = on; rfcTRenderAdmin(); };
+window.rfcTOpenSub = side => { rfcTSubSide = side; rfcTRenderAdmin(); };
+
+window.rfcTCreate = async () => {
+    const name = rfcTVal('rfcTNewName');
+    if (!name) return showCustomAlert('토너먼트 이름을 입력하세요.');
+    const t = { id: rfcTId('t'), name, date: rfcTVal('rfcTNewDate') || rfcTToday(), description: rfcTVal('rfcTNewDesc'), thirdPlace: document.getElementById('rfcTNewThird')?.checked === true,
+        season: activeSeason, status: 'draft', participants: [], rounds: [], third: null, champion: null, createdAt: new Date().toISOString(), finishedAt: '' };
+    const ok = await rfcTCommit(() => { tournamentsData.push(t); });
+    if (ok) { rfcTCreating = false; rfcTSel = t.id; rfcTRenderAdmin(); }
+};
+window.rfcTSaveInfo = () => {
+    const id = rfcTSel, name = rfcTVal('rfcTEditName');
+    if (!name) return showCustomAlert('토너먼트 이름을 입력하세요.');
+    const date = rfcTVal('rfcTEditDate'), desc = rfcTVal('rfcTEditDesc'), thirdEl = document.getElementById('rfcTEditThird');
+    return rfcTCommit(() => { const t = rfcTMust(id); t.name = name; t.date = date; t.description = desc; if (thirdEl && t.status === 'draft') t.thirdPlace = thirdEl.checked; rfcTEditInfo = false; }, '✅ 토너먼트 정보가 저장되었습니다.');
+};
+window.rfcTAddParticipants = () => {
+    const ids = rfcTSelectedValues('rfcTAddPlayers');
+    if (!ids.length) return showCustomAlert('추가할 선수를 선택하세요.');
+    const id = rfcTSel;
+    return rfcTCommit(() => {
+        const t = rfcTMust(id);
+        ids.forEach(pid => { const p = rankingsData.find(x => x.id === pid); if (p && !t.participants.some(x => x.id === pid)) t.participants.push(rfcTRef(p)); });
+    });
+};
+window.rfcTAddGuest = () => {
+    const name = rfcTVal('rfcTGuestName');
+    if (!name) return showCustomAlert('게스트 이름을 입력하세요.');
+    const t0 = rfcTFind(rfcTSel);
+    if (t0 && t0.participants.some(p => p.name === name)) return showCustomAlert('같은 이름의 참가자가 이미 있습니다.');
+    const reg = rankingsData.find(p => p.name === name);
+    const id = rfcTSel;
+    return rfcTCommit(() => { const t = rfcTMust(id); t.participants.push(reg ? rfcTRef(reg) : { id: null, name }); });
+};
+window.rfcTRemoveParticipant = i => { const id = rfcTSel; return rfcTCommit(() => { rfcTMust(id).participants.splice(i, 1); }); };
+window.rfcTMove = (i, d) => {
+    const id = rfcTSel;
+    return rfcTCommit(() => { const p = rfcTMust(id).participants; const j = i + d; if (j < 0 || j >= p.length) return; [p[i], p[j]] = [p[j], p[i]]; });
+};
+window.rfcTShuffle = () => {
+    const id = rfcTSel;
+    return rfcTCommit(() => { const p = rfcTMust(id).participants; for (let i = p.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [p[i], p[j]] = [p[j], p[i]]; } });
+};
+window.rfcTSortByElo = () => {
+    const id = rfcTSel;
+    const elo = ref => { const p = ref.id ? rankingsData.find(x => x.id === ref.id) : null; return p ? Number(p.elo ?? 1000) : -Infinity; };
+    return rfcTCommit(() => { rfcTMust(id).participants.sort((a, b) => elo(b) - elo(a)); });
+};
+window.rfcTStart = () => {
+    const t = rfcTFind(rfcTSel);
+    if (!t || t.participants.length < 2) return showCustomAlert('참가자가 2명 이상이어야 합니다.');
+    const id = t.id;
+    rfcTConfirm(`[${t.name}] 대진표를 생성하고 토너먼트를 시작할까요?\n참가자 ${t.participants.length}명 · 시작 후에는 ‘대타’로만 선수를 바꿀 수 있습니다.`, () => { rfcTBuild(rfcTMust(id)); rfcTSelKey = null; });
+};
+window.rfcTBackToDraft = () => {
+    const id = rfcTSel;
+    rfcTConfirm('대진표를 지우고 참가자 편집 단계로 돌아갈까요?\n(입력된 결과가 없을 때만 가능합니다)', () => {
+        const t = rfcTMust(id);
+        if (rfcTHasResults(t)) throw new Error('이미 결과나 대타가 입력되어 있어 되돌릴 수 없습니다.');
+        t.status = 'draft'; t.rounds = []; t.third = null; t.champion = null; t.finishedAt = ''; rfcTSelKey = null;
+    });
+};
+window.rfcTDelete = () => {
+    const t = rfcTFind(rfcTSel); if (!t) return;
+    const id = t.id;
+    rfcTConfirm(`[${t.name}] 토너먼트를 삭제할까요?\n모든 대진·결과가 사라지며 선수 프로필의 토너먼트 기록에서도 빠집니다. (실행 취소로 되돌릴 수 있습니다)`, () => {
+        tournamentsData = tournamentsData.filter(x => x.id !== id); rfcTSel = null; rfcTSelKey = null;
+    });
+};
+window.rfcTSkipThird = () => { const id = rfcTSel; return rfcTCommit(() => { const t = rfcTMust(id); if (t.third) { t.third.skipped = true; rfcTUpdateStatus(t); } }, '3·4위전을 생략하고 토너먼트를 종료했습니다.'); };
+window.rfcTUnskipThird = () => { const id = rfcTSel; return rfcTCommit(() => { const t = rfcTMust(id); if (t.third) { delete t.third.skipped; rfcTUpdateStatus(t); } }); };
+window.rfcTResult = (side, method) => {
+    const id = rfcTSel, key = rfcTSelKey, date = rfcTVal('rfcTMDate') || rfcTToday();
+    const t = rfcTFind(id), m = t && rfcTGet(t, key);
+    if (!m) return;
+    const name = (rfcTPlayerInfo(m[side], rankingsData) || {}).name;
+    const isFinal = key !== 'third' && Number(key.split('-')[0]) === t.rounds.length - 1;
+    if (!rfcTDry(id, c => rfcTSetResult(c, key, side, method, date))) return;
+    const run = () => { rfcTSetResult(rfcTMust(id), key, side, method, date); };
+    if (isFinal && !m.winner) return rfcTConfirm(`결승 결과: ${name} ${method === 'walkover' ? '기권승' : '승리'}\n${name} 선수가 우승자로 기록됩니다. 확정할까요?`, run);
+    return rfcTCommit(run);
+};
+window.rfcTClear = () => {
+    const id = rfcTSel, key = rfcTSelKey;
+    if (!rfcTDry(id, c => rfcTClearResult(c, key))) return;
+    rfcTConfirm('이 경기 결과를 취소할까요?\n다음 라운드로 올라간 선수도 함께 빠집니다.', () => { rfcTClearResult(rfcTMust(id), key); });
+};
+window.rfcTSaveMatchInfo = () => {
+    const id = rfcTSel, key = rfcTSelKey, date = rfcTVal('rfcTMDate');
+    let video = '';
+    try { video = rfcYouTubeURL(rfcTVal('rfcTMVideo'), rfcTVal('rfcTMStart') || undefined); } catch (e) { return showCustomAlert(e.message || '영상 링크를 확인하세요.'); }
+    return rfcTCommit(() => { const m = rfcTGet(rfcTMust(id), key); if (!m) throw new Error('경기를 찾을 수 없습니다.'); m.date = date; m.videoUrl = video; }, '✅ 경기 날짜·영상이 저장되었습니다.');
+};
+window.rfcTDoSub = () => {
+    const id = rfcTSel, key = rfcTSelKey, side = rfcTSubSide;
+    const pid = rfcTSelectedValues('rfcTSubPlayer')[0];
+    const guest = rfcTVal('rfcTSubGuest'), note = rfcTVal('rfcTSubNote');
+    if (pid && guest) return showCustomAlert('등록 선수와 게스트 이름 중 하나만 입력하세요.');
+    let ref = null;
+    if (pid) ref = rfcTRef(rankingsData.find(p => p.id === pid));
+    else if (guest) { const reg = rankingsData.find(p => p.name === guest); ref = reg ? rfcTRef(reg) : { id: null, name: guest }; }
+    if (!ref) return showCustomAlert('대타 선수를 선택하거나 이름을 입력하세요.');
+    const t = rfcTFind(id), m = t && rfcTGet(t, key);
+    if (!m) return;
+    const fromName = (rfcTPlayerInfo(m[side], rankingsData) || {}).name;
+    if (!rfcTDry(id, c => rfcTSubstitute(c, key, side, ref, note, ''))) return;
+    const busy = rfcTActiveElsewhere(t, ref, key);
+    rfcTConfirm(`${rfcTMatchLabel(t, key)}: ${fromName} → ${ref.name} 대타 교체할까요?${busy ? `\n\n⚠️ ${ref.name} 선수는 이 토너먼트의 다른 미진행 경기에도 남아 있습니다.` : ''}`, () => {
+        rfcTSubstitute(rfcTMust(id), key, side, ref, note, rfcTToday()); rfcTSubSide = null;
+    });
+};
+window.rfcTUndoSub = i => {
+    const id = rfcTSel, key = rfcTSelKey;
+    if (!rfcTDry(id, c => rfcTUndoSubstitute(c, key, i))) return;
+    rfcTConfirm('대타 교체를 취소하고 원래 선수로 되돌릴까요?', () => { rfcTUndoSubstitute(rfcTMust(id), key, i); });
+};
+
+// ---------- 탭 연결 ----------
+{
+    const prevSwitch = window.switchTab;
+    window.switchTab = tab => {
+        prevSwitch(tab);
+        document.getElementById('rfcAdminLayout')?.classList.toggle('rfc-t-wide', tab === 'tournament');
+        if (tab === 'tournament') rfcTRenderAdmin();
+    };
+}
+
+// ---------- 선수 프로필(관리자)에 토너먼트 전적 표시 ----------
+function rfcTInjectProfile(id, filter) {
+    if (currentProfileTab !== 'chrono') return;
+    const p = rankingsData.find(x => x.id === id);
+    const container = document.getElementById('pModalMatchList');
+    if (!p || !container) return;
+    const stat = rfcTPlayerEntries(tournamentsData, p, filter, activeSeason);
+    if (!stat.entries.length) return;
+    if (container.children.length === 1 && container.firstElementChild.classList.contains('text-center')) container.innerHTML = '';
+    container.insertAdjacentHTML('afterbegin', rfcTProfileBlockHTML(stat, rankingsData));
+}
+{
+    const prevProfile = window.updateProfileStats;
+    window.updateProfileStats = (id, filter) => { prevProfile(id, filter); try { rfcTInjectProfile(id, filter); } catch (e) { console.warn('토너먼트 프로필 표시 오류', e); } };
+}
 
 </script>
 
