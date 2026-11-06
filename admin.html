@@ -595,6 +595,31 @@ body.rfc-design-admin #rfcAdminHeader{background:#111e32;border:1px solid #111e3
 .rfc-t-size{border:1px solid #d3dce8;border-radius:8px;padding:5px 8px;font-size:12px;font-weight:700;background:#fff;color:#1e293b}
 .rfc-t-field .rfc-t-size{display:block;width:100%;margin-top:4px;padding:8px 10px;font-size:13px}
 
+</style><style id="rfcTimerLinkStyle">
+#rfcTimerLink:empty{display:none}
+#rfcTimerLink{border:1px solid #c7d2fe;background:#f5f7ff;border-radius:12px;padding:10px 12px;font-size:12px;color:#334155}
+.rfc-tl-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.rfc-tl-head b{font-size:13px;color:#1e293b}
+.rfc-tl-on{font-size:11px;font-weight:700;color:#15803d;background:#dcfce7;border-radius:999px;padding:1px 8px}
+.rfc-tl-off{font-size:11px;font-weight:700;color:#64748b;background:#e2e8f0;border-radius:999px;padding:1px 8px}
+.rfc-tl-link{margin-left:auto;font-size:11px;color:#64748b;text-decoration:underline}
+.rfc-tl-auto{margin-left:auto;display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:#475569;cursor:pointer}
+.rfc-tl-row{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:10px;background:#fff;border:1px solid #e2e8f0}
+.rfc-tl-row+.rfc-tl-row{margin-top:5px}
+.rfc-tl-row.on{border-color:#6366f1;box-shadow:0 0 0 2px #6366f133}
+.rfc-tl-main{flex:1;min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px}
+.rfc-tl-b{font-weight:800;color:#1d4ed8}.rfc-tl-r{font-weight:800;color:#dc2626}.rfc-tl-vs{color:#94a3b8;font-size:11px}
+.rfc-tl-win{font-weight:800;color:#0f172a;background:#fef3c7;border-radius:6px;padding:0 6px}
+.rfc-tl-meta{color:#64748b;font-size:11px}
+.rfc-tl-miss{flex-basis:100%;color:#b91c1c;font-size:11px;font-weight:700}
+.rfc-tl-act{display:flex;gap:4px;flex-shrink:0}
+.rfc-tl-fill{background:#4f46e5;color:#fff;font-weight:800;font-size:11px;border-radius:8px;padding:6px 9px;white-space:nowrap}
+.rfc-tl-fill:hover{background:#4338ca}
+.rfc-tl-skip{background:#f1f5f9;color:#64748b;font-weight:700;font-size:11px;border-radius:8px;padding:6px 8px;border:1px solid #e2e8f0}
+.rfc-tl-note{margin:6px 2px 0;color:#64748b;font-size:11px;line-height:1.5}
+.rfc-tl-warn{flex-basis:100%;color:#a16207;font-size:11px;font-weight:700}
+.rfc-tl-fill:disabled{background:#94a3b8;cursor:not-allowed}
+
 </style></head>
 <body class="rfc-design rfc-design-admin rfc-ux-admin text-slate-800 relative h-screen overflow-hidden">
 <div id="rfcConnectionStatus" role="status" aria-live="polite" hidden style="padding:12px 16px;background:#fff7df;border-bottom:1px solid #e2d1a0;white-space:pre-wrap"></div>
@@ -674,6 +699,7 @@ body.rfc-design-admin #rfcAdminHeader{background:#111e32;border:1px solid #111e3
                         </div>
                         <div class="p-5">
                             <div class="space-y-4">
+                                <div id="rfcTimerLink"></div>
                                 <div>
                                     <div class="flex justify-between items-center mb-1.5 pl-1 pr-1">
                                         <label class="text-xs font-bold text-slate-500">📅 경기 날짜</label>
@@ -1567,9 +1593,9 @@ window.addEventListener('online', () => rfcStatus('인터넷이 연결되었습�
 
         
         const ADMIN_CONFIG = {
-            version: "v6.04",
-            updateNote: "토너먼트: 빈 대진표 칸을 눌러 선수 지정, 저장 오류(중첩 배열) 수정",
-            title: "v6.04 토너먼트 대진표 직접 배치"
+            version: "v6.05",
+            updateNote: "RFC 타이머 경기 결과를 경기 입력칸에 바로 채우기 (방송 PC에서 타이머가 켜져 있을 때)",
+            title: "v6.05 RFC 타이머 경기 결과 연동"
         };
 
         function initVersionUI() {
@@ -5373,6 +5399,199 @@ function rfcTInjectProfile(id, filter) {
     const prevProfile = window.updateProfileStats;
     window.updateProfileStats = (id, filter) => { prevProfile(id, filter); try { rfcTInjectProfile(id, filter); } catch (e) { console.warn('토너먼트 프로필 표시 오류', e); } };
 }
+
+/* [RFC 타이머 연동] 같은 PC에서 켜진 RFC 타이머가 저장한 경기 결과를 '경기 결과 입력' 칸에 채워 줍니다.
+   - 타이머 주소: http://127.0.0.1:17890 (설정에서 포트 변경 가능)
+   - 등록(경기 확정)이 끝나면 타이머 쪽 기록에 '등록됨' 표시 → 목록에서 사라짐 */
+const rfcTL = {
+    port: Number(localStorage.getItem('rfcTimerPort')) || 17890,
+    items: [], online: null, version: '', pending: null, busy: false,
+    auto: localStorage.getItem('rfcTimerAuto') === '1',
+    autoTried: new Set(), timer: null,
+    token: Math.random().toString(36).slice(2) + Date.now().toString(36),  // 이 창을 구분 (다른 창과 동시 등록 방지)
+    firstSeen: null,   // 페이지를 연 뒤 처음 받은 목록 — 자동 등록은 그 뒤에 끝난 경기만
+};
+// 등록은 끝났는데 타이머에 '등록됨' 표시를 못 보낸 경우를 대비해 이 브라우저에도 기억
+function rfcTLDone() { try { return JSON.parse(localStorage.getItem('rfcTimerDone') || '[]'); } catch (e) { return []; } }
+function rfcTLAddDone(file) { const d = rfcTLDone().filter(x => x !== file); d.push(file); localStorage.setItem('rfcTimerDone', JSON.stringify(d.slice(-200))); }
+function rfcTLBase() { return 'http://127.0.0.1:' + rfcTL.port; }
+function rfcTLNorm(s) { return String(s || '').trim().toLowerCase(); }
+function rfcTLFind(side) {
+    if (!side) return -1;
+    let i = side.rankId ? rankingsData.findIndex(p => p.id === side.rankId) : -1;
+    if (i < 0 && side.gameId) {
+        const g = rfcTLNorm(side.gameId);
+        i = rankingsData.findIndex(p => [p.gameId, ...(Array.isArray(p.subGameIds) ? p.subGameIds : [])].some(x => rfcTLNorm(x) === g));
+    }
+    return i;
+}
+async function rfcTLPoll() {
+    try {
+        const r = await fetch(rfcTLBase() + '/api/results?pending=1&token=' + rfcTL.token, {cache: 'no-store'});
+        const j = await r.json();
+        const done = rfcTLDone();
+        const all = Array.isArray(j.items) ? j.items : [];
+        // 이미 등록했는데 타이머에 표시가 안 된 것: 다시 표시 요청하고 목록에서 숨김
+        for (const it of all.filter(x => done.includes(x.file))) rfcTLMark(it.file, 'resend');
+        rfcTL.items = all.filter(x => !done.includes(x.file));
+        if (rfcTL.firstSeen === null) rfcTL.firstSeen = new Set(all.map(x => x.file));
+        rfcTL.version = j.app || '';
+        rfcTL.online = true;
+    } catch (e) {
+        rfcTL.online = false; rfcTL.items = [];
+    }
+    rfcTLRender();
+    rfcTLMaybeAuto();
+}
+async function rfcTLMark(file, how) {
+    try {
+        const r = await fetch(rfcTLBase() + '/api/results/mark', {method: 'POST', headers: {'Content-Type': 'text/plain'}, body: JSON.stringify({file, registered: true, how: how || 'admin'})});
+        return (await r.json()).ok;
+    } catch (e) { return false; /* 브라우저에 기억해 둔 목록으로 다음에 다시 보냄 */ }
+}
+async function rfcTLClaim(file, release) {
+    try {
+        const r = await fetch(rfcTLBase() + '/api/results/claim', {method: 'POST', headers: {'Content-Type': 'text/plain'}, body: JSON.stringify({file, token: rfcTL.token, release: !!release})});
+        return (await r.json()).ok;
+    } catch (e) { return false; }
+}
+// 같은 날 같은 두 선수 경기가 이미 기록돼 있으면 (재경기일 수도, 중복일 수도)
+function rfcTLSameDay(it, bi, ri) {
+    if (bi < 0 || ri < 0) return 0;
+    const a = rankingsData[bi], b = rankingsData[ri];
+    const ids = new Set([a.id, b.id]), names = new Set([a.name, b.name]);
+    return matchHistoryData.filter(m => m && m.date === it.date && (
+        (m.winnerId && m.loserId && ids.has(m.winnerId) && ids.has(m.loserId) && m.winnerId !== m.loserId) ||
+        (!m.winnerId && names.has(m.winner) && names.has(m.loser) && m.winner !== m.loser))).length;
+}
+function rfcTLMethod(m) { return ({KO: 'KO', TKO: 'TKO', '판정': '판정', '실격': '실격승', '무승부': '무승부'})[m] || m || ''; }
+function rfcTLRender() {
+    const box = document.getElementById('rfcTimerLink');
+    if (!box) return;
+    if (rfcTL.online === null) { box.innerHTML = ''; return; }
+    if (!rfcTL.online) {
+        box.innerHTML = `<div class="rfc-tl-head"><b>RFC 타이머 경기 결과</b><span class="rfc-tl-off">타이머 연결 안 됨</span>
+            <button type="button" class="rfc-tl-link" onclick="rfcTLSetPort()">포트 ${rfcTL.port}</button></div>
+            <p class="rfc-tl-note">방송 PC에서 RFC 타이머를 켜면 끝난 경기가 여기에 나타납니다. 브라우저가 <b>이 기기의 다른 앱·서비스에 접근</b>을 허용할지 물으면 <b>허용</b>을 눌러 주세요.</p>`;
+        return;
+    }
+    const rows = rfcTL.items.map(it => {
+        const bi = rfcTLFind(it.blue), ri = rfcTLFind(it.red);
+        const bn = bi >= 0 ? rankingsData[bi].name : it.blue.display || it.blue.gameId;
+        const rn = ri >= 0 ? rankingsData[ri].name : it.red.display || it.red.gameId;
+        const win = it.result === 'draw' ? '무승부' : (it.result === 'blue' ? bn : rn) + ' 승';
+        const miss = [bi < 0 ? it.blue.gameId : null, ri < 0 ? it.red.gameId : null].filter(Boolean);
+        const same = rfcTLSameDay(it, bi, ri);
+        const warn = [...(it.checks || []), ...(same ? [`같은 날 같은 대진이 이미 ${same}경기 기록돼 있음 (재경기인지 확인)`] : [])];
+        const when = String(it.savedAt || '').replace('T', ' ').slice(5, 16);
+        const active = rfcTL.pending && rfcTL.pending.file === it.file;
+        return `<div class="rfc-tl-row${active ? ' on' : ''}">
+            <div class="rfc-tl-main"><span class="rfc-tl-b">${rfcHTML(bn)}</span><span class="rfc-tl-vs">vs</span><span class="rfc-tl-r">${rfcHTML(rn)}</span>
+              <span class="rfc-tl-win">${rfcHTML(win)}</span><span class="rfc-tl-meta">${rfcHTML(rfcTLMethod(it.method))}${it.rounds ? ' · ' + it.rounds + 'R' : ''}${it.time ? ' ' + rfcHTML(it.time) : ''} · ${rfcHTML(when)}</span>
+              ${miss.length ? `<span class="rfc-tl-miss">랭킹에 없는 게임 ID: ${rfcHTML(miss.join(', '))}</span>` : ''}
+              ${warn.length ? `<span class="rfc-tl-warn">확인 필요: ${rfcHTML(warn.join(' / '))}</span>` : ''}
+              ${it.claimedByOther ? '<span class="rfc-tl-warn">다른 창에서 등록하는 중</span>' : ''}</div>
+            <div class="rfc-tl-act"><button type="button" class="rfc-tl-fill" data-f="${rfcHTML(it.file)}" onclick="rfcTLFill(this.dataset.f)" ${it.claimedByOther ? 'disabled' : ''}>${active ? '채움 ✓' : '입력칸에 채우기'}</button>
+              <button type="button" class="rfc-tl-skip" data-f="${rfcHTML(it.file)}" onclick="rfcTLSkip(this.dataset.f)" title="이 경기는 랭킹에 올리지 않음">제외</button></div></div>`;
+    }).join('');
+    box.innerHTML = `<div class="rfc-tl-head"><b>RFC 타이머 경기 결과</b><span class="rfc-tl-on">연결됨${rfcTL.version ? ' · v' + rfcHTML(rfcTL.version) : ''}</span>
+        <label class="rfc-tl-auto"><input type="checkbox" ${rfcTL.auto ? 'checked' : ''} onchange="rfcTLSetAuto(this.checked)"> 자동 등록</label></div>
+        ${rows || '<p class="rfc-tl-note">등록을 기다리는 경기가 없습니다.</p>'}
+        ${rfcTL.pending ? '<p class="rfc-tl-note">입력칸에 채웠습니다. 날짜·타이틀 매치를 확인하고 <b>경기 확정</b>을 누르세요.</p>' : ''}`;
+}
+function rfcTLSelect(id, idx) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (el.tomselect) el.tomselect.setValue(String(idx), false);
+    else { el.value = String(idx); el.dispatchEvent(new Event('change')); }
+}
+window.rfcTLFill = async (file, silent) => {
+    const it = rfcTL.items.find(x => x.file === file);
+    if (!it) return false;
+    const bi = rfcTLFind(it.blue), ri = rfcTLFind(it.red);
+    if (bi < 0 || ri < 0) {
+        if (!silent) showCustomAlert('랭킹에 없는 선수가 있어요: ' + [bi < 0 ? it.blue.gameId : '', ri < 0 ? it.red.gameId : ''].filter(Boolean).join(', ') + '\n선수 정보의 게임 ID를 먼저 등록하세요.');
+        return false;
+    }
+    if (!silent) {
+        const same = rfcTLSameDay(it, bi, ri);
+        const warn = [...(it.checks || []), ...(same ? [`같은 날 같은 대진이 이미 ${same}경기 기록돼 있습니다 (재경기가 맞나요?)`] : [])];
+        if (warn.length && !confirm('이 경기는 확인이 필요합니다.\n\n- ' + warn.join('\n- ') + '\n\n그래도 입력칸에 채울까요?')) return false;
+    }
+    if (!(await rfcTLClaim(file))) {
+        if (!silent) showCustomAlert('다른 창(또는 다른 PC)에서 이 경기를 등록하는 중입니다. 잠시 후 다시 확인하세요.');
+        return false;
+    }
+    rfcTLSelect('p1Select', bi);
+    rfcTLSelect('p2Select', ri);
+    const radio = document.querySelector(`input[name="winner"][value="${it.result === 'draw' ? 'draw' : it.result}"]`);
+    if (radio) radio.checked = true;
+    if (it.date) document.getElementById('matchDateInput').value = it.date;
+    if (window.checkAutoTitleMatch) window.checkAutoTitleMatch();
+    if (window.updateMatchPreview) window.updateMatchPreview();
+    rfcTL.pending = {file: it.file, blueId: rankingsData[bi].id, redId: rankingsData[ri].id};
+    rfcTLRender();
+    document.querySelector('button[onclick="applyMatch()"]')?.scrollIntoView({block: 'center', behavior: 'smooth'});
+    return true;
+};
+window.rfcTLSkip = file => {
+    showConfirmModal('이 경기를 랭킹에 올리지 않고 목록에서 뺄까요? (타이머의 기록 파일은 남습니다)', async () => {
+        await rfcTLMark(file);
+        if (rfcTL.pending && rfcTL.pending.file === file) rfcTL.pending = null;
+        rfcTLPoll();
+    });
+};
+window.rfcTLSetAuto = on => {
+    if (on && !confirm('자동 등록을 켜면, 이 창을 열어 둔 동안 끝난 경기를 바로 경기 확정까지 진행합니다.\n\n자동으로 하지 않는 경기 (직접 눌러서 등록):\n- 확인 필요 표시가 있는 경기 (일찍 끝남·게임 튕김·실격 등)\n- 랭킹에 없는 선수가 있는 경기\n- 같은 날 같은 대진이 이미 있는 경기\n- 이 창을 열기 전에 끝난 경기, 30분이 지난 경기\n\n켤까요?')) { rfcTLRender(); return; }
+    rfcTL.auto = !!on; localStorage.setItem('rfcTimerAuto', on ? '1' : '0'); rfcTLRender(); rfcTLMaybeAuto();
+};
+window.rfcTLSetPort = () => {
+    const v = prompt('RFC 타이머 포트 번호', String(rfcTL.port));
+    if (!v || !/^\d{2,5}$/.test(v.trim())) return;
+    rfcTL.port = Number(v.trim()); localStorage.setItem('rfcTimerPort', String(rfcTL.port)); rfcTLPoll();
+};
+// 자동 등록은 '확실한' 경기만: 이 창을 연 뒤에 끝났고, 30분 이내, 확인 필요 사항 없음, 두 선수 모두 랭킹에 있음,
+// 같은 날 같은 대진 기록 없음, 다른 창에서 처리 중 아님, 입력칸을 사람이 쓰고 있지 않음. 나머지는 사람이 눌러서 등록.
+async function rfcTLMaybeAuto() {
+    if (!rfcTL.auto || rfcTL.busy || !rfcTL.online || !rankingsData.length || rfcTL.pending) return;
+    const sel = id => { const el = document.getElementById(id); return el ? (el.tomselect ? el.tomselect.getValue() : el.value) : ''; };
+    if (sel('p1Select') !== '' || sel('p2Select') !== '') return;  // 누가 직접 입력 중이면 건드리지 않음
+    const fresh = x => (Date.now() - new Date(x.savedAt).getTime()) < 30 * 60 * 1000;
+    const it = rfcTL.items.slice().reverse().find(x => !rfcTL.autoTried.has(x.file) && rfcTL.firstSeen && !rfcTL.firstSeen.has(x.file) && fresh(x)
+        && !(x.checks || []).length && !x.claimedByOther && rfcTLFind(x.blue) >= 0 && rfcTLFind(x.red) >= 0
+        && !rfcTLSameDay(x, rfcTLFind(x.blue), rfcTLFind(x.red)));
+    if (!it) return;
+    rfcTL.autoTried.add(it.file);
+    rfcTL.busy = true;
+    try {
+        if (await rfcTLFill(it.file, true)) await window.applyMatch();
+    } finally { rfcTL.busy = false; }
+}
+// '경기 확정'이 끝나면 타이머 쪽에 등록됨 표시
+{
+    const rfcTLOrigApply = window.applyMatch;
+    window.applyMatch = async (...args) => {
+        const pend = rfcTL.pending;
+        const sel = id => { const el = document.getElementById(id); return el ? (el.tomselect ? el.tomselect.getValue() : el.value) : ''; };
+        const matches = pend && rankingsData[Number(sel('p1Select'))]?.id === pend.blueId && rankingsData[Number(sel('p2Select'))]?.id === pend.redId;
+        const before = matchHistoryData.length;
+        const result = await rfcTLOrigApply(...args);
+        if (pend && matches && matchHistoryData.length > before) {
+            rfcTLAddDone(pend.file);
+            await rfcTLMark(pend.file, rfcTL.busy ? 'auto' : 'admin');
+            rfcTL.pending = null;
+            rfcTLPoll();
+        }
+        return result;
+    };
+}
+{
+    const old = window.resetMatchInputs;
+    window.resetMatchInputs = (...args) => { const r = old(...args); if (!args[0]) { if (rfcTL.pending) rfcTLClaim(rfcTL.pending.file, true); rfcTL.pending = null; rfcTLRender(); } return r; };
+}
+rfcTLPoll();
+// 자동 등록을 켜 두면 탭이 뒤에 있어도 확인 (브라우저가 느리게 돌릴 수는 있음)
+rfcTL.timer = setInterval(() => { if (!document.hidden || rfcTL.auto) rfcTLPoll(); }, 5000);
 
 </script>
 
