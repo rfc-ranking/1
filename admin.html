@@ -1593,9 +1593,9 @@ window.addEventListener('online', () => rfcStatus('인터넷이 연결되었습�
 
         
         const ADMIN_CONFIG = {
-            version: "v6.05",
-            updateNote: "RFC 타이머 경기 결과를 경기 입력칸에 바로 채우기 (방송 PC에서 타이머가 켜져 있을 때)",
-            title: "v6.05 RFC 타이머 경기 결과 연동"
+            version: "v6.06",
+            updateNote: "RFC 타이머 경기 결과를 경기 입력칸에 바로 채우기 (유튜브 영상 링크·경기 시각 포함)",
+            title: "v6.06 RFC 타이머 경기 결과 연동 (영상 링크·시각 자동)"
         };
 
         function initVersionUI() {
@@ -5487,7 +5487,7 @@ function rfcTLRender() {
         const active = rfcTL.pending && rfcTL.pending.file === it.file;
         return `<div class="rfc-tl-row${active ? ' on' : ''}">
             <div class="rfc-tl-main"><span class="rfc-tl-b">${rfcHTML(bn)}</span><span class="rfc-tl-vs">vs</span><span class="rfc-tl-r">${rfcHTML(rn)}</span>
-              <span class="rfc-tl-win">${rfcHTML(win)}</span><span class="rfc-tl-meta">${rfcHTML(rfcTLMethod(it.method))}${it.rounds ? ' · ' + it.rounds + 'R' : ''}${it.time ? ' ' + rfcHTML(it.time) : ''} · ${rfcHTML(when)}</span>
+              <span class="rfc-tl-win">${rfcHTML(win)}</span><span class="rfc-tl-meta">${rfcHTML(rfcTLMethod(it.method))}${it.rounds ? ' · ' + it.rounds + 'R' : ''}${it.time ? ' ' + rfcHTML(it.time) : ''} · ${rfcHTML(when)}${it.videoUrl ? ' · ▶ 영상 ' + rfcHTML(it.videoStart || '') : ''}</span>
               ${miss.length ? `<span class="rfc-tl-miss">랭킹에 없는 게임 ID: ${rfcHTML(miss.join(', '))}</span>` : ''}
               ${warn.length ? `<span class="rfc-tl-warn">확인 필요: ${rfcHTML(warn.join(' / '))}</span>` : ''}
               ${it.claimedByOther ? '<span class="rfc-tl-warn">다른 창에서 등록하는 중</span>' : ''}</div>
@@ -5527,6 +5527,12 @@ window.rfcTLFill = async (file, silent) => {
     const radio = document.querySelector(`input[name="winner"][value="${it.result === 'draw' ? 'draw' : it.result}"]`);
     if (radio) radio.checked = true;
     if (it.date) document.getElementById('matchDateInput').value = it.date;
+    // 유튜브 영상 링크와 영상 속 경기 시작 시각 (타이머가 방송 영상을 찾았을 때만; 없으면 입력칸을 건드리지 않음)
+    const vEl = document.getElementById('rfcSingleVideo'), sEl = document.getElementById('rfcSingleStart');
+    if (it.videoUrl && vEl) {
+        vEl.value = it.videoUrl; vEl.dispatchEvent(new Event('input'));
+        if (sEl) { sEl.value = it.videoStart || ''; sEl.dispatchEvent(new Event('input')); }
+    }
     if (window.checkAutoTitleMatch) window.checkAutoTitleMatch();
     if (window.updateMatchPreview) window.updateMatchPreview();
     rfcTL.pending = {file: it.file, blueId: rankingsData[bi].id, redId: rankingsData[ri].id};
