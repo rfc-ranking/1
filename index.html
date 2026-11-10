@@ -620,6 +620,15 @@ button.rfc-fx-chip{cursor:pointer}button.rfc-fx-chip[aria-expanded=true]{backgro
 .rfc-st-act{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:#475569;white-space:nowrap;cursor:pointer}
 .rfc-st-act input{width:14px;height:14px;accent-color:#2563eb}
 
+/* 라이벌 (두 선수) */
+.rfc-st-c li.pair{cursor:default}
+.rfc-st-c li.pair .n{white-space:nowrap;word-break:keep-all}
+.rfc-st-c li.pair .n small{white-space:nowrap}
+@media (max-width:899px){.rfc-st-grid.rv{grid-template-columns:1fr}}
+.rfc-st-c li.pair .n em{font-style:normal;font-size:10px;font-weight:800;color:#94a3b8;margin:0 5px}
+.rfc-st-c li.pair .pl{cursor:pointer;border-radius:4px}
+.rfc-st-c li.pair .pl:hover{color:#1d4ed8;text-decoration:underline}
+
 </style></head>
 <body class="rfc-design rfc-design-public bg-slate-100 text-slate-800 pb-10 flex flex-col min-h-screen">
 <div id="rfcConnectionStatus" role="status" aria-live="polite" hidden style="padding:12px 16px;background:#fff7df;border-bottom:1px solid #e2d1a0;white-space:pre-wrap"></div>
@@ -710,7 +719,7 @@ button.rfc-fx-chip{cursor:pointer}button.rfc-fx-chip[aria-expanded=true]{backgro
         </div>
 
         <!-- 기록실 탭 (전적·경기 내용·펀치 통계) -->
-        <div id="statsSection" class="hidden fade-in"><div class="rfc-section-intro"><div><span class="rfc-section-eyebrow">STATS</span><h2>기록실</h2><p>승률·연승·KO율·명중률·잽까지 — 영역별 선수 순위를 한눈에.</p></div></div>
+        <div id="statsSection" class="hidden fade-in"><div class="rfc-section-intro"><div><span class="rfc-section-eyebrow">STATS</span><h2>기록실</h2><p>승률·연승·KO율·명중률·라이벌까지 — 영역별 선수 순위를 한눈에.</p></div></div>
             <div class="sticky-sub-header sticky z-30 bg-white/95 backdrop-blur-sm p-3 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between mb-3 gap-2 transition-all">
                 <div class="rfc-st-left"><div class="rfc-st-min" role="group" aria-label="최소 경기 수" id="rfcStMin"></div>
                 <label class="rfc-st-act"><input type="checkbox" id="rfcStActive" checked onchange="rfcStSetActive(this.checked)"> 최근 4개월 활동 선수만</label></div>
@@ -719,7 +728,7 @@ button.rfc-fx-chip{cursor:pointer}button.rfc-fx-chip[aria-expanded=true]{backgro
             <div id="rfcStSummary" class="rfc-st-summary"></div>
             <div id="rfcStSections" class="rfc-st-sections"></div>
             <div id="rfcStWait"></div>
-            <p class="rfc-st-foot">전적(승률·연승·업셋·경기 수)은 모든 경기로 계산합니다. 결과 방식(KO·TKO·판정)과 펀치 기록(명중률·잽·바디 등)은 RFC 타이머 v0.5.5 이후 방송 경기와 관리자가 직접 넣은 결과만 셉니다.</p>
+            <p class="rfc-st-foot">전적(승률·연승·업셋·경기 수)은 모든 경기로 계산합니다. 결과 방식(KO·TKO·판정)은 RFC 타이머 v0.5.5 이후 방송 경기와 관리자가 직접 넣은 결과만 셉니다.<br>명중률 = 유효타 ÷ 던진 펀치. <b>유효타</b>는 데미지 10 이상 들어간 펀치만 셉니다 — 스치거나 가드에 막힌 펀치, 가드에서 친 슬랩은 빼요 (RFC 타이머 v0.5.7 이후 기록).</p>
         </div>
 
         <!-- 전당 탭 -->
@@ -1290,8 +1299,8 @@ window.addEventListener('online', () => rfcStatus('인터넷이 연결되었습�
         import { getFirestore, doc, getDocFromServer, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v5.83",
-            updateNote: "기록실: 최근 4개월 활동 선수만 보기(기본) · 전적·피니시·타격·스타일·방어를 한 화면에",
+            version: "v5.85",
+            updateNote: "기록실에 라이벌(최다 맞대결·팽팽한 라이벌·천적 관계) 추가 · 명중률은 유효타 기준",
             title: "RFC 랭킹전"
         };
 
@@ -3960,8 +3969,10 @@ const RFC_FX_NAME = {KO: 'KO', TKO: 'TKO', DEC: '판정', DQ: '실격', RTD: '�
 const RFC_ST_MIN_TRACKED = 3;     // 펀치 통계: 펀치 기록이 있는 경기 수
 const RFC_ST_MIN_KO = 3;          // KO율: 결과 방식이 기록된 승리 수
 // v 2 = 결과 방식 판단을 고친 RFC 타이머 v0.5.5 이후 값이나 관리자가 직접 넣은 값. 예전 값은 틀렸을 수 있어 쓰지 않음.
+// 펀치 기록은 v 3부터: '맞힌 펀치' = 유효타(펀치 하나가 데미지 10 이상, 스치거나 가드에 막힌 펀치·슬랩 제외) — RFC 타이머 v0.5.7 이후.
+//   v 2의 펀치 기록은 닿기만 해도 적중으로 세서 명중률이 60~80%로 부풀려져 있어 쓰지 않음.
 function rfcFxOk(fx) { return !!(fx && typeof fx === 'object' && Number(fx.v) >= 2); }
-function rfcFxHasStats(fx) { return rfcFxOk(fx) && Array.isArray(fx.w) && Array.isArray(fx.l) && fx.w.length >= 6 && fx.l.length >= 6 && Number(fx.w[0]) >= 0; }
+function rfcFxHasStats(fx) { return rfcFxOk(fx) && Number(fx.v) >= 3 && Array.isArray(fx.w) && Array.isArray(fx.l) && fx.w.length >= 6 && fx.l.length >= 6 && Number(fx.w[0]) >= 0; }
 function rfcFxLabel(fx) {
     if (!rfcFxOk(fx) || !fx.m) return '';
     let t = RFC_FX_NAME[fx.m] || String(fx.m);
@@ -4060,24 +4071,69 @@ const RFC_ST_SECTIONS = [
         {name: '강펀치', desc: '한 경기에 맞힌 강타(큰 데미지) 수', need: 'extra', ok: x => x.a.xGames >= RFC_ST_MIN_TRACKED, val: x => RFC_PER(x.a.big, x.a.xGames), fmt: RFC_N1, sub: x => `총 ${x.a.big}개`},
     ]},
     {icon: '🎯', title: '타격', note: '펀치 기록 3경기부터', cards: [
-        {name: '명중률', desc: '던진 펀치 중 맞힌 비율', need: 'punch', ok: x => x.a.tracked >= RFC_ST_MIN_TRACKED, val: x => x.a.acc, fmt: rfcPctText, sub: x => `${x.a.L.toLocaleString()} / ${x.a.T.toLocaleString()}`},
-        {name: '파워 펀치', desc: '잽을 뺀 훅·스트레이트·어퍼컷의 명중률', need: 'punch', ok: x => x.a.pGames >= RFC_ST_MIN_TRACKED && x.a.PT > 0, val: x => x.a.pAcc, fmt: rfcPctText, sub: x => `${x.a.PL.toLocaleString()} / ${x.a.PT.toLocaleString()}`},
+        {name: '명중률', desc: '던진 펀치 중 제대로 맞힌(유효타) 비율', need: 'punch', ok: x => x.a.tracked >= RFC_ST_MIN_TRACKED, val: x => x.a.acc, fmt: rfcPctText, sub: x => `${x.a.L.toLocaleString()} / ${x.a.T.toLocaleString()}`},
+        {name: '파워 펀치', desc: '잽을 뺀 훅·스트레이트·어퍼컷의 유효타 비율', need: 'punch', ok: x => x.a.pGames >= RFC_ST_MIN_TRACKED && x.a.PT > 0, val: x => x.a.pAcc, fmt: rfcPctText, sub: x => `${x.a.PL.toLocaleString()} / ${x.a.PT.toLocaleString()}`},
         {name: '+/−', desc: '내 명중률 − 나를 상대한 선수들의 명중률', need: 'punch', sign: true, ok: x => x.a.tracked >= RFC_ST_MIN_TRACKED, val: x => x.a.pm, fmt: rfcPmText, sub: x => `내 ${rfcPctText(x.a.acc)} · 상대 ${rfcPctText(x.a.oAcc)}`},
-        {name: '경기당 유효타', desc: '한 경기에 맞힌 펀치 수', need: 'punch', ok: x => x.a.tracked >= RFC_ST_MIN_TRACKED, val: x => RFC_PER(x.a.L, x.a.tracked), fmt: RFC_N1, sub: x => `라운드당 ${RFC_N1(x.a.perRound)}`},
+        {name: '경기당 유효타', desc: '한 경기에 제대로 맞힌 펀치 수', need: 'punch', ok: x => x.a.tracked >= RFC_ST_MIN_TRACKED, val: x => RFC_PER(x.a.L, x.a.tracked), fmt: RFC_N1, sub: x => `라운드당 ${RFC_N1(x.a.perRound)}`},
     ]},
     {icon: '🥊', title: '스타일', note: '펀치 기록 3경기부터', cards: [
         {name: '잽', desc: '한 경기에 던진 잽 수', need: 'punch', ok: x => x.a.pGames >= RFC_ST_MIN_TRACKED, val: x => RFC_PER(x.a.jabT, x.a.pGames), fmt: RFC_N1, sub: x => `전체 펀치의 ${rfcPctText(rfcPct(x.a.jabT, x.a.T))}`},
         {name: '펀치 볼륨', desc: '한 경기에 던진 펀치 수', need: 'punch', ok: x => x.a.tracked >= RFC_ST_MIN_TRACKED, val: x => RFC_PER(x.a.T, x.a.tracked), fmt: RFC_N1, sub: x => `총 ${x.a.T.toLocaleString()}개`},
-        {name: '바디 공략', desc: '한 경기에 몸통에 맞힌 펀치 수', need: 'extra', ok: x => x.a.xGames >= RFC_ST_MIN_TRACKED, val: x => RFC_PER(x.a.body, x.a.xGames), fmt: RFC_N1, sub: x => `총 ${x.a.body}개`},
-        {name: '카운터', desc: '한 경기에 맞힌 카운터 펀치 수', need: 'extra', ok: x => x.a.xGames >= RFC_ST_MIN_TRACKED, val: x => RFC_PER(x.a.counter, x.a.xGames), fmt: RFC_N1, sub: x => `총 ${x.a.counter}개`},
+        {name: '바디 공략', desc: '한 경기에 몸통에 맞힌 유효타 수', need: 'extra', ok: x => x.a.xGames >= RFC_ST_MIN_TRACKED, val: x => RFC_PER(x.a.body, x.a.xGames), fmt: RFC_N1, sub: x => `총 ${x.a.body}개`},
+        {name: '카운터', desc: '한 경기에 맞힌 카운터 유효타 수', need: 'extra', ok: x => x.a.xGames >= RFC_ST_MIN_TRACKED, val: x => RFC_PER(x.a.counter, x.a.xGames), fmt: RFC_N1, sub: x => `총 ${x.a.counter}개`},
     ]},
     {icon: '🛡️', title: '방어', note: '펀치 기록 3경기부터', cards: [
         {name: '방어율', desc: '상대 명중률이 낮은 순', need: 'punch', asc: true, ok: x => x.a.tracked >= RFC_ST_MIN_TRACKED, val: x => x.a.oAcc, fmt: rfcPctText, sub: x => `맞은 ${x.a.oL.toLocaleString()} / ${x.a.oT.toLocaleString()}`},
-        {name: '적게 맞기', desc: '한 경기에 맞은 펀치 수가 적은 순', need: 'punch', asc: true, ok: x => x.a.tracked >= RFC_ST_MIN_TRACKED, val: x => RFC_PER(x.a.oL, x.a.tracked), fmt: RFC_N1, sub: x => `${x.a.tracked}경기`},
+        {name: '적게 맞기', desc: '한 경기에 맞은 유효타가 적은 순', need: 'punch', asc: true, ok: x => x.a.tracked >= RFC_ST_MIN_TRACKED, val: x => RFC_PER(x.a.oL, x.a.tracked), fmt: RFC_N1, sub: x => `${x.a.tracked}경기`},
         {name: '맷집', desc: '한 경기에 다운당한 횟수가 적은 순', need: 'punch', asc: true, ok: x => x.a.tracked >= RFC_ST_MIN_TRACKED, val: x => RFC_PER(x.a.kdTaken, x.a.tracked) + x.a.tracked / -1e6, fmt: v => RFC_N1(Math.max(0, v)), sub: x => `다운 ${x.a.kdTaken}번 · ${x.a.tracked}경기`},
     ]},
 ];
 const rfcSt = {min: 10, season: 'all', active: true, dirty: true, open: new Set()};
+
+// 이/가 (받침 있으면 '이')
+function rfcGa(w) { const c = String(w || '').trim().slice(-1), k = c.charCodeAt(0) - 0xAC00; return w + (k >= 0 && k <= 11171 ? (k % 28 ? '이' : '가') : '가'); }
+// ---- 라이벌: 자주 붙은 두 선수 (맞대결 3번 이상) ----
+const RFC_RIVAL_MIN = 3;
+function rfcStPairs(matches, rows) {
+    const byId = new Map(rows.map(x => [String(x.p.id), x.p])), byName = new Map(rows.map(x => [x.p.name, x.p]));
+    const who = (id, name) => (id != null && id !== '' && byId.get(String(id))) || byName.get(name) || null;
+    const pairs = new Map();
+    for (const m of matches) {
+        const a = who(m.winnerId, m.winner), b = who(m.loserId, m.loser);
+        if (!a || !b || String(a.id) === String(b.id)) continue;
+        const [x, y] = String(a.id) < String(b.id) ? [a, b] : [b, a];
+        const k = x.id + '|' + y.id;
+        let e = pairs.get(k);
+        if (!e) { e = {x, y, n: 0, xw: 0, yw: 0, d: 0, last: ''}; pairs.set(k, e); }
+        e.n++;
+        if (m.isDraw || m.type === 'draw') e.d++; else if (a === x) e.xw++; else e.yw++;
+        if (String(m.date || '') > e.last) e.last = String(m.date || '');
+    }
+    return [...pairs.values()].filter(e => e.n >= RFC_RIVAL_MIN).map(e => {
+        const xLead = e.xw >= e.yw;
+        return {...e, hi: xLead ? e.x : e.y, lo: xLead ? e.y : e.x, hw: Math.max(e.xw, e.yw), lw: Math.min(e.xw, e.yw)};
+    });
+}
+const RFC_RIVAL_CARDS = [
+    {name: '최다 맞대결', desc: '가장 많이 붙은 두 선수', ok: e => true, sort: (a, b) => b.n - a.n || (a.hw - a.lw) - (b.hw - b.lw) || b.last.localeCompare(a.last),
+        val: e => e.n + '전', sub: e => `${e.x.name} ${e.xw}승 · ${e.y.name} ${e.yw}승${e.d ? ' · ' + e.d + '무' : ''}`},
+    {name: '팽팽한 라이벌', desc: '4번 이상 붙었는데 승패가 거의 같은 사이', ok: e => e.n >= 4 && Math.abs(e.hw - e.lw) <= Math.max(1, Math.round(e.n * 0.2)), sort: (a, b) => (a.hw - a.lw) / a.n - (b.hw - b.lw) / b.n || b.n - a.n,
+        val: e => `${e.hw}-${e.lw}${e.d ? '-' + e.d : ''}`, sub: e => `${e.n}전 · 마지막 ${e.last.slice(5).replace('-', '/')}`},
+    {name: '천적 관계', desc: '한쪽이 거의 다 이긴 사이 (3번 이상)', ok: e => e.hw >= 3 && e.hw >= 3 * Math.max(1, e.lw), sort: (a, b) => (b.hw - b.lw) - (a.hw - a.lw) || b.n - a.n,
+        val: e => `${e.hw}-${e.lw}`, sub: e => `${e.n}전 중 ${rfcGa(e.hi.name)} ${e.hw}승`, arrow: true},
+];
+function rfcStPairCard(card, pairs, key) {
+    const ranked = pairs.filter(card.ok).sort(card.sort);
+    const openAll = rfcSt.open.has(key), shown = ranked.slice(0, openAll ? 15 : 5);
+    const nm = p => rankingsData.some(r => String(r.id) === String(p.id))
+        ? `<span class="pl" role="button" tabindex="0" onclick="event.stopPropagation();openProfile('${rfcJS(p.id)}')">${p.isChampion ? '👑 ' : ''}${rfcHTML(p.name)}</span>` : rfcHTML(p.name);
+    const list = shown.map((e, i) => {
+        const [l, r] = card.arrow ? [e.hi, e.lo] : [e.x, e.y];
+        return `<li class="r${i + 1} pair"><span class="k">${i + 1}</span><span class="n">${nm(l)}<em>${card.arrow ? '▶' : 'vs'}</em>${nm(r)}<small>${rfcHTML(card.sub(e))}</small></span><b class="v">${rfcHTML(card.val(e))}</b></li>`;
+    }).join('');
+    const more = ranked.length > 5 ? `<button type="button" class="more" onclick="rfcStMore('${key}')">${openAll ? '접기' : `더 보기 (${Math.min(15, ranked.length)}위까지)`}</button>` : '';
+    return `<div class="rfc-st-c"><div class="h"><b>${rfcHTML(card.name)}</b><small>${rfcHTML(card.desc)}</small></div>${list ? `<ol>${list}</ol>${more}` : '<p class="e">아직 해당하는 두 선수가 없어요</p>'}</div>`;
+}
 const RFC_ST_ACTIVE_DAYS = 122;  // 약 4개월
 // 선수별 마지막 경기 날짜 (모든 시즌)
 function rfcStLastDates() {
@@ -4132,7 +4188,7 @@ function rfcStCard(card, rows, key) {
     }).join('');
     const more = ranked.length > 5 ? `<button type="button" class="more" onclick="rfcStMore('${key}')">${openAll ? '접기' : `더 보기 (${Math.min(15, ranked.length)}위까지)`}</button>` : '';
     const empty = card.need === 'ko' ? '결과 방식이 기록된 승리가 3번 넘는 선수가 아직 없어요' : card.need === 'ko1' ? '아직 KO·TKO 기록이 없어요'
-        : card.need === 'extra' ? '타이머 v0.5.5 기록이 3경기 넘게 쌓이면 나와요' : card.need === 'punch' ? '펀치 기록이 3경기 넘게 쌓이면 나와요' : '기록이 없어요';
+        : card.need === 'extra' || card.need === 'punch' ? '새 기준 펀치 기록이 3경기 넘게 쌓이면 나와요' : '기록이 없어요';
     return `<div class="rfc-st-c"><div class="h"><b>${rfcHTML(card.name)}</b><small>${rfcHTML(card.desc)}</small></div>${list ? `<ol>${list}</ol>${more}` : `<p class="e">${empty}</p>`}</div>`;
 }
 function rfcStRender() {
@@ -4162,7 +4218,12 @@ function rfcStRender() {
     if (cb) cb.checked = rfcSt.active;
     document.getElementById('rfcStSections').innerHTML = RFC_ST_SECTIONS.map((sec, si) => `
         <section class="rfc-st-sec"><h3><span>${sec.icon}</span>${rfcHTML(sec.title)}<small>${rfcHTML(sec.note)}${rfcSt.min > 1 ? ` · ${rfcSt.min}전 이상` : ''}${rfcSt.active ? ' · 최근 4개월 활동' : ''}</small></h3>
-        <div class="rfc-st-grid" style="--n:${sec.cards.length}">${sec.cards.map((c, ci) => rfcStCard(c, eligible, si + '-' + ci)).join('')}</div></section>`).join('');
+        <div class="rfc-st-grid" style="--n:${sec.cards.length}">${sec.cards.map((c, ci) => rfcStCard(c, eligible, si + '-' + ci)).join('')}</div></section>`).join('')
+        + (() => {
+            const pairs = rfcStPairs(matches, eligible);
+            return `<section class="rfc-st-sec"><h3><span>⚔️</span>라이벌<small>맞대결 ${RFC_RIVAL_MIN}번부터${rfcSt.min > 1 ? ` · ${rfcSt.min}전 이상` : ''}${rfcSt.active ? ' · 최근 4개월 활동' : ''}</small></h3>
+            <div class="rfc-st-grid rv" style="--n:${RFC_RIVAL_CARDS.length}">${RFC_RIVAL_CARDS.map((c, ci) => rfcStPairCard(c, pairs, 'rv-' + ci)).join('')}</div></section>`;
+        })();
     // 펀치 기록을 모으는 중인 선수 (이긴 경기·진 경기 모두 셈)
     const waiting = eligible.filter(x => x.a.tracked < RFC_ST_MIN_TRACKED).sort((x, y) => y.a.tracked - x.a.tracked || y.c.games - x.c.games);
     document.getElementById('rfcStWait').innerHTML = waiting.length ? `<div class="rfc-st-wait"><div class="h">펀치 기록 모으는 중 · 이긴 경기·진 경기 모두 셈 (${RFC_ST_MIN_TRACKED}경기부터 타격·스타일·방어 순위)</div>${waiting.slice(0, 30).map(x => `<span>${rfcHTML(x.p.name)} <b>${x.a.tracked}</b>/${RFC_ST_MIN_TRACKED}</span>`).join('')}${waiting.length > 30 ? ` 외 ${waiting.length - 30}명` : ''}</div>` : '';
@@ -4256,7 +4317,7 @@ function rfcFxProfileBox(id, filter) {
     if (lk) ways.push(`패 ${lk}: KO ${l.KO} · TKO ${l.TKO} · 판정 ${l.DEC}${l.DQ ? ' · 실격패 ' + l.DQ : ''}${l.RTD ? ' · 기권패 ' + l.RTD : ''}`);
     if (a.tracked) {
         const extra = [a.pGames ? `잽 ${(a.jabT / a.pGames).toFixed(1)}` : '', a.xGames ? `몸통 적중 ${(a.body / a.xGames).toFixed(1)}` : '', a.xGames ? `카운터 ${(a.counter / a.xGames).toFixed(1)}` : ''].filter(Boolean).join(' · ');
-        ways.push(`경기당 평균: 적중 ${per(a.L)} / 시도 ${per(a.T)} · 라운드당 적중 ${a.perRound === null ? '-' : a.perRound.toFixed(1)} · 파워 펀치 명중률 ${a.pAcc === null ? '-' : rfcPctText(a.pAcc)} · 다운 뺏음 ${per(a.kd)} / 당함 ${per(a.kdTaken)}${extra ? ' · ' + extra : ''}`);
+        ways.push(`경기당 평균: 유효타 ${per(a.L)} / 시도 ${per(a.T)} · 라운드당 유효타 ${a.perRound === null ? '-' : a.perRound.toFixed(1)} · 파워 펀치 명중률 ${a.pAcc === null ? '-' : rfcPctText(a.pAcc)} · 다운 뺏음 ${per(a.kd)} / 당함 ${per(a.kdTaken)}${extra ? ' · ' + extra : ''}`);
     }
     box.innerHTML = `<div class="rfc-fx-prof"><h4>경기 내용<span>${a.known ? `결과 기록 ${a.known}경기` : ''}${a.known && a.tracked ? ' · ' : ''}${a.tracked ? `펀치 기록 ${a.tracked}경기 평균` : ''}</span></h4>
         <div class="rfc-fx-grid">

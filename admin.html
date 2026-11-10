@@ -1652,9 +1652,9 @@ window.addEventListener('online', () => rfcStatus('인터넷이 연결되었습�
 
         
         const ADMIN_CONFIG = {
-            version: "v6.12",
-            updateNote: "경기 내용 v2(예전 값은 쓰지 않고 새로 쌓음) · 지난 경기 채우기는 확실한 경기만 · 무승부 펀치 기록 방향 수정 · 몸통·카운터·강타 저장",
-            title: "v6.12 경기 내용 새로 쌓기 · 몸통·카운터·강타 기록"
+            version: "v6.13",
+            updateNote: "펀치 기록을 유효타 기준(데미지 10 이상)으로 · 예전 기준 펀치 기록은 쓰지 않고 지난 경기 채우기로 새 기준으로 바꿈",
+            title: "v6.13 명중률을 유효타 기준으로"
         };
 
         function initVersionUI() {
@@ -5668,11 +5668,15 @@ rfcTL.timer = setInterval(() => { if (!document.hidden || rfcTL.auto) rfcTLPoll(
      fx = { v: 2, m: 'KO'|'TKO'|'DEC'|'DQ'|'RTD'|'DRAW', r: 끝난 라운드, rt: 정해진 라운드, t: '1:23' (라운드 안 경과 시간), n: 짧은 설명,
             w: [던진, 맞힌, 파워 시도, 파워 적중, 준 데미지, 뺏은 다운, (몸통 적중, 카운터 적중, 강타)], l: [...] }
      w = 이 경기 기록의 winner 쪽 선수, l = loser 쪽 선수 (무승부도 기록의 winner/loser 칸 기준)
-   v 2 = RFC 타이머 v0.5.5 이후(결과 방식 판단을 고친 뒤) 또는 관리자가 직접 넣은 값. v가 없는 예전 값은 쓰지 않습니다. */
+   v 2 = RFC 타이머 v0.5.5 이후(결과 방식 판단을 고친 뒤) 또는 관리자가 직접 넣은 값. v가 없는 예전 값은 쓰지 않습니다.
+   v 3 = 펀치 기록의 '맞힌 펀치'가 유효타(펀치 하나 데미지 10 이상, 스치거나 막힌 펀치 제외) 기준 — RFC 타이머 v0.5.7 이후.
+         v 2의 펀치 기록(닿기만 해도 적중으로 셈)은 쓰지 않음. 결과 방식은 v 2부터 씀. */
 const RFC_FX_V = 2;
+const RFC_FX_SV = 3;
 const RFC_FX_LABEL = {KO: 'KO', TKO: 'TKO', DEC: '판정', DQ: '실격', RTD: '기권', DRAW: '무승부'};
 const RFC_FX_METHODS = ['KO', 'TKO', 'DEC', 'DQ', 'RTD', 'DRAW'];
 function rfcFxValid(fx) { return !!(fx && typeof fx === 'object' && Number(fx.v) >= RFC_FX_V); }
+function rfcFxStatsValid(fx) { return rfcFxValid(fx) && Number(fx.v) >= RFC_FX_SV && Array.isArray(fx.w) && Array.isArray(fx.l); }
 function rfcFxNum(v, max) { if (v === null || v === undefined || v === "") return null; const n = Number(v); return Number.isFinite(n) && n >= 0 && n <= max ? Math.round(n) : null; }
 function rfcFxTime(v) { const m = /^(\d{1,2}):([0-5]\d)$/.exec(String(v || '').trim()); return m ? `${Number(m[1])}:${m[2]}` : ''; }
 function rfcFxSide(a) {
@@ -5688,7 +5692,7 @@ function rfcFxSide(a) {
 // winnerSide: 무승부일 때 경기 기록의 winner 칸이 타이머의 어느 코너인지 (경기 입력은 Blue가 winner 칸)
 function rfcFxStore(fx, result, winnerSide = 'blue') {
     if (!fx || typeof fx !== 'object') return null;
-    const out = {v: RFC_FX_V};
+    const out = {v: RFC_FX_SV};
     if (RFC_FX_METHODS.includes(fx.m)) out.m = fx.m;
     if (result === 'draw') out.m = 'DRAW';
     else if (out.m === 'DRAW') delete out.m;
@@ -5698,7 +5702,8 @@ function rfcFxStore(fx, result, winnerSide = 'blue') {
     const t = rfcFxTime(fx.t);
     if (t && ['KO', 'TKO', 'DQ', 'RTD'].includes(out.m)) out.t = t;
     if (typeof fx.n === 'string' && fx.n && fx.n.length <= 40 && out.m && out.m === fx.m) out.n = fx.n;
-    const s = fx.s || {};
+    // 펀치 기록은 유효타 기준(타이머 v0.5.7, v 3)일 때만
+    const s = Number(fx.v) >= RFC_FX_SV ? (fx.s || {}) : {};
     const blue = rfcFxSide(s.blue), red = rfcFxSide(s.red);
     if (blue && red && ['blue', 'red', 'draw'].includes(result)) {
         const wSide = result === 'draw' ? (winnerSide === 'red' ? 'red' : 'blue') : result;
@@ -5716,9 +5721,10 @@ function rfcFxText(fx) {
 }
 function rfcFxBadge(m) {
     const fx = m && m.fx;
-    if (!rfcFxValid(fx) || (!fx.m && !fx.w)) return '';
+    const st = rfcFxStatsValid(fx);
+    if (!rfcFxValid(fx) || (!fx.m && !st)) return '';
     const cls = ['KO', 'TKO'].includes(fx.m) ? ' ko' : '';
-    return `<span class="rfc-fx-badge${cls}" title="${fx.w ? '펀치 기록 있음' : ''}">${rfcHTML(rfcFxText(fx) || '결과 방식 미입력')}${fx.w ? ' · 📊' : ''}</span>`;
+    return `<span class="rfc-fx-badge${cls}" title="${st ? '펀치 기록 있음' : ''}">${rfcHTML(rfcFxText(fx) || '결과 방식 미입력')}${st ? ' · 📊' : ''}</span>`;
 }
 
 // ---- 경기 결과 입력칸: 결과 방식 · 라운드 · 시간 ----
@@ -5746,8 +5752,9 @@ function rfcFxRenderNote() {
     const p = rfcFxPending;
     if (!p) { n.textContent = ''; return; }
     if (!p.fx) { n.textContent = '이 타이머 기록은 예전 버전이라 결과 방식·펀치 기록을 보내지 않습니다. 필요하면 결과 방식을 직접 고르세요.'; return; }
-    const s = p.fx.s;
-    n.textContent = (p.fx.n ? `타이머 판단: ${p.fx.n}. ` : '') + (s ? `타이머 펀치 기록 함께 저장: Blue ${s.blue[1]}/${s.blue[0]} · Red ${s.red[1]}/${s.red[0]} 적중` : '');
+    const s = Number(p.fx.v) >= RFC_FX_SV ? p.fx.s : null;
+    n.textContent = (p.fx.n ? `타이머 판단: ${p.fx.n}. ` : '') + (s ? `타이머 펀치 기록 함께 저장: Blue ${s.blue[1]}/${s.blue[0]} · Red ${s.red[1]}/${s.red[0]} 유효타` :
+        (p.fx.s ? '이 타이머는 예전 적중 기준이라 펀치 기록은 넣지 않습니다 (RFC 타이머 v0.5.7로 바꾸면 함께 저장).' : ''));
 }
 window.rfcFxFromForm = (blueId, redId) => {
     const el = id => document.getElementById(id);
@@ -5755,7 +5762,7 @@ window.rfcFxFromForm = (blueId, redId) => {
     const p = rfcFxPending;
     // 타이머 기록은 입력칸의 Blue·Red가 타이머와 같을 때만 (선수를 바꿨으면 펀치 기록을 붙이지 않음)
     if (p && p.fx && String(p.blueId) === String(blueId) && String(p.redId) === String(redId)) {
-        raw.rt = p.fx.rt; raw.s = p.fx.s;
+        raw.rt = p.fx.rt; raw.s = p.fx.s; raw.v = p.fx.v;
         if (!raw.m && p.fx.m === 'DRAW') raw.m = 'DRAW';
         if (raw.m === p.fx.m && p.fx.n) raw.n = p.fx.n;
     }
@@ -5795,7 +5802,7 @@ window.rfcEditMatchVideo = (orig => index => {
     const fx = rfcFxValid(m.fx) ? m.fx : null;
     document.getElementById('rfcEditFxMethod').disabled = isDraw;
     rfcFxSetFormEdit(fx || (isDraw ? {m: 'DRAW'} : null));
-    document.getElementById('rfcEditFxStats').textContent = fx && fx.w ? `펀치 기록(타이머): ${m.winner} ${fx.w[1]}/${fx.w[0]} · ${m.loser} ${fx.l[1]}/${fx.l[0]} 적중 — 그대로 유지됩니다.` : (isDraw ? '무승부 경기는 결과 방식이 따로 없습니다.' : '');
+    document.getElementById('rfcEditFxStats').textContent = rfcFxStatsValid(fx) ? `펀치 기록(타이머): ${m.winner} ${fx.w[1]}/${fx.w[0]} · ${m.loser} ${fx.l[1]}/${fx.l[0]} 유효타 — 그대로 유지됩니다.` : (isDraw ? '무승부 경기는 결과 방식이 따로 없습니다.' : '');
 })(window.rfcEditMatchVideo);
 function rfcFxSetFormEdit(fx) {
     document.getElementById('rfcEditFxMethod').value = fx && fx.m && fx.m !== 'DRAW' ? fx.m : '';
@@ -5816,7 +5823,8 @@ window.rfcSaveMatchVideo = async () => {
         if (videoUrl) match.videoUrl = videoUrl; else delete match.videoUrl;
         const isDraw = match.isDraw || match.type === 'draw';
         const old = rfcFxValid(match.fx) ? match.fx : {};
-        const next = {...old, v: RFC_FX_V};
+        const next = {...old, v: RFC_FX_SV};
+        if (!rfcFxStatsValid(old)) { delete next.w; delete next.l; }  // 예전 기준 펀치 기록은 새 기준으로 올리지 않음
         const m = isDraw ? 'DRAW' : rfcEl('rfcEditFxMethod').value;
         if (m !== old.m) delete next.n;  // 결과 방식을 바꾸면 타이머 설명은 지움
         if (m) next.m = m; else delete next.m;
@@ -5848,6 +5856,14 @@ function rfcFxVideoKey(url) {
     const t = /[?&#]t=(\d+)s?/.exec(s);
     return {id, t: t ? Number(t[1]) : null};
 }
+// 이미 저장된 경기 내용(m.fx)이 이 타이머 기록(it)에서 온 것인지: 결과 방식·라운드·시간 + 양쪽 던진 펀치 수 (던진 수는 적중 기준과 상관없이 같음)
+function rfcFxSameRec(m, it, wSide) {
+    const o = m && m.fx, f = it && it.fx, s = f && f.s;
+    if (!o || !Array.isArray(o.w) || !Array.isArray(o.l) || !s || !Array.isArray(s.blue) || !Array.isArray(s.red)) return false;
+    const w = wSide === 'red' ? s.red : s.blue, l = wSide === 'red' ? s.blue : s.red;
+    return (o.m || '') === (f.m || '') && Number(o.r || 0) === Number(f.r || 0) && (o.t || '') === (f.t || '')
+        && Number(o.w[0]) === Number(w[0]) && Number(o.l[0]) === Number(l[0]);
+}
 function rfcFxPlan(items) {
     const plan = [], skipped = [], used = new Set();
     const recs = items.filter(it => it.fx && Number(it.fx.v) >= RFC_FX_V && it.result).sort((a, b) => String(a.savedAt).localeCompare(String(b.savedAt)));
@@ -5872,9 +5888,12 @@ function rfcFxPlan(items) {
             near.push(i);
         }
         let pick = -1;
+        // ⓪ 같은 타이머 기록에서 이미 넣은 경기 내용 (결과 방식·라운드·시간·양쪽 던진 펀치 수가 똑같음) — 펀치 기록을 새 기준으로 바꿀 때
+        const same = near.filter(i => rfcFxSameRec(matchHistoryData[i], it, isDrawRec ? (String(matchHistoryData[i].winnerId) === String(r.id) ? 'red' : 'blue') : it.result));
+        if (same.length === 1) pick = same[0];
         // ① 영상 시각으로 맞추기
         const rv = rfcFxVideoKey(it.videoUrl), rs = rfcFxSec(it.videoStart);
-        if (rv.id && rs !== null) {
+        if (pick < 0 && rv.id && rs !== null) {
             const byVideo = near.filter(i => { const v = rfcFxVideoKey(matchHistoryData[i].videoUrl); return v.id === rv.id && v.t !== null && Math.abs(v.t - rs) <= 120; });
             if (byVideo.length === 1) pick = byVideo[0];
         }
@@ -5893,15 +5912,19 @@ function rfcFxPlan(items) {
         const winnerSide = isDrawRec ? (String(m.winnerId) === String(r.id) ? 'red' : 'blue') : it.result;
         const fx = rfcFxStore(it.fx, it.result, winnerSide);
         const old = rfcFxValid(m.fx) ? m.fx : null;
-        let merged = old;
+        let merged = old, upgraded = false;
         if (fx && !old) merged = fx;
-        else if (fx && old && fx.w && !old.w) merged = {...old, w: fx.w, l: fx.l};  // 손으로 넣은 결과 방식은 그대로, 펀치 기록만 추가
+        else if (fx && old && fx.w && !rfcFxStatsValid(old)) {
+            // 손으로 넣은 결과 방식은 그대로, 펀치 기록만 추가 (예전 기준 펀치 기록이 있으면 새 기준으로 바꿈)
+            upgraded = Array.isArray(old.w);
+            merged = {...old, v: RFC_FX_SV, w: fx.w, l: fx.l};
+        }
         let video = '';
         if (!m.videoUrl && it.videoUrl) { try { video = rfcYouTubeURL(it.videoUrl, it.videoStart || undefined); } catch (e) { video = ''; } }
         const fxChanged = merged && merged !== old;
         if (!fxChanged && !video) continue;
         plan.push({index: pick, fp: rfcFingerprint(m), fx: fxChanged ? merged : null, video,
-            label: `${m.date} · ${m.winner} vs ${m.loser} → ${[fxChanged ? (rfcFxText(merged) || '-') + (merged.w ? ' · 펀치 기록' : '') : '', video ? '영상 링크' : ''].filter(Boolean).join(' · ')}`});
+            label: `${m.date} · ${m.winner} vs ${m.loser} → ${[fxChanged ? (rfcFxText(merged) || '-') + (merged.w ? (upgraded ? ' · 펀치 기록 새 기준으로' : ' · 펀치 기록') : '') : '', video ? '영상 링크' : ''].filter(Boolean).join(' · ')}`});
     }
     return {plan, skipped: [...new Set(skipped)]};
 }
@@ -5915,7 +5938,7 @@ window.rfcFxBackfill = async () => {
     } catch (e) { return showCustomAlert('RFC 타이머에 연결하지 못했습니다. 방송 PC에서 타이머를 켠 뒤 다시 눌러 주세요.'); }
     const {plan, skipped} = rfcFxPlan(items);
     const skipText = skipped.length ? '\n\n건너뜀:\n- ' + skipped.slice(0, 8).join('\n- ') + (skipped.length > 8 ? `\n… 외 ${skipped.length - 8}건` : '') : '';
-    if (!plan.length) return showCustomAlert('채울 경기가 없습니다. 타이머 v0.5.5 이후에 저장된 기록만 쓰며, 확실히 같은 경기일 때만 채웁니다.' + skipText);
+    if (!plan.length) return showCustomAlert('채울 경기가 없습니다. 타이머 v0.5.5 이후에 저장된 기록만 쓰며, 확실히 같은 경기일 때만 채웁니다. (펀치 기록을 유효타 기준으로 바꾸려면 RFC 타이머 v0.5.7 이상을 켜 주세요.)' + skipText);
     const text = plan.slice(0, 25).map(p => '- ' + p.label).join('\n') + (plan.length > 25 ? `\n… 외 ${plan.length - 25}경기` : '');
     // 확인 창의 '확인'이 저장 작업을 한 번에 하나만 돌리도록 감싸 줌
     showConfirmModal(`타이머 기록으로 ${plan.length}경기의 결과 방식·펀치 기록·영상 링크를 채웁니다. 점수·승패는 바뀌지 않습니다.\n\n${text}${skipText}`, async () => {
@@ -5938,18 +5961,25 @@ window.rfcFxBackfill = async () => {
     };
 }
 
-// ---- 예전 방식으로 저장된 경기 내용 지우기 (v 없는 fx: 결과 방식 판단이 틀렸을 수 있음) ----
+// ---- 예전 방식으로 저장된 경기 내용 정리 ----
+// v 없는 fx: 결과 방식 판단이 틀렸을 수 있음 → 통째로 지움. v 2 펀치 기록: 닿기만 해도 적중으로 센 값 → 펀치 기록만 지움(결과 방식은 둠).
+function rfcFxOldStats(m) { return !!(m && rfcFxValid(m.fx) && !rfcFxStatsValid(m.fx) && (Array.isArray(m.fx.w) || Array.isArray(m.fx.l))); }
 function rfcFxOldCount() { return matchHistoryData.filter(m => m && m.fx && !rfcFxValid(m.fx)).length; }
+function rfcFxOldStatsCount() { return matchHistoryData.filter(rfcFxOldStats).length; }
 window.rfcFxClearOld = () => {
-    const n = rfcFxOldCount();
-    if (!n || rfcOperationBusy) return;
-    showConfirmModal(`예전 방식으로 저장된 경기 내용(결과 방식·펀치 기록) ${n}경기를 지웁니다.\n\n승패·점수·영상 링크는 그대로입니다. 사용자 사이트에서는 이미 이 값들을 쓰지 않고 있으며, 앞으로 타이머 v0.5.5로 등록하는 경기부터 다시 쌓입니다.`, async () => {
+    const n = rfcFxOldCount(), k2 = rfcFxOldStatsCount();
+    if ((!n && !k2) || rfcOperationBusy) return;
+    const parts = [n ? `예전 방식 경기 내용(결과 방식·펀치 기록) ${n}경기` : '', k2 ? `예전 적중 기준 펀치 기록 ${k2}경기 (결과 방식은 남김)` : ''].filter(Boolean).join(', ');
+    showConfirmModal(`${parts}를 지웁니다.\n\n승패·점수·영상 링크는 그대로입니다. 사용자 사이트에서는 이미 이 값들을 쓰지 않고 있습니다. 펀치 기록은 RFC 타이머 v0.5.7을 켜고 '지난 경기 채우기'를 누르면 새 기준(유효타)으로 다시 채울 수 있습니다.`, async () => {
         captureState();
         let k = 0;
-        for (const m of matchHistoryData) if (m && m.fx && !rfcFxValid(m.fx)) { delete m.fx; k++; }
+        for (const m of matchHistoryData) {
+            if (m && m.fx && !rfcFxValid(m.fx)) { delete m.fx; k++; }
+            else if (rfcFxOldStats(m)) { delete m.fx.w; delete m.fx.l; k++; if (Object.keys(m.fx).length <= 1) delete m.fx; }
+        }
         await saveRankings();
         renderAdminMatches();
-        rfcStatus(`예전 경기 내용 ${k}경기를 지웠습니다.`);
+        rfcStatus(`예전 경기 내용 ${k}경기를 정리했습니다.`);
         return true;
     });
 };
@@ -5957,9 +5987,10 @@ window.rfcFxClearOld = () => {
     const render = renderAdminMatches;
     renderAdminMatches = (...args) => {
         const r = render(...args);
-        const n = rfcFxOldCount(), box = document.getElementById('adminMatchListContainer');
-        if (n && box && !box.querySelector('.rfc-fx-old')) {
-            box.insertAdjacentHTML('afterbegin', `<div class="rfc-fx-old"><span>예전 방식으로 저장된 경기 내용 <b>${n}경기</b> — 결과 방식이 틀렸을 수 있어 사이트에 표시하지 않습니다.</span><button type="button" onclick="rfcFxClearOld()">지우기</button></div>`);
+        const n = rfcFxOldCount(), k2 = rfcFxOldStatsCount(), box = document.getElementById('adminMatchListContainer');
+        if ((n || k2) && box && !box.querySelector('.rfc-fx-old')) {
+            const txt = [n ? `예전 방식 경기 내용 <b>${n}경기</b>(결과 방식이 틀렸을 수 있음)` : '', k2 ? `예전 적중 기준 펀치 기록 <b>${k2}경기</b>` : ''].filter(Boolean).join(' · ');
+            box.insertAdjacentHTML('afterbegin', `<div class="rfc-fx-old"><span>${txt} — 사이트에 표시하지 않습니다.${k2 ? ' 타이머 v0.5.7을 켜고 \'지난 경기 채우기\'를 누르면 펀치 기록이 새 기준으로 바뀝니다.' : ''}</span><button type="button" onclick="rfcFxClearOld()">지우기</button></div>`);
         }
         return r;
     };
