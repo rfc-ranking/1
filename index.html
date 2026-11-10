@@ -616,6 +616,10 @@ button.rfc-fx-chip{cursor:pointer}button.rfc-fx-chip[aria-expanded=true]{backgro
 #rfcStWait .rfc-st-wait{margin-top:16px}
 @media (max-width:420px){.rfc-st-grid{gap:8px}.rfc-st-c{padding:9px 9px 7px}.rfc-st-c li .n{font-size:12px}.rfc-st-c li .v{font-size:13px}.rfc-st-c .h small{font-size:9.5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}}
 
+.rfc-st-left{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
+.rfc-st-act{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:#475569;white-space:nowrap;cursor:pointer}
+.rfc-st-act input{width:14px;height:14px;accent-color:#2563eb}
+
 </style></head>
 <body class="rfc-design rfc-design-public bg-slate-100 text-slate-800 pb-10 flex flex-col min-h-screen">
 <div id="rfcConnectionStatus" role="status" aria-live="polite" hidden style="padding:12px 16px;background:#fff7df;border-bottom:1px solid #e2d1a0;white-space:pre-wrap"></div>
@@ -708,7 +712,8 @@ button.rfc-fx-chip{cursor:pointer}button.rfc-fx-chip[aria-expanded=true]{backgro
         <!-- 기록실 탭 (전적·경기 내용·펀치 통계) -->
         <div id="statsSection" class="hidden fade-in"><div class="rfc-section-intro"><div><span class="rfc-section-eyebrow">STATS</span><h2>기록실</h2><p>승률·연승·KO율·명중률·잽까지 — 영역별 선수 순위를 한눈에.</p></div></div>
             <div class="sticky-sub-header sticky z-30 bg-white/95 backdrop-blur-sm p-3 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between mb-3 gap-2 transition-all">
-                <div class="rfc-st-min" role="group" aria-label="최소 경기 수" id="rfcStMin"></div>
+                <div class="rfc-st-left"><div class="rfc-st-min" role="group" aria-label="최소 경기 수" id="rfcStMin"></div>
+                <label class="rfc-st-act"><input type="checkbox" id="rfcStActive" checked onchange="rfcStSetActive(this.checked)"> 최근 4개월 활동 선수만</label></div>
                 <select id="rfcStSeason" aria-label="기록실 기간 선택" class="text-xs font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded-lg p-2 outline-none focus:ring-2 focus:ring-blue-500 shrink-0"></select>
             </div>
             <div id="rfcStSummary" class="rfc-st-summary"></div>
@@ -1285,8 +1290,8 @@ window.addEventListener('online', () => rfcStatus('인터넷이 연결되었습�
         import { getFirestore, doc, getDocFromServer, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v5.82",
-            updateNote: "기록실 개편: 전적·피니시·타격·스타일·방어를 한 화면에 (승률·최다 연승·업셋·잽·바디·카운터 등) · 경기 내용 새로 쌓기",
+            version: "v5.83",
+            updateNote: "기록실: 최근 4개월 활동 선수만 보기(기본) · 전적·피니시·타격·스타일·방어를 한 화면에",
             title: "RFC 랭킹전"
         };
 
@@ -4072,7 +4077,20 @@ const RFC_ST_SECTIONS = [
         {name: '맷집', desc: '한 경기에 다운당한 횟수가 적은 순', need: 'punch', asc: true, ok: x => x.a.tracked >= RFC_ST_MIN_TRACKED, val: x => RFC_PER(x.a.kdTaken, x.a.tracked) + x.a.tracked / -1e6, fmt: v => RFC_N1(Math.max(0, v)), sub: x => `다운 ${x.a.kdTaken}번 · ${x.a.tracked}경기`},
     ]},
 ];
-const rfcSt = {min: 10, season: 'all', dirty: true, open: new Set()};
+const rfcSt = {min: 10, season: 'all', active: true, dirty: true, open: new Set()};
+const RFC_ST_ACTIVE_DAYS = 122;  // 약 4개월
+// 선수별 마지막 경기 날짜 (모든 시즌)
+function rfcStLastDates() {
+    const last = new Map();
+    for (const m of matchHistoryData) {
+        for (const [id, nm] of [[m.winnerId, m.winner], [m.loserId, m.loser]]) {
+            const k = id != null ? 'i:' + id : 'n:' + nm;
+            if (m.date && (!last.has(k) || m.date > last.get(k))) last.set(k, m.date);
+        }
+    }
+    return p => last.get('i:' + p.id) || last.get('n:' + p.name) || '';
+}
+window.rfcStSetActive = on => { rfcSt.active = !!on; rfcStRender(); };
 function rfcStPlayers(season) {
     // 이름이 바뀐 선수도 id로 묶음. 지난 시즌만 있는 선수는 그 시즌 기록의 선수 정보를 씀.
     const map = new Map();
@@ -4134,9 +4152,16 @@ function rfcStRender() {
         <div class="rfc-st-card"><b>${matches.length.toLocaleString()}</b><span>경기${draws ? ` (무승부 ${draws})` : ''}</span></div>
         <div class="rfc-st-card"><b>${withWay.length ? Math.round(100 * ko / withWay.length) + '%' : '-'}</b><span>KO·TKO로 끝난 경기${withWay.length ? ` (${ko}/${withWay.length})` : ''}</span></div>
         <div class="rfc-st-card"><b>${T ? Math.round(100 * L / T) + '%' : '-'}</b><span>평균 명중률${tracked.length ? ` · ${tracked.length}경기` : ''}</span></div>`;
-    const eligible = rows.filter(x => x.c.games >= rfcSt.min);
+    let eligible = rows.filter(x => x.c.games >= rfcSt.min);
+    if (rfcSt.active) {
+        const lastOf = rfcStLastDates();
+        const cut = new Date(Date.now() - RFC_ST_ACTIVE_DAYS * 864e5).toISOString().slice(0, 10);
+        eligible = eligible.filter(x => lastOf(x.p) >= cut);
+    }
+    const cb = document.getElementById('rfcStActive');
+    if (cb) cb.checked = rfcSt.active;
     document.getElementById('rfcStSections').innerHTML = RFC_ST_SECTIONS.map((sec, si) => `
-        <section class="rfc-st-sec"><h3><span>${sec.icon}</span>${rfcHTML(sec.title)}<small>${rfcHTML(sec.note)}${rfcSt.min > 1 ? ` · ${rfcSt.min}전 이상` : ''}</small></h3>
+        <section class="rfc-st-sec"><h3><span>${sec.icon}</span>${rfcHTML(sec.title)}<small>${rfcHTML(sec.note)}${rfcSt.min > 1 ? ` · ${rfcSt.min}전 이상` : ''}${rfcSt.active ? ' · 최근 4개월 활동' : ''}</small></h3>
         <div class="rfc-st-grid" style="--n:${sec.cards.length}">${sec.cards.map((c, ci) => rfcStCard(c, eligible, si + '-' + ci)).join('')}</div></section>`).join('');
     // 펀치 기록을 모으는 중인 선수 (이긴 경기·진 경기 모두 셈)
     const waiting = eligible.filter(x => x.a.tracked < RFC_ST_MIN_TRACKED).sort((x, y) => y.a.tracked - x.a.tracked || y.c.games - x.c.games);
