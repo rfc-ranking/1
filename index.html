@@ -629,6 +629,15 @@ button.rfc-fx-chip{cursor:pointer}button.rfc-fx-chip[aria-expanded=true]{backgro
 .rfc-st-c li.pair .pl{cursor:pointer;border-radius:4px}
 .rfc-st-c li.pair .pl:hover{color:#1d4ed8;text-decoration:underline}
 
+/* 프로필: 강자 상대 승률 한 줄 */
+.rfc-fx-strong{display:flex;align-items:center;gap:10px;border-bottom:1px solid #f1f5f9;padding:2px 2px 8px;margin-bottom:8px}
+.rfc-fx-strong span{flex:1;min-width:0;font-size:11.5px;font-weight:900;color:#334155}
+.rfc-fx-strong span small{display:block;font-size:9.5px;font-weight:700;color:#94a3b8}
+.rfc-fx-strong b{font-size:18px;font-weight:900;color:#0f172a;font-variant-numeric:tabular-nums}
+.rfc-fx-strong em{font-style:normal;font-size:10.5px;font-weight:800;color:#94a3b8;white-space:nowrap;font-variant-numeric:tabular-nums}
+/* 휴대폰: 랭킹 카드에서 이름이 배지(티어·현상금·연승)에 밀려 한 글자로 잘리던 문제 → 배지를 다음 줄로 */
+@media (max-width:639px){#rankingList .flex-grow.min-w-0>div{flex-wrap:wrap;row-gap:3px}#rankingList .flex-grow.min-w-0>div>span.truncate{max-width:100%}}
+
 </style></head>
 <body class="rfc-design rfc-design-public bg-slate-100 text-slate-800 pb-10 flex flex-col min-h-screen">
 <div id="rfcConnectionStatus" role="status" aria-live="polite" hidden style="padding:12px 16px;background:#fff7df;border-bottom:1px solid #e2d1a0;white-space:pre-wrap"></div>
@@ -719,7 +728,7 @@ button.rfc-fx-chip{cursor:pointer}button.rfc-fx-chip[aria-expanded=true]{backgro
         </div>
 
         <!-- 기록실 탭 (전적·경기 내용·펀치 통계) -->
-        <div id="statsSection" class="hidden fade-in"><div class="rfc-section-intro"><div><span class="rfc-section-eyebrow">STATS</span><h2>기록실</h2><p>승률·연승·KO율·명중률·라이벌까지 — 영역별 선수 순위를 한눈에.</p></div></div>
+        <div id="statsSection" class="hidden fade-in"><div class="rfc-section-intro"><div><span class="rfc-section-eyebrow">STATS</span><h2>기록실</h2><p>강자 상대 승률·승률·연승·KO율·명중률·라이벌까지 — 영역별 선수 순위를 한눈에.</p></div></div>
             <div class="sticky-sub-header sticky z-30 bg-white/95 backdrop-blur-sm p-3 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between mb-3 gap-2 transition-all">
                 <div class="rfc-st-left"><div class="rfc-st-min" role="group" aria-label="최소 경기 수" id="rfcStMin"></div>
                 <label class="rfc-st-act"><input type="checkbox" id="rfcStActive" checked onchange="rfcStSetActive(this.checked)"> 최근 4개월 활동 선수만</label></div>
@@ -863,7 +872,7 @@ button.rfc-fx-chip{cursor:pointer}button.rfc-fx-chip[aria-expanded=true]{backgro
                     </div>
                     
                     <div class="mb-5 relative w-48 h-48 md:w-72 md:h-72 lg:w-80 lg:h-80 mx-auto group transition-all duration-300">
-                        <img id="pModalImg" src="" class="w-full h-full rounded-2xl object-cover border-4 border-white shadow-xl bg-slate-50" onerror="this.src='https://placehold.co/150?text=No+Img'">
+                        <img id="pModalImg" src="" class="w-full h-full rounded-2xl object-cover border-4 border-white shadow-xl bg-slate-50" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 150 150%22%3E%3Crect width=%22150%22 height=%22150%22 fill=%22%23e2e8f0%22/%3E%3Ccircle cx=%2275%22 cy=%2259%22 r=%2224%22 fill=%22%2394a3b8%22/%3E%3Cpath d=%22M31 128c4-25 21-39 44-39s40 14 44 39z%22 fill=%22%2394a3b8%22/%3E%3C/svg%3E'">
                     </div>
 
                     <div class="w-full max-w-sm mb-6">
@@ -914,7 +923,7 @@ button.rfc-fx-chip{cursor:pointer}button.rfc-fx-chip[aria-expanded=true]{backgro
                 <div>
                     <label class="text-xs font-bold text-slate-500 mb-1 block">프로필 사진 (URL 주소)</label>
                     <div class="flex items-start gap-4">
-                        <img id="userEditPreview" src="" class="w-16 h-16 md:w-20 md:h-20 shrink-0 rounded-2xl object-cover bg-slate-100 border border-slate-200 transition-all" onerror="this.src='https://placehold.co/150?text=No+Img'">
+                        <img id="userEditPreview" src="" class="w-16 h-16 md:w-20 md:h-20 shrink-0 rounded-2xl object-cover bg-slate-100 border border-slate-200 transition-all" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 150 150%22%3E%3Crect width=%22150%22 height=%22150%22 fill=%22%23e2e8f0%22/%3E%3Ccircle cx=%2275%22 cy=%2259%22 r=%2224%22 fill=%22%2394a3b8%22/%3E%3Cpath d=%22M31 128c4-25 21-39 44-39s40 14 44 39z%22 fill=%22%2394a3b8%22/%3E%3C/svg%3E'">
                         <div class="flex-grow">
                             <input type="text" id="userImageUrlInput" placeholder="이미지 주소 붙여넣기" class="w-full border p-3 rounded-xl text-xs font-bold bg-slate-50 focus:bg-white focus:border-blue-500 transition" oninput="updateUserPreview(this.value)">
                             <p class="text-[10px] text-slate-400 mt-1.5">
@@ -1043,7 +1052,7 @@ async function rfcRestSnapshot(reference) {
 
 function rfcCreateRankingFeed(reference, apply, canConnect=()=>true) {
     let unsubscribe=null, retryTimer=null, watchdog=null, probeTimer=null, restTimer=null, restOk=false;
-    let generation=0, revision=0, probeId=0, attempts=0, running=false, healthy=false, terminal=false;
+    let generation=0, revision=0, probeId=0, attempts=0, running=false, healthy=false, terminal=false, hydrateTicket=0;
     let lastStarted=0, hiddenAt=0;
     const maxRetries=5;
     const clearTimers=()=>{clearTimeout(retryTimer);clearTimeout(watchdog);clearTimeout(probeTimer);clearTimeout(restTimer);retryTimer=watchdog=probeTimer=restTimer=null;};
@@ -1072,6 +1081,23 @@ function rfcCreateRankingFeed(reference, apply, canConnect=()=>true) {
         if(!snapshot.exists()) {
             if(fromCache) {rfcLoadNotice('서버의 선수 목록을 기다리고 있습니다…','loading');return;}
             fail({code:'not-found'});return;
+        }
+        if(!snapshot.__rfcMerged) {
+            // [저장 공간] 지난 시즌을 시즌별 문서에 따로 두었으면 함께 불러와 합친 뒤 처리 (가장 최근 스냅샷만)
+            const ticket=++hydrateTicket;
+            let needs=false; try{needs=rfcSeasonDocsOf(snapshot.data()).length>0;}catch(e){}
+            if(needs) {
+                rfcHydrateSnapshot(reference, snapshot).then(merged=>{
+                    if(ticket===hydrateTicket && running && token===generation) receive(merged, token, serverRead);
+                }).catch(error=>{
+                    if(ticket!==hydrateTicket || !running || token!==generation) return;
+                    console.warn(error);
+                    if(globalThis.rfcSplitStrict) {fail(Object.assign(new Error(error.message || String(error)), {code:'unavailable'}));return;}
+                    receive(rfcPartialSnapshot(snapshot), token, serverRead);
+                    setTimeout(()=>rfcLoadNotice('지난 시즌 기록을 불러오지 못해 이번 시즌 기록만 보여 드리고 있어요. 잠시 뒤 다시 불러오기를 눌러 주세요.','error'),0);
+                });
+                return;
+            }
         }
         try {
             rfcValidateRankingDocument(snapshot);
@@ -1252,6 +1278,7 @@ function rfcJS(value) {
 }
 function rfcArg(value) { return rfcHTML(JSON.stringify(value ?? null)); }
 function rfcURL(value) {
+    if (value === 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 150 150%22%3E%3Crect width=%22150%22 height=%22150%22 fill=%22%23e2e8f0%22/%3E%3Ccircle cx=%2275%22 cy=%2259%22 r=%2224%22 fill=%22%2394a3b8%22/%3E%3Cpath d=%22M31 128c4-25 21-39 44-39s40 14 44 39z%22 fill=%22%2394a3b8%22/%3E%3C/svg%3E' || value === 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 150 150%22%3E%3Crect width=%22150%22 height=%22150%22 fill=%22%23f59e0b%22/%3E%3Ctext x=%2275%22 y=%2297%22 font-family=%22Arial,sans-serif%22 font-size=%2272%22 font-weight=%22700%22 fill=%22white%22 text-anchor=%22middle%22%3EC%3C/text%3E%3C/svg%3E') return value;  // 페이지 안 기본 그림
     try { const u = new URL(String(value || '')); return ['https:', 'http:'].includes(u.protocol) && !u.username && !u.password ? u.href : ''; }
     catch { return ''; }
 }
@@ -1299,8 +1326,8 @@ window.addEventListener('online', () => rfcStatus('인터넷이 연결되었습�
         import { getFirestore, doc, getDocFromServer, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v5.86",
-            updateNote: "KO율을 전체 경기 중 KO·TKO 승리 비율로 · 기록실에 라이벌(최다 맞대결·팽팽한 라이벌·천적 관계) 추가",
+            version: "v5.89",
+            updateNote: "휴대폰에서 랭킹 이름이 잘리던 문제 수정 · 공지 속 링크를 눌러 열기 · 키·리치 표시 정리 · 기록실 맨 앞에 강자 상대 승률",
             title: "RFC 랭킹전"
         };
 
@@ -1536,7 +1563,7 @@ window.addEventListener('online', () => rfcStatus('인터넷이 연결되었습�
                 localStorage.removeItem('rfc_notice_hide_date');
             }
 
-            document.getElementById('noticeContent').textContent = noticeData.content;
+            rfcLinkifyInto(document.getElementById('noticeContent'), noticeData.content);
             const noticeModal = document.getElementById('noticeModal');
             if (noticeModal) noticeModal.dataset.noticeVersion = currentNoticeVersion;
             noticeModal?.classList.remove('hidden');
@@ -1885,7 +1912,7 @@ window.addEventListener('online', () => rfcStatus('인터넷이 연결되었습�
             if (currentPlayer && currentPlayer.imageUrl && currentPlayer.imageUrl.trim() !== '') {
                 return currentPlayer.imageUrl;
             }
-            return 'https://placehold.co/150?text=No+Img';
+            return 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 150 150%22%3E%3Crect width=%22150%22 height=%22150%22 fill=%22%23e2e8f0%22/%3E%3Ccircle cx=%2275%22 cy=%2259%22 r=%2224%22 fill=%22%2394a3b8%22/%3E%3Cpath d=%22M31 128c4-25 21-39 44-39s40 14 44 39z%22 fill=%22%2394a3b8%22/%3E%3C/svg%3E';
         }
 
         // [v5.49] 통신사별 컬러 뱃지 (Option 2)
@@ -2011,9 +2038,9 @@ window.addEventListener('online', () => rfcStatus('인터넷이 연결되었습�
                     </div>
 
                     <div class="shrink-0 relative mr-3 -my-2 md:-my-4 relative z-10">
-                        <img src="${rfcHTML(rfcURL(p.imageUrl || 'https://placehold.co/150/f59e0b/white?text=C'))}" 
+                        <img src="${rfcHTML(rfcURL(p.imageUrl || 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 150 150%22%3E%3Crect width=%22150%22 height=%22150%22 fill=%22%23f59e0b%22/%3E%3Ctext x=%2275%22 y=%2297%22 font-family=%22Arial,sans-serif%22 font-size=%2272%22 font-weight=%22700%22 fill=%22white%22 text-anchor=%22middle%22%3EC%3C/text%3E%3C/svg%3E'))}" 
                              class="w-[60px] h-[60px] md:w-[90px] md:h-[90px] rounded-2xl bg-slate-900 object-cover border-2 border-orange-300/30 shadow-lg"
-                             onerror="this.src='https://placehold.co/150/f59e0b/white?text=C'">
+                             onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 150 150%22%3E%3Crect width=%22150%22 height=%22150%22 fill=%22%23f59e0b%22/%3E%3Ctext x=%2275%22 y=%2297%22 font-family=%22Arial,sans-serif%22 font-size=%2272%22 font-weight=%22700%22 fill=%22white%22 text-anchor=%22middle%22%3EC%3C/text%3E%3C/svg%3E'">
                     </div>
 
                     <div class="flex-grow min-w-0 flex flex-col justify-center py-1 relative z-10">
@@ -2117,7 +2144,7 @@ window.addEventListener('online', () => rfcStatus('인터넷이 연결되었습�
                     <div id="rank-card-${rfcHTML(item.id)}" class="rank-card flex items-center p-3 md:p-4 border rounded-xl mb-2 bg-white hover:shadow-md ${cardClass}" onclick="openProfile('${rfcJS(item.id)}')">
                         <div class="w-8 text-center mr-2"><span class="${rankNumClass}">${realRank}</span><div class="text-[10px]">${diffHtml}</div></div>
                         <div class="shrink-0 relative mr-3 -my-2 md:-my-4">
-                            <img src="${rfcHTML(rfcURL(item.imageUrl || 'https://placehold.co/150?text=No+Img'))}" class="w-[60px] h-[60px] md:w-[90px] md:h-[90px] rounded-2xl bg-slate-100 object-cover border border-slate-100" onerror="this.src='https://placehold.co/150?text=No+Img'">
+                            <img src="${rfcHTML(rfcURL(item.imageUrl || 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 150 150%22%3E%3Crect width=%22150%22 height=%22150%22 fill=%22%23e2e8f0%22/%3E%3Ccircle cx=%2275%22 cy=%2259%22 r=%2224%22 fill=%22%2394a3b8%22/%3E%3Cpath d=%22M31 128c4-25 21-39 44-39s40 14 44 39z%22 fill=%22%2394a3b8%22/%3E%3C/svg%3E'))}" class="w-[60px] h-[60px] md:w-[90px] md:h-[90px] rounded-2xl bg-slate-100 object-cover border border-slate-100" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 150 150%22%3E%3Crect width=%22150%22 height=%22150%22 fill=%22%23e2e8f0%22/%3E%3Ccircle cx=%2275%22 cy=%2259%22 r=%2224%22 fill=%22%2394a3b8%22/%3E%3Cpath d=%22M31 128c4-25 21-39 44-39s40 14 44 39z%22 fill=%22%2394a3b8%22/%3E%3C/svg%3E'">
                         </div>
                         <div class="flex-grow min-w-0 flex flex-col justify-center py-1">
                             <div class="flex items-center gap-1.5 md:gap-2 mb-0.5 md:mb-1.5">
@@ -2162,9 +2189,9 @@ window.addEventListener('online', () => rfcStatus('인터넷이 연결되었습�
                         <div id="rank-card-${rfcHTML(p.id)}" class="rank-card flex items-center p-3 md:p-4 border rounded-xl mb-2 bg-slate-50 opacity-90 hover:opacity-100 ${highlightClass}" onclick="openProfile('${rfcJS(p.id)}')">
                             <div class="w-8 text-center mr-2"><span class="text-lg md:text-xl">🐣</span></div>
                             <div class="shrink-0 relative mr-3 -my-2 md:-my-4">
-                                <img src="${rfcHTML(rfcURL(p.imageUrl ? p.imageUrl : 'https://placehold.co/150?text=No+Img'))}" 
+                                <img src="${rfcHTML(rfcURL(p.imageUrl ? p.imageUrl : 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 150 150%22%3E%3Crect width=%22150%22 height=%22150%22 fill=%22%23e2e8f0%22/%3E%3Ccircle cx=%2275%22 cy=%2259%22 r=%2224%22 fill=%22%2394a3b8%22/%3E%3Cpath d=%22M31 128c4-25 21-39 44-39s40 14 44 39z%22 fill=%22%2394a3b8%22/%3E%3C/svg%3E'))}" 
                                      class="w-[60px] h-[60px] md:w-[90px] md:h-[90px] rounded-2xl bg-slate-100 object-cover border border-slate-100 md:border-2 md:border-slate-50 shadow-sm transition-all duration-300" 
-                                     onerror="this.src='https://placehold.co/150?text=No+Img'">
+                                     onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 150 150%22%3E%3Crect width=%22150%22 height=%22150%22 fill=%22%23e2e8f0%22/%3E%3Ccircle cx=%2275%22 cy=%2259%22 r=%2224%22 fill=%22%2394a3b8%22/%3E%3Cpath d=%22M31 128c4-25 21-39 44-39s40 14 44 39z%22 fill=%22%2394a3b8%22/%3E%3C/svg%3E'">
                             </div>
                             <div class="flex-grow min-w-0 flex flex-col justify-center py-1">
                                 <div class="flex items-center gap-1.5 md:gap-2 mb-0.5 md:mb-1.5">
@@ -2201,9 +2228,9 @@ window.addEventListener('online', () => rfcStatus('인터넷이 연결되었습�
                         <div class="bg-white rounded-2xl p-3 md:p-4 shadow-sm border border-slate-100 flex items-center gap-3 relative overflow-hidden transition-transform active:scale-[0.99] cursor-pointer opacity-80 ${highlightClass}" onclick="openProfile('${rfcJS(p.id)}')">
                             <div class="flex flex-col items-center justify-center w-6 md:w-8 shrink-0"><span class="rank-unranked">-</span></div>
                             <div class="shrink-0 relative mr-3 -my-2 md:-my-4">
-                                <img src="${rfcHTML(rfcURL(p.imageUrl ? p.imageUrl : 'https://placehold.co/150?text=No+Img'))}" 
+                                <img src="${rfcHTML(rfcURL(p.imageUrl ? p.imageUrl : 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 150 150%22%3E%3Crect width=%22150%22 height=%22150%22 fill=%22%23e2e8f0%22/%3E%3Ccircle cx=%2275%22 cy=%2259%22 r=%2224%22 fill=%22%2394a3b8%22/%3E%3Cpath d=%22M31 128c4-25 21-39 44-39s40 14 44 39z%22 fill=%22%2394a3b8%22/%3E%3C/svg%3E'))}" 
                                      class="w-[60px] h-[60px] md:w-[90px] md:h-[90px] rounded-2xl bg-slate-100 object-cover border border-slate-100 md:border-2 md:border-slate-50 grayscale shadow-sm transition-all duration-300" 
-                                     onerror="this.src='https://placehold.co/150?text=No+Img'">
+                                     onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 150 150%22%3E%3Crect width=%22150%22 height=%22150%22 fill=%22%23e2e8f0%22/%3E%3Ccircle cx=%2275%22 cy=%2259%22 r=%2224%22 fill=%22%2394a3b8%22/%3E%3Cpath d=%22M31 128c4-25 21-39 44-39s40 14 44 39z%22 fill=%22%2394a3b8%22/%3E%3C/svg%3E'">
                             </div>
                             <div class="flex-grow min-w-0 flex flex-col justify-center py-1">
                                 <div class="flex items-center gap-1.5 md:gap-2 mb-0.5 md:mb-1.5">
@@ -2698,7 +2725,7 @@ window.addEventListener('online', () => rfcStatus('인터넷이 연결되었습�
                                 <div class="relative">
                                     <img src="${rfcHTML(rfcURL(imageUrl))}" 
                                          class="w-[110px] h-[110px] rounded-[1.5rem] object-cover border-4 border-yellow-400 champ-glow bg-slate-200 relative z-10" 
-                                         onerror="this.src='https://placehold.co/150?text=No+Img'">
+                                         onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 150 150%22%3E%3Crect width=%22150%22 height=%22150%22 fill=%22%23e2e8f0%22/%3E%3Ccircle cx=%2275%22 cy=%2259%22 r=%2224%22 fill=%22%2394a3b8%22/%3E%3Cpath d=%22M31 128c4-25 21-39 44-39s40 14 44 39z%22 fill=%22%2394a3b8%22/%3E%3C/svg%3E'">
                                     
                                     <!-- 빛 반사 오버레이 (이미지를 가리지 않음) -->
                                     <div class="absolute inset-0 rounded-[1.5rem] z-20 pointer-events-none overflow-hidden">
@@ -2780,7 +2807,7 @@ window.addEventListener('online', () => rfcStatus('인터넷이 연결되었습�
                              <div class="relative flex flex-col items-center cursor-pointer group w-full" onclick="openProfile('${rfcJS(p.id)}')">
                                 <div class="relative z-20 mb-2 transition-transform group-hover:scale-110 flex justify-center">
                                     ${crown}
-                                    <img src="${rfcHTML(rfcURL(getHOFImageUrl(p)))}" class="${imgSizeClass} rounded-2xl object-cover ${imgBorder} bg-slate-200" onerror="this.src='https://placehold.co/150?text=No+Img'">
+                                    <img src="${rfcHTML(rfcURL(getHOFImageUrl(p)))}" class="${imgSizeClass} rounded-2xl object-cover ${imgBorder} bg-slate-200" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 150 150%22%3E%3Crect width=%22150%22 height=%22150%22 fill=%22%23e2e8f0%22/%3E%3Ccircle cx=%2275%22 cy=%2259%22 r=%2224%22 fill=%22%2394a3b8%22/%3E%3Cpath d=%22M31 128c4-25 21-39 44-39s40 14 44 39z%22 fill=%22%2394a3b8%22/%3E%3C/svg%3E'">
                                     <div class="absolute -top-2 -left-2 ${badgeSize} shadow-sm ${badgeClass} font-bold rounded-lg px-2 py-0.5 border border-white z-30">${badgeText}</div>
                                 </div>
                                 <div class="${plateHeight} w-full ${plateBg} rounded-lg flex flex-col items-center justify-center shadow-sm">
@@ -2928,7 +2955,7 @@ window.addEventListener('online', () => rfcStatus('인터넷이 연결되었습�
                 });
             }
 
-            document.getElementById('pModalImg').src = p.imageUrl || "https://placehold.co/150?text=No+Img"; 
+            document.getElementById('pModalImg').src = p.imageUrl || "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 150 150%22%3E%3Crect width=%22150%22 height=%22150%22 fill=%22%23e2e8f0%22/%3E%3Ccircle cx=%2275%22 cy=%2259%22 r=%2224%22 fill=%22%2394a3b8%22/%3E%3Cpath d=%22M31 128c4-25 21-39 44-39s40 14 44 39z%22 fill=%22%2394a3b8%22/%3E%3C/svg%3E"; 
             
             const badgeContainer = document.getElementById('pModalBadges');
             badgeContainer.innerHTML = '';
@@ -2964,8 +2991,8 @@ window.addEventListener('online', () => rfcStatus('인터넷이 연결되었습�
             tierEl.textContent = tier.name; 
             tierEl.className = `text-[10px] font-bold px-2 py-0.5 rounded shadow-sm ${tier.color}`; 
             
-            document.getElementById('pModalHeight').textContent = p.height ? p.height + 'cm' : '-'; 
-            document.getElementById('pModalReach').textContent = p.reach ? p.reach + 'cm' : '-'; 
+            document.getElementById('pModalHeight').textContent = rfcCm(p.height); 
+            document.getElementById('pModalReach').textContent = rfcCm(p.reach); 
             document.getElementById('pModalStance').textContent = p.stance || '-';
             const carrierEl = document.getElementById('pModalCarrier'); if (carrierEl) carrierEl.textContent = p.carrier || '미입력'; 
             
@@ -3174,7 +3201,7 @@ function getCareerHighRank(playerName) {
                         dotsHtml += `<div class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full ${color} ${styleClass}" style="opacity: ${opacity};"></div>`;
                     });
                     
-                    const oppImg = opp.profile && opp.profile.imageUrl ? opp.profile.imageUrl : 'https://placehold.co/100?text=No+Img';
+                    const oppImg = opp.profile && opp.profile.imageUrl ? opp.profile.imageUrl : 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 150 150%22%3E%3Crect width=%22150%22 height=%22150%22 fill=%22%23e2e8f0%22/%3E%3Ccircle cx=%2275%22 cy=%2259%22 r=%2224%22 fill=%22%2394a3b8%22/%3E%3Cpath d=%22M31 128c4-25 21-39 44-39s40 14 44 39z%22 fill=%22%2394a3b8%22/%3E%3C/svg%3E';
                     const cursorStyle = opp.profile ? "cursor-pointer hover:border-blue-300 hover:shadow-md transition-all active:scale-[0.99]" : "";
                     
                     let winRateColor = winRate >= 50 ? 'text-emerald-600' : 'text-rose-600';
@@ -3186,7 +3213,7 @@ function getCareerHighRank(playerName) {
                     
                     div.innerHTML = `
                         <div class="flex items-center gap-3 md:gap-4">
-                            <img src="${rfcHTML(rfcURL(oppImg))}" class="w-10 h-10 md:w-12 md:h-12 rounded-full border border-slate-200 object-cover bg-slate-100" onerror="this.src='https://placehold.co/100?text=No+Img'">
+                            <img src="${rfcHTML(rfcURL(oppImg))}" class="w-10 h-10 md:w-12 md:h-12 rounded-full border border-slate-200 object-cover bg-slate-100" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 150 150%22%3E%3Crect width=%22150%22 height=%22150%22 fill=%22%23e2e8f0%22/%3E%3Ccircle cx=%2275%22 cy=%2259%22 r=%2224%22 fill=%22%2394a3b8%22/%3E%3Cpath d=%22M31 128c4-25 21-39 44-39s40 14 44 39z%22 fill=%22%2394a3b8%22/%3E%3C/svg%3E'">
                             <div>
                                 <div class="font-bold text-slate-700 text-sm md:text-base">vs ${rfcHTML(opp.name)}</div>
                                 <div class="text-[11px] md:text-xs text-slate-500 mt-0.5">총 <span class="font-bold text-slate-700">${total}전 ${rfcHTML(opp.w)}승 ${rfcHTML(opp.l)}패${opp.d>0?' '+opp.d+'무':''}</span> (승률 <span class="font-bold ${winRateColor}">${winRate}%</span>)</div>
@@ -3381,7 +3408,7 @@ function getCareerHighRank(playerName) {
             document.querySelectorAll('input[name="userEditCarrier"]').forEach(radio => {
                 radio.checked = (radio.value === carrierValue);
             }); document.getElementById('userEditPin').value = ''; 
-            document.getElementById('userImageUrlInput').value = p.imageUrl || ''; document.getElementById('userEditPreview').src = p.imageUrl || 'https://placehold.co/150?text=No+Img';
+            document.getElementById('userImageUrlInput').value = p.imageUrl || ''; document.getElementById('userEditPreview').src = p.imageUrl || 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 150 150%22%3E%3Crect width=%22150%22 height=%22150%22 fill=%22%23e2e8f0%22/%3E%3Ccircle cx=%2275%22 cy=%2259%22 r=%2224%22 fill=%22%2394a3b8%22/%3E%3Cpath d=%22M31 128c4-25 21-39 44-39s40 14 44 39z%22 fill=%22%2394a3b8%22/%3E%3C/svg%3E';
             
             const idContainer = document.getElementById('idInputContainer');
             idContainer.innerHTML = '';
@@ -3429,7 +3456,7 @@ function getCareerHighRank(playerName) {
         }
 
         window.closeUserEdit = () => document.getElementById('userEditModal').classList.add('hidden');
-        window.updateUserPreview = (url) => { document.getElementById('userEditPreview').src = rfcURL(url) || 'https://placehold.co/150?text=No+Img'; };
+        window.updateUserPreview = (url) => { document.getElementById('userEditPreview').src = rfcURL(url) || 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 150 150%22%3E%3Crect width=%22150%22 height=%22150%22 fill=%22%23e2e8f0%22/%3E%3Ccircle cx=%2275%22 cy=%2259%22 r=%2224%22 fill=%22%2394a3b8%22/%3E%3Cpath d=%22M31 128c4-25 21-39 44-39s40 14 44 39z%22 fill=%22%2394a3b8%22/%3E%3C/svg%3E'; };
         
         window.saveUserProfile = async () => {
             if (!editTargetId) return;
@@ -3963,6 +3990,135 @@ function rfcTInjectProfile(id, filter) {
 }
 
 
+// ---- [저장 공간] 지난 시즌을 시즌별 문서로 나눠 보관 ----
+// Firestore 문서 하나는 1MB(1,048,576바이트)까지만 저장됩니다. 모든 시즌의 경기 기록·최종 순위를 문서 하나(rankings/main)에
+// 넣으면 곧 가득 차서 저장이 막히므로, 본 문서의 seasonDocs = { "시즌 이름": {id, v} } 에 적힌 시즌은
+// rankings/<id> 문서에 {season, matchHistory, archive} 로 따로 둡니다.
+// 화면·계산 코드는 지금처럼 '모든 시즌이 한데 있는 데이터'를 그대로 씁니다: 불러올 때 여기서 합쳐서 넘겨 줌.
+const RFC_DOC_LIMIT = 1048576;
+// 지난 시즌 최종 순위(보관 기록)에 남길 필요가 없는 값: 비밀번호(PIN 해시)·운영 메모(공개 문서라 남기지 않음)·검색용 자모(불러올 때 다시 만듦)·예전 버전 값
+const RFC_ARCHIVE_DROP = ['password', 'adminNote', 'jamo', 'choseong', 'disassembled', 'device', 'recentMatchResults', 'isParticipating', 'defenses'];
+const rfcSeasonCache = new Map();   // 문서 id → {v, data}
+const rfcJsonClone = value => JSON.parse(JSON.stringify(value));
+// Firestore 저장 크기 (문서 크기 계산 규칙: 문자열 = UTF-8 바이트+1, 숫자 8, 참/거짓·null 1, 필드 이름 = UTF-8 바이트+1)
+const rfcUtf8 = new TextEncoder();
+function rfcDocBytes(value) {
+    if (value === null || value === undefined) return 1;
+    if (typeof value === 'string') return rfcUtf8.encode(value).length + 1;
+    if (typeof value === 'number') return 8;
+    if (typeof value === 'boolean') return 1;
+    if (Array.isArray(value)) { let s = 0; for (const x of value) s += rfcDocBytes(x); return s; }
+    let s = 0;
+    for (const [k, x] of Object.entries(value)) { if (x === undefined) continue; s += rfcUtf8.encode(k).length + 1 + rfcDocBytes(x); }
+    return s;
+}
+function rfcSeasonDocsOf(data) {
+    const m = data && data.seasonDocs;
+    if (!m || typeof m !== 'object' || Array.isArray(m)) return [];
+    return Object.entries(m).filter(([s, e]) => s && e && typeof e.id === 'string' && /^[A-Za-z0-9_-]{4,80}$/.test(e.id))
+        .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
+}
+function rfcCompactArchive(archive) {
+    if (!archive || typeof archive !== 'object') return archive;
+    const list = Array.isArray(archive) ? archive : archive.rankings;
+    if (!Array.isArray(list)) return archive;
+    const rankings = list.map(p => {
+        if (!p || typeof p !== 'object') return p;
+        const o = {};
+        for (const [k, v] of Object.entries(p)) if (!RFC_ARCHIVE_DROP.includes(k) && v !== undefined) o[k] = v;
+        return o;
+    });
+    return Array.isArray(archive) ? {rankings} : {...archive, rankings};
+}
+// 본 문서 + 시즌 문서들 → 모든 시즌이 한데 있는 데이터 (항상 같은 순서가 나오게: 시즌 이름순으로 붙이고 날짜 내림차순 안정 정렬)
+function rfcMergeSeasonData(main, contents) {
+    const hist = [...(main.matchHistory || [])];
+    const arch = {...(main.seasonArchives || {})};
+    for (const [s, e] of rfcSeasonDocsOf(main)) {
+        const d = contents[e.id];
+        if (!d || d.removed) continue;
+        for (const m of d.matchHistory || []) hist.push(m);
+        if (d.archive && !(s in arch)) arch[s] = d.archive;
+    }
+    hist.sort((a, b) => { const x = String(a.date || ''), y = String(b.date || ''); return x < y ? 1 : x > y ? -1 : 0; });
+    return {...main, matchHistory: hist, seasonArchives: arch};
+}
+function rfcSeasonRef(reference, id) {
+    const parts = String(reference.path).split('/');
+    parts[parts.length - 1] = id;
+    return doc(db, ...parts);
+}
+async function rfcFetchSeasonDoc(reference, id) {
+    const ref = rfcSeasonRef(reference, id);
+    const sdk = Promise.resolve().then(() => getDocFromServer(ref));
+    // 실시간 연결이 느린 망: 2.5초 안에 안 오면 일반 HTTPS(REST)로도 받아 봄
+    const rest = new Promise((resolve, reject) => setTimeout(() => {
+        try { rfcRestSnapshot(ref).then(resolve, reject); } catch (e) { reject(e); }
+    }, 2500));
+    let timer;
+    const timeout = new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('응답 없음')), 20000); });
+    try {
+        const snap = await Promise.race([Promise.any([sdk, rest]), timeout]);
+        if (!snap.exists()) throw new Error('문서 없음');
+        return snap.data();
+    } catch (e) {
+        throw new Error(`지난 시즌 기록(${id})을 불러오지 못했습니다: ${e && e.errors ? e.errors.map(x => x.message || x).join(' / ') : (e.message || e)}`);
+    } finally { clearTimeout(timer); }
+}
+async function rfcHydrateSnapshot(reference, snapshot) {
+    const main = snapshot.data();
+    const entries = rfcSeasonDocsOf(main);
+    await Promise.all(entries.map(async ([, e]) => {
+        const v = Number(e.v) || 0, c = rfcSeasonCache.get(e.id);
+        if (c && c.v === v) return;
+        try { rfcSeasonCache.set(e.id, {v, data: await rfcFetchSeasonDoc(reference, e.id)}); }
+        catch (error) {
+            // 전에 받아 둔 내용이 있으면 (조금 지난 것이라도) 그걸로 계속 — 관리자는 지난 내용으로 저장하면 안 되므로 실패로 처리
+            if (c && !globalThis.rfcSplitStrict) { console.warn(error); return; }
+            throw error;
+        }
+    }));
+    const contents = {};
+    for (const [, e] of entries) contents[e.id] = rfcSeasonCache.get(e.id).data;
+    const merged = rfcMergeSeasonData(main, contents);
+    return {exists: () => true, data: () => rfcJsonClone(merged), raw: () => rfcJsonClone(main), id: snapshot.id,
+        metadata: snapshot.metadata || {}, __rfcMerged: true};
+}
+// 사용자 사이트: 지난 시즌을 못 불러와도 이번 시즌은 보여 줌
+function rfcPartialSnapshot(snapshot) {
+    const main = snapshot.data();
+    return {exists: () => true, data: () => rfcJsonClone(main), raw: () => rfcJsonClone(main), id: snapshot.id, metadata: snapshot.metadata || {}, __rfcMerged: true, __rfcPartial: true};
+}
+// 점검용: 지금 불러온 데이터 크기 (개발자 도구에서 rfcDataInfo())
+window.rfcDataInfo = () => ({matches: matchHistoryData.length, archives: Object.keys(seasonArchives || {}).length, activeSeason,
+    seasons: [...new Set(matchHistoryData.map(m => m.season || '시즌 1'))].length, seasonDocs: (typeof rfcSeasonDocs !== 'undefined' && rfcSeasonDocs) ? Object.keys(rfcSeasonDocs).length : null});
+
+
+// ---- [점검 보완] 두 사이트 공통 ----
+// 키·리치: 숫자일 때만 cm를 붙임 (예전에 '185cm'·'Dd'처럼 들어간 값이 '185cmcm'·'Ddcm'으로 보이던 문제)
+function rfcCm(v) {
+    const s = String(v ?? '').trim().replace(/\s*cm$/i, '');
+    return /^\d{2,3}(\.\d+)?$/.test(s) ? s + 'cm' : '-';
+}
+// 공지: 주소(https://…)는 눌러서 열 수 있게 (나머지는 글자 그대로)
+function rfcLinkifyInto(el, text) {
+    if (!el) return;
+    el.textContent = '';
+    const s = String(text || ''), re = /https?:\/\/[^\s<>"']+/g;
+    let last = 0, m;
+    while ((m = re.exec(s))) {
+        let url = m[0].replace(/[),.!?\]]+$/, '');
+        if (m.index > last) el.append(s.slice(last, m.index));
+        const a = document.createElement('a');
+        a.href = url; a.textContent = url; a.target = '_blank'; a.rel = 'noopener noreferrer';
+        a.style.cssText = 'color:#2563eb;text-decoration:underline;word-break:break-all';
+        el.append(a);
+        last = m.index + url.length;
+    }
+    if (last < s.length) el.append(s.slice(last));
+}
+
+
 /* [기록실 · 경기 내용] 관리자 사이트가 경기 기록에 저장한 fx(결과 방식·라운드·시간, 타이머 펀치 기록)를 보여줍니다.
    fx = { m: KO|TKO|DEC|DQ|RTD|DRAW, r, rt, t, w: [던진, 맞힌, 파워 시도, 파워 적중, 준 데미지, 뺏은 다운], l: [...] } (w=승자, l=패자, 무승부는 w=Blue) */
 const RFC_FX_NAME = {KO: 'KO', TKO: 'TKO', DEC: '판정', DQ: '실격', RTD: '기권', DRAW: '무승부'};
@@ -4029,15 +4185,32 @@ function rfcFxAggregate(p, matches) {
 }
 
 // ---- 기록실 탭: 한 화면에 영역별(전적·피니시·타격·스타일·방어) 순위 ----
+// 강자 = 경기 당시(관리자 사이트가 경기마다 저장한 RankBefore) 챔피언이거나 랭킹 5위 안이던 상대.
+//   약한 상대만 골라 이겨 승률을 올린 경우를 가려 보려고. 배치 중(0)·순위 기록이 없는 예전 경기는 강자로 세지 않음.
+const RFC_STRONG_TOP = 5;     // 랭킹 몇 위까지 (챔피언은 따로 늘 강자)
+const RFC_STRONG_MIN = 5;     // 기록실 순위에 오르려면 강자와 몇 경기
+function rfcStrongOpp(m, side) {
+    const r = m[side + 'RankBefore'];
+    if (m[side + 'WasChampion'] === true || r === 'C' || r === 'c') return 'C';
+    const n = Number(r);
+    return Number.isInteger(n) && n >= 1 && n <= RFC_STRONG_TOP ? n : 0;
+}
 // 전적: 시간 순으로 연승·업셋 계산 (경기 기록은 최신이 앞)
 function rfcStCareer(p, matches) {
-    const c = {games: 0, wins: 0, losses: 0, draws: 0, best: 0, run: 0, upsets: 0, upsetMax: 0, titleWins: 0};
+    const c = {games: 0, wins: 0, losses: 0, draws: 0, best: 0, run: 0, upsets: 0, upsetMax: 0, titleWins: 0,
+        sg: 0, sw: 0, sl: 0, sd: 0, swC: 0};
     for (let i = matches.length - 1; i >= 0; i--) {
         const m = matches[i];
         if (!rfcFxIsMe(m, p)) continue;
         c.games++;
         const isDraw = m.isDraw || m.type === 'draw';
-        const isW = !isDraw && (m.winnerId ? String(m.winnerId) === String(p.id) : m.winner === p.name);
+        const meW = m.winnerId ? String(m.winnerId) === String(p.id) : m.winner === p.name;
+        const isW = !isDraw && meW;
+        const strong = rfcStrongOpp(m, meW ? 'loser' : 'winner');
+        if (strong) {
+            c.sg++;
+            if (isDraw) c.sd++; else if (isW) { c.sw++; if (strong === 'C') c.swC++; } else c.sl++;
+        }
         if (isDraw) { c.draws++; c.run = 0; }
         else if (isW) {
             c.wins++; c.run++; c.best = Math.max(c.best, c.run);
@@ -4047,12 +4220,16 @@ function rfcStCareer(p, matches) {
         } else { c.losses++; c.run = 0; }
     }
     c.winRate = c.games ? 100 * c.wins / c.games : null;
+    c.sRate = c.sg ? 100 * c.sw / c.sg : null;
     return c;
 }
 const RFC_PER = (v, n) => n ? v / n : null;
 const RFC_N1 = v => v === null || v === undefined ? '-' : v.toFixed(1);
 const RFC_ST_SECTIONS = [
     {icon: '🏆', title: '전적', note: '모든 경기 기준', cards: [
+        {name: '강자 상대 승률', need: 'strong', desc: `경기 당시 챔피언·랭킹 ${RFC_STRONG_TOP}위 안 상대로 이긴 비율 (${RFC_STRONG_MIN}경기부터)`,
+            ok: x => x.c.sg >= RFC_STRONG_MIN, val: x => x.c.sRate + x.c.sg / 1e5, fmt: rfcPctText,
+            sub: x => `${x.c.sw}승 ${x.c.sl}패${x.c.sd ? ' ' + x.c.sd + '무' : ''}`},
         {name: '승률', desc: '이긴 경기 ÷ 전체 경기', ok: x => x.c.games > 0, val: x => x.c.winRate, fmt: rfcPctText,
             sub: x => `${x.c.wins}승 ${x.c.losses}패${x.c.draws ? ' ' + x.c.draws + '무' : ''}`},
         {name: '최다 연승', desc: '이 기간에 가장 길게 이어간 연승', ok: x => x.c.best >= 2, val: x => x.c.best + (x.p.currentStreak || 0) / 1000, fmt: v => Math.floor(v) + '연승',
@@ -4188,7 +4365,7 @@ function rfcStCard(card, rows, key) {
         return `<li class="r${rank}" ${known ? `onclick="openProfile('${rfcJS(x.p.id)}')" role="button" tabindex="0"` : ''}><span class="k">${rank}</span><span class="n">${x.p.isChampion ? '👑 ' : ''}${rfcHTML(x.p.name)}${sub ? `<small>${rfcHTML(sub)}</small>` : ''}</span><b class="v${cls}">${rfcHTML(card.fmt(v))}</b></li>`;
     }).join('');
     const more = ranked.length > 5 ? `<button type="button" class="more" onclick="rfcStMore('${key}')">${openAll ? '접기' : `더 보기 (${Math.min(15, ranked.length)}위까지)`}</button>` : '';
-    const empty = card.need === 'ko' ? '결과 방식이 기록된 경기가 3번 넘는 선수가 아직 없어요' : card.need === 'ko1' ? '아직 KO·TKO 기록이 없어요'
+    const empty = card.need === 'strong' ? `강자를 ${RFC_STRONG_MIN}번 이상 상대한 선수가 아직 없어요` : card.need === 'ko' ? '결과 방식이 기록된 경기가 3번 넘는 선수가 아직 없어요' : card.need === 'ko1' ? '아직 KO·TKO 기록이 없어요'
         : card.need === 'extra' || card.need === 'punch' ? '새 기준 펀치 기록이 3경기 넘게 쌓이면 나와요' : '기록이 없어요';
     return `<div class="rfc-st-c"><div class="h"><b>${rfcHTML(card.name)}</b><small>${rfcHTML(card.desc)}</small></div>${list ? `<ol>${list}</ol>${more}` : `<p class="e">${empty}</p>`}</div>`;
 }
@@ -4308,7 +4485,13 @@ function rfcFxProfileBox(id, filter) {
     if (filter === 'current') matches = matches.filter(m => (m.season || '시즌 1') === activeSeason);
     else if (filter && filter !== 'all') matches = matches.filter(m => (m.season || '시즌 1') === filter);
     const a = rfcFxAggregate(p, matches);
-    if (!a.knownAll && !a.tracked) { box.innerHTML = ''; return; }
+    const c = rfcStCareer(p, matches);
+    const strong = c.sg ? `<div class="rfc-fx-strong"><span>강자 상대 승률<small>경기 당시 챔피언·랭킹 ${RFC_STRONG_TOP}위 안 상대</small></span>
+        <b>${c.sg >= RFC_STRONG_MIN ? rfcPctText(c.sRate) : '-'}</b><em>${c.sw}승 ${c.sl}패${c.sd ? ' ' + c.sd + '무' : ''}${c.sg < RFC_STRONG_MIN ? ` · ${RFC_STRONG_MIN}경기부터` : ` · 전체 ${rfcPctText(c.winRate)}`}</em></div>` : '';
+    if (!a.knownAll && !a.tracked) {
+        box.innerHTML = strong ? `<div class="rfc-fx-prof"><h4>경기 내용<span></span></h4>${strong}</div>` : '';
+        return;
+    }
     const w = a.way, l = a.lost, lk = l.KO + l.TKO + l.DEC + l.DQ + l.RTD;
     const per = v => a.tracked ? (v / a.tracked).toFixed(1) : '-';
     const cell = (v, label, cls = '') => `<div><b class="${cls}">${rfcHTML(v)}</b><span>${label}</span></div>`;
@@ -4321,7 +4504,7 @@ function rfcFxProfileBox(id, filter) {
         ways.push(`경기당 평균: 유효타 ${per(a.L)} / 시도 ${per(a.T)} · 라운드당 유효타 ${a.perRound === null ? '-' : a.perRound.toFixed(1)} · 파워 펀치 명중률 ${a.pAcc === null ? '-' : rfcPctText(a.pAcc)} · 다운 뺏음 ${per(a.kd)} / 당함 ${per(a.kdTaken)}${extra ? ' · ' + extra : ''}`);
     }
     box.innerHTML = `<div class="rfc-fx-prof"><h4>경기 내용<span>${a.known ? `결과 기록 ${a.known}경기` : ''}${a.known && a.tracked ? ' · ' : ''}${a.tracked ? `펀치 기록 ${a.tracked}경기 평균` : ''}</span></h4>
-        <div class="rfc-fx-grid">
+        ${strong}<div class="rfc-fx-grid">
           ${koCell}
           ${cell(a.tracked ? rfcPctText(a.acc) : '-', '명중률')}
           ${cell(a.tracked ? rfcPmText(a.pm) : '-', '+/−', a.pm > 0 ? 'pos' : a.pm < 0 ? 'neg' : '')}

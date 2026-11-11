@@ -634,6 +634,22 @@ body.rfc-design-admin #rfcAdminHeader{background:#111e32;border:1px solid #111e3
 .rfc-fx-old b{font-weight:900}
 .rfc-fx-old button{flex:0 0 auto;border:1px solid #f59e0b;background:#fff;color:#b45309;font-weight:800;font-size:11.5px;border-radius:8px;padding:5px 10px;cursor:pointer}
 .rfc-fx-old button:hover{background:#fef3c7}
+/* [v6.15] 저장 공간 */
+.rfc-storage-chip{margin-left:8px;border:1px solid #cbd5e1;background:#f8fafc;color:#334155;font-size:11px;font-weight:800;border-radius:999px;padding:3px 9px;cursor:pointer;white-space:nowrap}
+.rfc-storage-chip.amber{background:#fffbeb;border-color:#fcd34d;color:#92400e}
+.rfc-storage-chip.red{background:#fef2f2;border-color:#fca5a5;color:#b91c1c;animation:rfcStoragePulse 1.6s ease-in-out infinite}
+@keyframes rfcStoragePulse{50%{box-shadow:0 0 0 4px rgba(239,68,68,.18)}}
+.rfc-storage{border:1px solid #e2e8f0;background:#f8fafc;border-radius:12px;padding:12px 14px;font-size:12px;color:#475569;line-height:1.55}
+.rfc-storage .h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:6px}
+.rfc-storage .h b{font-size:13px;color:#0f172a}
+.rfc-storage .h span{font-weight:800;color:#334155;font-variant-numeric:tabular-nums}
+.rfc-storage .bar{height:8px;border-radius:8px;background:#e2e8f0;overflow:hidden;margin-bottom:8px}
+.rfc-storage .bar i{display:block;height:100%;border-radius:8px;background:#22c55e}
+.rfc-storage .bar i.amber{background:#f59e0b}.rfc-storage .bar i.red{background:#ef4444}
+.rfc-storage p{margin:4px 0}
+.rfc-storage p.warn{color:#b45309;font-weight:700}
+.rfc-storage .go{margin-top:6px;width:100%;border:0;border-radius:10px;background:#1d4ed8;color:#fff;font-weight:800;font-size:13px;padding:10px 12px;cursor:pointer}
+.rfc-storage .go:hover{background:#1e40af}
 
 </style></head>
 <body class="rfc-design rfc-design-admin rfc-ux-admin text-slate-800 relative h-screen overflow-hidden">
@@ -829,8 +845,8 @@ body.rfc-design-admin #rfcAdminHeader{background:#111e32;border:1px solid #111e3
                         <h3 class="font-bold text-slate-700">데이터 관리</h3>
                         <details class="rfc-help"><summary style="cursor:pointer;font-weight:700">운영 도움말 · 저장과 백업</summary>
 <p>경기를 등록한 뒤 ‘저장 완료’를 확인하세요. 저장 중에는 중복 입력을 막으며, 실패하면 입력을 유지합니다. 다른 변경과 충돌하면 작성 내용을 복사한 후 새로고침하여 최신 데이터에서 다시 입력하세요.</p>
-<p>타이틀 자격은 경기 전 점수를 기준으로 계산합니다. 경기 기록 삭제는 점수·승패 취소가 아닙니다. 점수 정정은 기존 선수 수정 기능에서 실제 기록을 확인한 뒤 처리하세요.</p>
-<p>백업에는 선수·경기·시즌뿐 아니라 규칙·공지·운영 메모도 포함됩니다. 백업 파일을 공개 저장소에 올리지 마세요. 로그인 계정과 Firebase 보안 규칙은 백업에 포함되지 않습니다.</p>
+<p>타이틀 자격은 경기 전 점수를 기준으로 계산합니다. 경기 기록을 삭제하면 그 경기로 바뀐 점수·승패·연승·현상금·챔피언이 함께 되돌아갑니다 (그 뒤에 치른 경기들의 점수 변동은 그대로). 실수로 지웠으면 ‘작업 취소’를 누르세요.</p>
+<p>저장 공간: Firestore 문서 하나에는 1MB까지만 들어갑니다. 관리 도구 맨 위 ‘저장 공간’에서 사용량을 보고, 지난 시즌을 시즌별 문서로 따로 보관할 수 있습니다 (화면 내용은 그대로).</p><p>백업에는 선수·경기·시즌뿐 아니라 규칙·공지·운영 메모도 포함됩니다. 백업 파일을 공개 저장소에 올리지 마세요. 로그인 계정과 Firebase 보안 규칙은 백업에 포함되지 않습니다.</p>
 <p>기존 Firebase 연결과 데이터 형식을 사용합니다. 관리자 메모의 서버 비공개 처리 및 PIN의 서버 권한 검증은 이번 HTML 개선에 포함되지 않습니다.</p></details><div class="grid grid-cols-2 gap-2"><input type="file" id="importFile" accept=".json" class="hidden"><button onclick="alert('이 원본의 자동 복원 기능은 구현되어 있지 않습니다. 백업을 보관하고 복원 전 별도 검토해주세요.')" class="bg-slate-700 hover:bg-slate-800 text-white font-bold py-3 rounded-lg text-xs">📂 복원 안내</button><button onclick="backupData()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3 rounded-lg text-xs">💾 데이터 백업</button></div>
                         <div class="pt-4 border-t border-slate-100 space-y-2"><h4 class="text-xs font-bold text-indigo-600">🔧 데이터 보정</h4><div class="bg-indigo-50 border border-indigo-100 rounded-lg p-3"><div class="flex justify-between items-center mb-1"><span class="text-xs font-bold text-indigo-800">데이터 무결성 검사 및 수정</span></div><p class="text-[10px] text-indigo-600 mb-2 leading-snug">현재 시즌 연승·현상금·최고 점수·최고 순위·경기 날짜를 점검합니다.<br>수정 전·후를 확인한 뒤 한 번에 적용합니다. 기록이 부족한 항목은 확인 필요로 표시합니다.</p><button onclick="fixDataIntegrity()" class="w-full bg-white text-indigo-600 hover:bg-indigo-100 font-bold py-2 rounded-lg text-xs border border-indigo-200 shadow-sm transition">✨ 데이터 진단 / 수정 미리보기</button></div></div>
                         <div class="pt-4 border-t border-slate-100 space-y-2"><h4 class="text-xs font-bold text-blue-600">👥 선수 명단 추출</h4><div class="grid grid-cols-1 gap-2"><button onclick="copyRankerList()" class="bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold py-3 rounded-lg text-xs border border-blue-100">🏆 랭커 명단</button><button onclick="copyAllPlayerList()" class="bg-slate-50 text-slate-600 hover:bg-slate-100 font-bold py-3 rounded-lg text-xs border border-slate-200">📋 전체 선수 명단</button></div></div>
@@ -1064,7 +1080,7 @@ body.rfc-design-admin #rfcAdminHeader{background:#111e32;border:1px solid #111e3
             <input type="hidden" id="editOriginalName">
             <div class="flex gap-6 mb-6">
                 <div class="relative w-48 h-48 shrink-0 group">
-                    <img id="previewImage" src="" class="w-full h-full rounded-2xl object-cover border border-slate-200 bg-slate-50 shadow-sm" onerror="this.src='https://placehold.co/150?text=No+Img'">
+                    <img id="previewImage" src="" class="w-full h-full rounded-2xl object-cover border border-slate-200 bg-slate-50 shadow-sm" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 150 150%22%3E%3Crect width=%22150%22 height=%22150%22 fill=%22%23e2e8f0%22/%3E%3Ccircle cx=%2275%22 cy=%2259%22 r=%2224%22 fill=%22%2394a3b8%22/%3E%3Cpath d=%22M31 128c4-25 21-39 44-39s40 14 44 39z%22 fill=%22%2394a3b8%22/%3E%3C/svg%3E'">
                     <button onclick="removeImage()" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1.5 shadow-md hover:bg-red-600 transition opacity-0 group-hover:opacity-100" title="이미지 삭제">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414-1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
                     </button>
@@ -1234,7 +1250,7 @@ body.rfc-design-admin #rfcAdminHeader{background:#111e32;border:1px solid #111e3
                     </div>
                     
                     <div class="mb-5 relative w-48 h-48 md:w-72 md:h-72 lg:w-80 lg:h-80 mx-auto group transition-all duration-300">
-                        <img id="pModalImg" src="" class="w-full h-full rounded-2xl object-cover border-4 border-white shadow-xl bg-slate-50" onerror="this.src='https://placehold.co/150?text=No+Img'">
+                        <img id="pModalImg" src="" class="w-full h-full rounded-2xl object-cover border-4 border-white shadow-xl bg-slate-50" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 150 150%22%3E%3Crect width=%22150%22 height=%22150%22 fill=%22%23e2e8f0%22/%3E%3Ccircle cx=%2275%22 cy=%2259%22 r=%2224%22 fill=%22%2394a3b8%22/%3E%3Cpath d=%22M31 128c4-25 21-39 44-39s40 14 44 39z%22 fill=%22%2394a3b8%22/%3E%3C/svg%3E'">
                     </div>
                     
                     <div class="w-full max-w-sm mb-6">
@@ -1380,7 +1396,7 @@ async function rfcRestSnapshot(reference) {
 
 function rfcCreateRankingFeed(reference, apply, canConnect=()=>true) {
     let unsubscribe=null, retryTimer=null, watchdog=null, probeTimer=null, restTimer=null, restOk=false;
-    let generation=0, revision=0, probeId=0, attempts=0, running=false, healthy=false, terminal=false;
+    let generation=0, revision=0, probeId=0, attempts=0, running=false, healthy=false, terminal=false, hydrateTicket=0;
     let lastStarted=0, hiddenAt=0;
     const maxRetries=5;
     const clearTimers=()=>{clearTimeout(retryTimer);clearTimeout(watchdog);clearTimeout(probeTimer);clearTimeout(restTimer);retryTimer=watchdog=probeTimer=restTimer=null;};
@@ -1409,6 +1425,23 @@ function rfcCreateRankingFeed(reference, apply, canConnect=()=>true) {
         if(!snapshot.exists()) {
             if(fromCache) {rfcLoadNotice('서버의 선수 목록을 기다리고 있습니다…','loading');return;}
             fail({code:'not-found'});return;
+        }
+        if(!snapshot.__rfcMerged) {
+            // [저장 공간] 지난 시즌을 시즌별 문서에 따로 두었으면 함께 불러와 합친 뒤 처리 (가장 최근 스냅샷만)
+            const ticket=++hydrateTicket;
+            let needs=false; try{needs=rfcSeasonDocsOf(snapshot.data()).length>0;}catch(e){}
+            if(needs) {
+                rfcHydrateSnapshot(reference, snapshot).then(merged=>{
+                    if(ticket===hydrateTicket && running && token===generation) receive(merged, token, serverRead);
+                }).catch(error=>{
+                    if(ticket!==hydrateTicket || !running || token!==generation) return;
+                    console.warn(error);
+                    if(globalThis.rfcSplitStrict) {fail(Object.assign(new Error(error.message || String(error)), {code:'unavailable'}));return;}
+                    receive(rfcPartialSnapshot(snapshot), token, serverRead);
+                    setTimeout(()=>rfcLoadNotice('지난 시즌 기록을 불러오지 못해 이번 시즌 기록만 보여 드리고 있어요. 잠시 뒤 다시 불러오기를 눌러 주세요.','error'),0);
+                });
+                return;
+            }
         }
         try {
             rfcValidateRankingDocument(snapshot);
@@ -1602,6 +1635,7 @@ function rfcJS(value) {
 }
 function rfcArg(value) { return rfcHTML(JSON.stringify(value ?? null)); }
 function rfcURL(value) {
+    if (value === 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 150 150%22%3E%3Crect width=%22150%22 height=%22150%22 fill=%22%23e2e8f0%22/%3E%3Ccircle cx=%2275%22 cy=%2259%22 r=%2224%22 fill=%22%2394a3b8%22/%3E%3Cpath d=%22M31 128c4-25 21-39 44-39s40 14 44 39z%22 fill=%22%2394a3b8%22/%3E%3C/svg%3E' || value === 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 150 150%22%3E%3Crect width=%22150%22 height=%22150%22 fill=%22%23f59e0b%22/%3E%3Ctext x=%2275%22 y=%2297%22 font-family=%22Arial,sans-serif%22 font-size=%2272%22 font-weight=%22700%22 fill=%22white%22 text-anchor=%22middle%22%3EC%3C/text%3E%3C/svg%3E') return value;  // 페이지 안 기본 그림
     try { const u = new URL(String(value || '')); return ['https:', 'http:'].includes(u.protocol) && !u.username && !u.password ? u.href : ''; }
     catch { return ''; }
 }
@@ -1652,9 +1686,9 @@ window.addEventListener('online', () => rfcStatus('인터넷이 연결되었습�
 
         
         const ADMIN_CONFIG = {
-            version: "v6.13",
-            updateNote: "펀치 기록을 유효타 기준(데미지 10 이상)으로 · 예전 기준 펀치 기록은 쓰지 않고 지난 경기 채우기로 새 기준으로 바꿈",
-            title: "v6.13 명중률을 유효타 기준으로"
+            version: "v6.15",
+            updateNote: "저장 공간 표시·지난 시즌을 시즌별 문서로 따로 보관(문서 1MB 한도 대비) · 경기 기록을 지우면 점수·승패·연승도 함께 되돌림",
+            title: "v6.15 저장 공간 관리 · 지난 시즌 따로 보관"
         };
 
         function initVersionUI() {
@@ -1701,13 +1735,13 @@ function rfcFingerprint(value) {
     return JSON.stringify(value);
 }
 function rfcMemory() {
-    return rfcClone({rankingsData, matchHistoryData, seasonArchives, seasonDates, activeSeason, championVacant, ruleHtml, patchNotesData, noticeVersion, availablePatchTags, undoStack, viewHistorySeason, tournamentsData});
+    return rfcClone({rankingsData, matchHistoryData, seasonArchives, seasonDates, activeSeason, championVacant, ruleHtml, patchNotesData, noticeVersion, availablePatchTags, undoStack, viewHistorySeason, tournamentsData, rfcSeasonDocs});
 }
 function rfcRestoreMemory(s) {
-    ({rankingsData, matchHistoryData, seasonArchives, seasonDates, activeSeason, championVacant, ruleHtml, patchNotesData, noticeVersion, availablePatchTags, undoStack, viewHistorySeason, tournamentsData} = s);
+    ({rankingsData, matchHistoryData, seasonArchives, seasonDates, activeSeason, championVacant, ruleHtml, patchNotesData, noticeVersion, availablePatchTags, undoStack, viewHistorySeason, tournamentsData, rfcSeasonDocs} = s);
 }
 function rfcPayload() {
-    return rfcClone({rankings:rankingsData, matchHistory:matchHistoryData, seasonArchives, seasonDates, activeSeason, championVacant,
+    return rfcClone({rankings:rankingsData, matchHistory:matchHistoryData, seasonArchives, seasonDates, activeSeason, championVacant, seasonDocs:rfcSeasonDocs,
         ruleHtml, patchNotes:patchNotesData, availablePatchTags, tournaments:rfcTToStore(tournamentsData),
         adminGlobalNote:document.getElementById('adminGlobalNoteInput')?.value || '',
         noticeData:{content:document.getElementById('noticeContentInput')?.value || '', active:document.getElementById('noticeActiveToggle')?.checked === true, version:noticeVersion}});
@@ -1807,6 +1841,7 @@ function rfcTitleWinner(winner, loser) {
                 rankings: JSON.stringify(rankingsData),
                 history: JSON.stringify(matchHistoryData),
                 archives: JSON.stringify(seasonArchives),
+                seasonDocs: JSON.stringify(rfcSeasonDocs),
                 seasonDates: JSON.stringify(seasonDates),
                 season: activeSeason,
                 championVacant: championVacant,
@@ -1829,6 +1864,7 @@ function rfcTitleWinner(winner, loser) {
                 rankingsData = JSON.parse(prevState.rankings);
                 matchHistoryData = JSON.parse(prevState.history);
                 seasonArchives = JSON.parse(prevState.archives);
+                if (prevState.seasonDocs !== undefined) rfcSeasonDocs = JSON.parse(prevState.seasonDocs);
                 seasonDates = prevState.seasonDates ? JSON.parse(prevState.seasonDates) : {};
                 activeSeason = prevState.season;
                 championVacant = prevState.championVacant === true;
@@ -2210,7 +2246,8 @@ function rfcScoreMatch(state,winner,loser,isDraw,loserBounty) {
                     if (currentProfileId) rfcRenderOptional('선수 프로필',()=>updateProfileStats(currentProfileId, document.getElementById('pModalSeason').value)); 
                     if(document.getElementById('totalPlayerCount')) document.getElementById('totalPlayerCount').textContent = `(${rankingsData.length}명)`;
 
-                    rfcBaseDocument=nextBaseline;
+                    rfcBaseDocument=nextBaseline; rfcBaseMainFp=rfcFingerprint(doc.raw ? doc.raw() : nextBaseline);
+                    rfcSeasonDocs = data.seasonDocs && typeof data.seasonDocs === 'object' && !Array.isArray(data.seasonDocs) ? rfcClone(data.seasonDocs) : null; rfcStorageRefresh();
             } catch(error) {rfcRestoreMemory(before);rfcDraft=beforeDraft;rfcQueuedDocument=beforeQueued;throw error;}
         }
 
@@ -2549,7 +2586,7 @@ function rfcScoreMatch(state,winner,loser,isDraw,loserBounty) {
             else if (unmatched.length) alert(`일치하는 ${matched.length}개 경기만 적용했습니다.\n제외된 챕터 ${unmatched.length}개는 경기 기록을 확인한 뒤 수동으로 처리해주세요.`);
         };
 
-        window.deleteMatchLog = async (idx) => { if (!Number.isInteger(idx) || idx < 0 || idx >= matchHistoryData.length) return; if(!confirm("이 경기의 기록만 삭제합니다. 점수·승패·챔피언 상태는 되돌아가지 않습니다. 계속할까요?")) return; captureState(); matchHistoryData.splice(idx, 1); await saveRankings(); renderAdminMatches(); alert("기록 삭제됨."); };
+        window.deleteMatchLog = async (idx) => rfcDeleteMatchSynced(idx);  // [v6.14] 기록과 함께 그 경기로 바뀐 점수·승패·연승·현상금·챔피언을 되돌림 (match_delete_admin.js)
 
         window.openMatchExportModal = () => { 
             const modal = document.getElementById('exportModal'); if (modal) modal.classList.remove('hidden'); 
@@ -2717,8 +2754,12 @@ window.saveRankings = async function(isUndo = false) {
     if (!navigator.onLine) throw new Error('인터넷에 연결한 후 다시 저장해주세요.');
     rfcSaveBusy = true;
     const statusEl = document.getElementById('saveStatus');
-    const baseline = rfcFingerprint(rfcBaseDocument);
-    const payload = rfcPayload(); payload.date = new Date().toISOString();
+    // [v6.15] 지난 시즌은 시즌별 문서로: 본 문서 + 바뀐 시즌 문서만 한 번에(트랜잭션) 저장
+    const baseline = rfcBaseMainFp ?? rfcFingerprint(rfcBaseDocument);
+    const fullPayload = rfcPayload(); fullPayload.date = new Date().toISOString();
+    let plan;
+    try { plan = rfcPlanSave(fullPayload, rfcBaseDocument); rfcPlanCheck(plan); } catch (error) { rfcSaveBusy = false; throw error; }
+    const payload = plan.main;
     const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'rankings', 'main');
     if (statusEl) {statusEl.textContent = '저장 중…'; statusEl.style.opacity = 1;}
     try {
@@ -2731,10 +2772,11 @@ window.saveRankings = async function(isUndo = false) {
             const oldVersion = Math.max(1, Number(previousNotice.version) || 1);
             const changed = (previousNotice.content || '') !== payload.noticeData.content || (previousNotice.active === true) !== payload.noticeData.active;
             const next = {...payload, noticeData:{...payload.noticeData, version:oldVersion + (changed ? 1 : 0)}};
+            for (const w of plan.writes) transaction.set(rfcSeasonRef(docRef, w.id), w.data);
             transaction.update(docRef, next);
             return {...latest, ...next};
         });
-        rfcBaseDocument = rfcClone(committed); rfcQueuedDocument = null; noticeVersion = committed.noticeData.version;
+        rfcBaseDocument = rfcClone(rfcPlanCommitted(plan, committed)); rfcQueuedDocument = null; noticeVersion = committed.noticeData.version;
         rfcDraft = document.getElementById('ruleHtmlInput')?.value !== ruleHtml;
         enrichMatchHistory();
         if (statusEl) {statusEl.textContent = '저장 완료'; statusEl.style.opacity = 1;}
@@ -3132,11 +3174,11 @@ window.saveRankings = async function(isUndo = false) {
 
         window.switchTab = (tab) => { document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden')); document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active')); document.getElementById(tab + 'Section').classList.remove('hidden'); document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active'); };
         window.deleteSeason = (targetName) => { if (targetName === activeSeason) return showCustomAlert("활성 시즌 삭제 불가."); showConfirmModal(`[${targetName}] 시즌 삭제?`, async () => { captureState(); delete seasonArchives[targetName]; delete seasonDates[targetName]; matchHistoryData = matchHistoryData.filter(m => m.season !== targetName); await saveRankings(); renderSeasonList(); showCustomAlert("삭제됨."); }); };
-        window.switchActiveSeason = (targetName) => { showConfirmModal(`[${targetName}] 전환?`, async () => { captureState(); seasonArchives[activeSeason] = { rankings: JSON.parse(JSON.stringify(rankingsData)), championVacant: championVacant }; const t = seasonArchives[targetName]; if (t) { rankingsData = t.rankings || []; championVacant = t.championVacant !== undefined ? t.championVacant === true : !rankingsData.some(p => p.isChampion === true); } delete seasonArchives[targetName]; activeSeason = targetName; viewHistorySeason = activeSeason; await saveRankings(); updateSeasonUI(); renderSeasonList(); renderRankings(); updateAdminHistorySeasonSelector(); renderAdminMatches(); showCustomAlert("전환됨."); }); };
+        window.switchActiveSeason = (targetName) => { showConfirmModal(`[${targetName}] 전환?`, async () => { captureState(); seasonArchives[activeSeason] = { rankings: rfcArchivePlayers(rankingsData), championVacant: championVacant }; const t = seasonArchives[targetName]; if (t) { rankingsData = rfcRestoreArchivePlayers(t.rankings || [], rankingsData); championVacant = t.championVacant !== undefined ? t.championVacant === true : !rankingsData.some(p => p.isChampion === true); } delete seasonArchives[targetName]; activeSeason = targetName; viewHistorySeason = activeSeason; await saveRankings(); updateSeasonUI(); renderSeasonList(); renderRankings(); updateAdminHistorySeasonSelector(); renderAdminMatches(); showCustomAlert("전환됨."); }); };
         window.openRenameModal = (oldName) => { document.getElementById('renameOldName').value = oldName; document.getElementById('renameInput').value = oldName; document.getElementById('renameModal').classList.remove('hidden'); setTimeout(() => document.getElementById('renameInput').focus(), 50); };
         window.closeRenameModal = () => { document.getElementById('renameModal').classList.add('hidden'); };
         window.confirmRenameSeason = async () => { const oldName = document.getElementById('renameOldName').value; const newName = document.getElementById('renameInput').value.trim(); if(!newName || newName === oldName) { closeRenameModal(); return; } if(newName === activeSeason || seasonArchives[newName]) return showCustomAlert("이미 존재하는 시즌 이름입니다."); captureState(); if (oldName === activeSeason) { activeSeason = newName; if (seasonArchives[oldName]) delete seasonArchives[oldName]; if (seasonDates[oldName]) { seasonDates[newName] = seasonDates[oldName]; delete seasonDates[oldName]; } } else { seasonArchives[newName] = seasonArchives[oldName]; delete seasonArchives[oldName]; if (seasonDates[oldName]) { seasonDates[newName] = seasonDates[oldName]; delete seasonDates[oldName]; } } matchHistoryData.forEach(m => { if(m.season === oldName) m.season = newName; }); await saveRankings(); renderSeasonList(); updateSeasonUI(); closeRenameModal(); showCustomAlert("변경됨."); };
-        window.finishAndStartNewSeason = () => { const n = document.getElementById('newSeasonNameInput').value.trim(); if(!n) return; if(n === activeSeason || seasonArchives[n]) return; showConfirmModal(`새 시즌 [${n}] 시작?`, async () => { captureState(); const newStartDate = document.getElementById("newSeasonStartDateInput")?.value || ""; const newEndDate = document.getElementById("newSeasonEndDateInput")?.value || ""; if (!newStartDate) return showCustomAlert("새 시즌 시작일을 입력해주세요."); if (newEndDate && newEndDate < newStartDate) return showCustomAlert("새 시즌 종료일은 시작일보다 빠를 수 없습니다."); seasonArchives[activeSeason] = { rankings: JSON.parse(JSON.stringify(rankingsData)), championVacant: championVacant }; if (!seasonDates[activeSeason]) seasonDates[activeSeason] = { startDate: "", endDate: "" }; activeSeason = n; seasonDates[activeSeason] = { startDate: newStartDate, endDate: newEndDate }; championVacant = false; const previousSeasonPlayers = JSON.parse(JSON.stringify(rankingsData));
+        window.finishAndStartNewSeason = () => { const n = document.getElementById('newSeasonNameInput').value.trim(); if(!n) return; if(n === activeSeason || seasonArchives[n]) return; showConfirmModal(`새 시즌 [${n}] 시작?`, async () => { captureState(); const newStartDate = document.getElementById("newSeasonStartDateInput")?.value || ""; const newEndDate = document.getElementById("newSeasonEndDateInput")?.value || ""; if (!newStartDate) return showCustomAlert("새 시즌 시작일을 입력해주세요."); if (newEndDate && newEndDate < newStartDate) return showCustomAlert("새 시즌 종료일은 시작일보다 빠를 수 없습니다."); seasonArchives[activeSeason] = { rankings: rfcArchivePlayers(rankingsData), championVacant: championVacant }; if (!seasonDates[activeSeason]) seasonDates[activeSeason] = { startDate: "", endDate: "" }; activeSeason = n; seasonDates[activeSeason] = { startDate: newStartDate, endDate: newEndDate }; championVacant = false; const previousSeasonPlayers = JSON.parse(JSON.stringify(rankingsData));
             const getPreviousMatchCount = p => Number(p.wins || 0) + Number(p.losses || 0) + Number(p.draws || 0);
             const previousRanked = previousSeasonPlayers
                 .filter(p => getPreviousMatchCount(p) >= 3)
@@ -3219,7 +3261,7 @@ window.saveRankings = async function(isUndo = false) {
                 }
             });
             if (filteredPlayers.length === 0) listContainer.innerHTML = `<div class="text-center text-xs text-slate-400 py-6">검색 결과 없음.</div>`;
-            else { filteredPlayers.forEach(p => { const isChecked = deleteSelectedIds.has(p.id) ? 'checked' : ''; const totalMatches = (p.wins || 0) + (p.losses || 0) + (p.draws || 0); const div = document.createElement('div'); div.className = "flex items-center justify-between p-2 bg-white rounded border border-slate-100 hover:bg-slate-50 transition cursor-pointer"; div.onclick = (e) => { if(e.target.tagName !== 'INPUT') { const cb = div.querySelector('input[type="checkbox"]'); cb.checked = !cb.checked; window.toggleDeleteSelection(p.id, cb.checked); } }; div.innerHTML = `<div class="flex items-center gap-3"><input type="checkbox" value="${rfcHTML(p.id)}" class="w-4 h-4 text-red-600 rounded border-gray-300 focus:ring-red-500" ${isChecked} onchange="window.toggleDeleteSelection('${rfcJS(p.id)}', this.checked)"><div class="flex items-center gap-2"><img src="${rfcHTML(rfcURL(p.imageUrl || 'https://placehold.co/150?text=No+Img'))}" class="w-8 h-8 rounded bg-slate-100 object-cover border border-slate-200" onerror="this.src='https://placehold.co/150?text=No+Img'"><div><div class="font-bold text-sm text-slate-700">${rfcHTML(p.name)}</div><div class="text-[10px] text-slate-400">${totalMatches}전 | <span class="text-slate-600 font-bold">${rfcHTML(p.elo)}점</span></div></div></div></div>`; listContainer.appendChild(div); }); }
+            else { filteredPlayers.forEach(p => { const isChecked = deleteSelectedIds.has(p.id) ? 'checked' : ''; const totalMatches = (p.wins || 0) + (p.losses || 0) + (p.draws || 0); const div = document.createElement('div'); div.className = "flex items-center justify-between p-2 bg-white rounded border border-slate-100 hover:bg-slate-50 transition cursor-pointer"; div.onclick = (e) => { if(e.target.tagName !== 'INPUT') { const cb = div.querySelector('input[type="checkbox"]'); cb.checked = !cb.checked; window.toggleDeleteSelection(p.id, cb.checked); } }; div.innerHTML = `<div class="flex items-center gap-3"><input type="checkbox" value="${rfcHTML(p.id)}" class="w-4 h-4 text-red-600 rounded border-gray-300 focus:ring-red-500" ${isChecked} onchange="window.toggleDeleteSelection('${rfcJS(p.id)}', this.checked)"><div class="flex items-center gap-2"><img src="${rfcHTML(rfcURL(p.imageUrl || 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 150 150%22%3E%3Crect width=%22150%22 height=%22150%22 fill=%22%23e2e8f0%22/%3E%3Ccircle cx=%2275%22 cy=%2259%22 r=%2224%22 fill=%22%2394a3b8%22/%3E%3Cpath d=%22M31 128c4-25 21-39 44-39s40 14 44 39z%22 fill=%22%2394a3b8%22/%3E%3C/svg%3E'))}" class="w-8 h-8 rounded bg-slate-100 object-cover border border-slate-200" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 150 150%22%3E%3Crect width=%22150%22 height=%22150%22 fill=%22%23e2e8f0%22/%3E%3Ccircle cx=%2275%22 cy=%2259%22 r=%2224%22 fill=%22%2394a3b8%22/%3E%3Cpath d=%22M31 128c4-25 21-39 44-39s40 14 44 39z%22 fill=%22%2394a3b8%22/%3E%3C/svg%3E'"><div><div class="font-bold text-sm text-slate-700">${rfcHTML(p.name)}</div><div class="text-[10px] text-slate-400">${totalMatches}전 | <span class="text-slate-600 font-bold">${rfcHTML(p.elo)}점</span></div></div></div></div>`; listContainer.appendChild(div); }); }
             badge.textContent = `${deleteSelectedIds.size}명 선택됨`;
             const allCheckbox = document.getElementById('deleteAllCheckbox'); if (filteredPlayers.length > 0 && Array.from(filteredPlayers).every(p => deleteSelectedIds.has(p.id))) allCheckbox.checked = true; else allCheckbox.checked = false;
         };
@@ -3638,7 +3680,7 @@ window.rfcApplyIntegrity = async () => {
         document.getElementById('editModal').classList.remove('hidden'); 
     };
 
-    window.updatePreview = (url) => { const img = document.getElementById('previewImage'); if (!url) img.src = "https://placehold.co/150?text=No+Img"; else img.src = rfcURL(url) || "https://placehold.co/150?text=No+Img"; };
+    window.updatePreview = (url) => { const img = document.getElementById('previewImage'); if (!url) img.src = "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 150 150%22%3E%3Crect width=%22150%22 height=%22150%22 fill=%22%23e2e8f0%22/%3E%3Ccircle cx=%2275%22 cy=%2259%22 r=%2224%22 fill=%22%2394a3b8%22/%3E%3Cpath d=%22M31 128c4-25 21-39 44-39s40 14 44 39z%22 fill=%22%2394a3b8%22/%3E%3C/svg%3E"; else img.src = rfcURL(url) || "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 150 150%22%3E%3Crect width=%22150%22 height=%22150%22 fill=%22%23e2e8f0%22/%3E%3Ccircle cx=%2275%22 cy=%2259%22 r=%2224%22 fill=%22%2394a3b8%22/%3E%3Cpath d=%22M31 128c4-25 21-39 44-39s40 14 44 39z%22 fill=%22%2394a3b8%22/%3E%3C/svg%3E"; };
     window.removeImage = () => { document.getElementById('editImageUrlInput').value = ""; window.updatePreview(""); };
     
     window.savePlayerDetails = async () => { 
@@ -3744,7 +3786,7 @@ window.rfcApplyIntegrity = async () => {
             });
         }
 
-        document.getElementById('pModalImg').src = p.imageUrl || "https://placehold.co/150?text=No+Img"; 
+        document.getElementById('pModalImg').src = p.imageUrl || "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 150 150%22%3E%3Crect width=%22150%22 height=%22150%22 fill=%22%23e2e8f0%22/%3E%3Ccircle cx=%2275%22 cy=%2259%22 r=%2224%22 fill=%22%2394a3b8%22/%3E%3Cpath d=%22M31 128c4-25 21-39 44-39s40 14 44 39z%22 fill=%22%2394a3b8%22/%3E%3C/svg%3E"; 
         
         const badgeContainer = document.getElementById('pModalBadges');
         badgeContainer.innerHTML = '';
@@ -3770,8 +3812,8 @@ window.rfcApplyIntegrity = async () => {
         tierEl.textContent = tier.name; 
         tierEl.className = `text-[10px] font-bold px-2 py-0.5 rounded shadow-sm ${tier.color}`; 
         
-        document.getElementById('pModalHeight').textContent = p.height ? p.height + 'cm' : '-'; 
-        document.getElementById('pModalReach').textContent = p.reach ? p.reach + 'cm' : '-'; 
+        document.getElementById('pModalHeight').textContent = rfcCm(p.height); 
+        document.getElementById('pModalReach').textContent = rfcCm(p.reach); 
         document.getElementById('pModalStance').textContent = p.stance || '-'; 
         
         const tagsContainer = document.getElementById('pModalTags'); tagsContainer.innerHTML = ''; 
@@ -3975,7 +4017,7 @@ function getCareerHighRank(playerName) {
                     dotsHtml += `<div class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full ${color} ${styleClass}" style="opacity: ${opacity};"></div>`;
                 });
                 
-                const oppImg = opp.profile && opp.profile.imageUrl ? opp.profile.imageUrl : 'https://placehold.co/100?text=No+Img';
+                const oppImg = opp.profile && opp.profile.imageUrl ? opp.profile.imageUrl : 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 150 150%22%3E%3Crect width=%22150%22 height=%22150%22 fill=%22%23e2e8f0%22/%3E%3Ccircle cx=%2275%22 cy=%2259%22 r=%2224%22 fill=%22%2394a3b8%22/%3E%3Cpath d=%22M31 128c4-25 21-39 44-39s40 14 44 39z%22 fill=%22%2394a3b8%22/%3E%3C/svg%3E';
                 const cursorStyle = opp.profile ? "cursor-pointer hover:border-blue-300 hover:shadow-md transition-all active:scale-[0.99]" : "";
                 
                 let winRateColor = winRate >= 50 ? 'text-emerald-600' : 'text-rose-600';
@@ -3987,7 +4029,7 @@ function getCareerHighRank(playerName) {
                 
                 div.innerHTML = `
                     <div class="flex items-center gap-3 md:gap-4">
-                        <img src="${rfcHTML(rfcURL(oppImg))}" class="w-10 h-10 md:w-12 md:h-12 rounded-full border border-slate-200 object-cover bg-slate-100" onerror="this.src='https://placehold.co/100?text=No+Img'">
+                        <img src="${rfcHTML(rfcURL(oppImg))}" class="w-10 h-10 md:w-12 md:h-12 rounded-full border border-slate-200 object-cover bg-slate-100" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 150 150%22%3E%3Crect width=%22150%22 height=%22150%22 fill=%22%23e2e8f0%22/%3E%3Ccircle cx=%2275%22 cy=%2259%22 r=%2224%22 fill=%22%2394a3b8%22/%3E%3Cpath d=%22M31 128c4-25 21-39 44-39s40 14 44 39z%22 fill=%22%2394a3b8%22/%3E%3C/svg%3E'">
                         <div>
                             <div class="font-bold text-slate-700 text-sm md:text-base">vs ${rfcHTML(opp.name)}</div>
                             <div class="text-[11px] md:text-xs text-slate-500 mt-0.5">총 <span class="font-bold text-slate-700">${total}전 ${rfcHTML(opp.w)}승 ${rfcHTML(opp.l)}패${opp.d>0?' '+opp.d+'무':''}</span> (승률 <span class="font-bold ${winRateColor}">${winRate}%</span>)</div>
@@ -4170,7 +4212,7 @@ function getCareerHighRank(playerName) {
             let recordStr = `${p.wins}승 ${p.losses}패`;
             if ((p.draws || 0) > 0) recordStr += ` ${p.draws}무`;
 
-            list.insertAdjacentHTML('beforeend', `<div class="rank-card flex items-center p-3 rounded-xl mb-2 inferno-card relative overflow-visible group cursor-pointer" onclick="openProfile('${rfcJS(p.id)}')"><div class="absolute inset-0 overflow-hidden rounded-xl pointer-events-none"><div class="ember-mini" style="left: 20%; animation-delay: 0s;"></div><div class="ember-mini" style="left: 80%; animation-delay: 1.5s;"></div></div><div class="w-10 text-center mr-2 flex flex-col items-center justify-center shrink-0 relative z-10"><div class="text-2xl drop-shadow-md">👑</div><span class="text-[8px] font-bold text-orange-200 uppercase tracking-wide bg-orange-900/50 px-1 rounded border border-orange-500/30 -mt-1">CHAMP</span></div><div class="shrink-0 relative mr-3 -my-2 relative z-10"><img src="${rfcHTML(rfcURL(p.imageUrl || 'https://placehold.co/150/f59e0b/white?text=C'))}" class="w-10 h-10 rounded-lg bg-slate-900 object-cover border-2 border-orange-300/30 shadow-lg" onerror="this.src='https://placehold.co/150/f59e0b/white?text=C'"></div><div class="flex-grow min-w-0 flex flex-col justify-center py-1 relative z-10"><div class="flex items-center gap-2 mb-1"><div class="champ-badge">👑 CHAMPION</div>${bountyHtml}<span class="bg-orange-950/50 text-orange-300 border border-orange-500/30 text-[9px] px-1.5 py-0.5 rounded font-bold">🛡️ ${defCount}차 방어</span></div><div class="font-bold text-sm text-white flex items-center gap-2"><span class="truncate">${rfcHTML(p.name)}</span>${streakHtml}</div><div class="flex items-center gap-1.5 mt-0.5"><span class="bg-black/40 text-orange-300 text-[10px] px-1.5 py-0.5 rounded border border-orange-500/30 font-bold">⚡${rfcHTML(p.elo)}</span><span class="text-xs text-slate-300">| ${recordStr}</span>${champCarrierHtml}${champDeviceHtml}</div></div><div class="flex flex-row items-center gap-3 shrink-0 pl-2 relative z-10">${formHtml}<div class="relative css-tooltip-container flex items-center" onclick="event.stopPropagation();">${tooltipHtml}<button onclick="openEditModal(${rfcArg(globalIndex)})" class="${editBtnClass}" title="${editBtnTitle}"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg></button></div></div></div>`);
+            list.insertAdjacentHTML('beforeend', `<div class="rank-card flex items-center p-3 rounded-xl mb-2 inferno-card relative overflow-visible group cursor-pointer" onclick="openProfile('${rfcJS(p.id)}')"><div class="absolute inset-0 overflow-hidden rounded-xl pointer-events-none"><div class="ember-mini" style="left: 20%; animation-delay: 0s;"></div><div class="ember-mini" style="left: 80%; animation-delay: 1.5s;"></div></div><div class="w-10 text-center mr-2 flex flex-col items-center justify-center shrink-0 relative z-10"><div class="text-2xl drop-shadow-md">👑</div><span class="text-[8px] font-bold text-orange-200 uppercase tracking-wide bg-orange-900/50 px-1 rounded border border-orange-500/30 -mt-1">CHAMP</span></div><div class="shrink-0 relative mr-3 -my-2 relative z-10"><img src="${rfcHTML(rfcURL(p.imageUrl || 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 150 150%22%3E%3Crect width=%22150%22 height=%22150%22 fill=%22%23f59e0b%22/%3E%3Ctext x=%2275%22 y=%2297%22 font-family=%22Arial,sans-serif%22 font-size=%2272%22 font-weight=%22700%22 fill=%22white%22 text-anchor=%22middle%22%3EC%3C/text%3E%3C/svg%3E'))}" class="w-10 h-10 rounded-lg bg-slate-900 object-cover border-2 border-orange-300/30 shadow-lg" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 150 150%22%3E%3Crect width=%22150%22 height=%22150%22 fill=%22%23f59e0b%22/%3E%3Ctext x=%2275%22 y=%2297%22 font-family=%22Arial,sans-serif%22 font-size=%2272%22 font-weight=%22700%22 fill=%22white%22 text-anchor=%22middle%22%3EC%3C/text%3E%3C/svg%3E'"></div><div class="flex-grow min-w-0 flex flex-col justify-center py-1 relative z-10"><div class="flex items-center gap-2 mb-1"><div class="champ-badge">👑 CHAMPION</div>${bountyHtml}<span class="bg-orange-950/50 text-orange-300 border border-orange-500/30 text-[9px] px-1.5 py-0.5 rounded font-bold">🛡️ ${defCount}차 방어</span></div><div class="font-bold text-sm text-white flex items-center gap-2"><span class="truncate">${rfcHTML(p.name)}</span>${streakHtml}</div><div class="flex items-center gap-1.5 mt-0.5"><span class="bg-black/40 text-orange-300 text-[10px] px-1.5 py-0.5 rounded border border-orange-500/30 font-bold">⚡${rfcHTML(p.elo)}</span><span class="text-xs text-slate-300">| ${recordStr}</span>${champCarrierHtml}${champDeviceHtml}</div></div><div class="flex flex-row items-center gap-3 shrink-0 pl-2 relative z-10">${formHtml}<div class="relative css-tooltip-container flex items-center" onclick="event.stopPropagation();">${tooltipHtml}<button onclick="openEditModal(${rfcArg(globalIndex)})" class="${editBtnClass}" title="${editBtnTitle}"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg></button></div></div></div>`);
         } else {
             list.insertAdjacentHTML('beforeend', `<div class="rounded-2xl overflow-hidden border border-slate-300 shadow-lg bg-slate-800 text-white relative cursor-pointer opacity-90 hover:opacity-100 transition-opacity"><div class="absolute left-0 top-0 w-full h-full bg-gradient-to-br from-gray-800 to-black opacity-80"></div><div class="relative z-10 p-4 flex items-center justify-between opacity-80"><div class="flex items-center gap-4"><div class="relative"><div class="w-16 h-16 rounded-2xl border-[3px] border-slate-600 bg-slate-700 flex items-center justify-center shadow-inner"><svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg></div></div><div><div class="flex items-center gap-2 mb-1"><div class="text-xl font-black text-slate-300 leading-none tracking-tight">공석 (Vacant)</div></div><div class="flex items-center gap-2 mt-2"><span class="text-slate-400 text-xs font-bold bg-slate-700/50 px-2 py-0.5 rounded border border-slate-600">ELO -</span><span class="text-slate-500 text-[11px] border-l border-slate-600 pl-2">0승 0패</span></div></div></div><div class="flex flex-col items-center justify-center gap-1 opacity-30"><div class="text-4xl grayscale">👑</div><span class="text-[9px] font-bold uppercase tracking-widest">No Champ</span></div></div></div>`);
         }
@@ -4198,7 +4240,7 @@ function getCareerHighRank(playerName) {
             let recordStr = `${item.wins}승 ${item.losses}패`;
             if ((item.draws || 0) > 0) recordStr += ` ${item.draws}무`;
 
-            list.insertAdjacentHTML('beforeend', `<div id="rank-card-${rfcHTML(item.id)}" class="rank-card flex items-center p-3 border rounded-xl mb-2 bg-white hover:shadow-md ${cardClass} overflow-visible" onclick="openProfile('${rfcJS(item.id)}')"><div class="w-10 text-center mr-2"><span class="${rankNumClass}">${realRank}</span><div class="text-[10px]">${ch}</div></div><div class="shrink-0 relative mr-3"><img src="${rfcHTML(rfcURL(item.imageUrl || 'https://placehold.co/150?text=No+Img'))}" class="w-10 h-10 rounded-lg bg-slate-100 object-cover border border-slate-100" onerror="this.src='https://placehold.co/150?text=No+Img'"></div><div class="flex-grow min-w-0"><div class="font-bold text-sm text-slate-800 flex items-center gap-2"><div class="w-1.5 h-4 rounded-sm shadow-sm ring-1 ring-inset ring-black/10" style="background: ${rfcHTML(rfcColor(item.trunkColor || '#1f2937'))};" title="트렁크 색상"></div><span class="truncate">${rfcHTML(item.name)}</span><span class="text-[9px] px-1.5 py-0.5 rounded-full ${rfcHTML(tier.color)} font-bold tracking-wide uppercase shadow-sm">${rfcHTML(tier.name)}</span>${bountyStatHtml}${streakHtml}</div><div class="flex items-center gap-1.5 mt-0.5"><span class="bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded border border-amber-200 font-bold">⚡${rfcHTML(item.elo)}</span><span class="text-xs text-slate-400">| ${recordStr}</span>${carrierHtml}${deviceHtml}</div></div><div class="flex flex-row items-center gap-3 shrink-0 pl-2">${formHtml}<div class="relative css-tooltip-container flex items-center" onclick="event.stopPropagation();">${tooltipHtml}<button onclick="openEditModal(${rfcArg(globalIndex)})" class="${editBtnClass}" title="${editBtnTitle}"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg></button></div></div></div>`); 
+            list.insertAdjacentHTML('beforeend', `<div id="rank-card-${rfcHTML(item.id)}" class="rank-card flex items-center p-3 border rounded-xl mb-2 bg-white hover:shadow-md ${cardClass} overflow-visible" onclick="openProfile('${rfcJS(item.id)}')"><div class="w-10 text-center mr-2"><span class="${rankNumClass}">${realRank}</span><div class="text-[10px]">${ch}</div></div><div class="shrink-0 relative mr-3"><img src="${rfcHTML(rfcURL(item.imageUrl || 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 150 150%22%3E%3Crect width=%22150%22 height=%22150%22 fill=%22%23e2e8f0%22/%3E%3Ccircle cx=%2275%22 cy=%2259%22 r=%2224%22 fill=%22%2394a3b8%22/%3E%3Cpath d=%22M31 128c4-25 21-39 44-39s40 14 44 39z%22 fill=%22%2394a3b8%22/%3E%3C/svg%3E'))}" class="w-10 h-10 rounded-lg bg-slate-100 object-cover border border-slate-100" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 150 150%22%3E%3Crect width=%22150%22 height=%22150%22 fill=%22%23e2e8f0%22/%3E%3Ccircle cx=%2275%22 cy=%2259%22 r=%2224%22 fill=%22%2394a3b8%22/%3E%3Cpath d=%22M31 128c4-25 21-39 44-39s40 14 44 39z%22 fill=%22%2394a3b8%22/%3E%3C/svg%3E'"></div><div class="flex-grow min-w-0"><div class="font-bold text-sm text-slate-800 flex items-center gap-2"><div class="w-1.5 h-4 rounded-sm shadow-sm ring-1 ring-inset ring-black/10" style="background: ${rfcHTML(rfcColor(item.trunkColor || '#1f2937'))};" title="트렁크 색상"></div><span class="truncate">${rfcHTML(item.name)}</span><span class="text-[9px] px-1.5 py-0.5 rounded-full ${rfcHTML(tier.color)} font-bold tracking-wide uppercase shadow-sm">${rfcHTML(tier.name)}</span>${bountyStatHtml}${streakHtml}</div><div class="flex items-center gap-1.5 mt-0.5"><span class="bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded border border-amber-200 font-bold">⚡${rfcHTML(item.elo)}</span><span class="text-xs text-slate-400">| ${recordStr}</span>${carrierHtml}${deviceHtml}</div></div><div class="flex flex-row items-center gap-3 shrink-0 pl-2">${formHtml}<div class="relative css-tooltip-container flex items-center" onclick="event.stopPropagation();">${tooltipHtml}<button onclick="openEditModal(${rfcArg(globalIndex)})" class="${editBtnClass}" title="${editBtnTitle}"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg></button></div></div></div>`); 
         }); 
 
         if (placement.length > 0) {
@@ -4218,7 +4260,7 @@ function getCareerHighRank(playerName) {
                 let deviceHtml = getDeviceBadge(item.device);
             let carrierHtml = getCarrierBadge(item.carrier);
 
-                list.insertAdjacentHTML('beforeend', `<div id="rank-card-${rfcHTML(item.id)}" class="rank-card flex items-center p-3 border rounded-xl mb-2 bg-slate-50 opacity-90 hover:opacity-100 overflow-visible ${highlightClass}" onclick="openProfile('${rfcJS(item.id)}')"><div class="w-10 text-center mr-2"><span class="text-lg">🐣</span></div><div class="shrink-0 relative mr-3"><img src="${rfcHTML(rfcURL(item.imageUrl || 'https://placehold.co/150?text=No+Img'))}" class="w-10 h-10 rounded-lg bg-slate-100 object-cover border border-slate-100" onerror="this.src='https://placehold.co/150?text=No+Img'"></div><div class="flex-grow min-w-0"><div class="font-bold text-sm text-slate-600 flex items-center gap-2"><div class="w-1.5 h-4 rounded-sm shadow-sm ring-1 ring-inset ring-black/10" style="background: ${rfcHTML(rfcColor(item.trunkColor || '#1f2937'))};" title="트렁크 색상"></div><span class="truncate">${rfcHTML(item.name)}</span><span class="text-[9px] px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500 border border-slate-200 font-bold tracking-wide uppercase shadow-sm">Placement</span></div><div class="flex items-center gap-1.5 mt-0.5"><span class="bg-amber-50 text-amber-600/70 text-[10px] px-1.5 py-0.5 rounded border border-amber-100 font-bold">⚡${rfcHTML(item.elo)} (가)</span><span class="text-xs text-slate-400">| ${recordStr}</span>${deviceHtml}${carrierHtml}</div></div><div class="relative css-tooltip-container flex items-center shrink-0 pl-2" onclick="event.stopPropagation();">${tooltipHtml}<button onclick="openEditModal(${rfcArg(globalIndex)})" class="${editBtnClass}" title="${editBtnTitle}"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg></button></div></div>`);
+                list.insertAdjacentHTML('beforeend', `<div id="rank-card-${rfcHTML(item.id)}" class="rank-card flex items-center p-3 border rounded-xl mb-2 bg-slate-50 opacity-90 hover:opacity-100 overflow-visible ${highlightClass}" onclick="openProfile('${rfcJS(item.id)}')"><div class="w-10 text-center mr-2"><span class="text-lg">🐣</span></div><div class="shrink-0 relative mr-3"><img src="${rfcHTML(rfcURL(item.imageUrl || 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 150 150%22%3E%3Crect width=%22150%22 height=%22150%22 fill=%22%23e2e8f0%22/%3E%3Ccircle cx=%2275%22 cy=%2259%22 r=%2224%22 fill=%22%2394a3b8%22/%3E%3Cpath d=%22M31 128c4-25 21-39 44-39s40 14 44 39z%22 fill=%22%2394a3b8%22/%3E%3C/svg%3E'))}" class="w-10 h-10 rounded-lg bg-slate-100 object-cover border border-slate-100" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 150 150%22%3E%3Crect width=%22150%22 height=%22150%22 fill=%22%23e2e8f0%22/%3E%3Ccircle cx=%2275%22 cy=%2259%22 r=%2224%22 fill=%22%2394a3b8%22/%3E%3Cpath d=%22M31 128c4-25 21-39 44-39s40 14 44 39z%22 fill=%22%2394a3b8%22/%3E%3C/svg%3E'"></div><div class="flex-grow min-w-0"><div class="font-bold text-sm text-slate-600 flex items-center gap-2"><div class="w-1.5 h-4 rounded-sm shadow-sm ring-1 ring-inset ring-black/10" style="background: ${rfcHTML(rfcColor(item.trunkColor || '#1f2937'))};" title="트렁크 색상"></div><span class="truncate">${rfcHTML(item.name)}</span><span class="text-[9px] px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500 border border-slate-200 font-bold tracking-wide uppercase shadow-sm">Placement</span></div><div class="flex items-center gap-1.5 mt-0.5"><span class="bg-amber-50 text-amber-600/70 text-[10px] px-1.5 py-0.5 rounded border border-amber-100 font-bold">⚡${rfcHTML(item.elo)} (가)</span><span class="text-xs text-slate-400">| ${recordStr}</span>${deviceHtml}${carrierHtml}</div></div><div class="relative css-tooltip-container flex items-center shrink-0 pl-2" onclick="event.stopPropagation();">${tooltipHtml}<button onclick="openEditModal(${rfcArg(globalIndex)})" class="${editBtnClass}" title="${editBtnTitle}"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg></button></div></div>`);
             });
         }
 
@@ -4239,7 +4281,7 @@ function getCareerHighRank(playerName) {
                 let deviceHtml = getDeviceBadge(item.device);
             let carrierHtml = getCarrierBadge(item.carrier);
 
-                list.insertAdjacentHTML('beforeend', `<div id="rank-card-${rfcHTML(item.id)}" class="rank-card flex items-center p-3 border rounded-xl mb-2 bg-slate-50 opacity-80 hover:opacity-100 overflow-visible ${highlightClass}" onclick="openProfile('${rfcJS(item.id)}')"><div class="w-10 text-center mr-2"><span class="rank-unranked">-</span></div><div class="shrink-0 relative mr-3"><img src="${rfcHTML(rfcURL(item.imageUrl || 'https://placehold.co/150?text=No+Img'))}" class="w-10 h-10 rounded-lg bg-slate-100 object-cover border border-slate-100 grayscale" onerror="this.src='https://placehold.co/150?text=No+Img'"></div><div class="flex-grow min-w-0"><div class="font-bold text-sm text-slate-500 flex items-center gap-2"><div class="w-1.5 h-4 rounded-sm shadow-sm ring-1 ring-inset ring-black/10" style="background: ${rfcHTML(rfcColor(item.trunkColor || '#1f2937'))};" title="트렁크 색상"></div><span class="truncate">${rfcHTML(item.name)}</span></div><div class="flex items-center gap-1.5 mt-0.5"><span class="bg-slate-100 text-slate-400 text-[10px] px-1.5 py-0.5 rounded border border-slate-200 font-bold">New</span><span class="text-xs text-slate-400">| ${recordStr}</span>${deviceHtml}${carrierHtml}</div></div><div class="relative css-tooltip-container flex items-center shrink-0 pl-2" onclick="event.stopPropagation();">${tooltipHtml}<button onclick="openEditModal(${rfcArg(globalIndex)})" class="${editBtnClass}" title="${editBtnTitle}"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg></button></div></div>`);
+                list.insertAdjacentHTML('beforeend', `<div id="rank-card-${rfcHTML(item.id)}" class="rank-card flex items-center p-3 border rounded-xl mb-2 bg-slate-50 opacity-80 hover:opacity-100 overflow-visible ${highlightClass}" onclick="openProfile('${rfcJS(item.id)}')"><div class="w-10 text-center mr-2"><span class="rank-unranked">-</span></div><div class="shrink-0 relative mr-3"><img src="${rfcHTML(rfcURL(item.imageUrl || 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 150 150%22%3E%3Crect width=%22150%22 height=%22150%22 fill=%22%23e2e8f0%22/%3E%3Ccircle cx=%2275%22 cy=%2259%22 r=%2224%22 fill=%22%2394a3b8%22/%3E%3Cpath d=%22M31 128c4-25 21-39 44-39s40 14 44 39z%22 fill=%22%2394a3b8%22/%3E%3C/svg%3E'))}" class="w-10 h-10 rounded-lg bg-slate-100 object-cover border border-slate-100 grayscale" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 150 150%22%3E%3Crect width=%22150%22 height=%22150%22 fill=%22%23e2e8f0%22/%3E%3Ccircle cx=%2275%22 cy=%2259%22 r=%2224%22 fill=%22%2394a3b8%22/%3E%3Cpath d=%22M31 128c4-25 21-39 44-39s40 14 44 39z%22 fill=%22%2394a3b8%22/%3E%3C/svg%3E'"></div><div class="flex-grow min-w-0"><div class="font-bold text-sm text-slate-500 flex items-center gap-2"><div class="w-1.5 h-4 rounded-sm shadow-sm ring-1 ring-inset ring-black/10" style="background: ${rfcHTML(rfcColor(item.trunkColor || '#1f2937'))};" title="트렁크 색상"></div><span class="truncate">${rfcHTML(item.name)}</span></div><div class="flex items-center gap-1.5 mt-0.5"><span class="bg-slate-100 text-slate-400 text-[10px] px-1.5 py-0.5 rounded border border-slate-200 font-bold">New</span><span class="text-xs text-slate-400">| ${recordStr}</span>${deviceHtml}${carrierHtml}</div></div><div class="relative css-tooltip-container flex items-center shrink-0 pl-2" onclick="event.stopPropagation();">${tooltipHtml}<button onclick="openEditModal(${rfcArg(globalIndex)})" class="${editBtnClass}" title="${editBtnTitle}"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg></button></div></div>`);
             });
         }
         populateMatchSelectors();
@@ -5663,6 +5705,31 @@ rfcTLPoll();
 rfcTL.timer = setInterval(() => { if (!document.hidden || rfcTL.auto) rfcTLPoll(); }, 5000);
 
 
+// ---- [점검 보완] 두 사이트 공통 ----
+// 키·리치: 숫자일 때만 cm를 붙임 (예전에 '185cm'·'Dd'처럼 들어간 값이 '185cmcm'·'Ddcm'으로 보이던 문제)
+function rfcCm(v) {
+    const s = String(v ?? '').trim().replace(/\s*cm$/i, '');
+    return /^\d{2,3}(\.\d+)?$/.test(s) ? s + 'cm' : '-';
+}
+// 공지: 주소(https://…)는 눌러서 열 수 있게 (나머지는 글자 그대로)
+function rfcLinkifyInto(el, text) {
+    if (!el) return;
+    el.textContent = '';
+    const s = String(text || ''), re = /https?:\/\/[^\s<>"']+/g;
+    let last = 0, m;
+    while ((m = re.exec(s))) {
+        let url = m[0].replace(/[),.!?\]]+$/, '');
+        if (m.index > last) el.append(s.slice(last, m.index));
+        const a = document.createElement('a');
+        a.href = url; a.textContent = url; a.target = '_blank'; a.rel = 'noopener noreferrer';
+        a.style.cssText = 'color:#2563eb;text-decoration:underline;word-break:break-all';
+        el.append(a);
+        last = m.index + url.length;
+    }
+    if (last < s.length) el.append(s.slice(last));
+}
+
+
 /* [경기 내용] 결과 방식(KO·TKO·판정…)·끝난 라운드·시간 + 펀치 기록(타이머)을 경기 기록에 함께 저장합니다.
    저장 형식 (경기 기록 한 줄에 fx 하나, 작게):
      fx = { v: 2, m: 'KO'|'TKO'|'DEC'|'DQ'|'RTD'|'DRAW', r: 끝난 라운드, rt: 정해진 라운드, t: '1:23' (라운드 안 경과 시간), n: 짧은 설명,
@@ -5995,6 +6062,464 @@ window.rfcFxClearOld = () => {
         return r;
     };
 }
+
+
+// ---- [v6.14] 경기 기록 삭제 = 그 경기로 바뀐 것까지 함께 되돌림 ----
+// 점수(이 경기의 승점·패점만큼), 승·무·패, 연승, 현상금, 챔피언·방어 횟수, 최고 점수·최고 순위, 최근 경기일, 배치 완료일.
+// 이 경기 뒤에 치른 다른 경기들의 점수 변동은 그때 계산한 값 그대로 둠 (다시 계산하면 많은 선수의 점수가 한꺼번에 흔들림).
+// 지난 시즌 경기는 그 시즌 보관 기록(최종 점수·승패)만 고침.
+function rfcDelPlayer(players, m, side) {
+    const id = m[side + 'Id'];
+    if (id != null && id !== '') return players.find(p => String(p.id) === String(id)) || null;
+    const same = players.filter(p => p.name === m[side]);
+    return same.length === 1 ? same[0] : null;
+}
+function rfcDelChange(m, side) {
+    const c = rfcStatNumber(m[side + 'Change']);
+    if (c !== null) return c;
+    const a = rfcStatNumber(m[side + 'EloAfter']), b = rfcStatNumber(m[side + 'EloBefore']);
+    return a !== null && b !== null ? a - b : null;
+}
+const rfcDelIsDraw = m => m.isDraw === true || m.type === 'draw';
+function rfcDelSimulate(idx) {
+    const st = {rankings: rfcClone(rankingsData), history: rfcClone(matchHistoryData), archives: rfcClone(seasonArchives || {}), championVacant, warns: []};
+    const m = st.history[idx], draw = rfcDelIsDraw(m), season = m.season || '시즌 1';
+    const warn = t => st.warns.push(t);
+    const ctx = () => ({rankings: st.rankings, history: st.history, archives: st.archives, activeSeason});
+    if (season !== activeSeason) {
+        // 지난 시즌: 보관된 최종 기록만
+        const arch = st.archives[season], roster = Array.isArray(arch) ? arch : arch && arch.rankings;
+        st.history.splice(idx, 1);
+        if (!roster) { warn(`${season} 보관 기록이 없어 기록만 지웁니다.`); return {st, m, affected: []}; }
+        const affected = [];
+        for (const side of ['winner', 'loser']) {
+            const p = rfcDelPlayer(roster, m, side);
+            if (!p) { warn(`${m[side]}: ${season} 보관 기록에서 찾지 못해 그 시즌 전적은 그대로입니다.`); continue; }
+            const ch = rfcDelChange(m, side);
+            if (ch !== null) p.elo = (rfcStatNumber(p.elo) ?? 1000) - ch; else warn(`${m[side]}: 이 경기의 점수 변동 기록이 없어 ${season} 최종 점수는 그대로입니다.`);
+            if (draw) p.draws = Math.max(0, (+p.draws || 0) - 1); else if (side === 'winner') p.wins = Math.max(0, (+p.wins || 0) - 1); else p.losses = Math.max(0, (+p.losses || 0) - 1);
+            affected.push({side, archive: season, id: p.id});
+        }
+        return {st, m, affected};
+    }
+    const P = {winner: rfcDelPlayer(st.rankings, m, 'winner'), loser: rfcDelPlayer(st.rankings, m, 'loser')};
+    const streak0 = {}, old = {}, redo = {};   // redo[id] = 다시 계산할 항목 (이 경기가 만든 값만)
+    for (const side of ['winner', 'loser']) {
+        const p = P[side];
+        if (!p) { warn(`${m[side]}: 지금 선수 목록에서 찾지 못해 점수·전적은 그대로입니다.`); continue; }
+        const ev = rfcStatSeasonEvidence(p, activeSeason, ctx());
+        streak0[side] = ev.streak;
+        old[side] = {careerHighRank: p.careerHighRank};
+        redo[p.id] = new Set();
+        if (ev.rows.findIndex(r => r.match === m) < 3) redo[p.id].add('rankInDate');  // 시즌 첫 3경기 안 → 배치 완료일이 바뀜
+    }
+    // 이 경기 뒤(같은 시즌)에 승패가 난 타이틀전이 있으면 챔피언은 손대지 않음
+    const laterTitle = st.history.slice(0, idx).some(x => x.isTitleMatch === true && !rfcDelIsDraw(x) && (x.season || '시즌 1') === activeSeason);
+    st.history.splice(idx, 1);
+    for (const side of ['winner', 'loser']) {
+        const p = P[side];
+        if (!p) continue;
+        const ch = rfcDelChange(m, side);
+        if (ch !== null) p.elo = (rfcStatNumber(p.elo) ?? 1000) - ch;
+        else warn(`${p.name}: 이 경기의 점수 변동 기록이 없어 점수는 그대로입니다.`);
+        if (draw) p.draws = Math.max(0, (+p.draws || 0) - 1);
+        else if (side === 'winner') p.wins = Math.max(0, (+p.wins || 0) - 1);
+        else p.losses = Math.max(0, (+p.losses || 0) - 1);
+        // 연승: 이 경기를 빼고 다시 센 연승과의 차이만큼 (관리자가 손으로 고친 값은 존중)
+        const s1 = rfcStatSeasonEvidence(p, activeSeason, ctx()).streak;
+        p.currentStreak = Math.max(0, (Number(p.currentStreak) || 0) + s1 - streak0[side]);
+        // 이 경기로 세운 최고 점수·최고 순위였으면 다시 계산
+        const after = rfcStatNumber(m[side + 'EloAfter']), before = rfcStatNumber(m[side + 'EloBefore']);
+        if (after !== null && rfcStatNumber(p.careerHighElo) === after && (before === null || after > before)) {
+            p.careerHighElo = Math.max(before ?? -Infinity, rfcStatNumber(p.elo) ?? 1000);
+            redo[p.id].add('careerHighElo');
+        }
+        const ra = m[side + 'RankAfter'];
+        if (typeof ra === 'number' && ra > 0 && rfcStatNumber(p.careerHighRank) === ra) { p.careerHighRank = null; redo[p.id].add('careerHighRank'); }
+        // 최근 경기일: 남은 경기 중 가장 최근 (모든 시즌)
+        const id = rfcStatIdentity(p, rfcStatRosters(ctx()));
+        const last = st.history.find(x => id.side(x));
+        if (last && last.date) p.lastMatchDate = last.date;
+    }
+    // 챔피언·방어 횟수
+    if (m.isTitleMatch === true && !draw) {
+        const W = P.winner, L = P.loser;
+        if (laterTitle) warn('이 경기 뒤에 타이틀전이 또 있어서 챔피언·방어 횟수는 그대로 둡니다. 필요하면 선수 수정에서 고쳐 주세요.');
+        else if (m.winnerWasChampion === true) {
+            if (W && W.isChampion === true) W.defenseCount = Math.max(0, (+W.defenseCount || 0) - 1);
+            else warn('지금 챔피언이 이 경기의 승자가 아니어서 방어 횟수는 그대로 둡니다.');
+        } else if (m.loserWasChampion === true) {
+            const noChamp = !st.rankings.some(p => p.isChampion === true);
+            if (L && ((W && W.isChampion === true) || noChamp)) {
+                // 챔피언이 바뀐(또는 비게 된) 경기 → 원래 챔피언에게 벨트를 돌려줌. 방어 횟수는 이 경기 전까지의 연속 방어 수
+                let dc = 0;
+                const lid = rfcStatIdentity(L, rfcStatRosters(ctx()));
+                for (const x of st.history.slice(idx)) {
+                    if ((x.season || '시즌 1') !== activeSeason) break;
+                    if (x.isTitleMatch !== true || rfcDelIsDraw(x)) continue;
+                    if (lid.side(x) === 'winner' && x.winnerWasChampion === true) dc++; else break;
+                }
+                st.rankings.forEach(p => { if (p.isChampion === true) { p.isChampion = false; p.defenseCount = 0; } });
+                L.isChampion = true; L.defenseCount = dc; st.championVacant = false;
+            } else warn('지금 챔피언이 이 경기 결과와 달라서 챔피언은 그대로 둡니다.');
+        } else if (W && W.isChampion === true) {
+            // 빈 타이틀을 딴 경기 → 다시 비움
+            W.isChampion = false; W.defenseCount = 0;
+            st.championVacant = st.history.some(x => (x.season || '시즌 1') === activeSeason && (x.winnerWasChampion === true || x.loserWasChampion === true));
+        }
+    }
+    // 현상금: 경기 등록 때와 같은 규칙 (챔피언 = 방어 횟수 × 20, 상위 10위 = 3연승부터 (연승−2) × 10)
+    st.rankings.sort((a, b) => (rfcStatNumber(b.elo) ?? 1000) - (rfcStatNumber(a.elo) ?? 1000));
+    for (const p of st.rankings) if (p.isChampion === true) p.bounty = (+p.defenseCount || 0) * 20;
+    st.rankings.filter(p => p.isChampion !== true && (rfcStatCount(p) ?? 0) >= 3).forEach((p, i) => {
+        p.bounty = i < 10 && (+p.currentStreak || 0) >= 3 ? (p.currentStreak - 2) * 10 : 0;
+    });
+    for (const side of ['winner', 'loser']) { const p = P[side]; if (p && p.isChampion !== true && (+p.currentStreak || 0) < 3) p.bounty = 0; }
+    // 배치 완료일·최고 점수·최고 순위: 이 경기가 만든 값이었으면 '데이터 점검'과 같은 계산으로 다시 (이 두 선수만)
+    try {
+        const plan = rfcBuildIntegrityPlan(ctx());
+        for (const c of plan.changes) {
+            if (!redo[c.id] || !redo[c.id].has(c.field)) continue;
+            const p = st.rankings.find(x => x.id === c.id);
+            if (p) p[c.field] = c.after;
+        }
+    } catch (e) { console.warn('경기 삭제: 기록 점검 계산 실패', e); }
+    for (const side of ['winner', 'loser']) {
+        const p = P[side];
+        if (p && p.careerHighRank === null && old[side].careerHighRank != null) p.careerHighRank = old[side].careerHighRank;  // 다시 확인할 근거가 없으면 원래 값
+    }
+    return {st, m, affected: ['winner', 'loser'].filter(s => P[s]).map(s => ({side: s, id: P[s].id}))};
+}
+function rfcDelDiff(sim) {
+    const lines = [], cur = !sim.affected.length || !sim.affected[0].archive;
+    const before = cur ? rankingsData : ((a => Array.isArray(a) ? a : a && a.rankings)(seasonArchives[sim.affected[0].archive]) || []);
+    const after = cur ? sim.st.rankings : ((a => Array.isArray(a) ? a : a && a.rankings)(sim.st.archives[sim.affected[0].archive]) || []);
+    const rec = p => `${+p.wins || 0}승 ${+p.losses || 0}패${+p.draws ? ' ' + p.draws + '무' : ''}`;
+    const fields = [['elo', '점수', v => Math.round(v ?? 1000)], ['_rec', '전적', null], ['currentStreak', '연승', v => +v || 0], ['bounty', '현상금', v => +v || 0],
+        ['isChampion', '챔피언', v => v === true ? '챔피언' : '아님'], ['defenseCount', '방어', v => +v || 0], ['careerHighElo', '최고 점수', v => v == null ? '-' : Math.round(v)],
+        ['careerHighRank', '최고 순위', v => v == null ? '-' : v + '위']];
+    const ids = new Set(sim.affected.map(a => String(a.id)));
+    for (const b of before) {
+        const a = after.find(x => String(x.id) === String(b.id));
+        if (!a) continue;
+        const parts = [];
+        for (const [k, label, f] of fields) {
+            if (!cur && !['elo', '_rec'].includes(k)) continue;
+            if (k === '_rec') { if (rec(a) !== rec(b)) parts.push(`${rec(b)} → ${rec(a)}`); continue; }
+            if (f(b[k]) !== f(a[k])) parts.push(`${label} ${f(b[k])} → ${f(a[k])}`);
+        }
+        if (parts.length) lines.push({main: ids.has(String(b.id)), text: `· ${b.name}: ${parts.join(', ')}`});
+    }
+    lines.sort((x, y) => y.main - x.main);
+    return lines.map(l => l.text);
+}
+window.rfcDeleteMatchSynced = async idx => {
+    if (!Number.isInteger(idx) || idx < 0 || idx >= matchHistoryData.length) return;
+    const sim = rfcDelSimulate(idx), m = sim.m;
+    const title = `${m.date || ''} ${m.winner} ${rfcDelIsDraw(m) ? '무' : '승'} vs ${m.loser}${(m.season || '시즌 1') !== activeSeason ? ` (${m.season})` : ''}`;
+    const diff = rfcDelDiff(sim);
+    const msg = `이 경기 기록을 지우고, 이 경기로 바뀐 점수·승패·연승·현상금·챔피언을 함께 되돌립니다.\n\n${title}\n\n`
+        + (diff.length ? diff.join('\n') : '· 바뀌는 선수 기록 없음 (기록만 지움)')
+        + (sim.st.warns.length ? '\n\n⚠️ ' + sim.st.warns.join('\n⚠️ ') : '')
+        + '\n\n이 경기 뒤에 치른 다른 경기들의 점수 변동은 그대로 둡니다.\n‘작업 취소’로 되돌릴 수 있습니다. 계속할까요?';
+    if (!confirm(msg)) return;
+    captureState();
+    rankingsData = sim.st.rankings; matchHistoryData = sim.st.history; seasonArchives = sim.st.archives; championVacant = sim.st.championVacant === true;
+    await saveRankings();
+    renderRankings(); renderAdminMatches();
+    if (typeof currentProfileId !== 'undefined' && currentProfileId && typeof updateProfileStats === 'function') {
+        try { updateProfileStats(currentProfileId, document.getElementById('pModalSeason').value); } catch (e) {}
+    }
+    rfcStatus('경기 기록을 지우고 점수·승패·연승을 되돌렸습니다. ‘작업 취소’로 다시 살릴 수 있습니다.');
+};
+
+
+// ---- [저장 공간] 지난 시즌을 시즌별 문서로 나눠 보관 ----
+// Firestore 문서 하나는 1MB(1,048,576바이트)까지만 저장됩니다. 모든 시즌의 경기 기록·최종 순위를 문서 하나(rankings/main)에
+// 넣으면 곧 가득 차서 저장이 막히므로, 본 문서의 seasonDocs = { "시즌 이름": {id, v} } 에 적힌 시즌은
+// rankings/<id> 문서에 {season, matchHistory, archive} 로 따로 둡니다.
+// 화면·계산 코드는 지금처럼 '모든 시즌이 한데 있는 데이터'를 그대로 씁니다: 불러올 때 여기서 합쳐서 넘겨 줌.
+const RFC_DOC_LIMIT = 1048576;
+// 지난 시즌 최종 순위(보관 기록)에 남길 필요가 없는 값: 비밀번호(PIN 해시)·운영 메모(공개 문서라 남기지 않음)·검색용 자모(불러올 때 다시 만듦)·예전 버전 값
+const RFC_ARCHIVE_DROP = ['password', 'adminNote', 'jamo', 'choseong', 'disassembled', 'device', 'recentMatchResults', 'isParticipating', 'defenses'];
+const rfcSeasonCache = new Map();   // 문서 id → {v, data}
+const rfcJsonClone = value => JSON.parse(JSON.stringify(value));
+// Firestore 저장 크기 (문서 크기 계산 규칙: 문자열 = UTF-8 바이트+1, 숫자 8, 참/거짓·null 1, 필드 이름 = UTF-8 바이트+1)
+const rfcUtf8 = new TextEncoder();
+function rfcDocBytes(value) {
+    if (value === null || value === undefined) return 1;
+    if (typeof value === 'string') return rfcUtf8.encode(value).length + 1;
+    if (typeof value === 'number') return 8;
+    if (typeof value === 'boolean') return 1;
+    if (Array.isArray(value)) { let s = 0; for (const x of value) s += rfcDocBytes(x); return s; }
+    let s = 0;
+    for (const [k, x] of Object.entries(value)) { if (x === undefined) continue; s += rfcUtf8.encode(k).length + 1 + rfcDocBytes(x); }
+    return s;
+}
+function rfcSeasonDocsOf(data) {
+    const m = data && data.seasonDocs;
+    if (!m || typeof m !== 'object' || Array.isArray(m)) return [];
+    return Object.entries(m).filter(([s, e]) => s && e && typeof e.id === 'string' && /^[A-Za-z0-9_-]{4,80}$/.test(e.id))
+        .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
+}
+function rfcCompactArchive(archive) {
+    if (!archive || typeof archive !== 'object') return archive;
+    const list = Array.isArray(archive) ? archive : archive.rankings;
+    if (!Array.isArray(list)) return archive;
+    const rankings = list.map(p => {
+        if (!p || typeof p !== 'object') return p;
+        const o = {};
+        for (const [k, v] of Object.entries(p)) if (!RFC_ARCHIVE_DROP.includes(k) && v !== undefined) o[k] = v;
+        return o;
+    });
+    return Array.isArray(archive) ? {rankings} : {...archive, rankings};
+}
+// 본 문서 + 시즌 문서들 → 모든 시즌이 한데 있는 데이터 (항상 같은 순서가 나오게: 시즌 이름순으로 붙이고 날짜 내림차순 안정 정렬)
+function rfcMergeSeasonData(main, contents) {
+    const hist = [...(main.matchHistory || [])];
+    const arch = {...(main.seasonArchives || {})};
+    for (const [s, e] of rfcSeasonDocsOf(main)) {
+        const d = contents[e.id];
+        if (!d || d.removed) continue;
+        for (const m of d.matchHistory || []) hist.push(m);
+        if (d.archive && !(s in arch)) arch[s] = d.archive;
+    }
+    hist.sort((a, b) => { const x = String(a.date || ''), y = String(b.date || ''); return x < y ? 1 : x > y ? -1 : 0; });
+    return {...main, matchHistory: hist, seasonArchives: arch};
+}
+function rfcSeasonRef(reference, id) {
+    const parts = String(reference.path).split('/');
+    parts[parts.length - 1] = id;
+    return doc(db, ...parts);
+}
+async function rfcFetchSeasonDoc(reference, id) {
+    const ref = rfcSeasonRef(reference, id);
+    const sdk = Promise.resolve().then(() => getDocFromServer(ref));
+    // 실시간 연결이 느린 망: 2.5초 안에 안 오면 일반 HTTPS(REST)로도 받아 봄
+    const rest = new Promise((resolve, reject) => setTimeout(() => {
+        try { rfcRestSnapshot(ref).then(resolve, reject); } catch (e) { reject(e); }
+    }, 2500));
+    let timer;
+    const timeout = new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('응답 없음')), 20000); });
+    try {
+        const snap = await Promise.race([Promise.any([sdk, rest]), timeout]);
+        if (!snap.exists()) throw new Error('문서 없음');
+        return snap.data();
+    } catch (e) {
+        throw new Error(`지난 시즌 기록(${id})을 불러오지 못했습니다: ${e && e.errors ? e.errors.map(x => x.message || x).join(' / ') : (e.message || e)}`);
+    } finally { clearTimeout(timer); }
+}
+async function rfcHydrateSnapshot(reference, snapshot) {
+    const main = snapshot.data();
+    const entries = rfcSeasonDocsOf(main);
+    await Promise.all(entries.map(async ([, e]) => {
+        const v = Number(e.v) || 0, c = rfcSeasonCache.get(e.id);
+        if (c && c.v === v) return;
+        try { rfcSeasonCache.set(e.id, {v, data: await rfcFetchSeasonDoc(reference, e.id)}); }
+        catch (error) {
+            // 전에 받아 둔 내용이 있으면 (조금 지난 것이라도) 그걸로 계속 — 관리자는 지난 내용으로 저장하면 안 되므로 실패로 처리
+            if (c && !globalThis.rfcSplitStrict) { console.warn(error); return; }
+            throw error;
+        }
+    }));
+    const contents = {};
+    for (const [, e] of entries) contents[e.id] = rfcSeasonCache.get(e.id).data;
+    const merged = rfcMergeSeasonData(main, contents);
+    return {exists: () => true, data: () => rfcJsonClone(merged), raw: () => rfcJsonClone(main), id: snapshot.id,
+        metadata: snapshot.metadata || {}, __rfcMerged: true};
+}
+// 사용자 사이트: 지난 시즌을 못 불러와도 이번 시즌은 보여 줌
+function rfcPartialSnapshot(snapshot) {
+    const main = snapshot.data();
+    return {exists: () => true, data: () => rfcJsonClone(main), raw: () => rfcJsonClone(main), id: snapshot.id, metadata: snapshot.metadata || {}, __rfcMerged: true, __rfcPartial: true};
+}
+// 점검용: 지금 불러온 데이터 크기 (개발자 도구에서 rfcDataInfo())
+window.rfcDataInfo = () => ({matches: matchHistoryData.length, archives: Object.keys(seasonArchives || {}).length, activeSeason,
+    seasons: [...new Set(matchHistoryData.map(m => m.season || '시즌 1'))].length, seasonDocs: (typeof rfcSeasonDocs !== 'undefined' && rfcSeasonDocs) ? Object.keys(rfcSeasonDocs).length : null});
+
+
+// ---- [v6.15] 저장 공간: 시즌별 문서 나눠 보관 · 공간 표시 · 저장 전 크기 확인 ----
+globalThis.rfcSplitStrict = true;   // 관리자: 지난 시즌 문서를 못 불러오면 저장하지 않도록 목록 불러오기를 실패로 처리
+let rfcSeasonDocs = null;    // {시즌 이름: {id, v}} — null이면 예전 방식(모든 시즌을 본 문서 하나에)
+let rfcBaseMainFp = null;    // 마지막으로 불러온·저장한 '본 문서' 그대로의 지문 (저장 충돌 확인용)
+const rfcSeasonOf = m => (m && m.season) || '시즌 1';
+function rfcNewSeasonDocId() { return 'season_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8); }
+function rfcSeasonContent(full, s) {
+    const a = (full.seasonArchives || {})[s];
+    return {season: s, matchHistory: (full.matchHistory || []).filter(m => rfcSeasonOf(m) === s), archive: a ? rfcCompactArchive(a) : null};
+}
+function rfcMainOf(full, map) {
+    if (!map) return full;
+    const split = new Set(Object.keys(map));
+    return {...full, matchHistory: (full.matchHistory || []).filter(m => !split.has(rfcSeasonOf(m))),
+        seasonArchives: Object.fromEntries(Object.entries(full.seasonArchives || {}).filter(([s]) => !split.has(s))), seasonDocs: map};
+}
+// 저장 계획: 본 문서에 넣을 내용 + 새로 쓸 시즌 문서들
+function rfcPlanSave(full, base) {
+    const baseMap = base && base.seasonDocs && typeof base.seasonDocs === 'object' && !Array.isArray(base.seasonDocs) ? base.seasonDocs : null;
+    const removedOf = keep => Object.entries(baseMap || {}).filter(([, e]) => e && e.id && !keep.has(e.id))
+        .map(([s, e]) => ({id: e.id, data: {season: s, removed: true, matchHistory: [], archive: null}}));
+    if (!rfcSeasonDocs) {
+        // 예전 방식: 모든 시즌을 본 문서에. (나눠 보관하다가 '작업 취소'로 되돌린 경우: 시즌 문서는 '빈 문서'로 표시)
+        const main = {...full};
+        delete main.seasonDocs;
+        if (baseMap) main.seasonDocs = null;
+        return {main, writes: removedOf(new Set()), map: null, contents: {}};
+    }
+    const exists = new Set([...(full.matchHistory || []).map(rfcSeasonOf), ...Object.keys(full.seasonArchives || {})]);
+    const map = {}, contents = {}, writes = [];
+    for (const s of [...exists].sort()) {
+        if (s === full.activeSeason) continue;   // 이번 시즌은 늘 본 문서에
+        const prev = rfcSeasonDocs[s];
+        map[s] = {id: prev && prev.id ? prev.id : rfcNewSeasonDocId(), v: Number(prev && prev.v) || 0};
+    }
+    for (const [s, e] of Object.entries(map)) {
+        const c = rfcSeasonContent(full, s);
+        contents[e.id] = c;
+        const b = baseMap && baseMap[s];
+        const same = b && b.id === e.id && base && rfcFingerprint(rfcSeasonContent(base, s)) === rfcFingerprint(c);
+        if (same) e.v = Number(b.v) || 0;
+        else { e.v = Math.max(Number(b && b.id === e.id ? b.v : 0) || 0, e.v) + 1; writes.push({id: e.id, data: c}); }
+    }
+    writes.push(...removedOf(new Set(Object.values(map).map(e => e.id))));
+    return {main: rfcMainOf(full, map), writes, map, contents};
+}
+function rfcPlanCheck(plan) {
+    const margin = 6144;
+    const mainBytes = rfcDocBytes(plan.main) + 1500;
+    if (mainBytes > RFC_DOC_LIMIT - margin) {
+        throw new Error(`저장 공간이 가득 찼습니다 (본 문서 ${Math.round(mainBytes / 1024)}KB / 1024KB).\n`
+            + (plan.map ? '이번 시즌 경기가 너무 많습니다. 새 시즌을 시작하면 지금 시즌이 따로 보관되어 공간이 생깁니다.'
+                : '관리 도구 → 저장 공간에서 「지난 시즌 따로 보관하기」를 누르면 공간이 생깁니다.'));
+    }
+    for (const w of plan.writes) {
+        const b = rfcDocBytes(w.data) + 200;
+        if (b > RFC_DOC_LIMIT - margin) throw new Error(`[${w.data.season}] 시즌 기록이 문서 하나(1MB)에 다 들어가지 않습니다 (${Math.round(b / 1024)}KB).`);
+    }
+    return mainBytes;
+}
+// 저장이 끝난 뒤: 캐시·기준 갱신
+function rfcPlanCommitted(plan, committedMain) {
+    for (const w of plan.writes) {
+        if (w.data.removed) { rfcSeasonCache.delete(w.id); continue; }
+        const e = Object.values(plan.map || {}).find(x => x.id === w.id);
+        if (e) rfcSeasonCache.set(w.id, {v: e.v, data: rfcClone(w.data)});
+    }
+    rfcSeasonDocs = plan.map ? rfcClone(plan.map) : null;
+    rfcBaseMainFp = rfcFingerprint(committedMain);
+    return plan.map ? rfcMergeSeasonData(committedMain, plan.contents) : committedMain;
+}
+// 지난 시즌 최종 순위 보관용: 비밀번호·운영 메모·검색 자모를 빼고 저장
+function rfcArchivePlayers(list) { return rfcCompactArchive({rankings: rfcClone(list || [])}).rankings; }
+// 보관된 시즌으로 되돌릴 때: 보관하면서 뺀 값(PIN 등)을 지금 선수 정보에서 다시 채움
+function rfcRestoreArchivePlayers(list, current) {
+    const byId = new Map((current || []).map(p => [String(p.id), p]));
+    return (list || []).map(p => {
+        const cur = byId.get(String(p && p.id));
+        if (!cur) return p;
+        const o = {...p};
+        for (const k of RFC_ARCHIVE_DROP) if (o[k] === undefined && cur[k] !== undefined) o[k] = cur[k];
+        return o;
+    });
+}
+
+// ---- 저장 공간 표시 ----
+function rfcStorageReport() {
+    try {
+        const full = rfcPayload();
+        const legacyMain = rfcDocBytes({...full, seasonDocs: undefined}) + 1500;
+        if (!rfcSeasonDocs) {
+            const seasons = new Set([...(full.matchHistory || []).map(rfcSeasonOf), ...Object.keys(full.seasonArchives || {})]);
+            seasons.delete(full.activeSeason);
+            const after = rfcDocBytes(rfcMainOf(full, Object.fromEntries([...seasons].map(s => [s, {id: 'season_xxxxxxxxxxxx_xxxxxx', v: 1}])))) + 1500;
+            return {split: false, mainBytes: legacyMain, pct: legacyMain / RFC_DOC_LIMIT, afterSplit: after, pastSeasons: seasons.size};
+        }
+        // 가볍게: 어느 시즌이 따로 가는지만 정하고 크기만 잼 (바뀐 문서 비교는 저장할 때만)
+        const seasons = new Set([...(full.matchHistory || []).map(rfcSeasonOf), ...Object.keys(full.seasonArchives || {})]);
+        seasons.delete(full.activeSeason);
+        const map = Object.fromEntries([...seasons].map(s => [s, rfcSeasonDocs[s] || {id: 'season_xxxxxxxxxxxx_xxxxxx', v: 1}]));
+        const mainBytes = rfcDocBytes(rfcMainOf(full, map)) + 1500;
+        const per = {};
+        for (const m of full.matchHistory || []) { const s = rfcSeasonOf(m); if (seasons.has(s)) per[s] = (per[s] || 0) + rfcDocBytes(m); }
+        for (const [s, a] of Object.entries(full.seasonArchives || {})) if (seasons.has(s)) per[s] = (per[s] || 0) + rfcDocBytes(rfcCompactArchive(a));
+        return {split: true, mainBytes, pct: mainBytes / RFC_DOC_LIMIT, pastSeasons: seasons.size, biggestSeason: Math.max(0, ...Object.values(per))};
+    } catch (e) { console.warn('저장 공간 계산 실패', e); return null; }
+}
+let rfcStorageTimer = null;
+function rfcStorageRefresh(delay = 400) {
+    clearTimeout(rfcStorageTimer);
+    rfcStorageTimer = setTimeout(rfcStorageRender, delay);
+}
+function rfcStorageRender() {
+    const r = rfcBaseDocument ? rfcStorageReport() : null;
+    const chip = document.getElementById('rfcStorageChip'), box = document.getElementById('rfcStoragePanel');
+    if (!r) { if (chip) chip.hidden = true; return; }
+    const pct = Math.round(r.pct * 100), kb = v => Math.round(v / 1024).toLocaleString() + 'KB';
+    const level = pct >= 90 ? 'red' : pct >= 75 ? 'amber' : 'ok';
+    if (chip) {
+        chip.hidden = level === 'ok' && r.split;
+        chip.className = 'rfc-storage-chip ' + level;
+        chip.textContent = `저장 공간 ${pct}%`;
+        chip.title = r.split ? '지난 시즌은 시즌별 문서에 따로 보관 중' : '모든 시즌이 문서 하나에 들어 있습니다 (관리 도구 → 저장 공간)';
+        chip.onclick = () => { switchTab('tools'); setTimeout(() => document.getElementById('rfcStoragePanel')?.scrollIntoView({behavior: 'smooth', block: 'center'}), 120); };
+    }
+    if (box) {
+        const bar = `<div class="bar"><i class="${level}" style="width:${Math.min(100, pct)}%"></i></div>`;
+        box.innerHTML = r.split
+            ? `<div class="h"><b>저장 공간</b><span>${kb(r.mainBytes)} / 1,024KB · ${pct}%</span></div>${bar}
+               <p>지난 시즌 ${r.pastSeasons}개는 시즌별 문서에 따로 보관 중입니다 (가장 큰 시즌 ${kb(r.biggestSeason)}). 새 시즌을 시작하면 끝난 시즌도 자동으로 따로 보관됩니다.</p>
+               ${pct >= 75 ? '<p class="warn">이번 시즌 경기가 많아 본 문서가 차고 있습니다. 시즌을 너무 길게 이어 가지 말고 적당한 때 새 시즌을 시작하세요.</p>' : ''}`
+            : `<div class="h"><b>저장 공간</b><span>${kb(r.mainBytes)} / 1,024KB · ${pct}%</span></div>${bar}
+               <p>Firestore 문서 하나에는 1MB까지만 저장됩니다. 지금은 모든 시즌의 경기 기록과 최종 순위가 문서 하나에 들어 있어서, 가득 차면 경기 등록이 저장되지 않습니다.</p>
+               <p>「지난 시즌 따로 보관하기」를 누르면 지난 시즌 ${r.pastSeasons}개를 시즌별 문서로 옮겨 본 문서가 약 <b>${kb(r.afterSplit)} (${Math.round(r.afterSplit / RFC_DOC_LIMIT * 100)}%)</b>로 줄어듭니다.
+               화면에 보이는 내용은 그대로이고, 지난 시즌 최종 순위에서는 PIN·운영 메모를 빼고 보관합니다. 누르면 먼저 백업 파일을 내려받습니다.</p>
+               <button type="button" class="go" onclick="rfcSplitSeasons()">지난 시즌 따로 보관하기</button>`;
+    }
+}
+window.rfcSplitSeasons = () => rfcRunOperation(async () => {
+    if (rfcSeasonDocs) { showCustomAlert('이미 지난 시즌을 시즌별 문서로 나눠 보관하고 있습니다.'); return; }
+    const r = rfcStorageReport();
+    if (!r) return;
+    if (!confirm(`지난 시즌 ${r.pastSeasons}개의 경기 기록과 최종 순위를 시즌별 문서로 옮깁니다.\n\n본 문서 ${Math.round(r.mainBytes / 1024)}KB → 약 ${Math.round(r.afterSplit / 1024)}KB\n\n화면에 보이는 내용은 그대로입니다. 먼저 백업 파일을 내려받습니다. 계속할까요?`)) return;
+    try { backupData(); } catch (e) { console.warn('백업 실패', e); }
+    captureState();
+    rfcSeasonDocs = {};
+    try { await saveRankings(); }
+    catch (e) {
+        if (/permission|insufficient/i.test(String((e && (e.code || '')) + ' ' + (e && e.message || '')))) {
+            throw new Error('시즌별 문서에 쓸 권한이 없습니다 (Firebase 보안 규칙). 규칙에서 관리자 계정이 artifacts/ranking-manager-default/public/data/rankings 아래의 다른 문서에도 쓸 수 있게 허용해야 합니다. 데이터는 바뀌지 않았습니다.');
+        }
+        throw e;
+    }
+    renderSeasonList(); renderAdminMatches();
+    rfcStorageRender();
+    // 확인: 서버에서 본 문서·시즌 문서를 새로 받아 합쳐 보고, 경기 수·보관 시즌 수가 그대로인지
+    try {
+        const ref = doc(db, 'artifacts', appId, 'public', 'data', 'rankings', 'main');
+        rfcSeasonCache.clear();
+        const merged = (await rfcHydrateSnapshot(ref, await getDocFromServer(ref))).data();
+        const want = {n: matchHistoryData.length, a: Object.keys(seasonArchives).length}, got = {n: merged.matchHistory.length, a: Object.keys(merged.seasonArchives || {}).length};
+        if (want.n !== got.n || want.a !== got.a) {
+            alert(`옮긴 뒤 확인에서 차이가 있습니다 (경기 ${want.n} → ${got.n}, 보관 시즌 ${want.a} → ${got.a}).\n‘작업 취소’를 눌러 되돌리고 백업 파일을 보관해 주세요.`);
+            return true;
+        }
+    } catch (e) { console.warn('옮긴 뒤 확인 실패', e); }
+    const after = rfcStorageReport();
+    rfcStatus(`지난 시즌 ${after ? after.pastSeasons : ''}개를 따로 보관했습니다. 본 문서 ${after ? Math.round(after.mainBytes / 1024) + 'KB (' + Math.round(after.pct * 100) + '%)' : ''}. ‘작업 취소’로 되돌릴 수 있습니다.`);
+    return true;
+}, 'rfcSplitSeasons');
+{
+    // 저장 공간 표시 위치: 머리글 저장 상태 옆(가득 차 갈 때만) + 관리 도구 맨 위
+    const st = document.getElementById('saveStatus');
+    if (st && !document.getElementById('rfcStorageChip')) st.insertAdjacentHTML('afterend', '<button type="button" id="rfcStorageChip" class="rfc-storage-chip" hidden></button>');
+    const tools = document.querySelector('#toolsSection h3');
+    if (tools && !document.getElementById('rfcStoragePanel')) tools.insertAdjacentHTML('afterend', '<div id="rfcStoragePanel" class="rfc-storage"></div>');
+    const save = window.saveRankings;
+    window.saveRankings = async (...args) => { const r = await save(...args); rfcStorageRefresh(); return r; };
+    const tab = window.switchTab;
+    window.switchTab = (t, ...rest) => { const r = tab(t, ...rest); if (t === 'tools') rfcStorageRefresh(0); return r; };
+}
+window.rfcStorageReport = rfcStorageReport;
 
 </script>
 
