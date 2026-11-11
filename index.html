@@ -1299,8 +1299,8 @@ window.addEventListener('online', () => rfcStatus('인터넷이 연결되었습�
         import { getFirestore, doc, getDocFromServer, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const USER_CONFIG = {
-            version: "v5.85",
-            updateNote: "기록실에 라이벌(최다 맞대결·팽팽한 라이벌·천적 관계) 추가 · 명중률은 유효타 기준",
+            version: "v5.86",
+            updateNote: "KO율을 전체 경기 중 KO·TKO 승리 비율로 · 기록실에 라이벌(최다 맞대결·팽팽한 라이벌·천적 관계) 추가",
             title: "RFC 랭킹전"
         };
 
@@ -3967,7 +3967,7 @@ function rfcTInjectProfile(id, filter) {
    fx = { m: KO|TKO|DEC|DQ|RTD|DRAW, r, rt, t, w: [던진, 맞힌, 파워 시도, 파워 적중, 준 데미지, 뺏은 다운], l: [...] } (w=승자, l=패자, 무승부는 w=Blue) */
 const RFC_FX_NAME = {KO: 'KO', TKO: 'TKO', DEC: '판정', DQ: '실격', RTD: '기권', DRAW: '무승부'};
 const RFC_ST_MIN_TRACKED = 3;     // 펀치 통계: 펀치 기록이 있는 경기 수
-const RFC_ST_MIN_KO = 3;          // KO율: 결과 방식이 기록된 승리 수
+const RFC_ST_MIN_KO = 3;          // KO율: 결과 방식이 기록된 경기 수 (승·패·무 모두)
 // v 2 = 결과 방식 판단을 고친 RFC 타이머 v0.5.5 이후 값이나 관리자가 직접 넣은 값. 예전 값은 틀렸을 수 있어 쓰지 않음.
 // 펀치 기록은 v 3부터: '맞힌 펀치' = 유효타(펀치 하나가 데미지 10 이상, 스치거나 가드에 막힌 펀치·슬랩 제외) — RFC 타이머 v0.5.7 이후.
 //   v 2의 펀치 기록은 닿기만 해도 적중으로 세서 명중률이 60~80%로 부풀려져 있어 쓰지 않음.
@@ -3992,7 +3992,7 @@ function rfcPmText(v) { return v === null || v === undefined ? '-' : (v > 0 ? '+
 
 // ---- 선수별 집계 ----
 function rfcFxAggregate(p, matches) {
-    const a = {games: 0, wins: 0, losses: 0, draws: 0, known: 0, way: {KO: 0, TKO: 0, DEC: 0, DQ: 0, RTD: 0}, lost: {KO: 0, TKO: 0, DEC: 0, DQ: 0, RTD: 0},
+    const a = {games: 0, wins: 0, losses: 0, draws: 0, known: 0, knownAll: 0, way: {KO: 0, TKO: 0, DEC: 0, DQ: 0, RTD: 0}, lost: {KO: 0, TKO: 0, DEC: 0, DQ: 0, RTD: 0},
         tracked: 0, T: 0, L: 0, PT: 0, PL: 0, pGames: 0, oT: 0, oL: 0, rounds: 0, dmg: 0, kd: 0, kdTaken: 0,
         xGames: 0, body: 0, counter: 0, big: 0, jabT: 0};
     for (const m of matches) {
@@ -4002,6 +4002,7 @@ function rfcFxAggregate(p, matches) {
         const isW = !isDraw && ((m.winnerId ? String(m.winnerId) === String(p.id) : m.winner === p.name));
         if (isDraw) a.draws++; else if (isW) a.wins++; else a.losses++;
         const fx = m.fx;
+        if (rfcFxOk(fx) && (isDraw || fx.m === 'DRAW' || a.way[fx.m] !== undefined)) a.knownAll++;  // KO율 분모: 결과 방식이 기록된 모든 경기
         if (rfcFxOk(fx) && fx.m && fx.m !== 'DRAW' && !isDraw && a.way[fx.m] !== undefined) {
             a.known++;
             if (isW) a.way[fx.m]++; else a.lost[fx.m]++;
@@ -4023,7 +4024,7 @@ function rfcFxAggregate(p, matches) {
     a.pm = a.acc !== null && a.oAcc !== null ? a.acc - a.oAcc : null;
     a.perRound = a.rounds ? a.L / a.rounds : null;
     const kw = a.way.KO + a.way.TKO, wKnown = kw + a.way.DEC + a.way.DQ + a.way.RTD;
-    a.koWins = kw; a.winsKnown = wKnown; a.koRate = wKnown ? 100 * kw / wKnown : null;
+    a.koWins = kw; a.winsKnown = wKnown; a.koRate = a.knownAll ? 100 * kw / a.knownAll : null;  // KO율 = KO·TKO 승 ÷ 전체 경기
     return a;
 }
 
@@ -4062,8 +4063,8 @@ const RFC_ST_SECTIONS = [
             sub: x => x.c.titleWins ? `타이틀전 ${x.c.titleWins}승` : ''},
     ]},
     {icon: '💥', title: '피니시', note: '결과 방식이 기록된 경기', cards: [
-        {name: 'KO율', desc: 'KO·TKO로 이긴 비율 (결과 기록된 승리 3번부터)', need: 'ko', ok: x => x.a.winsKnown >= RFC_ST_MIN_KO, val: x => x.a.koRate, fmt: rfcPctText,
-            sub: x => `KO·TKO ${x.a.koWins} / ${x.a.winsKnown}승`},
+        {name: 'KO율', desc: '전체 경기 중 KO·TKO로 이긴 비율 (결과 기록된 경기 3번부터)', need: 'ko', ok: x => x.a.knownAll >= RFC_ST_MIN_KO, val: x => x.a.koRate, fmt: rfcPctText,
+            sub: x => `KO·TKO ${x.a.koWins} / ${x.a.knownAll}경기`},
         {name: 'KO 승리', desc: 'KO·TKO로 끝낸 경기 수', need: 'ko1', ok: x => x.a.koWins > 0, val: x => x.a.koWins + (x.a.koRate || 0) / 1e4, fmt: v => Math.floor(v) + '번',
             sub: x => `KO ${x.a.way.KO} · TKO ${x.a.way.TKO}`},
         {name: '다운 뺏기', desc: '상대를 다운시킨 횟수 (경기당)', need: 'punch', ok: x => x.a.tracked >= RFC_ST_MIN_TRACKED && x.a.kd > 0, val: x => RFC_PER(x.a.kd, x.a.tracked), fmt: RFC_N1,
@@ -4187,7 +4188,7 @@ function rfcStCard(card, rows, key) {
         return `<li class="r${rank}" ${known ? `onclick="openProfile('${rfcJS(x.p.id)}')" role="button" tabindex="0"` : ''}><span class="k">${rank}</span><span class="n">${x.p.isChampion ? '👑 ' : ''}${rfcHTML(x.p.name)}${sub ? `<small>${rfcHTML(sub)}</small>` : ''}</span><b class="v${cls}">${rfcHTML(card.fmt(v))}</b></li>`;
     }).join('');
     const more = ranked.length > 5 ? `<button type="button" class="more" onclick="rfcStMore('${key}')">${openAll ? '접기' : `더 보기 (${Math.min(15, ranked.length)}위까지)`}</button>` : '';
-    const empty = card.need === 'ko' ? '결과 방식이 기록된 승리가 3번 넘는 선수가 아직 없어요' : card.need === 'ko1' ? '아직 KO·TKO 기록이 없어요'
+    const empty = card.need === 'ko' ? '결과 방식이 기록된 경기가 3번 넘는 선수가 아직 없어요' : card.need === 'ko1' ? '아직 KO·TKO 기록이 없어요'
         : card.need === 'extra' || card.need === 'punch' ? '새 기준 펀치 기록이 3경기 넘게 쌓이면 나와요' : '기록이 없어요';
     return `<div class="rfc-st-c"><div class="h"><b>${rfcHTML(card.name)}</b><small>${rfcHTML(card.desc)}</small></div>${list ? `<ol>${list}</ol>${more}` : `<p class="e">${empty}</p>`}</div>`;
 }
@@ -4307,11 +4308,11 @@ function rfcFxProfileBox(id, filter) {
     if (filter === 'current') matches = matches.filter(m => (m.season || '시즌 1') === activeSeason);
     else if (filter && filter !== 'all') matches = matches.filter(m => (m.season || '시즌 1') === filter);
     const a = rfcFxAggregate(p, matches);
-    if (!a.known && !a.tracked) { box.innerHTML = ''; return; }
+    if (!a.knownAll && !a.tracked) { box.innerHTML = ''; return; }
     const w = a.way, l = a.lost, lk = l.KO + l.TKO + l.DEC + l.DQ + l.RTD;
     const per = v => a.tracked ? (v / a.tracked).toFixed(1) : '-';
     const cell = (v, label, cls = '') => `<div><b class="${cls}">${rfcHTML(v)}</b><span>${label}</span></div>`;
-    const koCell = a.winsKnown >= RFC_ST_MIN_KO ? cell(Math.round(a.koRate) + '%', 'KO율') : cell('-', `KO율 · ${RFC_ST_MIN_KO}승부터`);
+    const koCell = a.knownAll >= RFC_ST_MIN_KO ? cell(Math.round(a.koRate) + '%', 'KO율') : cell('-', `KO율 · ${RFC_ST_MIN_KO}경기부터`);
     const ways = [];
     if (a.winsKnown) ways.push(`승 ${a.winsKnown}: <b>KO ${w.KO}</b> · TKO ${w.TKO} · 판정 ${w.DEC}${w.DQ ? ' · 실격승 ' + w.DQ : ''}${w.RTD ? ' · 기권승 ' + w.RTD : ''}`);
     if (lk) ways.push(`패 ${lk}: KO ${l.KO} · TKO ${l.TKO} · 판정 ${l.DEC}${l.DQ ? ' · 실격패 ' + l.DQ : ''}${l.RTD ? ' · 기권패 ' + l.RTD : ''}`);
