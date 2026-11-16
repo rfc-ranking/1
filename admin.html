@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>v6.02 경기기록 검색창 높이·안내문구 정리</title>
+    <title>RFC 관리자(V6.18)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
@@ -658,9 +658,18 @@ body.rfc-design-admin #rfcAdminHeader{background:#111e32;border:1px solid #111e3
 .rfc-th-link:hover{text-decoration:underline}
 .rfc-th-note{font-size:10px;font-weight:700;color:#a16207;background:#fef3c7;border:1px solid #fde68a;border-radius:999px;padding:1px 7px}
 .rfc-th-del{color:#b91c1c!important}
-.rfc-ta-box{margin:8px 0;padding:10px 12px;border:1px solid #fcd34d;background:#fffbeb;border-radius:10px;font-size:13px;line-height:1.5;color:#78350f}
-.rfc-ta-box.is-off{border-color:#cbd5e1;background:#f8fafc;color:#334155}
-.rfc-ta-off{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px;color:#475569;cursor:pointer}
+.rfc-ta-box{margin:10px 0 12px;padding:12px 14px;border:2px solid #f59e0b;background:linear-gradient(135deg,#fffbeb 0%,#fff7d6 100%);border-radius:12px;font-size:13px;line-height:1.5;color:#78350f;box-shadow:0 2px 8px rgba(180,83,9,.08)}
+.rfc-ta-box.is-off{border-color:#cbd5e1;background:#f8fafc;color:#334155;box-shadow:none}
+.rfc-ta-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px;font-size:11px;font-weight:900;letter-spacing:.02em;color:#92400e}
+.rfc-ta-status{display:inline-flex;align-items:center;border:1px solid #fbbf24;background:#fef3c7;border-radius:999px;padding:2px 8px;white-space:nowrap;font-size:10px;font-weight:900}
+.rfc-ta-title{display:flex;flex-wrap:wrap;align-items:center;gap:7px;font-size:15px;font-weight:900;color:#78350f}
+.rfc-ta-round{display:inline-flex;align-items:center;border-radius:7px;background:#92400e;color:#fff;padding:3px 8px;font-size:11px;font-weight:900}
+.rfc-ta-pair{margin-top:7px;padding:7px 9px;border:1px solid #fcd34d;border-radius:8px;background:rgba(255,255,255,.72);font-size:13px;font-weight:900;color:#422006}
+.rfc-ta-desc{margin-top:6px;font-size:12px;color:#78350f}
+.rfc-ta-box.is-off .rfc-ta-top,.rfc-ta-box.is-off .rfc-ta-title,.rfc-ta-box.is-off .rfc-ta-desc{color:#475569}
+.rfc-ta-box.is-off .rfc-ta-status,.rfc-ta-box.is-off .rfc-ta-round{border-color:#cbd5e1;background:#e2e8f0;color:#334155}
+.rfc-ta-box.is-off .rfc-ta-pair{border-color:#e2e8f0;background:#fff;color:#334155}
+.rfc-ta-off{display:flex;align-items:center;gap:6px;margin-top:8px;padding-top:7px;border-top:1px solid rgba(180,83,9,.16);font-size:12px;color:#475569;cursor:pointer}
 .rfc-ta-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:9999;max-width:min(92vw,560px);background:#78350f;color:#fff;padding:12px 16px;border-radius:12px;font-size:14px;font-weight:700;box-shadow:0 8px 24px rgba(0,0,0,.25)}
 .rfc-ta-toast[hidden]{display:none}
 
@@ -759,6 +768,7 @@ body.rfc-design-admin #rfcAdminHeader{background:#111e32;border:1px solid #111e3
                                     <div><label class="block text-xs font-bold text-blue-600 mb-1 pl-1">🔵 Blue (검색가능)</label><div class="flex items-center gap-2"><div class="flex-grow min-w-0"><select id="p1Select" class="w-full text-sm outline-none" placeholder="선수 검색..."></select></div><div id="p1TrunkIndicator" class="w-3 h-6 rounded border border-slate-300 shadow-sm shrink-0 bg-slate-100" title="바지 색상"></div></div></div>
                                     <div><label class="block text-xs font-bold text-red-600 mb-1 pl-1">🔴 Red (검색가능)</label><div class="flex items-center gap-2"><div class="flex-grow min-w-0"><select id="p2Select" class="w-full text-sm outline-none" placeholder="선수 검색..."></select></div><div id="p2TrunkIndicator" class="w-3 h-6 rounded border border-slate-300 shadow-sm shrink-0 bg-slate-100" title="바지 색상"></div></div></div>
                                 </div>
+                                <div id="rfcTAutoAnchor"></div>
                                 <div class="grid grid-cols-3 gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-200">
                                     <label class="cursor-pointer flex items-center justify-center gap-1.5 p-2 rounded-lg hover:bg-blue-50 transition border border-transparent has-[:checked]:bg-blue-100 has-[:checked]:border-blue-300 has-[:checked]:shadow-sm"><input type="radio" name="winner" value="blue" class="w-4 h-4 accent-blue-600" onchange="updateMatchPreview()"><span class="text-[11px] font-bold text-blue-700">Blue 승</span></label>
                                     <label class="cursor-pointer flex items-center justify-center gap-1.5 p-2 rounded-lg hover:bg-slate-100 transition border border-transparent has-[:checked]:bg-slate-200 has-[:checked]:border-slate-400 has-[:checked]:shadow-sm"><input type="radio" name="winner" value="draw" class="w-4 h-4 accent-slate-600" onchange="updateMatchPreview()"><span class="text-[11px] font-bold text-slate-700">무승부</span></label>
@@ -1703,14 +1713,14 @@ window.addEventListener('online', () => rfcStatus('인터넷이 연결되었습�
 
         
         const ADMIN_CONFIG = {
-            version: "v6.17",
-            updateNote: "같은 상대 반복 승리 점수를 최근 10경기(승·패·무) 중 그 상대에게 이긴 횟수로 계산 · 깎여도 최소 +5/-5점 · 토너먼트 대진과 같은 두 선수의 경기를 등록하면 자동으로 토너먼트 경기로 기록 (대진표 승자 반영, 랭킹 점수·승패·연승은 그대로, 무승부는 일반 경기) · 경기 기록에 🏆 토너먼트 표시",
-            title: "v6.17 반복 승리 점수: 최근 10경기 기준 · 최소 ±5점"
+            version: "v6.18",
+            updateNote: "경기 결과 입력: 토너먼트 대진 안내를 Blue·Red 선수 선택 바로 아래로 이동하고 대회명·라운드를 강조 표시 · 토너먼트 결과 자동 기록·승자 다음 라운드 진출 및 기존 랭킹 처리 방식 유지",
+            title: "RFC 관리자(V6.18)"
         };
 
         function initVersionUI() {
             try {
-                document.title = `${ADMIN_CONFIG.title} [${ADMIN_CONFIG.version}]`;
+                document.title = ADMIN_CONFIG.title;
                 const adminVerEl = document.getElementById('adminVersionDisplay');
                 if(adminVerEl) {
                     adminVerEl.innerHTML = `<span class="font-bold text-slate-600">${rfcHTML(ADMIN_CONFIG.version)}</span> <span class="text-slate-400 font-normal ml-1 text-[11px]">${rfcHTML(ADMIN_CONFIG.updateNote)}</span>`;
@@ -6670,9 +6680,14 @@ rfcCommitMatches = async function (simulation) {
 
 // ---- 한 경기 입력칸: 토너먼트 경기 안내 ----
 (() => {
+    const anchor = document.getElementById('rfcTAutoAnchor');
     const prev = document.getElementById('matchPreview');
-    if (!prev || document.getElementById('rfcTAutoBox')) return;
-    prev.insertAdjacentHTML('beforebegin', `<div id="rfcTAutoBox" class="rfc-ta-box" hidden><div id="rfcTAutoText"></div><label class="rfc-ta-off"><input type="checkbox" id="rfcTAutoOff" onchange="updateMatchPreview()"> 이번 경기는 일반 랭킹 경기로 기록 (토너먼트에서 제외)</label></div>`);
+    if (document.getElementById('rfcTAutoBox')) return;
+    const host = anchor || prev;
+    if (!host) return;
+    const html = `<div id="rfcTAutoBox" class="rfc-ta-box" hidden><div id="rfcTAutoText"></div><label class="rfc-ta-off"><input type="checkbox" id="rfcTAutoOff" onchange="updateMatchPreview()"> 이번 경기는 일반 랭킹 경기로 기록 (토너먼트에서 제외)</label></div>`;
+    if (anchor) anchor.insertAdjacentHTML('afterend', html);
+    else host.insertAdjacentHTML('beforebegin', html);
 })();
 let rfcTAutoPairKey = '';
 function rfcTAutoFormPlayers() {
@@ -6693,12 +6708,14 @@ function rfcTAutoRenderForm() {
     const result = document.querySelector('input[name="winner"]:checked')?.value || '';
     box.hidden = false;
     box.classList.toggle('is-off', off.checked || result === 'draw');
-    const where = `<b>${rfcHTML(hit.t.name)} ${rfcHTML(hit.label)}</b>`;
-    document.getElementById('rfcTAutoText').innerHTML = off.checked
-        ? `🏆 ${where} 대진이지만 <b>일반 랭킹 경기</b>로 기록합니다. 토너먼트 대진은 그대로 남습니다.`
+    const text = document.getElementById('rfcTAutoText');
+    const mode = off.checked ? '일반 랭킹 경기로 기록' : (result === 'draw' ? '무승부 · 토너먼트 결과 미반영' : '토너먼트 경기로 자동 기록');
+    const detail = off.checked
+        ? '이번 경기만 일반 랭킹 경기로 기록하며, 토너먼트 대진은 그대로 유지됩니다.'
         : result === 'draw'
-            ? `🏆 ${where} 대진입니다. <b>무승부는 토너먼트 경기로 치지 않아</b> 일반 랭킹 경기로 기록하고, 다음 대결이 토너먼트 경기가 됩니다.`
-            : `🏆 <b>토너먼트 경기</b> — ${where}. 승자가 대진표에 올라가고 경기 기록에 토너먼트로 표시됩니다. <b>랭킹 점수·승패·연승은 바뀌지 않습니다.</b>`;
+            ? '무승부는 토너먼트 승자로 처리하지 않습니다. 다음 대결에서 토너먼트 경기를 다시 진행합니다.'
+            : '경기 확정 시 승자가 다음 라운드로 자동 진출합니다. 랭킹 점수·승패·연승에는 반영되지 않습니다.';
+    text.innerHTML = `<div class="rfc-ta-top"><span>🏆 토너먼트 대진 확인</span><span class="rfc-ta-status">${rfcHTML(mode)}</span></div><div class="rfc-ta-title"><span>${rfcHTML(hit.t.name)}</span><span class="rfc-ta-round">${rfcHTML(hit.label)}</span></div><div class="rfc-ta-pair">🔵 ${rfcHTML(p1.name)} <span style="color:#a16207">VS</span> 🔴 ${rfcHTML(p2.name)}</div><div class="rfc-ta-desc">${rfcHTML(detail)}</div>`;
     return off.checked || result === 'draw' ? null : hit;
 }
 {
