@@ -658,11 +658,36 @@ body.rfc-design-admin #rfcAdminHeader{background:#111e32;border:1px solid #111e3
 .rfc-th-link:hover{text-decoration:underline}
 .rfc-th-note{font-size:10px;font-weight:700;color:#a16207;background:#fef3c7;border:1px solid #fde68a;border-radius:999px;padding:1px 7px}
 .rfc-th-del{color:#b91c1c!important}
-.rfc-ta-box{margin:8px 0;padding:10px 12px;border:1px solid #fcd34d;background:#fffbeb;border-radius:10px;font-size:13px;line-height:1.5;color:#78350f}
-.rfc-ta-box.is-off{border-color:#cbd5e1;background:#f8fafc;color:#334155}
-.rfc-ta-off{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px;color:#475569;cursor:pointer}
+.rfc-ta-box{margin:10px 0 4px;border:2px solid #f59e0b;background:#fffbeb;border-radius:12px;overflow:hidden;color:#78350f;box-shadow:0 2px 8px rgba(245,158,11,.18)}
+.rfc-ta-box[hidden]{display:none}
+.rfc-ta-head{display:flex;align-items:center;gap:10px;padding:9px 12px;background:linear-gradient(90deg,#f59e0b,#fbbf24);color:#451a03}
+.rfc-ta-trophy{font-size:24px;line-height:1}
+.rfc-ta-title{display:flex;flex-direction:column;min-width:0;flex:1}
+.rfc-ta-title b{font-size:16px;font-weight:900;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rfc-ta-title span{font-size:13px;font-weight:800;opacity:.85}
+.rfc-ta-state{flex-shrink:0;font-size:11px;font-weight:900;background:#451a03;color:#fde68a;border-radius:999px;padding:4px 9px}
+.rfc-ta-text{padding:9px 12px 4px;font-size:13px;line-height:1.55}
+.rfc-ta-off{padding:0 12px 10px}
+.rfc-ta-box.is-off{border-color:#cbd5e1;background:#f8fafc;color:#334155;box-shadow:none}
+.rfc-ta-box.is-off .rfc-ta-head{background:#e2e8f0;color:#334155}
+.rfc-ta-box.is-off .rfc-ta-state{background:#475569;color:#fff}
+.rfc-ta-off{display:flex;align-items:center;gap:6px;font-size:12px;color:#475569;cursor:pointer}
 .rfc-ta-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:9999;max-width:min(92vw,560px);background:#78350f;color:#fff;padding:12px 16px;border-radius:12px;font-size:14px;font-weight:700;box-shadow:0 8px 24px rgba(0,0,0,.25)}
 .rfc-ta-toast[hidden]{display:none}
+
+.rfc-chg-btn{margin-left:6px;font-size:11px;font-weight:700;color:#2563eb;background:#eff6ff;border:1px solid #bfdbfe;border-radius:999px;padding:2px 9px;cursor:pointer}
+.rfc-chg-modal{position:fixed;inset:0;z-index:10000;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;padding:16px}
+.rfc-chg-modal[hidden]{display:none}
+.rfc-chg-card{background:#fff;border-radius:16px;width:min(640px,100%);max-height:86vh;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.rfc-chg-head{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid #e2e8f0}
+.rfc-chg-head b{font-size:16px;color:#0f172a}.rfc-chg-head span{font-size:12px;color:#64748b;margin-right:auto}
+.rfc-chg-head button{border:0;background:#f1f5f9;border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:14px}
+.rfc-chg-body{overflow:auto;padding:6px 18px 16px}
+.rfc-chg-body section{padding:12px 0;border-bottom:1px solid #f1f5f9}
+.rfc-chg-body h4{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:900;color:#0f172a;margin:0 0 6px}
+.rfc-chg-body h4 em{font-style:normal;font-size:11px;background:#2563eb;color:#fff;border-radius:999px;padding:1px 8px}
+.rfc-chg-body h4 small{font-size:12px;font-weight:600;color:#94a3b8}
+.rfc-chg-body ul{margin:0;padding-left:18px;font-size:13px;line-height:1.6;color:#334155;list-style:disc}
 
 </style></head>
 <body class="rfc-design rfc-design-admin rfc-ux-admin text-slate-800 relative h-screen overflow-hidden">
@@ -1703,9 +1728,9 @@ window.addEventListener('online', () => rfcStatus('인터넷이 연결되었습�
 
         
         const ADMIN_CONFIG = {
-            version: "v6.17",
-            updateNote: "같은 상대 반복 승리 점수를 최근 10경기(승·패·무) 중 그 상대에게 이긴 횟수로 계산 · 깎여도 최소 +5/-5점 · 토너먼트 대진과 같은 두 선수의 경기를 등록하면 자동으로 토너먼트 경기로 기록 (대진표 승자 반영, 랭킹 점수·승패·연승은 그대로, 무승부는 일반 경기) · 경기 기록에 🏆 토너먼트 표시",
-            title: "v6.17 반복 승리 점수: 최근 10경기 기준 · 최소 ±5점"
+            version: "v6.19",
+            updateNote: "토너먼트 안내를 선수 선택칸 바로 아래로 · 대회명·라운드·진출 표시 강화 · 지난 시즌 보호 · 백업에서 지난 시즌 되살리기",
+            title: "RFC 관리자"
         };
 
         function initVersionUI() {
@@ -6547,6 +6572,144 @@ window.rfcSplitSeasons = () => rfcRunOperation(async () => {
 window.rfcStorageReport = rfcStorageReport;
 
 
+// ---- [v6.18] 지난 시즌이 사라지는 저장 막기 + 백업 파일에서 지난 시즌 되살리기 ----
+// 저장할 때 '불러올 때 있던 시즌'이 통째로 빠져 있으면 (지난 시즌 문서를 못 불러온 채 저장하려는 경우 등)
+// 시즌 삭제·이름 바꾸기·작업 취소·전체 초기화처럼 직접 고른 작업이 아니면 저장을 멈춥니다.
+const rfcSeasonDropAllow = new Set();
+let rfcSeasonDropAny = false;
+function rfcSeasonsIn(data) {
+    if (!data) return new Set();
+    return new Set([...(data.matchHistory || []).map(rfcSeasonOf), ...Object.keys(data.seasonArchives || {})]);
+}
+{
+    const plan = rfcPlanSave;
+    rfcPlanSave = function (full, base) {
+        if (base && !rfcSeasonDropAny) {
+            const now = rfcSeasonsIn(full), lost = [...rfcSeasonsIn(base)].filter(s => !now.has(s) && s !== full.activeSeason && s !== base.activeSeason && !rfcSeasonDropAllow.has(s));
+            if (lost.length) throw new Error(`지난 시즌 기록이 함께 사라지는 저장이라 막았습니다 (${lost.join(', ')}).\n지난 시즌 기록을 다 불러오지 못한 상태일 수 있습니다. 새로고침한 뒤 다시 해 주세요.`);
+        }
+        return plan(full, base);
+    };
+    const wrap = (name, before) => {
+        const f = window[name];
+        if (typeof f !== 'function') return;
+        window[name] = (...args) => { before(...args); return f(...args); };
+    };
+    wrap('deleteSeason', s => rfcSeasonDropAllow.add(s));
+    wrap('confirmRenameSeason', () => { const o = document.getElementById('renameOldName')?.value; if (o) rfcSeasonDropAllow.add(o); });
+    wrap('resetEverything', () => { rfcSeasonDropAny = true; });
+    wrap('executeUndo', () => { rfcSeasonDropAny = true; });
+    const save = window.saveRankings;
+    window.saveRankings = async (...args) => {
+        try { return await save(...args); }
+        finally { rfcSeasonDropAllow.clear(); rfcSeasonDropAny = false; }
+    };
+}
+
+// 백업 파일(RFC_BACKUP_*.json)에서, 지금 데이터에 없는 지난 시즌의 경기 기록·최종 순위·기간만 되살립니다.
+// 이번 시즌·선수 목록·토너먼트 등 지금 데이터는 건드리지 않습니다.
+window.rfcRestoreSeasonsFromBackup = () => {
+    if (!rfcBaseDocument) return showCustomAlert('데이터를 불러온 뒤 해 주세요.');
+    const input = document.createElement('input');
+    input.type = 'file'; input.accept = '.json,application/json';
+    input.onchange = async () => {
+        const file = input.files && input.files[0];
+        if (!file) return;
+        let bk;
+        try { bk = JSON.parse(await file.text()); } catch (e) { return showCustomAlert('백업 파일을 읽지 못했습니다: ' + (e.message || e)); }
+        const hist = Array.isArray(bk.matchHistory) ? bk.matchHistory : Array.isArray(bk.history) ? bk.history : [];
+        const arch = bk.seasonArchives && typeof bk.seasonArchives === 'object' ? bk.seasonArchives : bk.archives && typeof bk.archives === 'object' ? bk.archives : {};
+        const have = rfcSeasonsIn({matchHistory: matchHistoryData, seasonArchives});
+        const cand = [...new Set([...hist.map(rfcSeasonOf), ...Object.keys(arch)])].filter(s => s !== activeSeason && !have.has(s)).sort();
+        if (!cand.length) return showCustomAlert('되살릴 시즌이 없습니다. 백업에 있는 지난 시즌이 모두 지금 데이터에 들어 있습니다.');
+        const count = s => hist.filter(m => rfcSeasonOf(m) === s).length;
+        const lines = cand.map(s => `· ${s}: 경기 ${count(s)}개${arch[s] ? ' · 최종 순위' : ''}`).join('\n');
+        if (!confirm(`백업 파일(${file.name})에서 지금 데이터에 없는 지난 시즌 ${cand.length}개를 되살립니다.\n\n${lines}\n\n이번 시즌(${activeSeason}) 기록과 선수 목록은 그대로입니다. 계속할까요?`)) return;
+        await rfcRunOperation(async () => {
+            try { backupData(); } catch (e) { console.warn('지금 데이터 백업 실패', e); }
+            captureState();
+            const pick = new Set(cand);
+            const add = hist.filter(m => pick.has(rfcSeasonOf(m))).map(m => rfcClone(m));
+            const all = [...matchHistoryData.map((m, i) => [m, i]), ...add.map((m, i) => [m, matchHistoryData.length + i])];
+            all.sort((x, y) => { const a = String(x[0].date || ''), b = String(y[0].date || ''); return a < b ? 1 : a > b ? -1 : x[1] - y[1]; });
+            matchHistoryData = all.map(x => x[0]);
+            for (const s of cand) if (arch[s]) seasonArchives[s] = rfcClone(arch[s]);
+            const dates = bk.seasonDates && typeof bk.seasonDates === 'object' ? bk.seasonDates : {};
+            for (const s of cand) if (dates[s] && !seasonDates[s]) seasonDates[s] = rfcClone(dates[s]);
+            if (!rfcSeasonDocs) rfcSeasonDocs = {};   // 지난 시즌은 시즌별 문서로
+            await saveRankings();
+            renderSeasonList(); renderAdminMatches(); renderRankings(); rfcStorageRender();
+            // 확인: 서버에서 새로 받아 합쳐 본 결과
+            try {
+                const ref = doc(db, 'artifacts', appId, 'public', 'data', 'rankings', 'main');
+                rfcSeasonCache.clear();
+                const merged = (await rfcHydrateSnapshot(ref, await getDocFromServer(ref))).data();
+                const got = rfcSeasonsIn(merged), miss = cand.filter(s => !got.has(s));
+                if (miss.length || merged.matchHistory.length !== matchHistoryData.length) {
+                    alert(`되살린 뒤 확인에서 차이가 있습니다 (경기 ${matchHistoryData.length} → ${merged.matchHistory.length}${miss.length ? ', 빠진 시즌: ' + miss.join(', ') : ''}).\n백업 파일을 보관해 두고 알려 주세요.`);
+                    return true;
+                }
+            } catch (e) { console.warn('되살린 뒤 확인 실패', e); }
+            showCustomAlert(`지난 시즌 ${cand.length}개 (경기 ${add.length}개)를 되살렸습니다.`);
+            return true;
+        }, 'rfcRestoreSeasons');
+    };
+    input.click();
+};
+{
+    const render = rfcStorageRender;
+    rfcStorageRender = function () {
+        render();
+        const box = document.getElementById('rfcStoragePanel');
+        if (box && rfcBaseDocument && !box.querySelector('.rfc-restore-seasons'))
+            box.insertAdjacentHTML('beforeend', '<p class="rfc-restore-seasons" style="margin-top:8px"><button type="button" class="go" onclick="rfcRestoreSeasonsFromBackup()">백업 파일에서 지난 시즌 되살리기</button> <span style="font-size:12px;color:#64748b">지금 데이터에 없는 지난 시즌만 백업에서 가져옵니다.</span></p>');
+    };
+}
+
+
+// ---- [v6.19] 크롬 탭 이름 · 관리자 사이트 업데이트 내역 ----
+const RFC_ADMIN_CHANGES = [
+    ['v6.19', '2026-11-18', ['토너먼트 경기 안내를 Blue/Red 선수 선택칸 바로 아래로 옮김 — 선수를 고르자마자 토너먼트 경기인지 확인',
+        '안내에 대회명·라운드를 크게 표시하고, 자동 기록 여부와 승자가 어디로 진출하는지 함께 표시',
+        '크롬 탭 이름을 「RFC 관리자(V6.19)」로 정리', '버전 표시를 누르면 이 업데이트 내역을 볼 수 있음']],
+    ['v6.18', '2026-11-18', ['지난 시즌 기록이 함께 사라지는 저장을 막음 (지난 시즌을 다 불러오지 못한 채 저장하면 멈추고 새로고침 안내)',
+        '관리 도구 → 저장 공간: 「백업 파일에서 지난 시즌 되살리기」 — 지금 데이터에 없는 지난 시즌만 백업에서 가져옴']],
+    ['v6.17', '2026-11-11', ['같은 상대 반복 승리 점수: 승자의 최근 10경기(승·패·무) 중 그 상대에게 이긴 횟수로 계산 (1승 100% · 2승 70% · 3승 40% · 4승부터 10%)',
+        '배율이 적용돼도 최소 +5점 / -5점 (원래 5점 이하인 경기는 그대로)']],
+    ['v6.16', '2026-11-11', ['토너먼트 대진과 같은 두 선수의 경기를 등록하면 자동으로 토너먼트 경기로 기록 (대진표 승자 반영, 랭킹 점수·승패·연승은 그대로)',
+        '무승부는 일반 경기로 기록, 대진이 끝난 뒤 다시 붙으면 일반 경기', '경기 기록 목록에 🏆 토너먼트 경기 표시 · 결과 취소']],
+    ['v6.15', '', ['저장 공간 표시 · 지난 시즌을 시즌별 문서로 따로 보관 (문서 1MB 한도 대비)', '전체 점검: 휴대폰 화면·이미지·키/리치 표시 정리']],
+    ['v6.14', '', ['경기 기록을 지우면 점수·승패·연승·현상금 등 연결된 값도 함께 되돌림']],
+];
+document.title = `RFC 관리자(${ADMIN_CONFIG.version.toUpperCase()})`;
+window.rfcShowAdminChanges = () => {
+    let el = document.getElementById('rfcChangesModal');
+    if (!el) {
+        el = document.createElement('div');
+        el.id = 'rfcChangesModal';
+        el.className = 'rfc-chg-modal';
+        el.innerHTML = `<div class="rfc-chg-card" role="dialog" aria-modal="true" aria-labelledby="rfcChgTitle"><div class="rfc-chg-head"><b id="rfcChgTitle">관리자 사이트 업데이트 내역</b><span>지금 버전 ${rfcHTML(ADMIN_CONFIG.version)}</span><button type="button" aria-label="닫기" onclick="document.getElementById('rfcChangesModal').hidden=true">✕</button></div><div class="rfc-chg-body">${
+            RFC_ADMIN_CHANGES.map(([v, d, items], i) => `<section${i === 0 ? ' class="now"' : ''}><h4>${rfcHTML(v)}${i === 0 ? '<em>지금 버전</em>' : ''}${d ? `<small>${rfcHTML(d)}</small>` : ''}</h4><ul>${items.map(x => `<li>${rfcHTML(x)}</li>`).join('')}</ul></section>`).join('')
+        }</div></div>`;
+        el.addEventListener('click', e => { if (e.target === el) el.hidden = true; });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape' && !el.hidden) el.hidden = true; });
+        document.body.append(el);
+    }
+    el.hidden = false;
+};
+{
+    const v = document.getElementById('adminVersionDisplay');
+    if (v) {
+        v.title = '업데이트 내역 보기';
+        v.style.cursor = 'pointer';
+        v.setAttribute('role', 'button'); v.tabIndex = 0;
+        v.addEventListener('click', rfcShowAdminChanges);
+        v.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); rfcShowAdminChanges(); } });
+        v.insertAdjacentHTML('afterend', ' <button type="button" class="rfc-chg-btn" onclick="rfcShowAdminChanges()">업데이트 내역</button>');
+    }
+}
+
+
 /* [토너먼트 경기 기록] 대진표에서 결과가 나온 경기를 '경기 기록' 목록에도 함께 보여줍니다 (관리자·사용자 공통).
    토너먼트 경기는 대진표(tournaments)에만 저장되고 matchHistory에는 들어가지 않으므로 점수·승패·연승·기록실 통계에 영향이 없습니다. */
 function rfcTHistName(ref) {
@@ -6668,11 +6831,14 @@ rfcCommitMatches = async function (simulation) {
     }
 };
 
-// ---- 한 경기 입력칸: 토너먼트 경기 안내 ----
+// ---- 한 경기 입력칸: 토너먼트 경기 안내 (Blue/Red 선수 선택칸 바로 아래) ----
 (() => {
-    const prev = document.getElementById('matchPreview');
-    if (!prev || document.getElementById('rfcTAutoBox')) return;
-    prev.insertAdjacentHTML('beforebegin', `<div id="rfcTAutoBox" class="rfc-ta-box" hidden><div id="rfcTAutoText"></div><label class="rfc-ta-off"><input type="checkbox" id="rfcTAutoOff" onchange="updateMatchPreview()"> 이번 경기는 일반 랭킹 경기로 기록 (토너먼트에서 제외)</label></div>`);
+    if (document.getElementById('rfcTAutoBox')) return;
+    const sel = document.getElementById('p2Select') || document.getElementById('p1Select');
+    const grid = sel && sel.closest('.grid');
+    const html = `<div id="rfcTAutoBox" class="rfc-ta-box" hidden><div class="rfc-ta-head"><span class="rfc-ta-trophy">🏆</span><div class="rfc-ta-title"><b id="rfcTAutoName"></b><span id="rfcTAutoRound"></span></div><span id="rfcTAutoState" class="rfc-ta-state"></span></div><div id="rfcTAutoText" class="rfc-ta-text"></div><label class="rfc-ta-off"><input type="checkbox" id="rfcTAutoOff" onchange="updateMatchPreview()"> 이번 경기는 일반 랭킹 경기로 기록 (토너먼트에서 제외)</label></div>`;
+    if (grid) grid.insertAdjacentHTML('afterend', html);
+    else document.getElementById('matchPreview')?.insertAdjacentHTML('beforebegin', html);
 })();
 let rfcTAutoPairKey = '';
 function rfcTAutoFormPlayers() {
@@ -6680,6 +6846,10 @@ function rfcTAutoFormPlayers() {
     const a = v('p1Select'), b = v('p2Select');
     const p1 = a !== '' && a != null ? rankingsData[Number(a)] : null, p2 = b !== '' && b != null ? rankingsData[Number(b)] : null;
     return p1 && p2 && p1.id !== p2.id ? [p1, p2] : [null, null];
+}
+function rfcTAutoNextLabel(hit) {
+    const nx = rfcTNext(hit.t, hit.key);
+    return nx ? rfcTMatchLabel(hit.t, nx.key) : (hit.key === 'third' ? '' : '우승');
 }
 function rfcTAutoRenderForm() {
     const box = document.getElementById('rfcTAutoBox');
@@ -6691,15 +6861,22 @@ function rfcTAutoRenderForm() {
     const hit = pair ? rfcTAutoFind(tournamentsData, p1, p2) : null;
     if (!hit) { box.hidden = true; return null; }
     const result = document.querySelector('input[name="winner"]:checked')?.value || '';
+    const normal = off.checked || result === 'draw';
     box.hidden = false;
-    box.classList.toggle('is-off', off.checked || result === 'draw');
-    const where = `<b>${rfcHTML(hit.t.name)} ${rfcHTML(hit.label)}</b>`;
-    document.getElementById('rfcTAutoText').innerHTML = off.checked
-        ? `🏆 ${where} 대진이지만 <b>일반 랭킹 경기</b>로 기록합니다. 토너먼트 대진은 그대로 남습니다.`
-        : result === 'draw'
-            ? `🏆 ${where} 대진입니다. <b>무승부는 토너먼트 경기로 치지 않아</b> 일반 랭킹 경기로 기록하고, 다음 대결이 토너먼트 경기가 됩니다.`
-            : `🏆 <b>토너먼트 경기</b> — ${where}. 승자가 대진표에 올라가고 경기 기록에 토너먼트로 표시됩니다. <b>랭킹 점수·승패·연승은 바뀌지 않습니다.</b>`;
-    return off.checked || result === 'draw' ? null : hit;
+    box.classList.toggle('is-off', normal);
+    document.getElementById('rfcTAutoName').textContent = hit.t.name;
+    document.getElementById('rfcTAutoRound').textContent = hit.label;
+    const st = document.getElementById('rfcTAutoState');
+    st.textContent = normal ? '일반 랭킹 경기로 기록' : '토너먼트 경기로 자동 기록';
+    const next = rfcTAutoNextLabel(hit);
+    const go = name => next === '우승' ? `<b>${rfcHTML(name)}</b> 우승` : next ? `<b>${rfcHTML(name)}</b> → <b>${rfcHTML(next)}</b> 진출` : `<b>${rfcHTML(name)}</b> 승`;
+    let text;
+    if (off.checked) text = '토너먼트 대진은 그대로 남고, 이번 경기는 랭킹 점수에 반영됩니다.';
+    else if (result === 'draw') text = '무승부는 토너먼트 경기로 치지 않아 일반 랭킹 경기로 기록합니다. 다음 대결이 토너먼트 경기가 됩니다.';
+    else if (result === 'blue' || result === 'red') text = `${go((result === 'blue' ? p1 : p2).name)} · 경기 기록에 🏆 토너먼트로 표시 · <b>랭킹 점수·승패·연승은 그대로</b>`;
+    else text = `이기는 선수가 ${next === '우승' ? '<b>우승</b>합니다' : next ? `<b>${rfcHTML(next)}</b>에 진출합니다` : '승리합니다'} · 경기 기록에 🏆 토너먼트로 표시 · <b>랭킹 점수·승패·연승은 그대로</b>`;
+    document.getElementById('rfcTAutoText').innerHTML = text;
+    return normal ? null : hit;
 }
 {
     const orig = window.updateMatchPreview;
@@ -6712,8 +6889,7 @@ function rfcTAutoRenderForm() {
         if (hit && box && ['blue', 'red'].includes(result)) {
             const [p1, p2] = rfcTAutoFormPlayers();
             const w = result === 'blue' ? p1 : p2, l = result === 'blue' ? p2 : p1;
-            const nx = rfcTNext(hit.t, hit.key);
-            const next = nx ? rfcTMatchLabel(hit.t, nx.key) : (hit.key === 'third' ? '' : '우승');
+            const next = rfcTAutoNextLabel(hit);
             box.innerHTML = `<div class="font-bold text-slate-800 mb-2 border-b border-gray-200 pb-2 flex justify-between items-center"><span class="text-base">🏆 토너먼트 경기 결과</span><span class="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">점수 변동 없음</span></div>
                 <div class="space-y-1 text-[14px]"><div><b>${rfcHTML(hit.t.name)}</b> · ${rfcHTML(hit.label)}</div><div>승자 <b class="text-emerald-600">${rfcHTML(w.name)}</b>${next ? ` → <b>${rfcHTML(next)}</b> ${next === '우승' ? '' : '진출'}` : ''} · 패자 ${rfcHTML(l.name)}</div><div class="text-slate-500">${rfcHTML(p1.name)} ${rfcHTML(p1.elo)}점 · ${rfcHTML(p2.name)} ${rfcHTML(p2.elo)}점 그대로 · 승패·연승 그대로</div></div>`;
         }
